@@ -1,0 +1,1 @@
+class ImageRenderer { const ImageRenderer(); }
