@@ -1,0 +1,1 @@
+class RestoreFromBackupUseCase { const RestoreFromBackupUseCase(); }

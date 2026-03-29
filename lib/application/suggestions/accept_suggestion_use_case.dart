@@ -1,0 +1,1 @@
+class AcceptSuggestionUseCase { const AcceptSuggestionUseCase(); }

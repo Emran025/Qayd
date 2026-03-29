@@ -1,0 +1,1 @@
+class ImportInput { const ImportInput(); }

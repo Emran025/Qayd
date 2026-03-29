@@ -1,0 +1,1 @@
+class AnalyzeForSuggestionsUseCase { const AnalyzeForSuggestionsUseCase(); }

@@ -1,0 +1,1 @@
+class ImportResult { const ImportResult(); }

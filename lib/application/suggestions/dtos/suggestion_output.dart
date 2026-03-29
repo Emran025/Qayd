@@ -1,0 +1,1 @@
+class SuggestionOutput { const SuggestionOutput(); }
