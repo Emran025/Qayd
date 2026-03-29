@@ -1,0 +1,52 @@
+import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
+import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
+import 'package:qayd/core/error/failures.dart';
+
+sealed class VoucherListState {
+  const VoucherListState();
+}
+
+final class VoucherListInitial extends VoucherListState {
+  const VoucherListInitial();
+}
+
+final class VoucherListLoading extends VoucherListState {
+  const VoucherListLoading();
+}
+
+final class VoucherListReady extends VoucherListState {
+  const VoucherListReady({
+    required this.vouchers,
+    required this.searchQuery,
+    required this.advancedFilter,
+    required this.accountNamesById,
+  });
+
+  final List<VoucherSummaryDto> vouchers;
+  final String searchQuery;
+  final AdvancedFilterInput advancedFilter;
+  final Map<String, String> accountNamesById;
+
+  bool get hasActiveQuery =>
+      searchQuery.trim().isNotEmpty || advancedFilter.hasAny;
+
+  VoucherListReady copyWith({
+    List<VoucherSummaryDto>? vouchers,
+    String? searchQuery,
+    AdvancedFilterInput? advancedFilter,
+    Map<String, String>? accountNamesById,
+  }) {
+    return VoucherListReady(
+      vouchers: vouchers ?? this.vouchers,
+      searchQuery: searchQuery ?? this.searchQuery,
+      advancedFilter: advancedFilter ?? this.advancedFilter,
+      accountNamesById: accountNamesById ?? this.accountNamesById,
+    );
+  }
+}
+
+final class VoucherListFailure extends VoucherListState {
+  const VoucherListFailure(this.failure);
+
+  final Failure failure;
+}
