@@ -1,0 +1,1 @@
+class VoucherLocalDataSource { const VoucherLocalDataSource(); }
