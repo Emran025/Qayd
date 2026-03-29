@@ -1,0 +1,40 @@
+import 'package:qayd/data/database/migrations/migration_001.dart';
+import 'package:qayd/data/database/migrations/migration_002_voucher_fts.dart';
+import 'package:qayd/data/database/migrations/migration_003_message_templates.dart';
+import 'package:qayd/data/database/migrations/migration_004_notification_messages.dart';
+import 'package:qayd/data/database/migrations/migration_005_notification_messages_suggestion_columns.dart';
+import 'package:qayd/data/database/migrations/migration_006.dart';
+import 'package:qayd/data/database/migrations/schema_migration.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
+
+/// Ordered migrations; [applyFromTo] runs `up` for versions in (from, to].
+final class MigrationRegistry {
+  MigrationRegistry._();
+
+  static final List<SchemaMigration> _all = [
+    Migration001(),
+    Migration002VoucherFts(),
+    Migration003MessageTemplates(),
+    Migration004NotificationMessages(),
+    Migration005NotificationMessagesSuggestionColumns(),
+    Migration006(),
+  ];
+
+  static List<SchemaMigration> get ordered {
+    final copy = [..._all];
+    copy.sort((a, b) => a.version.compareTo(b.version));
+    return List.unmodifiable(copy);
+  }
+
+  static Future<void> applyFromTo(
+    Database db, {
+    required int fromVersion,
+    required int toVersion,
+  }) async {
+    for (final m in ordered) {
+      if (m.version > fromVersion && m.version <= toVersion) {
+        await m.up(db);
+      }
+    }
+  }
+}

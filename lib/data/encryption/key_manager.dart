@@ -1,0 +1,1 @@
+class KeyManager { const KeyManager(); }
