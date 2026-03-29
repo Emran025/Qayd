@@ -1,0 +1,1 @@
+class CreateReversalVoucherUseCase { const CreateReversalVoucherUseCase(); }

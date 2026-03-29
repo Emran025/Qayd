@@ -1,0 +1,1 @@
+class SettleVoucherUseCase { const SettleVoucherUseCase(); }

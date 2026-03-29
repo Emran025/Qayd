@@ -1,0 +1,1 @@
+class DeleteDraftVoucherUseCase { const DeleteDraftVoucherUseCase(); }
