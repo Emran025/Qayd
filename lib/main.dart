@@ -5,6 +5,7 @@ import 'package:qayd/core/constants/app_constants.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/pages/auth/login_page.dart';
 import 'package:qayd/presentation/pages/governance/governance_host_page.dart';
 import 'package:qayd/presentation/security/app_lock_screen.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
@@ -81,10 +82,18 @@ class QaydApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      home: ValueListenableBuilder<int>(
-        valueListenable: InjectionContainer.databaseEpoch,
-        builder: (context, gen, _) {
-          return GovernanceHostPage(key: ValueKey<int>(gen));
+      home: BlocBuilder<SecurityCubit, SecurityState>(
+        buildWhen: (prev, next) =>
+            prev.licenseStatus != next.licenseStatus,
+        builder: (context, state) {
+          if (state.licenseStatus == LicenseStatus.pending) {
+            return const LoginPage();
+          }
+          return ValueListenableBuilder<int>(
+            valueListenable: InjectionContainer.databaseEpoch,
+            builder: (context, gen, _) =>
+                GovernanceHostPage(key: ValueKey<int>(gen)),
+          );
         },
       ),
     );

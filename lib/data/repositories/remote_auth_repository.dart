@@ -1,21 +1,19 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:qayd/core/constants/api_endpoints.dart';
 import 'package:qayd/core/error/exceptions.dart';
+import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
 
-/// HTTP implementation of [AuthRepository].
+/// HTTP implementation of [AuthRepository] using the Dio-based [ApiClient].
 ///
-/// Connects to `qaydAPI/v1/auth/login`.
+/// All endpoint paths come from [ApiEndpoints] — never hard-coded strings here.
+/// All errors surface as [AuthException] via [ApiClient]'s error interceptor.
 final class RemoteAuthRepository implements AuthRepository {
-  RemoteAuthRepository({
-    required String baseUrl,
-    http.Client? client,
-  })  : _baseUrl = baseUrl.trimRight().replaceAll(RegExp(r'/$'), ''),
-        _client = client ?? http.Client();
+  RemoteAuthRepository({required ApiClient apiClient})
+      : _client = apiClient;
 
-  final String _baseUrl;
-  final http.Client _client;
+  final ApiClient _client;
+
+  // ── AuthRepository ────────────────────────────────────────────────────────
 
   @override
   Future<({String jwt, Map<String, dynamic> licenseData, String serverSalt})>
@@ -23,34 +21,101 @@ final class RemoteAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final uri = Uri.parse('$_baseUrl/api/v1/auth/login');
-    final response = await _client.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-
-    if (response.statusCode == 401) {
-      throw const AuthException('بيانات الدخول غير صحيحة.');
+    try {
+      final data = await _client.post(
+        ApiEndpoints.authLogin,
+        body: {'email': email, 'password': password},
+      );
+      return _parseProvisioningResponse(data);
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
     }
-    if (response.statusCode != 200) {
-      throw AuthException(
-          'خطأ في الخادم (${response.statusCode}). حاول مرة أخرى.');
+  }
+
+  @override
+  Future<({String jwt, Map<String, dynamic> licenseData, String serverSalt})>
+      register({
+    required String name,
+    required String email,
+    required String password,
+    required String deviceId,
+  }) async {
+    try {
+      final data = await _client.post(
+        ApiEndpoints.authRegister,
+        body: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': password,
+          'device_id': deviceId,
+        },
+      );
+      return _parseProvisioningResponse(data);
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
     }
+  }
 
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
-    final token = body['token'] as String? ?? '';
-    final licenseData =
-        (body['license'] as Map<String, dynamic>?) ?? <String, dynamic>{};
-    final serverSalt = body['salt'] as String? ?? '';
+  @override
+  Future<bool> requestPasswordReset({required String email}) async {
+    try {
+      await _client.post(
+        ApiEndpoints.passwordEmail,
+        body: {'email': email},
+      );
+      return true;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
+    }
+  }
 
+  @override
+  Future<bool> confirmPasswordReset({
+    required String email,
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      await _client.post(
+        ApiEndpoints.passwordReset,
+        body: {
+          'email': email,
+          'token': token,
+          'password': newPassword,
+          'password_confirmation': newPassword,
+        },
+      );
+      return true;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
+    }
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  ({String jwt, Map<String, dynamic> licenseData, String serverSalt})
+      _parseProvisioningResponse(Map<String, dynamic> data) {
+    final token = data['token'] as String? ?? '';
     if (token.isEmpty) {
       throw const AuthException('الرد غير صالح: لا يوجد رمز مصادقة.');
     }
-
-    return (jwt: token, licenseData: licenseData, serverSalt: serverSalt);
+    return (
+      jwt: token,
+      licenseData:
+          (data['license'] as Map<String, dynamic>?) ?? <String, dynamic>{},
+      serverSalt: data['salt'] as String? ?? '',
+    );
   }
+
+  String _unknownError(Object e) =>
+      'خطأ غير متوقع: ${e.toString().split('\n').first}';
 }

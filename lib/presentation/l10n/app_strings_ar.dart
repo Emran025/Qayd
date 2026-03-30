@@ -299,6 +299,32 @@ abstract final class AppStringsAr {
   static const String smartSuggestionDate = 'التاريخ';
   static const String smartSuggestionType = 'النوع';
 
+  // ── Auth Pages (Phase 7) ─────────────────────────────────────────────────
+  static const String loginTitle = 'تسجيل الدخول';
+  static const String loginSubtitle = 'أدخل بيانات حسابك للمتابعة';
+  static const String loginAction = 'دخول';
+  static const String forgotPassword = 'نسيت كلمة المرور؟';
+  static const String noAccount = 'ليس لديك حساب؟';
+  static const String createAccount = 'إنشاء حساب جديد';
+  static const String registerTitle = 'إنشاء حساب';
+  static const String registerSubtitle = 'هذا الحساب للمديرين المعتمدين فقط';
+  static const String registerAction = 'إنشاء الحساب';
+  static const String nameHint = 'الاسم الكامل';
+  static const String confirmPasswordHint = 'تأكيد كلمة المرور';
+  static const String passwordMismatch = 'كلمتا المرور غير متطابقتين';
+  static const String invalidEmail = 'البريد الإلكتروني غير صالح';
+  static const String passwordResetTitle = 'استعادة كلمة المرور';
+  static const String passwordResetSubtitle =
+      'أدخل بريدك الإلكتروني لإرسال رابط الاستعادة';
+  static const String passwordResetEmailSent =
+      'تم إرسال رابط الاستعادة إلى بريدك الإلكتروني.';
+  static const String passwordResetAction = 'إرسال رابط الاستعادة';
+  static const String passwordResetNewPassword = 'كلمة المرور الجديدة';
+  static const String passwordResetTokenHint = 'رمز التحقق';
+  static const String passwordResetConfirmAction = 'تعيين كلمة المرور الجديدة';
+  static const String passwordResetSuccess = 'تم تغيير كلمة المرور بنجاح';
+  static const String backToLogin = 'العودة إلى تسجيل الدخول';
+
   static String standardClassificationLabel(String kind) {
     switch (kind) {
       case 'assets':

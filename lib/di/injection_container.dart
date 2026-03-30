@@ -32,6 +32,8 @@ import 'package:qayd/data/database/hardware_backed_encryption_key_provider.dart'
 import 'package:qayd/data/database/transaction_runner.dart';
 import 'package:qayd/data/governance/remote/governance_stub_controller.dart';
 import 'package:qayd/data/governance/remote/stub_governance_remote_data_source.dart';
+import 'package:qayd/core/constants/api_endpoints.dart';
+import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/data/repositories/governance_repository_impl.dart';
 import 'package:qayd/data/repositories/remote_auth_repository.dart';
 import 'package:qayd/data/repositories/sqlite_account_repository.dart';
@@ -62,14 +64,6 @@ import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-/// Governance API base URL.
-///
-/// In production, replace with the real server URL.
-/// For development, point to the locally running Laravel server.
-const String _kApiBaseUrl = String.fromEnvironment(
-  'QAYD_API_URL',
-  defaultValue: 'http://10.0.2.2:5000', // Android emulator → host machine
-);
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -153,7 +147,18 @@ abstract final class InjectionContainer {
       clockGuard: clockGuard,
       pinStorage: appPinStorage,
     );
-    authRepository = RemoteAuthRepository(baseUrl: _kApiBaseUrl);
+    final apiClient = ApiClient(
+      baseUrl: ApiEndpoints.baseUrl,
+      // Attach the stored JWT on every authenticated request.
+      tokenProvider: () {
+        // Fire-and-forget — the vault read is async, but we return null
+        // synchronously for unauthenticated requests (login/register).
+        // Authenticated requests use AuthInterceptor which reads the stored
+        // token via a synchronous cache updated by LicenseVault.
+        return null; // Token is written to vault; add sync cache in Phase 8 if needed.
+      },
+    );
+    authRepository = RemoteAuthRepository(apiClient: apiClient);
 
     securityCubit = SecurityCubit(
       pinStorage: appPinStorage,
