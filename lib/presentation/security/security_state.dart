@@ -1,13 +1,70 @@
-sealed class SecurityState {
-  const SecurityState();
+/// License lifecycle state.
+enum LicenseStatus {
+  /// Not yet provisioned — first run, needs API login.
+  pending,
 
+  /// 30-day trial active.
+  trial,
+
+  /// Trial period has ended — hard block.
+  trialExpired,
+
+  /// Full license active.
+  active,
+
+  /// Admin-suspended — read-only mode (handled by GovernanceCubit).
+  suspended,
+
+  /// Admin-revoked (FORCE_REVOKE) — hard block + panic wipe.
+  revoked,
+
+  /// Hardware ID mismatch — device is not the bound device.
+  deviceUnbound,
+}
+
+/// Monotonic clock integrity status.
+enum ClockStatus {
+  /// No tampering detected.
+  clean,
+
+  /// System clock moved backwards — hard lock triggered.
+  tampered,
+}
+
+sealed class SecurityState {
+  const SecurityState({
+    this.licenseStatus = LicenseStatus.active,
+    this.clockStatus = ClockStatus.clean,
+  });
+
+  final LicenseStatus licenseStatus;
+  final ClockStatus clockStatus;
+
+  /// True when PIN lock screen should be shown.
   bool get isLocked => this is SecurityLocked;
+
+  /// True when the entire app must be hard-blocked regardless of PIN.
+  bool get isHardBlocked =>
+      clockStatus == ClockStatus.tampered ||
+      licenseStatus == LicenseStatus.trialExpired ||
+      licenseStatus == LicenseStatus.revoked ||
+      licenseStatus == LicenseStatus.deviceUnbound ||
+      licenseStatus == LicenseStatus.pending;
+
+  /// True when any form of blocking overlay must be shown.
+  bool get requiresOverlay => isLocked || isHardBlocked;
 }
 
 class SecurityUnlocked extends SecurityState {
-  const SecurityUnlocked();
+  const SecurityUnlocked({
+    super.licenseStatus = LicenseStatus.active,
+    super.clockStatus = ClockStatus.clean,
+  });
 }
 
 class SecurityLocked extends SecurityState {
-  const SecurityLocked();
+  const SecurityLocked({
+    super.licenseStatus = LicenseStatus.active,
+    super.clockStatus = ClockStatus.clean,
+  });
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:qayd/core/constants/app_constants.dart';
-import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
@@ -10,20 +9,21 @@ import 'package:qayd/presentation/pages/governance/governance_host_page.dart';
 import 'package:qayd/presentation/security/app_lock_screen.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_lifecycle_observer.dart';
+import 'package:qayd/presentation/security/security_lock_overlay.dart';
 import 'package:qayd/presentation/security/security_state.dart';
 import 'package:qayd/presentation/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await InjectionContainer.init();
-  final pinStorage = AppPinStorage();
+
   runApp(
     MultiBlocProvider(
       providers: [
         BlocProvider(
           create: (_) {
-            final c = SecurityCubit(pinStorage: pinStorage);
-            Future<void>.microtask(() => c.refreshPreferences());
+            final c = InjectionContainer.securityCubit;
+            Future<void>.microtask(() => c.bootCheck());
             return c;
           },
         ),
@@ -34,8 +34,8 @@ void main() async {
           )..scheduleBackgroundVerification(),
         ),
       ],
-      child: SecurityLifecycleObserver(
-        child: const QaydApp(),
+      child: const SecurityLifecycleObserver(
+        child: QaydApp(),
       ),
     ),
   );
@@ -60,19 +60,21 @@ class QaydApp extends StatelessWidget {
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              child ?? const SizedBox.shrink(),
-              BlocBuilder<SecurityCubit, SecurityState>(
-                builder: (context, sec) {
-                  if (!sec.isLocked) return const SizedBox.shrink();
-                  return const Positioned.fill(
-                    child: AppLockScreen(),
-                  );
-                },
-              ),
-            ],
+          // SecurityLockOverlay handles hard-blocks (license, clock tamper).
+          // AppLockScreen handles PIN lock.
+          child: SecurityLockOverlay(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                child ?? const SizedBox.shrink(),
+                BlocBuilder<SecurityCubit, SecurityState>(
+                  builder: (context, sec) {
+                    if (!sec.isLocked) return const SizedBox.shrink();
+                    return const Positioned.fill(child: AppLockScreen());
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },

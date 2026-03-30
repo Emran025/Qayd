@@ -269,6 +269,29 @@ abstract final class AppStringsAr {
   static const String biometricUnlock = 'بصمة أو وجه';
   static const String securityBiometricReason = 'افتح قيد للمتابعة';
 
+  // Phase 7 — Security vault overlay strings
+  static const String vaultPendingTitle = 'مرحباً بك في قيد';
+  static const String vaultPendingBody =
+      'هذا الجهاز غير مفعّل بعد. أدخل بيانات حسابك للمتابعة وربط الترخيص بهذا الجهاز.';
+  static const String vaultTrialExpiredTitle = 'انتهت الفترة التجريبية';
+  static const String vaultTrialExpiredBody =
+      'لقد انتهت فترة الـ 30 يوماً التجريبية. يرجى التواصل مع فريق الدعم للحصول على ترخيص كامل.';
+  static const String vaultRevokedTitle = 'تم إلغاء الترخيص';
+  static const String vaultRevokedBody =
+      'تم إلغاء ترخيص هذا الجهاز من قِبَل المسؤول. تم مسح بيانات الدخول تلقائياً. يرجى التواصل مع الدعم.';
+  static const String vaultDeviceUnboundTitle = 'جهاز غير مصرّح';
+  static const String vaultDeviceUnboundBody =
+      'تم تفعيل هذا الترخيص على جهاز مختلف. لا يمكن تشغيل قيد على أكثر من جهاز واحد في آنٍ واحد.';
+  static const String vaultClockTamperedTitle = 'تلاعب بالساعة مكتشَف';
+  static const String vaultClockTamperedBody =
+      'تم الكشف عن تلاعب في ساعة الجهاز. تم قفل التطبيق حماية للبيانات المالية. أعد ضبط التاريخ والوقت الصحيح ثم أعد تشغيل التطبيق.';
+  static const String vaultContactSupport =
+      'للدعم والاستفسار: support@qayd.app';
+  static const String vaultTrialDaysRemaining = 'يوم متبقٍ في الفترة التجريبية';
+  static const String vaultEmailHint = 'البريد الإلكتروني';
+  static const String vaultPasswordHint = 'كلمة المرور';
+  static const String vaultActivateAction = 'تفعيل الجهاز';
+
   // Auto-suggestions (offline pattern matching)
   static const String smartSuggestionsTitle = 'مقترحات ذكية';
   static const String smartSuggestionAccept = 'قبول';

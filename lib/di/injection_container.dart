@@ -28,10 +28,12 @@ import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/data/backup/backup_service.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
+import 'package:qayd/data/database/hardware_backed_encryption_key_provider.dart';
 import 'package:qayd/data/database/transaction_runner.dart';
 import 'package:qayd/data/governance/remote/governance_stub_controller.dart';
 import 'package:qayd/data/governance/remote/stub_governance_remote_data_source.dart';
 import 'package:qayd/data/repositories/governance_repository_impl.dart';
+import 'package:qayd/data/repositories/remote_auth_repository.dart';
 import 'package:qayd/data/repositories/sqlite_account_repository.dart';
 import 'package:qayd/data/repositories/sqlite_ledger_repository.dart';
 import 'package:qayd/data/repositories/sqlite_message_template_repository.dart';
@@ -42,6 +44,12 @@ import 'package:qayd/data/pdf/cairo_voucher_pdf_generator.dart';
 import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
 import 'package:qayd/data/repositories/sqlite_currency_repository.dart';
 import 'package:qayd/data/repositories/sqlite_voucher_repository.dart';
+import 'package:qayd/data/security/app_pin_storage.dart';
+import 'package:qayd/data/security/hardware_id_service.dart';
+import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/data/security/monotonic_clock_guard.dart';
+import 'package:qayd/data/security/panic_wipe_service.dart';
+import 'package:qayd/domain/repositories/auth_repository.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/repositories/message_template_repository.dart';
 import 'package:qayd/domain/repositories/notification_log_repository.dart';
@@ -50,16 +58,26 @@ import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/services/trial_balance_generator.dart';
+import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-/// Composition root: encrypted DB, repositories, and Phase 1 use cases.
+/// Governance API base URL.
+///
+/// In production, replace with the real server URL.
+/// For development, point to the locally running Laravel server.
+const String _kApiBaseUrl = String.fromEnvironment(
+  'QAYD_API_URL',
+  defaultValue: 'http://10.0.2.2:5000', // Android emulator → host machine
+);
+
+/// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
   static final UuidV4IdGenerator _idGenerator = UuidV4IdGenerator();
 
   static late DatabaseEncryptionKeyProvider _encryptionKeyProvider;
 
-  /// Bumps after [reopenDatabaseAfterRestore] so the UI tree can rebuild and pick up new repos.
+  /// Bumps after [reopenDatabaseAfterRestore] so the UI tree can rebuild.
   static final ValueNotifier<int> databaseEpoch = ValueNotifier<int>(0);
 
   /// Not `final`: replaced after a successful restore ([reopenDatabaseAfterRestore]).
@@ -67,10 +85,27 @@ abstract final class InjectionContainer {
 
   static late final BackupService backupService;
 
+  // ── Phase 7: Security services ─────────────────────────────────────────────
+
+  static late final AppPinStorage appPinStorage;
+  static late final LicenseVault licenseVault;
+  static late final HardwareIdService hardwareIdService;
+  static late final MonotonicClockGuard clockGuard;
+  static late final PanicWipeService panicWipeService;
+  static late final AuthRepository authRepository;
+
+  /// The unified security cubit — shared by [main.dart].
+  static late final SecurityCubit securityCubit;
+
+  // ── Governance ─────────────────────────────────────────────────────────────
+
   static late final GovernanceStubController governanceStubController;
   static late final CheckGovernanceStatusUseCase checkGovernanceStatusUseCase;
   static late final SubmitActivationUseCase submitActivationUseCase;
   static late final GovernanceWriteGuard governanceWriteGuard;
+
+  // ── Accounting use cases ───────────────────────────────────────────────────
+
   static late final CreateAccountUseCase createAccountUseCase;
   static late final BatchImportAccountsFromCsvUseCase
       batchImportAccountsFromCsvUseCase;
@@ -107,10 +142,40 @@ abstract final class InjectionContainer {
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
   }) async {
-    _encryptionKeyProvider =
-        encryptionKeyProvider ?? const DevelopmentDatabaseEncryptionKeyProvider();
+    // ── Phase 7: Security bootstrap ─────────────────────────────────────────
+
+    appPinStorage = AppPinStorage();
+    licenseVault = LicenseVault();
+    hardwareIdService = HardwareIdService();
+    clockGuard = MonotonicClockGuard();
+    panicWipeService = PanicWipeService(
+      licenseVault: licenseVault,
+      clockGuard: clockGuard,
+      pinStorage: appPinStorage,
+    );
+    authRepository = RemoteAuthRepository(baseUrl: _kApiBaseUrl);
+
+    securityCubit = SecurityCubit(
+      pinStorage: appPinStorage,
+      licenseVault: licenseVault,
+      hardwareIdService: hardwareIdService,
+      clockGuard: clockGuard,
+      panicWipeService: panicWipeService,
+      authRepository: authRepository,
+    );
+
+    // ── Encryption key provider ─────────────────────────────────────────────
+
+    _encryptionKeyProvider = encryptionKeyProvider ??
+        HardwareBackedEncryptionKeyProvider(
+          hardwareIdService: hardwareIdService,
+          licenseVault: licenseVault,
+        );
+
     backupService = BackupService(keyProvider: _encryptionKeyProvider);
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
+
+    // ── Governance ──────────────────────────────────────────────────────────
 
     governanceStubController = GovernanceStubController();
     final governanceRemote = StubGovernanceRemoteDataSource(
