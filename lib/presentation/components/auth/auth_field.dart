@@ -1,0 +1,64 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+
+/// Standardised text field for auth screens (frosted-glass style).
+class AuthField extends StatelessWidget {
+  const AuthField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    this.keyboardType,
+    this.obscureText = false,
+    this.suffixIcon,
+    this.validator,
+    this.accentColor,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final TextInputType? keyboardType;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final FormFieldValidator<String>? validator;
+
+  /// Focus-ring accent color. Defaults to [ColorTokens.emerald500].
+  final Color? accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = accentColor ?? ColorTokens.emerald500;
+    final borderColor = ColorTokens.slate200.withValues(alpha: 0.18);
+    final style = GoogleFonts.cairo(fontSize: 14, color: ColorTokens.slate50);
+
+    return TextFormField(
+      controller: controller,
+      style: style,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      validator: validator,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: style.copyWith(color: ColorTokens.slate400),
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.06),
+        suffixIcon: suffixIcon,
+        errorStyle: GoogleFonts.cairo(fontSize: 12),
+        border: _border(borderColor),
+        enabledBorder: _border(borderColor),
+        focusedBorder: _border(accent.withValues(alpha: 0.7), width: 1.5),
+        errorBorder: _border(ColorTokens.errorSoft.withValues(alpha: 0.7)),
+        focusedErrorBorder:
+            _border(ColorTokens.errorSoft.withValues(alpha: 0.9), width: 1.5),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+    );
+  }
+
+  OutlineInputBorder _border(Color color, {double width = 1.0}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: color, width: width),
+      );
+}

@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/components/auth/auth_components.dart';
+import 'package:qayd/presentation/components/auth/auth_admin_badge.dart';
+import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
+import 'package:qayd/presentation/components/auth/auth_error_banner.dart';
+import 'package:qayd/presentation/components/auth/auth_field.dart';
+import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
+import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
+import 'package:qayd/presentation/components/auth/auth_title_block.dart';
+import 'package:qayd/presentation/components/auth/password_toggle_icon.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
