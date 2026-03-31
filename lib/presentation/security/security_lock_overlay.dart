@@ -59,7 +59,13 @@ class _SecurityLockOverlayState extends State<SecurityLockOverlay>
             if (state.isHardBlocked)
               FadeTransition(
                 opacity: _fadeAnimation,
-                child: _VaultScreen(state: state),
+                child: Overlay(
+                  initialEntries: [
+                    OverlayEntry(
+                      builder: (context) => _VaultScreen(state: state),
+                    ),
+                  ],
+                ),
               ),
           ],
         );

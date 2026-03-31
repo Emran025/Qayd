@@ -386,6 +386,7 @@ class _TemplateListScaffold extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_template_list',
         onPressed: () => _openCreate(context),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,

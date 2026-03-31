@@ -48,8 +48,7 @@ sealed class SecurityState {
       clockStatus == ClockStatus.tampered ||
       licenseStatus == LicenseStatus.trialExpired ||
       licenseStatus == LicenseStatus.revoked ||
-      licenseStatus == LicenseStatus.deviceUnbound ||
-      licenseStatus == LicenseStatus.pending;
+      licenseStatus == LicenseStatus.deviceUnbound;
 
   /// True when any form of blocking overlay must be shown.
   bool get requiresOverlay => isLocked || isHardBlocked;

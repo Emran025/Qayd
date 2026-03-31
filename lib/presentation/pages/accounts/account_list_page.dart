@@ -114,6 +114,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_account_list',
         onPressed: () => _openCreate(),
         icon: const Icon(Icons.add_rounded),
         label: Text(AppStringsAr.addAccountFab),

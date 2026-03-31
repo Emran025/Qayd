@@ -296,6 +296,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_voucher_list',
         onPressed: () => _openCreate(context),
         icon: const Icon(Icons.add_rounded),
         label: Text(AppStringsAr.voucherNewTitle),

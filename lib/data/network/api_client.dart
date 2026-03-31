@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:qayd/core/error/exceptions.dart';
 
 /// Dio-based HTTP client for all qaydAPI v1 requests.
@@ -29,11 +30,11 @@ final class ApiClient {
   final Dio _dio;
 
   static Dio _buildDio(String baseUrl) {
-    return Dio(
+    final dio = Dio(
       BaseOptions(
         baseUrl: baseUrl.trimRight().replaceAll(RegExp(r'/$'), ''),
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: const Duration(seconds: 60),
+        receiveTimeout: const Duration(seconds: 60),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -41,6 +42,18 @@ final class ApiClient {
         responseType: ResponseType.json,
       ),
     );
+
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+      ));
+    }
+
+    return dio;
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────

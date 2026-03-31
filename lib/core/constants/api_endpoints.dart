@@ -14,27 +14,27 @@ abstract final class ApiEndpoints {
   /// Falls back to the Android emulator loopback address in development.
   static const String baseUrl = String.fromEnvironment(
     'QAYD_API_URL',
-    defaultValue: 'http://10.0.2.2:5000',
+    defaultValue: 'https://qayd-qq6w.onrender.com/',
   );
 
   // ── Base prefix ───────────────────────────────────────────────────────────
-  static const String v1 = 'api/v1';
+  static const String v1 = '/api/v1';
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  static const String authLogin    = '$v1/auth/login';
+  static const String authLogin = '$v1/auth/login';
   static const String authRegister = '$v1/auth/register';
-  static const String authLogout   = '$v1/auth/logout';
-  static const String authProfile  = '$v1/account/profile';
+  static const String authLogout = '$v1/auth/logout';
+  static const String authProfile = '$v1/account/profile';
 
   // ── Password recovery ─────────────────────────────────────────────────────
   static const String passwordEmail = '$v1/auth/password/email';
   static const String passwordReset = '$v1/auth/password/reset';
 
   // ── License ───────────────────────────────────────────────────────────────
-  static const String licenseVerify  = '$v1/license/verify';
+  static const String licenseVerify = '$v1/license/verify';
   static const String licenseRefresh = '$v1/license/refresh';
 
   // ── Sync (Phase 8 skeleton) ───────────────────────────────────────────────
-  static const String syncUp   = '$v1/sync/up';
+  static const String syncUp = '$v1/sync/up';
   static const String syncDown = '$v1/sync/down';
 }
