@@ -15,10 +15,12 @@ class AccountCreatePage extends StatefulWidget {
     super.key,
     this.parentAccountId,
     this.parentName,
+    this.parentStandardKind,
   });
 
   final String? parentAccountId;
   final String? parentName;
+  final String? parentStandardKind;
 
   bool get isChild => parentAccountId != null;
 
@@ -31,15 +33,31 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   final _nameController = TextEditingController();
   final _customClassController = TextEditingController();
 
+  final _phoneController = TextEditingController();
+  final _whatsappController = TextEditingController();
+  final _bankInfoController = TextEditingController();
+  final _partyTypeController = TextEditingController();
+
   StandardAccountClassificationKind _standardKind =
-      StandardAccountClassificationKind.assets;
+      StandardAccountClassificationKind.liquidAssets;
   bool _useCustomRootClassification = false;
   AccountNature _customNature = AccountNature.debit;
+
+  bool get _showPartyDetails {
+    if (!widget.isChild) return false;
+    final kind = widget.parentStandardKind;
+    return kind == StandardAccountClassificationKind.receivables.name ||
+           kind == StandardAccountClassificationKind.payables.name;
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _customClassController.dispose();
+    _phoneController.dispose();
+    _whatsappController.dispose();
+    _bankInfoController.dispose();
+    _partyTypeController.dispose();
     super.dispose();
   }
 
@@ -69,6 +87,10 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       customClassificationNature: !widget.isChild && _useCustomRootClassification
           ? _customNature
           : null,
+      phoneNumber: _showPartyDetails ? _phoneController.text.trim() : null,
+      whatsappNumber: _showPartyDetails ? _whatsappController.text.trim() : null,
+      bankAccountInfo: _showPartyDetails ? _bankInfoController.text.trim() : null,
+      partyType: _showPartyDetails ? _partyTypeController.text.trim() : null,
     );
 
     await context.read<AccountCreateCubit>().submit(input);
@@ -199,7 +221,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                   QaydTextField(
                     controller: _nameController,
                     label: AppStringsAr.accountNameLabel,
-                    textInputAction: TextInputAction.done,
+                    textInputAction: _showPartyDetails ? TextInputAction.next : TextInputAction.done,
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
                         return AppStringsAr.accountNameRequired;
@@ -208,6 +230,42 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     },
                   ),
                   const SizedBox(height: SpacingTokens.xl),
+
+                  if (_showPartyDetails) ...[
+                    QaydText(
+                      AppStringsAr.partyDetailsSection,
+                      slot: QaydTextStyleSlot.titleMedium,
+                    ),
+                    const SizedBox(height: SpacingTokens.md),
+                    QaydTextField(
+                      controller: _phoneController,
+                      label: AppStringsAr.partyPhoneLabel,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: SpacingTokens.sm),
+                    QaydTextField(
+                      controller: _whatsappController,
+                      label: AppStringsAr.partyWhatsappLabel,
+                      keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: SpacingTokens.sm),
+                    QaydTextField(
+                      controller: _bankInfoController,
+                      label: AppStringsAr.partyBankInfoLabel,
+                      maxLines: 2,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: SpacingTokens.sm),
+                    QaydTextField(
+                      controller: _partyTypeController,
+                      label: AppStringsAr.partyTypeLabel,
+                      textInputAction: TextInputAction.done,
+                    ),
+                    const SizedBox(height: SpacingTokens.xl),
+                  ],
+
                   FilledButton(
                     onPressed: submitting ? null : _submit,
                     style: FilledButton.styleFrom(

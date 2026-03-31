@@ -1,5 +1,6 @@
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/account.dart';
+import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 
 /// Persistence port for the chart of accounts.
@@ -19,4 +20,8 @@ abstract interface class AccountRepository {
   Future<Result<void>> delete(AccountId id);
 
   Future<Result<bool>> exists(AccountId id);
+
+  Future<Result<void>> savePartyDetails(PartyDetails details);
+
+  Future<Result<PartyDetails?>> getPartyDetails(AccountId id);
 }

@@ -12,34 +12,28 @@ final class AccountClassification {
           'Either standard or custom classification',
         );
 
-  /// Standard: الأصول
-  static const AccountClassification assets = AccountClassification._(
-    standardKind: StandardAccountClassificationKind.assets,
+  /// Standard: نقدية (Liquid Assets)
+  static const AccountClassification liquidAssets = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.liquidAssets,
     defaultNature: AccountNature.debit,
   );
 
-  /// Standard: الالتزامات
-  static const AccountClassification liabilities = AccountClassification._(
-    standardKind: StandardAccountClassificationKind.liabilities,
-    defaultNature: AccountNature.credit,
-  );
-
-  /// Standard: حقوق الملكية
-  static const AccountClassification equity = AccountClassification._(
-    standardKind: StandardAccountClassificationKind.equity,
-    defaultNature: AccountNature.credit,
-  );
-
-  /// Standard: الإيرادات
-  static const AccountClassification income = AccountClassification._(
-    standardKind: StandardAccountClassificationKind.income,
-    defaultNature: AccountNature.credit,
-  );
-
-  /// Standard: المصروفات
-  static const AccountClassification expenses = AccountClassification._(
-    standardKind: StandardAccountClassificationKind.expenses,
+  /// Standard: ذمم مدينة (Receivables)
+  static const AccountClassification receivables = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.receivables,
     defaultNature: AccountNature.debit,
+  );
+
+  /// Standard: ذمم دائنة (Payables)
+  static const AccountClassification payables = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.payables,
+    defaultNature: AccountNature.credit,
+  );
+
+  /// Standard: تسوية وشخصي (Settlements)
+  static const AccountClassification settlements = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.settlements,
+    defaultNature: AccountNature.credit,
   );
 
   final StandardAccountClassificationKind? standardKind;

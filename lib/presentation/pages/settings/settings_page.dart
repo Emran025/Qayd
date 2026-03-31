@@ -466,7 +466,7 @@ class SettingsPage extends StatelessWidget {
       return;
     }
     final rows = parsed.valueOrNull!;
-    var defaultKind = StandardAccountClassificationKind.expenses;
+    var defaultKind = StandardAccountClassificationKind.settlements;
 
     final preview = await showDialog<bool>(
       context: context,

@@ -11,6 +11,10 @@ class GetAccountDetailsOutput {
     required this.createdAtIso,
     this.standardClassificationKind,
     this.customClassificationName,
+    this.phoneNumber,
+    this.whatsappNumber,
+    this.bankAccountInfo,
+    this.partyType,
   });
 
   final String accountId;
@@ -26,4 +30,9 @@ class GetAccountDetailsOutput {
   final String createdAtIso;
   final String? standardClassificationKind;
   final String? customClassificationName;
+
+  final String? phoneNumber;
+  final String? whatsappNumber;
+  final String? bankAccountInfo;
+  final String? partyType;
 }

@@ -7,6 +7,7 @@ import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
+import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
@@ -30,58 +31,63 @@ class CreateAccountUseCase {
       }
       final id = AccountId(_idGenerator.next());
       final now = DateTime.now();
+      final Account account;
       if (input.parentAccountId == null) {
         _validateRootClassification(input);
         final classification = _rootClassification(input);
-        final account = Account.createRoot(
+        account = Account.createRoot(
           id: id,
           name: input.name,
           classification: classification,
           createdAt: now,
           isDefault: input.isDefault,
         );
-        final saved = await _accountRepository.save(account);
-        return saved.fold(
-          (f) => FailureResult(f),
-          (_) => Success(
-            CreateAccountOutput(
-              accountId: account.id.value,
-              name: account.name,
-              natureCode: _natureCode(account),
-              isRoot: account.isRoot,
-              parentAccountId: account.parentId?.value,
-              createdAtIso: account.createdAt.toIso8601String(),
-            ),
-          ),
+      } else {
+        final parentR = await _accountRepository.getById(
+          AccountId(input.parentAccountId!),
+        );
+        if (parentR.isFailure) {
+          return FailureResult(parentR.failureOrNull!);
+        }
+        final parent = parentR.valueOrNull!;
+        account = Account.createChild(
+          id: id,
+          name: input.name,
+          parent: parent,
+          createdAt: now,
+          isDefault: input.isDefault,
         );
       }
 
-      final parentR = await _accountRepository.getById(
-        AccountId(input.parentAccountId!),
-      );
-      if (parentR.isFailure) {
-        return FailureResult(parentR.failureOrNull!);
+      final saved = await _accountRepository.save(account);
+      if (saved.isFailure) {
+        return FailureResult(saved.failureOrNull!);
       }
-      final parent = parentR.valueOrNull!;
-      final child = Account.createChild(
-        id: id,
-        name: input.name,
-        parent: parent,
-        createdAt: now,
-        isDefault: input.isDefault,
-      );
-      final saved = await _accountRepository.save(child);
-      return saved.fold(
-        (f) => FailureResult(f),
-        (_) => Success(
-          CreateAccountOutput(
-            accountId: child.id.value,
-            name: child.name,
-            natureCode: _natureCode(child),
-            isRoot: child.isRoot,
-            parentAccountId: child.parentId?.value,
-            createdAtIso: child.createdAt.toIso8601String(),
-          ),
+
+      final hasPartyDetails = input.phoneNumber?.isNotEmpty == true ||
+          input.whatsappNumber?.isNotEmpty == true ||
+          input.bankAccountInfo?.isNotEmpty == true ||
+          input.partyType?.isNotEmpty == true;
+
+      if (hasPartyDetails) {
+        final partyDetails = PartyDetails(
+          accountId: id,
+          phoneNumber: input.phoneNumber,
+          whatsappNumber: input.whatsappNumber,
+          bankAccountInfo: input.bankAccountInfo,
+          partyType: input.partyType,
+        );
+        await _accountRepository.savePartyDetails(partyDetails);
+      }
+
+      return Success(
+        CreateAccountOutput(
+          accountId: account.id.value,
+          name: account.name,
+          natureCode: _natureCode(account),
+          isRoot: account.isRoot,
+          parentAccountId: account.parentId?.value,
+          createdAtIso: account.createdAt.toIso8601String(),
         ),
       );
     } catch (e, _) {
@@ -108,16 +114,14 @@ class CreateAccountUseCase {
     final k = input.rootStandardKind;
     if (k != null) {
       switch (k) {
-        case StandardAccountClassificationKind.assets:
-          return AccountClassification.assets;
-        case StandardAccountClassificationKind.liabilities:
-          return AccountClassification.liabilities;
-        case StandardAccountClassificationKind.equity:
-          return AccountClassification.equity;
-        case StandardAccountClassificationKind.income:
-          return AccountClassification.income;
-        case StandardAccountClassificationKind.expenses:
-          return AccountClassification.expenses;
+        case StandardAccountClassificationKind.settlements:
+          return AccountClassification.settlements;
+        case StandardAccountClassificationKind.payables:
+          return AccountClassification.payables;
+        case StandardAccountClassificationKind.receivables:
+          return AccountClassification.receivables;
+        case StandardAccountClassificationKind.liquidAssets:
+          return AccountClassification.liquidAssets;
       }
     }
     return AccountClassification.custom(

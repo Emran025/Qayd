@@ -50,7 +50,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
     super.dispose();
   }
 
-  Future<void> _openCreate({String? parentId, String? parentName}) async {
+  Future<void> _openCreate({String? parentId, String? parentName, String? parentStandardKind}) async {
     final created = await Navigator.of(context).push<bool>(
       QaydPageRoute.slideFromStart<bool>(
         builder: (ctx) => BlocProvider(
@@ -60,6 +60,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
           child: AccountCreatePage(
             parentAccountId: parentId,
             parentName: parentName,
+            parentStandardKind: parentStandardKind,
           ),
         ),
       ),
@@ -223,6 +224,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                       onAddChild: (dto) => _openCreate(
                         parentId: dto.id,
                         parentName: dto.name,
+                        parentStandardKind: dto.standardClassificationKind,
                       ),
                     ),
                 };
@@ -437,14 +439,15 @@ class _AccountCard extends StatelessWidget {
                             ),
                         ],
                       ),
-                      IconButton(
-                        tooltip: AppStringsAr.addChildAccountTooltip,
-                        icon: Icon(
-                          Icons.add_circle_outline_rounded,
-                          color: custom.goldAccent,
+                      if (dto.isRoot)
+                        IconButton(
+                          tooltip: AppStringsAr.addChildAccountTooltip,
+                          icon: Icon(
+                            Icons.add_circle_outline_rounded,
+                            color: custom.goldAccent,
+                          ),
+                          onPressed: onAddChild,
                         ),
-                        onPressed: onAddChild,
-                      ),
                     ],
                   ),
                 ],

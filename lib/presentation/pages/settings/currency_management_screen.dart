@@ -7,7 +7,8 @@ class CurrencyManagementScreen extends StatefulWidget {
   const CurrencyManagementScreen({super.key});
 
   @override
-  State<CurrencyManagementScreen> createState() => _CurrencyManagementScreenState();
+  State<CurrencyManagementScreen> createState() =>
+      _CurrencyManagementScreenState();
 }
 
 class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
@@ -29,16 +30,14 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Deep Navy
       appBar: AppBar(
         title: const Text(
           'إدارة العملات',
-          style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
       ),
       body: FutureBuilder<List<Object>>(
         future: Future.wait([_currenciesFuture, _baseCurrencyFuture]),
@@ -66,26 +65,29 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: scheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
                   border: isBase
-                      ? Border.all(color: const Color(0xFF38BDF8), width: 1.5)
+                      ? Border.all(color: scheme.primary, width: 1.5)
                       : null,
                 ),
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   leading: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: isBase
-                          ? const Color(0xFF38BDF8).withOpacity(0.1)
-                          : Colors.white.withOpacity(0.05),
+                          ? scheme.primary.withOpacity(0.1)
+                          : scheme.onSurface.withOpacity(0.05),
                       shape: BoxShape.circle,
                     ),
                     child: Text(
                       c.symbol,
                       style: TextStyle(
-                        color: isBase ? const Color(0xFF38BDF8) : Colors.white,
+                        color: isBase ? scheme.primary : scheme.onSurface,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -93,31 +95,32 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                   ),
                   title: Text(
                     c.nameAr,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: scheme.onSurface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   subtitle: Text(
                     c.code,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: scheme.onSurfaceVariant,
                       fontSize: 12,
                     ),
                   ),
                   trailing: isBase
                       ? Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF38BDF8).withOpacity(0.1),
+                            color: scheme.primary.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text(
+                          child: Text(
                             'العملة الأساسية',
                             style: TextStyle(
-                              color: const Color(0xFF38BDF8),
-                              fontFamily: 'Cairo',
+                              color: scheme.primary,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -125,16 +128,18 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                         )
                       : TextButton(
                           onPressed: () async {
-                            final res = await InjectionContainer.setBaseCurrencyUseCase(c.code);
+                            final res =
+                                await InjectionContainer.setBaseCurrencyUseCase(
+                                  c.code,
+                                );
                             if (res.isSuccess) {
                               _refresh();
                             }
                           },
-                          child: const Text(
+                          child: Text(
                             'تعيين كأساسية',
                             style: TextStyle(
-                              fontFamily: 'Cairo',
-                              color: Color(0xFF38BDF8),
+                              color: scheme.primary,
                               fontSize: 12,
                             ),
                           ),

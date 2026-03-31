@@ -209,12 +209,13 @@ class SecurityCubit extends Cubit<SecurityState> {
     required String password,
   }) async {
     try {
+      final hardwareId = await _hardwareIdService.obtainHardwareId();
+
       final result = await _authRepository.login(
         email: email,
         password: password,
+        deviceId: hardwareId,
       );
-
-      final hardwareId = await _hardwareIdService.obtainHardwareId();
 
       await _licenseVault.writeJwt(result.jwt);
       await _licenseVault.writeLicenseData(result.licenseData);

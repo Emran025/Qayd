@@ -46,6 +46,10 @@ class GetAccountDetailsUseCase {
           parentName = p.valueOrNull!.name;
         }
       }
+
+      final partyDetailsR = await _accountRepository.getPartyDetails(account.id);
+      final partyDetails = partyDetailsR.valueOrNull;
+
       return Success(
         GetAccountDetailsOutput(
           accountId: account.id.value,
@@ -59,6 +63,10 @@ class GetAccountDetailsUseCase {
           createdAtIso: account.createdAt.toIso8601String(),
           standardClassificationKind: account.classification.standardKind?.name,
           customClassificationName: account.classification.customName,
+          phoneNumber: partyDetails?.phoneNumber,
+          whatsappNumber: partyDetails?.whatsappNumber,
+          bankAccountInfo: partyDetails?.bankAccountInfo,
+          partyType: partyDetails?.partyType,
         ),
       );
     } catch (e, _) {

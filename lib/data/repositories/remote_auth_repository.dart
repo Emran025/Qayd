@@ -20,11 +20,12 @@ final class RemoteAuthRepository implements AuthRepository {
       login({
     required String email,
     required String password,
+    required String deviceId,
   }) async {
     try {
       final data = await _client.post(
         ApiEndpoints.authLogin,
-        body: {'email': email, 'password': password},
+        body: {'email': email, 'password': password, 'device_id': deviceId},
       );
       return _parseProvisioningResponse(data);
     } on AuthException {

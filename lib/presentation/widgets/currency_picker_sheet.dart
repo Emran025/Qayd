@@ -32,9 +32,11 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh, // Using defined theme
+        color: scheme.surfaceContainerHigh,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(32),
           topRight: Radius.circular(32),
@@ -50,7 +52,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+                color: scheme.onSurfaceVariant.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -62,8 +64,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-              fontFamily: 'Cairo',
+              color: scheme.onSurface,
             ),
           ),
           const SizedBox(height: 20),
@@ -89,28 +90,48 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: isSelected ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.surface,
+                        color: scheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(16),
-                        border: isSelected ? Border.all(color: Theme.of(context).colorScheme.primary) : null,
+                        border: isSelected
+                            ? Border.all(color: scheme.primary, width: 1.5)
+                            : null,
                       ),
                       child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(c.symbol, style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer)),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? scheme.primary.withOpacity(0.1)
+                                : scheme.onSurface.withOpacity(0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            c.symbol,
+                            style: TextStyle(
+                              color: isSelected ? scheme.primary : scheme.onSurface,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
                         ),
                         title: Text(
                           c.nameAr,
                           textAlign: TextAlign.right,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontFamily: 'Cairo',
+                            color: scheme.onSurface,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         subtitle: Text(
                           c.code,
                           textAlign: TextAlign.right,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          style: TextStyle(color: scheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
                         ),
                         onTap: () => Navigator.pop(context, c),
                       ),

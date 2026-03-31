@@ -38,6 +38,7 @@ final class ApiClient {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'Accept-Language': 'ar',
         },
         responseType: ResponseType.json,
       ),
@@ -156,15 +157,13 @@ final class _ErrorInterceptor extends Interceptor {
     if (statusCode != null) {
       switch (statusCode) {
         case 401:
-          return serverMessage ?? 'بيانات الدخول غير صحيحة.';
+          return 'بيانات الدخول غير صحيحة.';
         case 403:
-          return serverMessage ??
-              'الحساب موقوف أو انتهت فترته التجريبية. تواصل مع المسؤول.';
+          return 'الحساب موقوف أو انتهت فترته التجريبية. تواصل مع المسؤول.';
         case 409:
-          return serverMessage ?? 'البريد الإلكتروني مسجّل مسبقاً.';
+          return 'البريد الإلكتروني مسجّل مسبقاً.';
         case 422:
-          return serverMessage ??
-              'بيانات غير صالحة. تحقق من المدخلات وأعد المحاولة.';
+          return 'بيانات غير صالحة. تحقق من المدخلات وأعد المحاولة.';
         case >= 500:
           return 'خطأ في الخادم. يرجى المحاولة لاحقاً.';
       }

@@ -4,15 +4,13 @@ String standardClassificationKindLabelAr(
   StandardAccountClassificationKind kind,
 ) {
   switch (kind) {
-    case StandardAccountClassificationKind.assets:
-      return 'أصول';
-    case StandardAccountClassificationKind.liabilities:
-      return 'التزامات';
-    case StandardAccountClassificationKind.equity:
-      return 'حقوق ملكية';
-    case StandardAccountClassificationKind.income:
-      return 'إيرادات';
-    case StandardAccountClassificationKind.expenses:
-      return 'مصروفات';
+    case StandardAccountClassificationKind.liquidAssets:
+      return 'نقدية';
+    case StandardAccountClassificationKind.receivables:
+      return 'ذمم مدينة - لي';
+    case StandardAccountClassificationKind.payables:
+      return 'ذمم دائنة - علي';
+    case StandardAccountClassificationKind.settlements:
+      return 'تسوية وشخصي';
   }
 }

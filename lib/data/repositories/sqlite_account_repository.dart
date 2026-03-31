@@ -3,6 +3,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/mappers/account_mapper.dart';
 import 'package:qayd/data/models/account_model.dart';
 import 'package:qayd/domain/entities/account.dart';
+import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -189,6 +190,56 @@ ORDER BY a.name COLLATE NOCASE
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(messageAr: 'تعذر التحقق من وجود الحساب.'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> savePartyDetails(PartyDetails details) async {
+    try {
+      final map = {
+        'account_id': details.accountId.value,
+        'phone_number': details.phoneNumber,
+        'whatsapp_number': details.whatsappNumber,
+        'bank_account_info': details.bankAccountInfo,
+        'party_type': details.partyType,
+      };
+      await _db.insert(
+        'party_details',
+        map,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      return const Success(null);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر حفظ بيانات الطرف.'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<PartyDetails?>> getPartyDetails(AccountId id) async {
+    try {
+      final rows = await _db.query(
+        'party_details',
+        where: 'account_id = ?',
+        whereArgs: [id.value],
+        limit: 1,
+      );
+      if (rows.isEmpty) {
+        return const Success(null);
+      }
+      final row = rows.first;
+      return Success(PartyDetails(
+        accountId: id,
+        phoneNumber: row['phone_number'] as String?,
+        whatsappNumber: row['whatsapp_number'] as String?,
+        bankAccountInfo: row['bank_account_info'] as String?,
+        partyType: row['party_type'] as String?,
+      ));
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر قراءة بيانات الطرف.'),
       );
     }
   }

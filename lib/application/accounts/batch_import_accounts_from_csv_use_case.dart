@@ -52,14 +52,14 @@ final class BatchImportAccountsFromCsvUseCase {
         h == 'dr' ||
         h == 'd' ||
         h == 'مديني') {
-      return StandardAccountClassificationKind.expenses;
+      return StandardAccountClassificationKind.receivables;
     }
     if (h == 'دائن' ||
         h == 'credit' ||
         h == 'cr' ||
         h == 'c' ||
         h == 'دائني') {
-      return StandardAccountClassificationKind.income;
+      return StandardAccountClassificationKind.payables;
     }
     return defaultKind;
   }

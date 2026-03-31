@@ -13,6 +13,7 @@ import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart
 import 'package:qayd/presentation/pages/messaging/notification_preview_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_cubit.dart';
 import 'package:qayd/presentation/utils/voucher_pdf_export.dart';
+import 'package:qayd/presentation/utils/voucher_sharing_util.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -20,8 +21,15 @@ import 'package:qayd/presentation/utils/voucher_state_codec.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/presentation/widgets/voucher_qr_dialog.dart';
 
-class VoucherDetailPage extends StatelessWidget {
+class VoucherDetailPage extends StatefulWidget {
   const VoucherDetailPage({super.key});
+
+  @override
+  State<VoucherDetailPage> createState() => _VoucherDetailPageState();
+}
+
+class _VoucherDetailPageState extends State<VoucherDetailPage> {
+  final GlobalKey _boundaryKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +85,18 @@ class VoucherDetailPage extends StatelessWidget {
                   },
                 ),
                 IconButton(
+                  tooltip: AppStringsAr.shareAsTextTooltip,
+                  icon: const Icon(Icons.text_snippet_outlined),
+                  onPressed: () => shareVoucherAsText(state.data),
+                ),
+                IconButton(
+                  tooltip: AppStringsAr.shareAsImageTooltip,
+                  icon: const Icon(Icons.image_outlined),
+                  onPressed: () => shareVoucherAsImage(context, _boundaryKey),
+                ),
+                IconButton(
                   tooltip: AppStringsAr.exportSharePdfTooltip,
-                  icon: const Icon(Icons.share_rounded),
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
                   onPressed: () => shareVoucherAsPdf(context, state.data),
                 ),
                 if (state.data.qrData != null)
@@ -126,7 +144,7 @@ class VoucherDetailPage extends StatelessWidget {
               ),
             VoucherDetailReady(:final data, :final confirming) => Stack(
                 children: [
-                  _VoucherDetailBody(data: data),
+                  _VoucherDetailBody(data: data, boundaryKey: _boundaryKey),
                   if (confirming)
                     const Positioned.fill(
                       child: ColoredBox(
@@ -166,9 +184,10 @@ class VoucherDetailPage extends StatelessWidget {
 }
 
 class _VoucherDetailBody extends StatelessWidget {
-  const _VoucherDetailBody({required this.data});
+  const _VoucherDetailBody({required this.data, required this.boundaryKey});
 
   final GetVoucherDetailsOutput data;
+  final GlobalKey boundaryKey;
 
   @override
   Widget build(BuildContext context) {
@@ -177,9 +196,13 @@ class _VoucherDetailBody extends StatelessWidget {
     final isReceipt = data.typeCode == 'receipt';
     final dateStr = DateFormat.yMMMd('ar').format(DateTime.parse(data.dateIso));
 
-    return ListView(
-      padding: const EdgeInsets.all(SpacingTokens.lg),
-      children: [
+    return RepaintBoundary(
+      key: boundaryKey,
+      child: Container(
+        color: Theme.of(context).colorScheme.surface,
+        child: ListView(
+          padding: const EdgeInsets.all(SpacingTokens.lg),
+          children: [
         Row(
           children: [
             Icon(
@@ -255,7 +278,9 @@ class _VoucherDetailBody extends StatelessWidget {
             label: AppStringsAr.voucherNotesLabel,
             value: data.notes!,
           ),
-      ],
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
@@ -194,6 +196,53 @@ class _DetailBody extends StatelessWidget {
           label: AppStringsAr.createdAtLabel,
           value: created,
         ),
+        if (data.phoneNumber != null || data.whatsappNumber != null || data.bankAccountInfo != null || data.partyType != null) ...[
+          const SizedBox(height: SpacingTokens.lg),
+          QaydText(
+            AppStringsAr.partyDetailsSection,
+            slot: QaydTextStyleSlot.titleMedium,
+            color: scheme.primary,
+          ),
+          const SizedBox(height: SpacingTokens.sm),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(SpacingTokens.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (data.partyType?.isNotEmpty == true)
+                    _MetaRow(label: AppStringsAr.partyTypeLabel, value: data.partyType!),
+                  if (data.phoneNumber?.isNotEmpty == true)
+                    _ActionRow(
+                      icon: Icons.phone,
+                      label: data.phoneNumber!,
+                      actionLabel: AppStringsAr.actionCall,
+                      onTap: () => launchUrl(Uri.parse('tel:${data.phoneNumber}')),
+                    ),
+                  if (data.whatsappNumber?.isNotEmpty == true)
+                    _ActionRow(
+                      icon: Icons.message_rounded,
+                      label: data.whatsappNumber!,
+                      actionLabel: AppStringsAr.actionWhatsApp,
+                      onTap: () => launchUrl(Uri.parse('https://wa.me/${data.whatsappNumber}')),
+                    ),
+                  if (data.bankAccountInfo?.isNotEmpty == true)
+                    _ActionRow(
+                      icon: Icons.account_balance_rounded,
+                      label: data.bankAccountInfo!,
+                      actionLabel: AppStringsAr.actionCopyBank,
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: data.bankAccountInfo!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text(AppStringsAr.bankInfoCopied)),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -233,6 +282,43 @@ class _MetaRow extends StatelessWidget {
               color: valueColor,
               textAlign: TextAlign.end,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    required this.icon,
+    required this.label,
+    required this.actionLabel,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String actionLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: SpacingTokens.md),
+          Expanded(
+            child: QaydText(
+              label,
+              slot: QaydTextStyleSlot.bodyMedium,
+            ),
+          ),
+          TextButton(
+            onPressed: onTap,
+            child: Text(actionLabel),
           ),
         ],
       ),

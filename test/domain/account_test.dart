@@ -19,14 +19,14 @@ void main() {
       final a = Account.createRoot(
         id: id,
         name: '  نقد  ',
-        classification: AccountClassification.expenses,
+        classification: AccountClassification.liquidAssets,
         createdAt: now,
       );
       expect(a.name, 'نقد');
       expect(a.nature, AccountNature.debit);
       expect(a.isRoot, true);
       expect(a.classification.standardKind,
-          StandardAccountClassificationKind.expenses);
+          StandardAccountClassificationKind.liquidAssets);
     });
 
     test('createRoot rejects empty name', () {
@@ -34,7 +34,7 @@ void main() {
         () => Account.createRoot(
           id: id,
           name: '   ',
-          classification: AccountClassification.assets,
+          classification: AccountClassification.liquidAssets,
           createdAt: now,
         ),
         throwsArgumentError,
@@ -45,7 +45,7 @@ void main() {
       final parent = Account.createRoot(
         id: AccountId('p'),
         name: 'أب',
-        classification: AccountClassification.liabilities,
+        classification: AccountClassification.payables,
         createdAt: now,
       );
       final child = Account.createChild(
@@ -63,7 +63,7 @@ void main() {
       final a = Account.createRoot(
         id: id,
         name: 'حساب',
-        classification: AccountClassification.income,
+        classification: AccountClassification.settlements,
         createdAt: now,
       );
       expect(
@@ -78,13 +78,13 @@ void main() {
       final debitRoot = Account.createRoot(
         id: AccountId('d'),
         name: 'مدين',
-        classification: AccountClassification.assets,
+        classification: AccountClassification.liquidAssets,
         createdAt: now,
       );
       final creditRoot = Account.createRoot(
         id: AccountId('cr'),
         name: 'دائن',
-        classification: AccountClassification.liabilities,
+        classification: AccountClassification.payables,
         createdAt: now,
       );
       final child = Account.createChild(
@@ -103,7 +103,7 @@ void main() {
       final a = Account.createRoot(
         id: id,
         name: 'x',
-        classification: AccountClassification.assets,
+        classification: AccountClassification.liquidAssets,
         createdAt: now,
       );
       expect(

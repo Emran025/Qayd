@@ -8,6 +8,7 @@ abstract interface class AuthRepository {
       login({
     required String email,
     required String password,
+    required String deviceId,
   });
 
   /// Provisions a new user account (admin-only; not publicly self-registered).

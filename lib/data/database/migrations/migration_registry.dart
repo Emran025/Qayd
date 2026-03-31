@@ -4,6 +4,7 @@ import 'package:qayd/data/database/migrations/migration_003_message_templates.da
 import 'package:qayd/data/database/migrations/migration_004_notification_messages.dart';
 import 'package:qayd/data/database/migrations/migration_005_notification_messages_suggestion_columns.dart';
 import 'package:qayd/data/database/migrations/migration_006.dart';
+import 'package:qayd/data/database/migrations/migration_007_party_details.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -18,6 +19,7 @@ final class MigrationRegistry {
     Migration004NotificationMessages(),
     Migration005NotificationMessagesSuggestionColumns(),
     Migration006(),
+    Migration007PartyDetails(),
   ];
 
   static List<SchemaMigration> get ordered {

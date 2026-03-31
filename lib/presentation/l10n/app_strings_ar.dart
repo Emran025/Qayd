@@ -41,7 +41,8 @@ abstract final class AppStringsAr {
   static const String retryAction = 'إعادة المحاولة';
   static const String refreshBalanceTooltip = 'تحديث الرصيد';
   static const String accountsEmpty = 'لا توجد حسابات بعد.';
-  static const String accountsEmptyFiltered = 'لا نتائج مطابقة للبحث أو التصفية.';
+  static const String accountsEmptyFiltered =
+      'لا نتائج مطابقة للبحث أو التصفية.';
   static const String addChildAccountTooltip = 'إضافة حساب فرعي';
 
   // Accounts — detail
@@ -66,10 +67,22 @@ abstract final class AppStringsAr {
   static const String standardClassificationTab = 'قياسي';
   static const String customClassificationTab = 'مخصص';
   static const String customClassificationNameLabel = 'اسم التصنيف المخصص';
-  static const String customClassificationNameRequired = 'يرجى إدخال اسم التصنيف.';
+  static const String customClassificationNameRequired =
+      'يرجى إدخال اسم التصنيف.';
   static const String customNatureLabel = 'طبيعة التصنيف';
   static const String saveAccount = 'حفظ';
   static const String accountCreatedSuccess = 'تم إنشاء الحساب بنجاح.';
+  static const String partyDetailsSection = 'بيانات الطرف (اختياري)';
+  static const String partyPhoneLabel = 'رقم الهاتف';
+  static const String partyWhatsappLabel = 'رقم الواتساب';
+  static const String partyBankInfoLabel = 'بيانات الحساب البنكي (مثل الكريمي)';
+  static const String partyTypeLabel = 'نوع الطرف (صديق، مورد، الخ)';
+  static const String actionCall = 'اتصال';
+  static const String actionWhatsApp = 'واتساب';
+  static const String actionCopyBank = 'نسخ الحساب';
+  static const String bankInfoCopied = 'تم نسخ بيانات الحساب البنكي.';
+  static const String shareAsTextTooltip = 'مشاركة كنص';
+  static const String shareAsImageTooltip = 'مشاركة كصورة';
 
   static const String classificationOther = 'تصنيف آخر';
 
@@ -93,8 +106,7 @@ abstract final class AppStringsAr {
   // Vouchers
   static const String pickAccountTitle = 'اختر حساباً';
   static const String voucherListTitle = 'سندات القبض والصرف';
-  static const String voucherSearchHint =
-      'بحث بالبيان أو الرقم أو المرجع…';
+  static const String voucherSearchHint = 'بحث بالبيان أو الرقم أو المرجع…';
   static const String voucherFilterSheetTitle = 'تصفية السندات';
   static const String voucherFilterApply = 'تطبيق';
   static const String voucherFilterClearFields = 'مسح الحقول';
@@ -121,11 +133,14 @@ abstract final class AppStringsAr {
   static const String voucherAmountLabel = 'المبلغ';
   static const String voucherDateLabel = 'تاريخ السند';
   static const String voucherDescriptionLabel = 'البيان (اختياري)';
-  static const String voucherPickAffectedHint = 'اختر الحساب المتأثر (مثل النقدية)';
+  static const String voucherPickAffectedHint =
+      'اختر الحساب المتأثر (مثل النقدية)';
   static const String voucherPickCounterpartyHint = 'اختر الطرف (مثل المورد)';
-  static const String voucherAmountRequired = 'يرجى إدخال مبلغ صالح أكبر من صفر.';
+  static const String voucherAmountRequired =
+      'يرجى إدخال مبلغ صالح أكبر من صفر.';
   static const String voucherSelectBothAccounts = 'يرجى اختيار الحسابين.';
-  static const String voucherDifferentAccounts = 'لا يمكن اختيار نفس الحساب مرتين.';
+  static const String voucherDifferentAccounts =
+      'لا يمكن اختيار نفس الحساب مرتين.';
   static const String voucherCreatedDraft = 'تم حفظ السند كمسودة.';
   static const String voucherDetailTitle = 'تفاصيل السند';
   static const String voucherConfirmAction = 'تأكيد';
@@ -221,7 +236,8 @@ abstract final class AppStringsAr {
   static const String settingsExportConfirmTitle = 'تأكيد التصدير';
   static const String settingsExportConfirmBody =
       'سيتم إنشاء ملف Excel يحتوي على حساباتك وسنداتك الحالية.';
-  static const String settingsExportVouchersTitle = 'تصدير قائمة السندات (Excel)';
+  static const String settingsExportVouchersTitle =
+      'تصدير قائمة السندات (Excel)';
   static const String settingsExportStatementTitle = 'تصدير كشف حساب (Excel)';
   static const String settingsExportStatementSubtitle =
       'اختر حساباً لتصدير كشفه كاملاً.';
@@ -327,16 +343,14 @@ abstract final class AppStringsAr {
 
   static String standardClassificationLabel(String kind) {
     switch (kind) {
-      case 'assets':
-        return 'الأصول';
-      case 'liabilities':
-        return 'الالتزامات';
-      case 'equity':
-        return 'حقوق الملكية';
-      case 'income':
-        return 'الإيرادات';
-      case 'expenses':
-        return 'المصروفات';
+      case 'liquidAssets':
+        return 'نقدية';
+      case 'receivables':
+        return 'ذمم مدينة - لي';
+      case 'payables':
+        return 'ذمم دائنة - علي';
+      case 'settlements':
+        return 'تسوية وشخصي';
       default:
         return kind;
     }
