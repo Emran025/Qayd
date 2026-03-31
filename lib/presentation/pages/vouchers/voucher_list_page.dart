@@ -109,6 +109,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
         builder: (ctx) => const VoucherQrScannerPage(),
       ),
     );
+    
     if (data != null && context.mounted) {
       final phone = data['counterpartyPhone'] as String?;
       if (phone != null && phone.isNotEmpty) {
