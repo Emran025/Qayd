@@ -40,6 +40,7 @@ final class RemoteAuthRepository implements AuthRepository {
       register({
     required String name,
     required String email,
+    required String phone,
     required String password,
     required String deviceId,
   }) async {
@@ -49,6 +50,7 @@ final class RemoteAuthRepository implements AuthRepository {
         body: {
           'name': name,
           'email': email,
+          'phone': phone,
           'password': password,
           'password_confirmation': password,
           'device_id': deviceId,
@@ -112,7 +114,7 @@ final class RemoteAuthRepository implements AuthRepository {
     return (
       jwt: token,
       licenseData:
-          (data['license'] as Map<String, dynamic>?) ?? <String, dynamic>{},
+          (data['user'] as Map<String, dynamic>?) ?? <String, dynamic>{},
       serverSalt: data['salt'] as String? ?? '',
     );
   }

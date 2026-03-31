@@ -24,4 +24,6 @@ abstract interface class AccountRepository {
   Future<Result<void>> savePartyDetails(PartyDetails details);
 
   Future<Result<PartyDetails?>> getPartyDetails(AccountId id);
+
+  Future<Result<AccountId?>> findAccountByPhone(String phone);
 }

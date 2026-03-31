@@ -25,8 +25,8 @@ class _AppShellPageState extends State<AppShellPage> {
       body: IndexedStack(
         index: _index,
         children: const [
-          AccountListPage(),
           VoucherListPage(),
+          AccountListPage(),
           TrialBalancePage(),
           NotificationTemplatesPage(),
         ],
@@ -37,14 +37,14 @@ class _AppShellPageState extends State<AppShellPage> {
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet_rounded, color: gold),
-            label: AppStringsAr.navAccountsTab,
-          ),
-          NavigationDestination(
             icon: const Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long_rounded, color: gold),
             label: AppStringsAr.navVouchersTab,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet_rounded, color: gold),
+            label: AppStringsAr.navAccountsTab,
           ),
           NavigationDestination(
             icon: const Icon(Icons.table_chart_outlined),

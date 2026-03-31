@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
@@ -80,6 +81,24 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     }
     if (data['description'] != null) {
       _descriptionController.text = data['description'] as String;
+    }
+    if (data['counterpartyAccountId'] != null) {
+      final accId = data['counterpartyAccountId'].toString();
+      _loadAccountSummaryForCounterparty(accId);
+    }
+  }
+
+  Future<void> _loadAccountSummaryForCounterparty(String id) async {
+    final res = await InjectionContainer.listAccountsUseCase.call(
+      const ListAccountsInput(activeOnly: true),
+    );
+    if (res.isSuccess && mounted) {
+      final accounts = res.valueOrNull!.accounts;
+      final acc = accounts.where((a) => a.id == id).firstOrNull;
+      if (acc != null) {
+        setState(() => _counterparty = acc);
+        await context.read<VoucherSuggestionsCubit>().loadForCounterparty(id);
+      }
     }
   }
 

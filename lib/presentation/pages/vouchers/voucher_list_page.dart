@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:qayd/core/result/result.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
@@ -109,6 +110,34 @@ class _VoucherListViewState extends State<_VoucherListView> {
       ),
     );
     if (data != null && context.mounted) {
+      final phone = data['counterpartyPhone'] as String?;
+      if (phone != null && phone.isNotEmpty) {
+        final findResult =
+            await InjectionContainer.findAccountByPhoneUseCase.call(phone);
+        if (findResult.isSuccess) {
+          final accId = findResult.valueOrNull!;
+          data['counterpartyAccountId'] = accId;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('لا يوجد حساب مرتبط برقم الهاتف في الرمز. تم رفض السند.'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('الرمز لا يحتوي على رقم هاتف لمعرفة الحساب. تم رفض السند.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
       final newId = await Navigator.of(context).push<String?>(
         QaydPageRoute.slideFromStart<String?>(
           builder: (ctx) => MultiBlocProvider(

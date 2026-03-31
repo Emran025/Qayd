@@ -243,4 +243,24 @@ ORDER BY a.name COLLATE NOCASE
       );
     }
   }
+
+  @override
+  Future<Result<AccountId?>> findAccountByPhone(String phone) async {
+    try {
+      final rows = await _db.query(
+        'party_details',
+        where: 'phone_number = ?',
+        whereArgs: [phone],
+        limit: 1,
+      );
+      if (rows.isEmpty) {
+        return const Success(null);
+      }
+      return Success(AccountId(rows.first['account_id'] as String));
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر البحث برقم الهاتف.'),
+      );
+    }
+  }
 }

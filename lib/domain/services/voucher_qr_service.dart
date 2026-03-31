@@ -6,7 +6,7 @@ class VoucherQrService {
   const VoucherQrService();
 
   /// Serializes a voucher into a compact base64-encoded JSON string for QR display.
-  String generateQrData(Voucher voucher) {
+  String generateQrData(Voucher voucher, [String? ownerPhone]) {
     final map = {
       'v': 1,
       't': voucher.type == VoucherType.payment ? 'P' : 'R',
@@ -15,6 +15,7 @@ class VoucherQrService {
       'd': voucher.date.toIso8601String().split('T')[0],
       'm': voucher.description,
       'r': voucher.referenceNumber,
+      if (ownerPhone != null && ownerPhone.isNotEmpty) 'p': ownerPhone,
     };
     final jsonStr = json.encode(map);
     return base64.encode(utf8.encode(jsonStr));
@@ -41,6 +42,7 @@ class VoucherQrService {
         'date': DateTime.parse(map['d'] as String),
         'description': map['m'] as String?,
         'referenceNumber': map['r'] as String?,
+        'counterpartyPhone': map['p'] as String?,
       };
     } catch (_) {
       return null;

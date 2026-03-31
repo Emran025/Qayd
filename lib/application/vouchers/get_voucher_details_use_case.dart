@@ -7,17 +7,20 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/data/security/license_vault.dart';
 
 class GetVoucherDetailsUseCase {
   GetVoucherDetailsUseCase(
     this._voucherRepository,
     this._accountRepository,
     this._qrService,
+    this._licenseVault,
   );
 
   final VoucherRepository _voucherRepository;
   final AccountRepository _accountRepository;
   final VoucherQrService _qrService;
+  final LicenseVault _licenseVault;
 
   Future<Result<GetVoucherDetailsOutput>> call(
     GetVoucherDetailsInput input,
@@ -39,6 +42,9 @@ class GetVoucherDetailsUseCase {
 
       final counterpartyName = await nameFor(v.counterpartyId);
       final affectedName = await nameFor(v.affectedAccountId);
+      
+      final licenseData = await _licenseVault.readLicenseData() ?? {};
+      final ownerPhone = (licenseData['user']?['phone'] ?? licenseData['phone']) as String?;
 
       return Success(
         GetVoucherDetailsOutput(
@@ -58,7 +64,7 @@ class GetVoucherDetailsUseCase {
           referenceNumber: v.referenceNumber,
           description: v.description,
           notes: v.notes,
-          qrData: _qrService.generateQrData(v),
+          qrData: _qrService.generateQrData(v, ownerPhone),
           createdAtIso: v.createdAt.toIso8601String(),
           confirmedAtIso: v.confirmedAt?.toIso8601String(),
           settledAtIso: v.settledAt?.toIso8601String(),

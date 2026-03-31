@@ -20,6 +20,7 @@ abstract interface class AuthRepository {
       register({
     required String name,
     required String email,
+    required String phone,
     required String password,
     required String deviceId,
   });

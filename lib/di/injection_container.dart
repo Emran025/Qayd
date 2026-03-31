@@ -21,6 +21,7 @@ import 'package:qayd/application/messaging/save_message_template_use_case.dart';
 import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
+import 'package:qayd/application/accounts/find_account_by_phone_use_case.dart';
 import 'package:qayd/application/vouchers/get_voucher_details_use_case.dart';
 import 'package:qayd/application/vouchers/list_vouchers_use_case.dart';
 import 'package:qayd/application/vouchers/update_draft_voucher_use_case.dart';
@@ -106,6 +107,7 @@ abstract final class InjectionContainer {
   static late final UpdateAccountUseCase updateAccountUseCase;
   static late final DeactivateAccountUseCase deactivateAccountUseCase;
   static late final GetAccountDetailsUseCase getAccountDetailsUseCase;
+  static late final FindAccountByPhoneUseCase findAccountByPhoneUseCase;
   static late final ListAccountsUseCase listAccountsUseCase;
   static late final GetAccountStatementUseCase getAccountStatementUseCase;
   static late final CreateVoucherUseCase createVoucherUseCase;
@@ -247,6 +249,9 @@ abstract final class InjectionContainer {
       ledgerRepository,
       balanceCalculator,
     );
+    findAccountByPhoneUseCase = FindAccountByPhoneUseCase(
+      accountRepository,
+    );
     listAccountsUseCase = ListAccountsUseCase(
       accountRepository,
       ledgerRepository,
@@ -282,6 +287,7 @@ abstract final class InjectionContainer {
       voucherRepository,
       accountRepository,
       voucherQrService,
+      licenseVault,
     );
     generateTrialBalanceUseCase = GenerateTrialBalanceUseCase(
       accountRepository,
