@@ -33,9 +33,9 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E293B), // Navy Lighter
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh, // Using defined theme
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(32),
           topRight: Radius.circular(32),
         ),
@@ -50,19 +50,19 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'اختر العملة',
             textAlign: TextAlign.right,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onSurface,
               fontFamily: 'Cairo',
             ),
           ),
@@ -89,20 +89,20 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF38BDF8).withOpacity(0.1) : Colors.white.withOpacity(0.05),
+                        color: isSelected ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: isSelected ? Border.all(color: const Color(0xFF38BDF8)) : null,
+                        border: isSelected ? Border.all(color: Theme.of(context).colorScheme.primary) : null,
                       ),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Colors.white.withOpacity(0.1),
-                          child: Text(c.symbol, style: const TextStyle(color: Colors.white)),
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                          child: Text(c.symbol, style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer)),
                         ),
                         title: Text(
                           c.nameAr,
                           textAlign: TextAlign.right,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontFamily: 'Cairo',
                             fontWeight: FontWeight.bold,
                           ),
@@ -110,7 +110,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                         subtitle: Text(
                           c.code,
                           textAlign: TextAlign.right,
-                          style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         onTap: () => Navigator.pop(context, c),
                       ),

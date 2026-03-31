@@ -9,16 +9,16 @@ class AuthGradientScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF020617),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF020617), // slate-950
-              Color(0xFF0A1628), // navy-950
-              Color(0xFF020617),
+              Theme.of(context).colorScheme.surfaceContainerLow,
+              Theme.of(context).colorScheme.surfaceContainerHigh,
+              Theme.of(context).colorScheme.surfaceContainerLow,
             ],
           ),
         ),

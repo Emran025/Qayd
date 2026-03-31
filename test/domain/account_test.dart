@@ -103,7 +103,7 @@ void main() {
       final a = Account.createRoot(
         id: id,
         name: 'x',
-        classification: AccountClassification.equity,
+        classification: AccountClassification.assets,
         createdAt: now,
       );
       expect(
