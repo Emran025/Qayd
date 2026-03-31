@@ -6,6 +6,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/attachment_ref.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/domain/value_objects/signature_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
@@ -41,6 +42,10 @@ final class VoucherMapper {
       createdAtIso: voucher.createdAt.toIso8601String(),
       confirmedAtIso: voucher.confirmedAt?.toIso8601String(),
       settledAtIso: voucher.settledAt?.toIso8601String(),
+      signatureHex: voucher.signatureHex,
+      signerPublicKeyHex: voucher.signerPublicKeyHex,
+      signatureStatus: voucher.signatureStatus.name,
+      signerPhone: voucher.signerPhone,
     );
   }
 
@@ -78,6 +83,17 @@ final class VoucherMapper {
           : null,
       settledAt:
           model.settledAtIso != null ? DateTime.parse(model.settledAtIso!) : null,
+      signatureHex: model.signatureHex,
+      signerPublicKeyHex: model.signerPublicKeyHex,
+      signatureStatus: _parseSignatureStatus(model.signatureStatus),
+      signerPhone: model.signerPhone,
     );
+  }
+
+  static SignatureStatus _parseSignatureStatus(String raw) {
+    for (final s in SignatureStatus.values) {
+      if (s.name == raw) return s;
+    }
+    return SignatureStatus.unsigned;
   }
 }

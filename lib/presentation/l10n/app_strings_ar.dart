@@ -355,4 +355,49 @@ abstract final class AppStringsAr {
         return kind;
     }
   }
+
+  // ── Cryptographic Identity (Phase 10) ──────────────────────────────────
+  static const String seedSetupTitle = 'إعداد الهوية الرقمية';
+  static const String seedSetupBody =
+      'تم إنشاء عبارة الاسترداد الخاصة بك. احتفظ بها في مكان آمن — هي الطريقة الوحيدة لاستعادة هويتك الرقمية.';
+  static const String seedBackupWarning =
+      'تحذير: فقدان هذه العبارة يعني فقدان القدرة على توقيع الإيصالات بهذا المفتاح.';
+  static const String seedBackupConfirmTitle = 'تأكيد النسخ الاحتياطي';
+  static const String seedBackupConfirmBody =
+      'اكتب الكلمات التالية للتأكد من حفظك لعبارة الاسترداد.';
+  static const String seedBackupConfirmed = 'تم تأكيد النسخ الاحتياطي بنجاح.';
+  static const String seedRecoveryTitle = 'استعادة الهوية الرقمية';
+  static const String seedRecoveryBody =
+      'أدخل عبارة الاسترداد المكونة من 24 كلمة لاستعادة مفتاح التوقيع.';
+  static const String seedRecoveryAction = 'استعادة المفتاح';
+  static const String seedRecoverySuccess = 'تم استعادة الهوية الرقمية بنجاح.';
+  static const String seedRecoveryInvalid = 'عبارة الاسترداد غير صالحة.';
+  static const String seedWordLabel = 'الكلمة';
+  static const String identitySettingsSection = 'الهوية الرقمية';
+  static const String identityPublicKeyLabel = 'المفتاح العام';
+  static const String identityKeyGenerationLabel = 'جيل المفتاح';
+  static const String identityBackupStatus = 'حالة النسخ الاحتياطي';
+  static const String identityBackupDone = 'تم النسخ الاحتياطي';
+  static const String identityBackupPending = 'لم يتم النسخ الاحتياطي بعد';
+  static const String identityNotSetup = 'لم يتم إعداد الهوية الرقمية';
+  static const String identitySetupAction = 'إعداد الهوية';
+  static const String identityViewSeed = 'عرض عبارة الاسترداد';
+
+  // Signature status labels
+  static const String signatureUnsigned = 'مسودة - بدون توقيع';
+  static const String signatureSigned = 'موقّع - بانتظار التحقق';
+  static const String signatureVerified = 'موثّق';
+  static const String signatureInvalid = 'توقيع غير صالح';
+
+  // Receipt sharing
+  static const String shareReceiptTitle = 'مشاركة الإيصال';
+  static const String shareAsQr = 'رمز QR';
+  static const String shareAsSms = 'رسالة نصية SMS';
+  static const String shareViaWhatsApp = 'واتساب';
+  static const String shareAsPdf = 'مستند PDF';
+  static const String shareAsImage = 'صورة';
+  static const String receiptSignedBy = 'موقّع بواسطة';
+  static const String receiptVerifiedLabel = 'تم التحقق من التوقيع الرقمي';
+  static const String receiptSignatureSection = 'التوقيع الرقمي';
+  static const String receiptPublicKeyLabel = 'مفتاح الموقّع';
 }

@@ -51,10 +51,14 @@ dependencies:
   excel: ^4.0.6
   local_auth: ^3.0.1
   flutter_secure_storage: ^10.0.0
-  crypto: ^3.0.7
+  crypto: ^3.0.7  
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.2.0
   dio: ^5.9.2
+  ed25519_edwards: ^0.3.1
+  hex: ^0.2.0
+  bip39: ^1.0.6
+  pointycastle: ^3.9.1
 
 dev_dependencies:
   flutter_test:

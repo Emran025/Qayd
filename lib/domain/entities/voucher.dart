@@ -6,6 +6,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/attachment_ref.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/domain/value_objects/signature_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
@@ -29,6 +30,10 @@ final class Voucher {
     required this.createdAt,
     required this.confirmedAt,
     required this.settledAt,
+    required this.signatureHex,
+    required this.signerPublicKeyHex,
+    required this.signatureStatus,
+    required this.signerPhone,
   });
 
   final VoucherId id;
@@ -48,6 +53,20 @@ final class Voucher {
   final DateTime? confirmedAt;
   final DateTime? settledAt;
 
+  // ── Digital signature fields ──────────────────────────────────────────────
+
+  /// Ed25519 signature hex (128 chars) or null if unsigned.
+  final String? signatureHex;
+
+  /// Public key of the signer (64 hex chars) or null.
+  final String? signerPublicKeyHex;
+
+  /// Cryptographic verification state of the signature.
+  final SignatureStatus signatureStatus;
+
+  /// Phone number of the signing party (for matching and discovery).
+  final String? signerPhone;
+
   /// Rehydrates a voucher from persistence (data layer); not for new business creates.
   factory Voucher.restore({
     required VoucherId id,
@@ -66,6 +85,10 @@ final class Voucher {
     required DateTime createdAt,
     DateTime? confirmedAt,
     DateTime? settledAt,
+    String? signatureHex,
+    String? signerPublicKeyHex,
+    SignatureStatus signatureStatus = SignatureStatus.unsigned,
+    String? signerPhone,
   }) {
     return Voucher._(
       id: id,
@@ -84,6 +107,10 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       settledAt: settledAt,
+      signatureHex: signatureHex,
+      signerPublicKeyHex: signerPublicKeyHex,
+      signatureStatus: signatureStatus,
+      signerPhone: signerPhone,
     );
   }
 
@@ -101,6 +128,10 @@ final class Voucher {
     List<AttachmentRef> attachmentRefs = const [],
     String? notes,
     List<String> tags = const [],
+    String? signatureHex,
+    String? signerPublicKeyHex,
+    SignatureStatus signatureStatus = SignatureStatus.unsigned,
+    String? signerPhone,
   }) {
     if (counterpartyId == affectedAccountId) {
       throw const SelfCancelingEntryException(
@@ -131,6 +162,10 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: null,
       settledAt: null,
+      signatureHex: signatureHex,
+      signerPublicKeyHex: signerPublicKeyHex,
+      signatureStatus: signatureStatus,
+      signerPhone: signerPhone,
     );
   }
 
@@ -159,6 +194,10 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       settledAt: null,
+      signatureHex: signatureHex,
+      signerPublicKeyHex: signerPublicKeyHex,
+      signatureStatus: signatureStatus,
+      signerPhone: signerPhone,
     );
   }
 
@@ -187,6 +226,41 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       settledAt: settledAt,
+      signatureHex: signatureHex,
+      signerPublicKeyHex: signerPublicKeyHex,
+      signatureStatus: signatureStatus,
+      signerPhone: signerPhone,
+    );
+  }
+
+  /// Attaches a cryptographic signature to a draft voucher.
+  Voucher attachSignature({
+    required String signatureHex,
+    required String signerPublicKeyHex,
+    required SignatureStatus status,
+    String? signerPhone,
+  }) {
+    return Voucher._(
+      id: id,
+      type: type,
+      referenceNumber: referenceNumber,
+      date: date,
+      amount: amount,
+      currency: currency,
+      counterpartyId: counterpartyId,
+      affectedAccountId: affectedAccountId,
+      state: state,
+      description: description,
+      attachmentRefs: attachmentRefs,
+      notes: notes,
+      tags: tags,
+      createdAt: createdAt,
+      confirmedAt: confirmedAt,
+      settledAt: settledAt,
+      signatureHex: signatureHex,
+      signerPublicKeyHex: signerPublicKeyHex,
+      signatureStatus: status,
+      signerPhone: signerPhone ?? this.signerPhone,
     );
   }
 
@@ -251,6 +325,10 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       settledAt: settledAt,
+      signatureHex: this.signatureHex,
+      signerPublicKeyHex: this.signerPublicKeyHex,
+      signatureStatus: this.signatureStatus,
+      signerPhone: this.signerPhone,
     );
   }
 

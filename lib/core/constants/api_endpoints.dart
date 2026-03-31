@@ -34,6 +34,11 @@ abstract final class ApiEndpoints {
   static const String licenseVerify = '$v1/license/verify';
   static const String licenseRefresh = '$v1/license/refresh';
 
+  // ── Identity (Cryptographic key registry) ────────────────────────────────
+  static const String identityRegisterKey = '$v1/identity/register-key';
+  static const String identityLookup = '$v1/identity/lookup';
+  static const String identityLookupBatch = '$v1/identity/lookup-batch';
+
   // ── Sync (Phase 8 skeleton) ───────────────────────────────────────────────
   static const String syncUp = '$v1/sync/up';
   static const String syncDown = '$v1/sync/down';

@@ -22,6 +22,8 @@ import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/application/accounts/find_account_by_phone_use_case.dart';
+import 'package:qayd/application/identity/lookup_public_key_use_case.dart';
+import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/application/vouchers/get_voucher_details_use_case.dart';
 import 'package:qayd/application/vouchers/list_vouchers_use_case.dart';
 import 'package:qayd/application/vouchers/update_draft_voucher_use_case.dart';
@@ -53,15 +55,21 @@ import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/data/security/monotonic_clock_guard.dart';
 import 'package:qayd/data/security/panic_wipe_service.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
+import 'package:qayd/domain/repositories/identity_repository.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/repositories/message_template_repository.dart';
 import 'package:qayd/domain/repositories/notification_log_repository.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
+import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/services/trial_balance_generator.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
+import 'package:qayd/data/security/ed25519_identity_service.dart';
+import 'package:qayd/data/security/mnemonic_vault.dart';
+import 'package:qayd/data/repositories/remote_identity_repository.dart';
+import 'package:qayd/domain/services/crypto_identity_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -91,6 +99,15 @@ abstract final class InjectionContainer {
 
   /// The unified security cubit — shared by [main.dart].
   static late final SecurityCubit securityCubit;
+
+  // ── Cryptographic identity ─────────────────────────────────────────────
+
+  static late final CryptoIdentityService cryptoIdentityService;
+  static late final MnemonicVault mnemonicVault;
+  static late final IdentityRepository identityRepository;
+  static late final SetupIdentityUseCase setupIdentityUseCase;
+  static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
+  static late final ReceiptSigningService receiptSigningService;
 
   // ── Governance ─────────────────────────────────────────────────────────────
 
@@ -169,6 +186,23 @@ abstract final class InjectionContainer {
       clockGuard: clockGuard,
       panicWipeService: panicWipeService,
       authRepository: authRepository,
+    );
+
+    // ── Cryptographic identity ─────────────────────────────────────────────
+
+    cryptoIdentityService = const Ed25519IdentityService();
+    mnemonicVault = MnemonicVault();
+    identityRepository = RemoteIdentityRepository(apiClient: apiClient);
+    setupIdentityUseCase = SetupIdentityUseCase(
+      cryptoService: cryptoIdentityService,
+      mnemonicVault: mnemonicVault,
+      identityRepository: identityRepository,
+    );
+    lookupPublicKeyUseCase = LookupPublicKeyUseCase(
+      identityRepository: identityRepository,
+    );
+    receiptSigningService = ReceiptSigningService(
+      cryptoService: cryptoIdentityService,
     );
 
     // ── Encryption key provider ─────────────────────────────────────────────

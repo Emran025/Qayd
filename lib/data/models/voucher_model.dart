@@ -17,6 +17,10 @@ final class VoucherModel {
     required this.createdAtIso,
     this.confirmedAtIso,
     this.settledAtIso,
+    this.signatureHex,
+    this.signerPublicKeyHex,
+    required this.signatureStatus,
+    this.signerPhone,
   });
 
   final String id;
@@ -35,6 +39,10 @@ final class VoucherModel {
   final String createdAtIso;
   final String? confirmedAtIso;
   final String? settledAtIso;
+  final String? signatureHex;
+  final String? signerPublicKeyHex;
+  final String signatureStatus;
+  final String? signerPhone;
 
   Map<String, Object?> toMap() => {
         'id': id,
@@ -53,6 +61,10 @@ final class VoucherModel {
         'created_at': createdAtIso,
         'confirmed_at': confirmedAtIso,
         'settled_at': settledAtIso,
+        'signature_hex': signatureHex,
+        'signer_public_key_hex': signerPublicKeyHex,
+        'signature_status': signatureStatus,
+        'signer_phone': signerPhone,
       };
 
   factory VoucherModel.fromMap(Map<String, Object?> map) {
@@ -73,6 +85,10 @@ final class VoucherModel {
       createdAtIso: map['created_at']! as String,
       confirmedAtIso: map['confirmed_at'] as String?,
       settledAtIso: map['settled_at'] as String?,
+      signatureHex: map['signature_hex'] as String?,
+      signerPublicKeyHex: map['signer_public_key_hex'] as String?,
+      signatureStatus: (map['signature_status'] as String?) ?? 'unsigned',
+      signerPhone: map['signer_phone'] as String?,
     );
   }
 }
