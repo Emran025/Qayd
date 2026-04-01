@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
+import 'package:qayd/presentation/security/security_state.dart';
+import 'package:qayd/presentation/security/security_lock_overlay.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -96,6 +98,17 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
+              ),
+              BlocBuilder<SecurityCubit, SecurityState>(
+                builder: (context, state) {
+                  if (state.trialDaysRemaining != null) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: SpacingTokens.md),
+                      child: SecurityTrialBadge(days: state.trialDaysRemaining!),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
               const SizedBox(height: SpacingTokens.xl),
               Container(

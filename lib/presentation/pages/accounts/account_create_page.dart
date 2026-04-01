@@ -4,6 +4,7 @@ import 'package:qayd/application/accounts/dtos/create_account_input.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
@@ -50,7 +51,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     if (!widget.isChild) return false;
     final kind = widget.parentStandardKind;
     return kind == StandardAccountClassificationKind.receivables.name ||
-           kind == StandardAccountClassificationKind.payables.name;
+        kind == StandardAccountClassificationKind.payables.name;
   }
 
   @override
@@ -74,7 +75,9 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     if (!widget.isChild && _useCustomRootClassification) {
       if (_customClassController.text.trim().isEmpty) {
         messenger.showSnackBar(
-          SnackBar(content: Text(AppStringsAr.customClassificationNameRequired)),
+          SnackBar(
+            content: Text(AppStringsAr.customClassificationNameRequired),
+          ),
         );
         return;
       }
@@ -89,12 +92,23 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       customClassificationName: !widget.isChild && _useCustomRootClassification
           ? _customClassController.text.trim()
           : null,
-      customClassificationNature: !widget.isChild && _useCustomRootClassification
+      customClassificationNature:
+          !widget.isChild && _useCustomRootClassification
           ? _customNature
           : null,
-      phoneNumber: _showPartyDetails ? (_phoneZoneController.text + _phoneController.text).replaceAll(' ', '').replaceAll('+', '') : null,
-      whatsappNumber: _showPartyDetails ? (_whatsappZoneController.text + _whatsappController.text).replaceAll(' ', '').replaceAll('+', '') : null,
-      bankAccountInfo: _showPartyDetails ? _bankInfoController.text.trim() : null,
+      phoneNumber: _showPartyDetails
+          ? (_phoneZoneController.text + _phoneController.text)
+                .replaceAll(' ', '')
+                .replaceAll('+', '')
+          : null,
+      whatsappNumber: _showPartyDetails
+          ? (_whatsappZoneController.text + _whatsappController.text)
+                .replaceAll(' ', '')
+                .replaceAll('+', '')
+          : null,
+      bankAccountInfo: _showPartyDetails
+          ? _bankInfoController.text.trim()
+          : null,
       partyType: _showPartyDetails ? _partyTypeController.text.trim() : null,
     );
 
@@ -193,7 +207,8 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                             return null;
                           }
                           if (v == null || v.trim().isEmpty) {
-                            return AppStringsAr.customClassificationNameRequired;
+                            return AppStringsAr
+                                .customClassificationNameRequired;
                           }
                           return null;
                         },
@@ -226,7 +241,9 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                   QaydTextField(
                     controller: _nameController,
                     label: AppStringsAr.accountNameLabel,
-                    textInputAction: _showPartyDetails ? TextInputAction.next : TextInputAction.done,
+                    textInputAction: _showPartyDetails
+                        ? TextInputAction.next
+                        : TextInputAction.done,
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
                         return AppStringsAr.accountNameRequired;
@@ -254,7 +271,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                       label: AppStringsAr.partyWhatsappLabel,
                     ),
                     const SizedBox(height: SpacingTokens.sm),
-                    QaydTextField(
+                    QaydNumericField(
                       controller: _bankInfoController,
                       label: AppStringsAr.partyBankInfoLabel,
                       textInputAction: TextInputAction.next,

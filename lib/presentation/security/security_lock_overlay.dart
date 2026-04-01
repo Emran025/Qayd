@@ -131,7 +131,7 @@ class _VaultScreen extends StatelessWidget {
                 ),
                 if (config.trialDaysRemaining != null) ...[
                   const SizedBox(height: SpacingTokens.md),
-                  _TrialBadge(days: config.trialDaysRemaining!),
+                  SecurityTrialBadge(days: config.trialDaysRemaining!),
                 ],
                 const SizedBox(height: SpacingTokens.xl),
                 if (config.showProvisioningButton)
@@ -269,8 +269,8 @@ class _AnimatedIconState extends State<_AnimatedIcon>
   }
 }
 
-class _TrialBadge extends StatelessWidget {
-  const _TrialBadge({required this.days});
+class SecurityTrialBadge extends StatelessWidget {
+  const SecurityTrialBadge({super.key, required this.days});
 
   final int days;
 
