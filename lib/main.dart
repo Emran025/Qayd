@@ -21,14 +21,14 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(
+        BlocProvider<SecurityCubit>(
           create: (_) {
             final c = InjectionContainer.securityCubit;
             Future<void>.microtask(() => c.bootCheck());
             return c;
           },
         ),
-        BlocProvider(
+        BlocProvider<GovernanceCubit>(
           create: (_) => GovernanceCubit(
             InjectionContainer.checkGovernanceStatusUseCase,
             InjectionContainer.submitActivationUseCase,

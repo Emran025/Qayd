@@ -79,13 +79,13 @@ class _VoucherListViewState extends State<_VoucherListView> {
       QaydPageRoute.slideFromStart<String?>(
         builder: (ctx) => MultiBlocProvider(
           providers: [
-            BlocProvider(
+            BlocProvider<VoucherCreateCubit>(
               create: (_) => VoucherCreateCubit(
                 InjectionContainer.createVoucherUseCase,
                 InjectionContainer.createTripartiteTransferUseCase,
               ),
             ),
-            BlocProvider(
+            BlocProvider<VoucherSuggestionsCubit>(
               create: (_) => VoucherSuggestionsCubit(
                 InjectionContainer.getAutoSuggestionsUseCase,
                 InjectionContainer.markNotificationMessageProcessedUseCase,
@@ -145,13 +145,13 @@ class _VoucherListViewState extends State<_VoucherListView> {
         QaydPageRoute.slideFromStart<String?>(
           builder: (ctx) => MultiBlocProvider(
             providers: [
-              BlocProvider(
+              BlocProvider<VoucherCreateCubit>(
                 create: (_) => VoucherCreateCubit(
                   InjectionContainer.createVoucherUseCase,
                   InjectionContainer.createTripartiteTransferUseCase,
                 ),
               ),
-              BlocProvider(
+              BlocProvider<VoucherSuggestionsCubit>(
                 create: (_) => VoucherSuggestionsCubit(
                   InjectionContainer.getAutoSuggestionsUseCase,
                   InjectionContainer.markNotificationMessageProcessedUseCase,
