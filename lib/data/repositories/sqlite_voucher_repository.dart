@@ -328,4 +328,53 @@ final class SqliteVoucherRepository implements VoucherRepository {
       );
     }
   }
+
+  @override
+  Future<Result<void>> saveTripartitePair({
+    required Voucher receiptVoucher,
+    required Voucher paymentVoucher,
+  }) async {
+    try {
+      await _transactionRunner.run((txn) async {
+        await txn.insert(
+          _vouchers,
+          VoucherMapper.toModel(receiptVoucher).toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        await txn.insert(
+          _vouchers,
+          VoucherMapper.toModel(paymentVoucher).toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      });
+      return const Success(null);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر حفظ سندات التحويل الثلاثي. تم التراجع عن العملية.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<Voucher>>> getByTransferGroupId(
+    String transferGroupId,
+  ) async {
+    try {
+      final rows = await _db.query(
+        _vouchers,
+        where: 'transfer_group_id = ?',
+        whereArgs: [transferGroupId],
+        orderBy: 'created_at ASC',
+      );
+      return Success(await _mapVoucherRows(rows));
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر قراءة سندات مجموعة التحويل.',
+        ),
+      );
+    }
+  }
 }

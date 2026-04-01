@@ -80,8 +80,10 @@ class _VoucherListViewState extends State<_VoucherListView> {
         builder: (ctx) => MultiBlocProvider(
           providers: [
             BlocProvider(
-              create: (_) =>
-                  VoucherCreateCubit(InjectionContainer.createVoucherUseCase),
+              create: (_) => VoucherCreateCubit(
+                InjectionContainer.createVoucherUseCase,
+                InjectionContainer.createTripartiteTransferUseCase,
+              ),
             ),
             BlocProvider(
               create: (_) => VoucherSuggestionsCubit(
@@ -144,8 +146,10 @@ class _VoucherListViewState extends State<_VoucherListView> {
           builder: (ctx) => MultiBlocProvider(
             providers: [
               BlocProvider(
-                create: (_) =>
-                    VoucherCreateCubit(InjectionContainer.createVoucherUseCase),
+                create: (_) => VoucherCreateCubit(
+                  InjectionContainer.createVoucherUseCase,
+                  InjectionContainer.createTripartiteTransferUseCase,
+                ),
               ),
               BlocProvider(
                 create: (_) => VoucherSuggestionsCubit(
@@ -529,6 +533,42 @@ class _VoucherTile extends StatelessWidget {
                             QaydBadge(
                               state: voucherStateFromCode(dto.stateCode),
                             ),
+                            if (dto.isTripartite) ...[
+                              const SizedBox(width: SpacingTokens.sm),
+                              Tooltip(
+                                message: AppStringsAr.tripartiteBridgeTooltip,
+                                child: Icon(
+                                  Icons.account_tree_outlined, // Bridge/tree icon
+                                  size: 16,
+                                  color: Theme.of(context)
+                                      .extension<QaydCustomColors>()!
+                                      .goldAccent,
+                                ),
+                              ),
+                            ],
+                            if (dto.isContingent) ...[
+                              const SizedBox(width: SpacingTokens.sm),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: scheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  AppStringsAr.tripartiteContingentBadge,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
+                                        color: scheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: SpacingTokens.xs),

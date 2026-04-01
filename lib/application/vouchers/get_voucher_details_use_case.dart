@@ -46,6 +46,11 @@ class GetVoucherDetailsUseCase {
       final licenseData = await _licenseVault.readLicenseData() ?? {};
       final ownerPhone = (licenseData['user']?['phone'] ?? licenseData['phone']) as String?;
 
+      String? linkedPartyName;
+      if (v.tripartiteMeta?.linkedPartyId != null) {
+        linkedPartyName = await nameFor(v.tripartiteMeta!.linkedPartyId);
+      }
+
       return Success(
         GetVoucherDetailsOutput(
           id: v.id.value,
@@ -68,6 +73,12 @@ class GetVoucherDetailsUseCase {
           createdAtIso: v.createdAt.toIso8601String(),
           confirmedAtIso: v.confirmedAt?.toIso8601String(),
           settledAtIso: v.settledAt?.toIso8601String(),
+          isTripartite: v.isTripartite,
+          tripartiteRole: v.tripartiteMeta?.role.columnValue,
+          linkedPartyId: v.tripartiteMeta?.linkedPartyId.value,
+          linkedPartyName: linkedPartyName,
+          transferGroupId: v.tripartiteMeta?.transferGroupId,
+          isContingent: v.isContingent,
         ),
       );
     } catch (e, _) {

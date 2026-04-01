@@ -9,10 +9,13 @@ class VoucherQrService {
   /// Serializes a voucher into a compact base64-encoded JSON string for QR.
   ///
   /// v2 format includes digital signature fields when present.
+  /// v3 format includes tripartite transfer metadata fields.
   String generateQrData(Voucher voucher, [String? ownerPhone]) {
     final map = <String, dynamic>{
-      // v2 includes signature support.
-      'v': voucher.signatureStatus.hasCryptographicSignature ? 2 : 1,
+      // v3 includes tripartite support, v2 includes signature support.
+      'v': voucher.tripartiteMeta != null
+          ? 3
+          : (voucher.signatureStatus.hasCryptographicSignature ? 2 : 1),
       't': voucher.type == VoucherType.payment ? 'P' : 'R',
       'a': voucher.amount.minorUnits,
       'c': voucher.currency.code,
@@ -25,6 +28,13 @@ class VoucherQrService {
       if (voucher.signatureHex != null) 'sig': voucher.signatureHex,
       if (voucher.signerPublicKeyHex != null) 'pk': voucher.signerPublicKeyHex,
       if (voucher.signerPhone != null) 'sp': voucher.signerPhone,
+      // v3 tripartite fields.
+      if (voucher.tripartiteMeta != null) ...{
+        'tgid': voucher.tripartiteMeta!.transferGroupId,
+        'tgr': voucher.tripartiteMeta!.role.name,
+        'tgl': voucher.tripartiteMeta!.linkedPartyId.value,
+        'tgc': voucher.tripartiteMeta!.isContingent,
+      },
     };
     final jsonStr = json.encode(map);
     return base64.encode(utf8.encode(jsonStr));
@@ -32,14 +42,14 @@ class VoucherQrService {
 
   /// Parses a QR string into a map of suggested fields for a new voucher.
   ///
-  /// Supports both v1 (unsigned) and v2 (signed) formats.
+  /// Supports v1 (unsigned), v2 (signed), and v3 (tripartite) formats.
   Map<String, dynamic>? parseQrData(String data) {
     try {
       final decoded = utf8.decode(base64.decode(data));
       final map = json.decode(decoded) as Map<String, dynamic>;
 
       final version = map['v'] as int? ?? 1;
-      if (version != 1 && version != 2) return null;
+      if (version < 1 || version > 3) return null;
 
       // Reverse role: If they made a Payment, I made a Receipt.
       final sourceType =
@@ -61,13 +71,21 @@ class VoucherQrService {
       };
 
       // v2: include signed receipt data.
-      if (version == 2) {
+      if (version >= 2) {
         result['signatureHex'] = map['sig'] as String?;
         result['signerPublicKeyHex'] = map['pk'] as String?;
         result['signerPhone'] = map['sp'] as String?;
         result['signatureStatus'] = (map['sig'] != null)
             ? SignatureStatus.signed
             : SignatureStatus.unsigned;
+      }
+
+      // v3: include tripartite metadata.
+      if (version >= 3 && map['tgid'] != null) {
+        result['transferGroupId'] = map['tgid'] as String?;
+        result['tripartiteRole'] = map['tgr'] as String?;
+        result['linkedPartyId'] = map['tgl'] as String?;
+        result['isContingent'] = map['tgc'] as bool? ?? false;
       }
 
       return result;

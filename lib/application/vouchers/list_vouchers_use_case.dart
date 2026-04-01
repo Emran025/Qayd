@@ -65,6 +65,10 @@ class ListVouchersUseCase {
                   affectedName:
                       nameById[v.affectedAccountId.value] ??
                       v.affectedAccountId.value,
+                  isTripartite: v.isTripartite,
+                  tripartiteRole: v.tripartiteMeta?.role.columnValue,
+                  linkedPartyId: v.tripartiteMeta?.linkedPartyId.value,
+                  isContingent: v.isContingent,
                 ),
               )
               .toList(growable: false),

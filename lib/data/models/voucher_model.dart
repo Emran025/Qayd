@@ -1,4 +1,4 @@
-/// SQLite projection for [vouchers] (v6 schema — includes currency_code).
+/// SQLite projection for [vouchers] (v10 schema — includes tripartite transfer fields).
 final class VoucherModel {
   const VoucherModel({
     required this.id,
@@ -21,6 +21,10 @@ final class VoucherModel {
     this.signerPublicKeyHex,
     required this.signatureStatus,
     this.signerPhone,
+    this.transferGroupId,
+    this.tripartiteRole,
+    this.linkedPartyId,
+    required this.isContingent,
   });
 
   final String id;
@@ -44,6 +48,12 @@ final class VoucherModel {
   final String signatureStatus;
   final String? signerPhone;
 
+  // Tripartite transfer fields
+  final String? transferGroupId;
+  final String? tripartiteRole;
+  final String? linkedPartyId;
+  final bool isContingent;
+
   Map<String, Object?> toMap() => {
         'id': id,
         'type': type,
@@ -65,6 +75,10 @@ final class VoucherModel {
         'signer_public_key_hex': signerPublicKeyHex,
         'signature_status': signatureStatus,
         'signer_phone': signerPhone,
+        'transfer_group_id': transferGroupId,
+        'tripartite_role': tripartiteRole,
+        'linked_party_id': linkedPartyId,
+        'is_contingent': isContingent ? 1 : 0,
       };
 
   factory VoucherModel.fromMap(Map<String, Object?> map) {
@@ -89,6 +103,10 @@ final class VoucherModel {
       signerPublicKeyHex: map['signer_public_key_hex'] as String?,
       signatureStatus: (map['signature_status'] as String?) ?? 'unsigned',
       signerPhone: map['signer_phone'] as String?,
+      transferGroupId: map['transfer_group_id'] as String?,
+      tripartiteRole: map['tripartite_role'] as String?,
+      linkedPartyId: map['linked_party_id'] as String?,
+      isContingent: (map['is_contingent'] as int?) == 1,
     );
   }
 }

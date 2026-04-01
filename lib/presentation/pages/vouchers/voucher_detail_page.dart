@@ -219,6 +219,23 @@ class _VoucherDetailBody extends StatelessWidget {
             ),
             const SizedBox(width: SpacingTokens.sm),
             QaydBadge(state: voucherStateFromCode(data.stateCode)),
+            if (data.isContingent) ...[
+              const SizedBox(width: SpacingTokens.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  AppStringsAr.tripartiteContingentBadge,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+            ],
           ],
         ),
         const SizedBox(height: SpacingTokens.md),
@@ -263,6 +280,11 @@ class _VoucherDetailBody extends StatelessWidget {
           label: AppStringsAr.counterpartySection,
           value: data.counterpartyName,
         ),
+        if (data.isTripartite) ...[
+          const SizedBox(height: SpacingTokens.sm),
+          _TripartiteFlowDiagram(data: data),
+          const SizedBox(height: SpacingTokens.sm),
+        ],
         if (data.referenceNumber != null && data.referenceNumber!.isNotEmpty)
           _Row(
             label: AppStringsAr.voucherReferenceLabel,
@@ -316,6 +338,165 @@ class _Row extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TripartiteFlowDiagram extends StatelessWidget {
+  const _TripartiteFlowDiagram({required this.data});
+
+  final GetVoucherDetailsOutput data;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
+    final scheme = Theme.of(context).colorScheme;
+
+    // Determine roles based on whether we are looking at the receipt (A->C) or payment (C->B) leg
+    final isReceipt = data.tripartiteRole == 'intermediary_receipt';
+    final sourceName = isReceipt ? data.counterpartyName : data.linkedPartyName ?? '—';
+    final destName = isReceipt ? data.linkedPartyName ?? '—' : data.counterpartyName;
+
+    return Card(
+      color: gold.withValues(alpha: 0.05),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: gold.withValues(alpha: 0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(SpacingTokens.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.account_tree_outlined, size: 18, color: gold),
+                const SizedBox(width: SpacingTokens.sm),
+                QaydText(
+                  AppStringsAr.tripartiteFlowTitle,
+                  slot: QaydTextStyleSlot.labelLarge,
+                  color: gold,
+                ),
+              ],
+            ),
+            const SizedBox(height: SpacingTokens.md),
+            Row(
+              children: [
+                Expanded(
+                  child: _FlowNode(
+                    label: AppStringsAr.tripartiteFlowSource,
+                    name: sourceName,
+                    isActive: isReceipt,
+                  ),
+                ),
+                Icon(Icons.arrow_forward_rounded,
+                    size: 16, color: scheme.onSurfaceVariant),
+                Expanded(
+                  child: _FlowNode(
+                    label: AppStringsAr.tripartiteFlowMediator,
+                    name: data.affectedName,
+                    isActive: true,
+                    isGold: true,
+                  ),
+                ),
+                Icon(Icons.arrow_forward_rounded,
+                    size: 16, color: scheme.onSurfaceVariant),
+                Expanded(
+                  child: _FlowNode(
+                    label: AppStringsAr.tripartiteFlowDestination,
+                    name: destName,
+                    isActive: !isReceipt,
+                  ),
+                ),
+              ],
+            ),
+            if (data.isContingent) ...[
+              const SizedBox(height: SpacingTokens.md),
+              Row(
+                children: [
+                  Icon(Icons.info_outline_rounded,
+                      size: 16, color: scheme.error),
+                  const SizedBox(width: SpacingTokens.xs),
+                  Expanded(
+                    child: QaydText(
+                      AppStringsAr.tripartiteContingentHint,
+                      slot: QaydTextStyleSlot.bodySmall,
+                      color: scheme.error,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            if (data.transferGroupId != null) ...[
+              const SizedBox(height: SpacingTokens.md),
+              const Divider(height: 1),
+              const SizedBox(height: SpacingTokens.sm),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: QaydText(
+                      AppStringsAr.tripartiteGroupLabel,
+                      slot: QaydTextStyleSlot.bodySmall,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: QaydText(
+                      data.transferGroupId!.substring(0, 8), // Short preview
+                      slot: QaydTextStyleSlot.labelSmall,
+                      textAlign: TextAlign.end,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FlowNode extends StatelessWidget {
+  const _FlowNode({
+    required this.label,
+    required this.name,
+    required this.isActive,
+    this.isGold = false,
+  });
+
+  final String label;
+  final String name;
+  final bool isActive;
+  final bool isGold;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        QaydText(
+          label,
+          slot: QaydTextStyleSlot.labelSmall,
+          color: isActive ? (isGold ? gold : scheme.primary) : scheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: SpacingTokens.xs),
+        QaydText(
+          name,
+          slot: QaydTextStyleSlot.bodySmall,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          color: isActive ? scheme.onSurface : scheme.onSurfaceVariant,
+        ),
+      ],
     );
   }
 }

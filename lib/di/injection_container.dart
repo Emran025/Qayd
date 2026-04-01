@@ -20,6 +20,7 @@ import 'package:qayd/application/suggestions/mark_notification_message_processed
 import 'package:qayd/application/messaging/save_message_template_use_case.dart';
 import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/create_tripartite_transfer_use_case.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/application/accounts/find_account_by_phone_use_case.dart';
 import 'package:qayd/application/identity/lookup_public_key_use_case.dart';
@@ -128,6 +129,7 @@ abstract final class InjectionContainer {
   static late final ListAccountsUseCase listAccountsUseCase;
   static late final GetAccountStatementUseCase getAccountStatementUseCase;
   static late final CreateVoucherUseCase createVoucherUseCase;
+  static late final CreateTripartiteTransferUseCase createTripartiteTransferUseCase;
   static late final UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
   static late final ConfirmVoucherUseCase confirmVoucherUseCase;
   static late final ListVouchersUseCase listVouchersUseCase;
@@ -297,6 +299,12 @@ abstract final class InjectionContainer {
       voucherRepository,
     );
     createVoucherUseCase = CreateVoucherUseCase(
+      voucherRepository,
+      currencyRepository,
+      _idGenerator,
+      governanceWriteGuard,
+    );
+    createTripartiteTransferUseCase = CreateTripartiteTransferUseCase(
       voucherRepository,
       currencyRepository,
       _idGenerator,

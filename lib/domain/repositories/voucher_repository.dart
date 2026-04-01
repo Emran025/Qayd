@@ -39,4 +39,13 @@ abstract interface class VoucherRepository {
     required Voucher voucher,
     required List<LedgerEntry> ledgerEntries,
   });
+
+  /// Atomically persists two linked vouchers as a tripartite transfer pair.
+  Future<Result<void>> saveTripartitePair({
+    required Voucher receiptVoucher,
+    required Voucher paymentVoucher,
+  });
+
+  /// Fetches all vouchers sharing the given [transferGroupId].
+  Future<Result<List<Voucher>>> getByTransferGroupId(String transferGroupId);
 }

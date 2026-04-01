@@ -20,6 +20,12 @@ class GetVoucherDetailsOutput {
     required this.createdAtIso,
     this.confirmedAtIso,
     this.settledAtIso,
+    this.isTripartite = false,
+    this.tripartiteRole,
+    this.linkedPartyId,
+    this.linkedPartyName,
+    this.transferGroupId,
+    this.isContingent = false,
   });
 
   final String id;
@@ -42,4 +48,12 @@ class GetVoucherDetailsOutput {
   final String createdAtIso;
   final String? confirmedAtIso;
   final String? settledAtIso;
+  
+  // Tripartite Transfer
+  final bool isTripartite;
+  final String? tripartiteRole;
+  final String? linkedPartyId;
+  final String? linkedPartyName;
+  final String? transferGroupId;
+  final bool isContingent;
 }

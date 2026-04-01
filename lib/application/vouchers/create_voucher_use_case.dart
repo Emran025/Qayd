@@ -11,6 +11,8 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/domain/value_objects/tripartite_meta.dart';
+import 'package:qayd/domain/value_objects/tripartite_role.dart';
 
 class CreateVoucherUseCase {
   CreateVoucherUseCase(
@@ -40,6 +42,21 @@ class CreateVoucherUseCase {
       }
       final currency = currencyRes.valueOrNull!;
       final amount = Money.positiveAmount(input.amountMinorUnits, currency);
+      TripartiteMeta? tripartiteMeta;
+      if (input.transferGroupId != null &&
+          input.tripartiteRole != null &&
+          input.linkedPartyId != null) {
+        tripartiteMeta = TripartiteMeta(
+          transferGroupId: input.transferGroupId!,
+          role: TripartiteRole.values.firstWhere(
+            (r) => r.name == input.tripartiteRole,
+            orElse: () => TripartiteRole.intermediaryReceipt,
+          ),
+          linkedPartyId: AccountId(input.linkedPartyId!),
+          isContingent: input.isContingent,
+        );
+      }
+
       final voucher = Voucher.draft(
         id: VoucherId(_idGenerator.next()),
         type: input.type,
@@ -52,6 +69,7 @@ class CreateVoucherUseCase {
         referenceNumber: input.referenceNumber,
         description: input.description,
         notes: input.notes,
+        tripartiteMeta: tripartiteMeta,
       );
       final saved = await _voucherRepository.save(voucher);
       return saved.fold(

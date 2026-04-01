@@ -8,6 +8,7 @@ import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
+import 'package:qayd/application/vouchers/dtos/create_tripartite_transfer_input.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -42,6 +43,18 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   String _currencyCode = PredefinedCurrencies.sar.code;
   AccountSummaryDto? _affected;
   AccountSummaryDto? _counterparty;
+
+  // Hidden tripartite fields from QR
+  String? _hiddenTransferGroupId;
+  String? _hiddenTripartiteRole;
+  String? _hiddenLinkedPartyId;
+  bool _hiddenIsContingent = false;
+
+  // ── Tripartite mode ──────────────────────────────────────────────────────
+  bool _isTripartiteMode = false;
+  AccountSummaryDto? _tripartiteSource;
+  AccountSummaryDto? _tripartiteDest;
+  AccountSummaryDto? _tripartiteAffected;
 
   late final AnimationController _slideController;
   late final Animation<Offset> _slideOffset;
@@ -85,6 +98,20 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     if (data['counterpartyAccountId'] != null) {
       final accId = data['counterpartyAccountId'].toString();
       _loadAccountSummaryForCounterparty(accId);
+    }
+    if (data['transferGroupId'] != null) {
+      _hiddenTransferGroupId = data['transferGroupId'] as String?;
+      _hiddenTripartiteRole = data['tripartiteRole'] as String?;
+      _hiddenLinkedPartyId = data['linkedPartyId'] as String?;
+      _hiddenIsContingent = data['isContingent'] as bool? ?? false;
+      
+      // If we received an intermediary payment, this receipt is the final act.
+      // We flip the role to receipt to indicate we are receiving the payment.
+      if (_hiddenTripartiteRole == 'intermediaryPayment') {
+        _hiddenTripartiteRole = 'intermediaryReceipt';
+      } else if (_hiddenTripartiteRole == 'intermediaryReceipt') {
+        _hiddenTripartiteRole = 'intermediaryPayment';
+      }
     }
   }
 
@@ -174,6 +201,40 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     }
   }
 
+  // ── Tripartite pickers ─────────────────────────────────────────────────
+
+  Future<void> _pickTripartiteSource() async {
+    final a = await showAccountPickerSheet(
+      context,
+      listAccounts: InjectionContainer.listAccountsUseCase,
+      excludeAccountId: _tripartiteDest?.id,
+    );
+    if (a != null) {
+      setState(() => _tripartiteSource = a);
+    }
+  }
+
+  Future<void> _pickTripartiteDest() async {
+    final a = await showAccountPickerSheet(
+      context,
+      listAccounts: InjectionContainer.listAccountsUseCase,
+      excludeAccountId: _tripartiteSource?.id,
+    );
+    if (a != null) {
+      setState(() => _tripartiteDest = a);
+    }
+  }
+
+  Future<void> _pickTripartiteAffected() async {
+    final a = await showAccountPickerSheet(
+      context,
+      listAccounts: InjectionContainer.listAccountsUseCase,
+    );
+    if (a != null) {
+      setState(() => _tripartiteAffected = a);
+    }
+  }
+
   Future<void> _pickCurrency() async {
     final c = await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
     if (c != null && mounted) {
@@ -186,6 +247,25 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
+    final minor = parsePositiveMinorUnits(_amountController.text);
+    if (minor == null || !isReasonableMinorAmount(minor)) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppStringsAr.voucherAmountRequired)),
+      );
+      return;
+    }
+
+    if (_isTripartiteMode) {
+      await _submitTripartite(messenger, minor);
+    } else {
+      await _submitStandard(messenger, minor);
+    }
+  }
+
+  Future<void> _submitStandard(
+    ScaffoldMessengerState messenger,
+    int minor,
+  ) async {
     if (_affected == null || _counterparty == null) {
       messenger.showSnackBar(
         SnackBar(content: Text(AppStringsAr.voucherSelectBothAccounts)),
@@ -195,13 +275,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     if (_affected!.id == _counterparty!.id) {
       messenger.showSnackBar(
         SnackBar(content: Text(AppStringsAr.voucherDifferentAccounts)),
-      );
-      return;
-    }
-    final minor = parsePositiveMinorUnits(_amountController.text);
-    if (minor == null || !isReasonableMinorAmount(minor)) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(AppStringsAr.voucherAmountRequired)),
       );
       return;
     }
@@ -216,9 +289,51 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
+      transferGroupId: _hiddenTransferGroupId,
+      tripartiteRole: _hiddenTripartiteRole,
+      linkedPartyId: _hiddenLinkedPartyId,
+      isContingent: _hiddenIsContingent,
     );
 
     await context.read<VoucherCreateCubit>().submit(input);
+  }
+
+  Future<void> _submitTripartite(
+    ScaffoldMessengerState messenger,
+    int minor,
+  ) async {
+    if (_tripartiteSource == null ||
+        _tripartiteDest == null ||
+        _tripartiteAffected == null) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('يرجى اختيار المصدر والوجهة وحسابك الوسيط.'),
+        ),
+      );
+      return;
+    }
+    if (_tripartiteSource!.id == _tripartiteDest!.id) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('لا يمكن أن يكون المصدر والوجهة نفس الطرف.'),
+        ),
+      );
+      return;
+    }
+
+    final input = CreateTripartiteTransferInput(
+      sourceAccountId: _tripartiteSource!.id,
+      destinationAccountId: _tripartiteDest!.id,
+      affectedAccountId: _tripartiteAffected!.id,
+      amountMinorUnits: minor,
+      currencyCode: _currencyCode,
+      date: _voucherDate,
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+    );
+
+    await context.read<VoucherCreateCubit>().submitTripartite(input);
   }
 
   String _typeLabel(VoucherType t) =>
@@ -271,6 +386,15 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
             );
             Navigator.of(context).pop(state.voucherId);
           }
+          if (state is VoucherCreateTripartiteSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppStringsAr.tripartiteCreatedSuccess),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            Navigator.of(context).pop(state.receiptVoucherId);
+          }
         },
         builder: (context, state) {
           final submitting = state is VoucherCreateSubmitting;
@@ -289,89 +413,128 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                 child: ListView(
                   padding: const EdgeInsets.all(SpacingTokens.lg),
                   children: [
-                    SegmentedButton<VoucherType>(
-                      segments: const [
-                        ButtonSegment<VoucherType>(
-                          value: VoucherType.receipt,
-                          label: Text(AppStringsAr.voucherTypeReceipt),
-                          icon: Icon(Icons.south_west_rounded, size: 18),
-                        ),
-                        ButtonSegment<VoucherType>(
-                          value: VoucherType.payment,
-                          label: Text(AppStringsAr.voucherTypePayment),
-                          icon: Icon(Icons.north_east_rounded, size: 18),
-                        ),
-                      ],
-                      selected: {_type},
-                      onSelectionChanged: (s) {
-                        setState(() => _type = s.first);
+                    // ── Tripartite toggle ──────────────────────────────
+                    _TripartiteToggle(
+                      value: _isTripartiteMode,
+                      goldAccent: gold,
+                      onChanged: (v) {
+                        setState(() => _isTripartiteMode = v);
+                        _slideController.forward(from: 0);
                       },
                     ),
-                    const SizedBox(height: SpacingTokens.lg),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: QaydText(
-                        AppStringsAr.voucherDateLabel,
-                        slot: QaydTextStyleSlot.bodyMedium,
+                    const SizedBox(height: SpacingTokens.md),
+
+                    if (!_isTripartiteMode) ...[
+                      // ── Standard mode ─────────────────────────────────
+                      SegmentedButton<VoucherType>(
+                        segments: const [
+                          ButtonSegment<VoucherType>(
+                            value: VoucherType.receipt,
+                            label: Text(AppStringsAr.voucherTypeReceipt),
+                            icon: Icon(Icons.south_west_rounded, size: 18),
+                          ),
+                          ButtonSegment<VoucherType>(
+                            value: VoucherType.payment,
+                            label: Text(AppStringsAr.voucherTypePayment),
+                            icon: Icon(Icons.north_east_rounded, size: 18),
+                          ),
+                        ],
+                        selected: {_type},
+                        onSelectionChanged: (s) {
+                          setState(() => _type = s.first);
+                        },
                       ),
-                      subtitle: QaydText(
-                        MaterialLocalizations.of(context).formatFullDate(_date),
-                        slot: QaydTextStyleSlot.titleSmall,
+                      const SizedBox(height: SpacingTokens.lg),
+                      _buildDateTile(gold),
+                      const Divider(),
+                      _buildCurrencyTile(gold),
+                      const Divider(),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: QaydText(
+                          AppStringsAr.voucherAffectedAccountLabel,
+                          slot: QaydTextStyleSlot.labelLarge,
+                        ),
+                        subtitle: QaydText(
+                          _affected?.name ??
+                              AppStringsAr.voucherPickAffectedHint,
+                          slot: QaydTextStyleSlot.bodyLarge,
+                          color: _affected == null
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : null,
+                        ),
+                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
+                        onTap: _pickAffected,
                       ),
-                      trailing: Icon(Icons.calendar_month_rounded, color: gold),
-                      onTap: _pickDate,
-                    ),
-                    const Divider(),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: QaydText(
-                        AppStringsAr.voucherCurrencyLabel,
-                        slot: QaydTextStyleSlot.bodyMedium,
+                      const SizedBox(height: SpacingTokens.sm),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: QaydText(
+                          AppStringsAr.voucherCounterpartyLabel,
+                          slot: QaydTextStyleSlot.labelLarge,
+                        ),
+                        subtitle: QaydText(
+                          _counterparty?.name ??
+                              AppStringsAr.voucherPickCounterpartyHint,
+                          slot: QaydTextStyleSlot.bodyLarge,
+                          color: _counterparty == null
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : null,
+                        ),
+                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
+                        onTap: _pickCounterparty,
                       ),
-                      subtitle: QaydText(
-                        _currencyCode,
-                        slot: QaydTextStyleSlot.titleSmall,
+                      if (_counterparty != null)
+                        _buildSuggestionsStrip(context),
+                    ] else ...[
+                      // ── Tripartite mode ───────────────────────────────
+                      _buildDateTile(gold),
+                      const Divider(),
+                      _buildCurrencyTile(gold),
+                      const Divider(),
+                      _buildTripartiteAccountTile(
+                        label: AppStringsAr.tripartiteSourceLabel,
+                        hint: AppStringsAr.tripartitePickSourceHint,
+                        account: _tripartiteSource,
+                        icon: Icons.arrow_back_rounded,
+                        gold: gold,
+                        onTap: _pickTripartiteSource,
                       ),
-                      trailing: Icon(Icons.currency_exchange_rounded, color: gold),
-                      onTap: _pickCurrency,
-                    ),
-                    const Divider(),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: QaydText(
-                        AppStringsAr.voucherAffectedAccountLabel,
-                        slot: QaydTextStyleSlot.labelLarge,
+                      const SizedBox(height: SpacingTokens.xs),
+                      Center(
+                        child: Icon(
+                          Icons.arrow_downward_rounded,
+                          color: gold.withValues(alpha: 0.5),
+                          size: 20,
+                        ),
                       ),
-                      subtitle: QaydText(
-                        _affected?.name ??
-                            AppStringsAr.voucherPickAffectedHint,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        color: _affected == null
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
-                            : null,
+                      const SizedBox(height: SpacingTokens.xs),
+                      _buildTripartiteAccountTile(
+                        label: AppStringsAr.tripartiteAffectedLabel,
+                        hint: AppStringsAr.tripartitePickAffectedHint,
+                        account: _tripartiteAffected,
+                        icon: Icons.account_balance_wallet_rounded,
+                        gold: gold,
+                        onTap: _pickTripartiteAffected,
                       ),
-                      trailing: Icon(Icons.chevron_left_rounded, color: gold),
-                      onTap: _pickAffected,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: QaydText(
-                        AppStringsAr.voucherCounterpartyLabel,
-                        slot: QaydTextStyleSlot.labelLarge,
+                      const SizedBox(height: SpacingTokens.xs),
+                      Center(
+                        child: Icon(
+                          Icons.arrow_downward_rounded,
+                          color: gold.withValues(alpha: 0.5),
+                          size: 20,
+                        ),
                       ),
-                      subtitle: QaydText(
-                        _counterparty?.name ??
-                            AppStringsAr.voucherPickCounterpartyHint,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        color: _counterparty == null
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
-                            : null,
+                      const SizedBox(height: SpacingTokens.xs),
+                      _buildTripartiteAccountTile(
+                        label: AppStringsAr.tripartiteDestinationLabel,
+                        hint: AppStringsAr.tripartitePickDestHint,
+                        account: _tripartiteDest,
+                        icon: Icons.arrow_forward_rounded,
+                        gold: gold,
+                        onTap: _pickTripartiteDest,
                       ),
-                      trailing: Icon(Icons.chevron_left_rounded, color: gold),
-                      onTap: _pickCounterparty,
-                    ),
-                    if (_counterparty != null) _buildSuggestionsStrip(context),
+                    ],
                     const SizedBox(height: SpacingTokens.md),
                     SlideTransition(
                       position: _slideOffset,
@@ -406,7 +569,9 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : Text(AppStringsAr.voucherSaveDraft),
+                                : Text(_isTripartiteMode
+                                    ? AppStringsAr.tripartiteToggleLabel
+                                    : AppStringsAr.voucherSaveDraft),
                           ),
                         ],
                       ),
@@ -417,6 +582,60 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildDateTile(Color gold) => ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: QaydText(
+          AppStringsAr.voucherDateLabel,
+          slot: QaydTextStyleSlot.bodyMedium,
+        ),
+        subtitle: QaydText(
+          MaterialLocalizations.of(context).formatFullDate(_date),
+          slot: QaydTextStyleSlot.titleSmall,
+        ),
+        trailing: Icon(Icons.calendar_month_rounded, color: gold),
+        onTap: _pickDate,
+      );
+
+  Widget _buildCurrencyTile(Color gold) => ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: QaydText(
+          AppStringsAr.voucherCurrencyLabel,
+          slot: QaydTextStyleSlot.bodyMedium,
+        ),
+        subtitle: QaydText(
+          _currencyCode,
+          slot: QaydTextStyleSlot.titleSmall,
+        ),
+        trailing: Icon(Icons.currency_exchange_rounded, color: gold),
+        onTap: _pickCurrency,
+      );
+
+  Widget _buildTripartiteAccountTile({
+    required String label,
+    required String hint,
+    required AccountSummaryDto? account,
+    required IconData icon,
+    required Color gold,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: ListTile(
+        leading: Icon(icon, color: gold, size: 22),
+        title: QaydText(label, slot: QaydTextStyleSlot.labelLarge),
+        subtitle: QaydText(
+          account?.name ?? hint,
+          slot: QaydTextStyleSlot.bodyLarge,
+          color: account == null
+              ? Theme.of(context).colorScheme.onSurfaceVariant
+              : null,
+        ),
+        trailing: Icon(Icons.chevron_left_rounded, color: gold),
+        onTap: onTap,
       ),
     );
   }
@@ -484,6 +703,68 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     );
   }
 }
+
+// ── Tripartite toggle widget ──────────────────────────────────────────────────
+
+class _TripartiteToggle extends StatelessWidget {
+  const _TripartiteToggle({
+    required this.value,
+    required this.goldAccent,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final Color goldAccent;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: value
+              ? goldAccent.withValues(alpha: 0.6)
+              : Theme.of(context).colorScheme.outlineVariant,
+          width: value ? 1.5 : 1,
+        ),
+        color: value
+            ? goldAccent.withValues(alpha: 0.08)
+            : Colors.transparent,
+      ),
+      child: SwitchListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
+        title: Row(
+          children: [
+            Icon(
+              Icons.swap_horiz_rounded,
+              color: goldAccent,
+              size: 22,
+            ),
+            const SizedBox(width: SpacingTokens.sm),
+            QaydText(
+              AppStringsAr.tripartiteToggleLabel,
+              slot: QaydTextStyleSlot.titleSmall,
+            ),
+          ],
+        ),
+        subtitle: QaydText(
+          AppStringsAr.tripartiteToggleSubtitle,
+          slot: QaydTextStyleSlot.bodySmall,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        value: value,
+        onChanged: onChanged,
+        activeColor: goldAccent,
+      ),
+    );
+  }
+}
+
+// ── Suggestion card (unchanged) ──────────────────────────────────────────────
 
 class _SuggestionCard extends StatelessWidget {
   const _SuggestionCard({

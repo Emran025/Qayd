@@ -7,6 +7,8 @@ import 'package:qayd/domain/value_objects/attachment_ref.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/signature_status.dart';
+import 'package:qayd/domain/value_objects/tripartite_meta.dart';
+import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
@@ -46,6 +48,10 @@ final class VoucherMapper {
       signerPublicKeyHex: voucher.signerPublicKeyHex,
       signatureStatus: voucher.signatureStatus.name,
       signerPhone: voucher.signerPhone,
+      transferGroupId: voucher.tripartiteMeta?.transferGroupId,
+      tripartiteRole: voucher.tripartiteMeta?.role.columnValue,
+      linkedPartyId: voucher.tripartiteMeta?.linkedPartyId.value,
+      isContingent: voucher.tripartiteMeta?.isContingent ?? false,
     );
   }
 
@@ -87,6 +93,7 @@ final class VoucherMapper {
       signerPublicKeyHex: model.signerPublicKeyHex,
       signatureStatus: _parseSignatureStatus(model.signatureStatus),
       signerPhone: model.signerPhone,
+      tripartiteMeta: _parseTripartiteMeta(model),
     );
   }
 
@@ -95,5 +102,20 @@ final class VoucherMapper {
       if (s.name == raw) return s;
     }
     return SignatureStatus.unsigned;
+  }
+
+  /// Reconstructs [TripartiteMeta] from model fields; returns null if absent.
+  static TripartiteMeta? _parseTripartiteMeta(VoucherModel model) {
+    if (model.transferGroupId == null || model.tripartiteRole == null) {
+      return null;
+    }
+    final role = TripartiteRole.fromColumnValue(model.tripartiteRole);
+    if (role == null) return null;
+    return TripartiteMeta(
+      transferGroupId: model.transferGroupId!,
+      role: role,
+      linkedPartyId: AccountId(model.linkedPartyId ?? ''),
+      isContingent: model.isContingent,
+    );
   }
 }

@@ -11,6 +11,10 @@ class CreateVoucherInput {
     this.referenceNumber,
     this.description,
     this.notes,
+    this.transferGroupId,
+    this.tripartiteRole,
+    this.linkedPartyId,
+    this.isContingent = false,
   });
 
   final VoucherType type;
@@ -22,4 +26,8 @@ class CreateVoucherInput {
   final String? referenceNumber;
   final String? description;
   final String? notes;
+  final String? transferGroupId;
+  final String? tripartiteRole;
+  final String? linkedPartyId;
+  final bool isContingent;
 }

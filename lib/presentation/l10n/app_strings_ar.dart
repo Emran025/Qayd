@@ -400,4 +400,30 @@ abstract final class AppStringsAr {
   static const String receiptVerifiedLabel = 'تم التحقق من التوقيع الرقمي';
   static const String receiptSignatureSection = 'التوقيع الرقمي';
   static const String receiptPublicKeyLabel = 'مفتاح الموقّع';
+
+  // ── Tripartite Intermediary Transfer ────────────────────────────────────
+  static const String tripartiteToggleLabel = 'تحويل وسيط';
+  static const String tripartiteToggleSubtitle =
+      'تحويل مبلغ بين طرفين عبر حسابك كوسيط';
+  static const String tripartiteSourceLabel = 'المصدر (من)';
+  static const String tripartiteDestinationLabel = 'الوجهة (إلى)';
+  static const String tripartitePickSourceHint = 'اختر الطرف المُرسِل';
+  static const String tripartitePickDestHint = 'اختر الطرف المُستلِم';
+  static const String tripartiteAffectedLabel = 'حسابك الوسيط';
+  static const String tripartitePickAffectedHint = 'اختر حسابك (مثل النقدية)';
+  static const String tripartiteCreatedSuccess =
+      'تم إنشاء سندات التحويل الوسيط (قبض + صرف).';
+  static const String tripartiteContingentBadge = 'معلّق';
+  static const String tripartiteContingentHint =
+      'هذا السند معلّق حتى يتم تأكيد سند القبض المقابل.';
+  static const String tripartiteReleasedInfo =
+      'تم تحرير سند الصرف — يمكنك الآن مشاركته وتوقيعه.';
+  static const String tripartiteBridgeTooltip = 'تحويل وسيط';
+  static const String tripartiteFlowTitle = 'مسار التحويل';
+  static const String tripartiteFlowSource = 'المصدر';
+  static const String tripartiteFlowMediator = 'الوسيط (أنت)';
+  static const String tripartiteFlowDestination = 'الوجهة';
+  static const String tripartiteReceiptLeg = 'سند القبض';
+  static const String tripartitePaymentLeg = 'سند الصرف';
+  static const String tripartiteGroupLabel = 'مجموعة التحويل';
 }

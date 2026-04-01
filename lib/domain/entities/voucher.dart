@@ -7,6 +7,7 @@ import 'package:qayd/domain/value_objects/attachment_ref.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/signature_status.dart';
+import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
@@ -34,6 +35,7 @@ final class Voucher {
     required this.signerPublicKeyHex,
     required this.signatureStatus,
     required this.signerPhone,
+    required this.tripartiteMeta,
   });
 
   final VoucherId id;
@@ -67,6 +69,18 @@ final class Voucher {
   /// Phone number of the signing party (for matching and discovery).
   final String? signerPhone;
 
+  // ── Tripartite transfer fields ──────────────────────────────────────────
+
+  /// Present only on vouchers created through the intermediary transfer flow.
+  /// Links receipt (A→C) and payment (C→B) via a shared transfer group.
+  final TripartiteMeta? tripartiteMeta;
+
+  /// Whether this voucher is part of a tripartite intermediary transfer.
+  bool get isTripartite => tripartiteMeta != null;
+
+  /// Whether this voucher is locked pending its parent's confirmation.
+  bool get isContingent => tripartiteMeta?.isContingent ?? false;
+
   /// Rehydrates a voucher from persistence (data layer); not for new business creates.
   factory Voucher.restore({
     required VoucherId id,
@@ -89,6 +103,7 @@ final class Voucher {
     String? signerPublicKeyHex,
     SignatureStatus signatureStatus = SignatureStatus.unsigned,
     String? signerPhone,
+    TripartiteMeta? tripartiteMeta,
   }) {
     return Voucher._(
       id: id,
@@ -111,6 +126,7 @@ final class Voucher {
       signerPublicKeyHex: signerPublicKeyHex,
       signatureStatus: signatureStatus,
       signerPhone: signerPhone,
+      tripartiteMeta: tripartiteMeta,
     );
   }
 
@@ -132,6 +148,7 @@ final class Voucher {
     String? signerPublicKeyHex,
     SignatureStatus signatureStatus = SignatureStatus.unsigned,
     String? signerPhone,
+    TripartiteMeta? tripartiteMeta,
   }) {
     if (counterpartyId == affectedAccountId) {
       throw const SelfCancelingEntryException(
@@ -166,6 +183,7 @@ final class Voucher {
       signerPublicKeyHex: signerPublicKeyHex,
       signatureStatus: signatureStatus,
       signerPhone: signerPhone,
+      tripartiteMeta: tripartiteMeta,
     );
   }
 
@@ -198,6 +216,7 @@ final class Voucher {
       signerPublicKeyHex: signerPublicKeyHex,
       signatureStatus: signatureStatus,
       signerPhone: signerPhone,
+      tripartiteMeta: tripartiteMeta,
     );
   }
 
@@ -230,6 +249,7 @@ final class Voucher {
       signerPublicKeyHex: signerPublicKeyHex,
       signatureStatus: signatureStatus,
       signerPhone: signerPhone,
+      tripartiteMeta: tripartiteMeta,
     );
   }
 
@@ -261,6 +281,7 @@ final class Voucher {
       signerPublicKeyHex: signerPublicKeyHex,
       signatureStatus: status,
       signerPhone: signerPhone ?? this.signerPhone,
+      tripartiteMeta: tripartiteMeta,
     );
   }
 
@@ -329,6 +350,7 @@ final class Voucher {
       signerPublicKeyHex: this.signerPublicKeyHex,
       signatureStatus: this.signatureStatus,
       signerPhone: this.signerPhone,
+      tripartiteMeta: tripartiteMeta,
     );
   }
 

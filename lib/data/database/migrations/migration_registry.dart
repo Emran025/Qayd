@@ -7,6 +7,7 @@ import 'package:qayd/data/database/migrations/migration_006.dart';
 import 'package:qayd/data/database/migrations/migration_007_party_details.dart';
 import 'package:qayd/data/database/migrations/migration_008_voucher_signatures.dart';
 import 'package:qayd/data/database/migrations/migration_009_imported_signatures.dart';
+import 'package:qayd/data/database/migrations/migration_010_tripartite_transfer.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -24,6 +25,7 @@ final class MigrationRegistry {
     Migration007PartyDetails(),
     Migration008VoucherSignatures(),
     Migration009ImportedSignatures(),
+    Migration010TripartiteTransfer(),
   ];
 
   static List<SchemaMigration> get ordered {
