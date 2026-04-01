@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
-import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
 
-/// Full-screen unlock UI (Cairo + navy/gold).
+/// Full-screen unlock UI (Themed).
 class AppLockScreen extends StatefulWidget {
   const AppLockScreen({super.key});
 
@@ -25,8 +25,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final ok =
-          await context.read<SecurityCubit>().canUseBiometric();
+      final ok = await context.read<SecurityCubit>().canUseBiometric();
       if (mounted) setState(() => _bioAvailable = ok);
     });
   }
@@ -63,11 +62,14 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = GoogleFonts.cairoTextTheme(Theme.of(context).textTheme);
+    final theme = Theme.of(context);
+    final textStyle = theme.textTheme;
+    final customColors = theme.extension<QaydCustomColors>();
+    final accentColor = customColors?.goldAccent ?? theme.colorScheme.primary;
 
-    return Material(
-      color: ColorTokens.navy900,
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(SpacingTokens.lg),
           child: Column(
@@ -76,13 +78,13 @@ class _AppLockScreenState extends State<AppLockScreen> {
               Icon(
                 Icons.lock_rounded,
                 size: 56,
-                color: ColorTokens.goldAccent.withValues(alpha: 0.95),
+                color: accentColor.withValues(alpha: 0.95),
               ),
               const SizedBox(height: SpacingTokens.md),
               Text(
                 AppStringsAr.lockScreenTitle,
                 style: textStyle.headlineSmall?.copyWith(
-                  color: ColorTokens.slate50,
+                  color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
@@ -91,7 +93,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
               Text(
                 AppStringsAr.lockScreenSubtitle,
                 style: textStyle.bodyMedium?.copyWith(
-                  color: ColorTokens.slate200,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -102,13 +104,14 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   vertical: SpacingTokens.md,
                 ),
                 decoration: BoxDecoration(
-                  color: ColorTokens.navy950.withValues(alpha: 0.65),
-                  borderRadius: BorderRadius.circular(12),
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(RadiusTokens.md),
                   border: Border.all(
-                    color: ColorTokens.goldAccent.withValues(alpha: 0.35),
+                    color: accentColor.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
                     _maxLen,
@@ -117,7 +120,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                       child: Icon(
                         i < _pin.length ? Icons.circle : Icons.circle_outlined,
                         size: 14,
-                        color: ColorTokens.goldAccent,
+                        color: accentColor,
                       ),
                     ),
                   ),
@@ -135,12 +138,12 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
                   child: TextButton.icon(
                     onPressed: _tryBiometric,
-                    icon: const Icon(Icons.fingerprint_rounded,
-                        color: ColorTokens.goldAccent),
+                    icon: Icon(Icons.fingerprint_rounded,
+                        color: accentColor),
                     label: Text(
                       AppStringsAr.biometricUnlock,
                       style: textStyle.labelLarge?.copyWith(
-                        color: ColorTokens.goldAccent,
+                        color: accentColor,
                       ),
                     ),
                   ),
@@ -149,8 +152,8 @@ class _AppLockScreenState extends State<AppLockScreen> {
                 width: double.infinity,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: ColorTokens.goldAccent,
-                    foregroundColor: ColorTokens.navy950,
+                    backgroundColor: accentColor,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed:
@@ -158,7 +161,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   child: Text(
                     AppStringsAr.unlockAction,
                     style: textStyle.titleMedium?.copyWith(
-                      color: ColorTokens.navy950,
+                      color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -189,30 +192,33 @@ class _Keypad extends StatelessWidget {
       ['7', '8', '9'],
       ['', '0', '⌫'],
     ];
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (final row in rows)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (final cell in row)
-                  _KeyCell(
-                    label: cell,
-                    onTap: () {
-                      if (cell == '⌫') {
-                        onBackspace();
-                      } else if (cell.isNotEmpty) {
-                        onDigit(cell);
-                      }
-                    },
-                  ),
-              ],
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final row in rows)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  for (final cell in row)
+                    _KeyCell(
+                      label: cell,
+                      onTap: () {
+                        if (cell == '⌫') {
+                          onBackspace();
+                        } else if (cell.isNotEmpty) {
+                          onDigit(cell);
+                        }
+                      },
+                    ),
+                ],
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -225,6 +231,7 @@ class _KeyCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (label.isEmpty) {
       return const SizedBox(width: 72, height: 52);
     }
@@ -232,18 +239,18 @@ class _KeyCell extends StatelessWidget {
       width: 72,
       height: 52,
       child: Material(
-        color: ColorTokens.navy800.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(RadiusTokens.md),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(RadiusTokens.md),
           onTap: onTap,
           child: Center(
             child: Text(
               label,
-              style: GoogleFonts.cairo(
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontSize: label == '⌫' ? 20 : 22,
                 fontWeight: FontWeight.w600,
-                color: ColorTokens.slate50,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),

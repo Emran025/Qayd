@@ -9,6 +9,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/components/inputs/phone_zone.dart';
 
 class AccountCreatePage extends StatefulWidget {
   const AccountCreatePage({
@@ -33,7 +34,9 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   final _nameController = TextEditingController();
   final _customClassController = TextEditingController();
 
+  final _phoneZoneController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _whatsappZoneController = TextEditingController();
   final _whatsappController = TextEditingController();
   final _bankInfoController = TextEditingController();
   final _partyTypeController = TextEditingController();
@@ -54,7 +57,9 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   void dispose() {
     _nameController.dispose();
     _customClassController.dispose();
+    _phoneZoneController.dispose();
     _phoneController.dispose();
+    _whatsappZoneController.dispose();
     _whatsappController.dispose();
     _bankInfoController.dispose();
     _partyTypeController.dispose();
@@ -87,8 +92,8 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       customClassificationNature: !widget.isChild && _useCustomRootClassification
           ? _customNature
           : null,
-      phoneNumber: _showPartyDetails ? _phoneController.text.trim() : null,
-      whatsappNumber: _showPartyDetails ? _whatsappController.text.trim() : null,
+      phoneNumber: _showPartyDetails ? (_phoneZoneController.text + _phoneController.text).replaceAll(' ', '').replaceAll('+', '') : null,
+      whatsappNumber: _showPartyDetails ? (_whatsappZoneController.text + _whatsappController.text).replaceAll(' ', '').replaceAll('+', '') : null,
       bankAccountInfo: _showPartyDetails ? _bankInfoController.text.trim() : null,
       partyType: _showPartyDetails ? _partyTypeController.text.trim() : null,
     );
@@ -237,24 +242,21 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                       slot: QaydTextStyleSlot.titleMedium,
                     ),
                     const SizedBox(height: SpacingTokens.md),
-                    QaydTextField(
-                      controller: _phoneController,
+                    PhoneZoneForm(
+                      zoneController: _phoneZoneController,
+                      phoneController: _phoneController,
                       label: AppStringsAr.partyPhoneLabel,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: SpacingTokens.sm),
-                    QaydTextField(
-                      controller: _whatsappController,
+                    PhoneZoneForm(
+                      zoneController: _whatsappZoneController,
+                      phoneController: _whatsappController,
                       label: AppStringsAr.partyWhatsappLabel,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: SpacingTokens.sm),
                     QaydTextField(
                       controller: _bankInfoController,
                       label: AppStringsAr.partyBankInfoLabel,
-                      maxLines: 2,
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: SpacingTokens.sm),

@@ -12,6 +12,7 @@ import 'package:qayd/presentation/components/auth/password_toggle_icon.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/components/inputs/phone_zone.dart';
 
 /// Admin-only account provisioning screen.
 class RegisterPage extends StatefulWidget {
@@ -26,6 +27,7 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
+  final _zoneCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
@@ -40,6 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
+    _zoneCtrl.dispose();
     _phoneCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
@@ -61,7 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final result = await InjectionContainer.authRepository.register(
         name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim(),
+        phone: (_zoneCtrl.text + _phoneCtrl.text).replaceAll(' ', '').replaceAll('+', ''),
         password: _passwordCtrl.text,
         deviceId: hardwareId,
       );
@@ -157,17 +160,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         },
                       ),
                       const SizedBox(height: SpacingTokens.sm),
-                      AuthField(
-                        controller: _phoneCtrl,
-                        hint: 'رقم الهاتف',
-                        keyboardType: TextInputType.phone,
-                        accentColor: ColorTokens.goldAccent,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return AppStringsAr.activationFieldRequired;
-                          }
-                          return null;
-                        },
+                      PhoneZoneForm(
+                        zoneController: _zoneCtrl,
+                        phoneController: _phoneCtrl,
+                        label: 'رقم الهاتف',
                       ),
                       const SizedBox(height: SpacingTokens.sm),
                       AuthField(

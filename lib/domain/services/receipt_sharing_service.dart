@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:qayd/domain/entities/voucher.dart';
 
 abstract interface class ReceiptSharingService {

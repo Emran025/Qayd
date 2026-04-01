@@ -212,31 +212,40 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
             _sectionTitle(AppStringsAr.voucherFilterStateSection),
             _stateChips(),
             _sectionTitle(AppStringsAr.voucherFilterDateSection),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: QaydText(
-                AppStringsAr.voucherFilterDateFrom,
-                slot: QaydTextStyleSlot.bodyMedium,
-              ),
-              subtitle: QaydText(
-                _from != null ? df.format(_from!) : AppStringsAr.voucherFilterDateNotSet,
-                slot: QaydTextStyleSlot.bodySmall,
-              ),
-              trailing: const Icon(Icons.calendar_month_rounded),
-              onTap: () => _pickDate(isFrom: true),
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: QaydText(
-                AppStringsAr.voucherFilterDateTo,
-                slot: QaydTextStyleSlot.bodyMedium,
-              ),
-              subtitle: QaydText(
-                _to != null ? df.format(_to!) : AppStringsAr.voucherFilterDateNotSet,
-                slot: QaydTextStyleSlot.bodySmall,
-              ),
-              trailing: const Icon(Icons.calendar_month_rounded),
-              onTap: () => _pickDate(isFrom: false),
+            Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: QaydText(
+                      AppStringsAr.voucherFilterDateFrom,
+                      slot: QaydTextStyleSlot.bodyMedium,
+                    ),
+                    subtitle: QaydText(
+                      _from != null ? df.format(_from!) : AppStringsAr.voucherFilterDateNotSet,
+                      slot: QaydTextStyleSlot.bodySmall,
+                    ),
+                    trailing: const Icon(Icons.calendar_month_rounded, size: 20),
+                    onTap: () => _pickDate(isFrom: true),
+                  ),
+                ),
+                const SizedBox(width: SpacingTokens.md),
+                Expanded(
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: QaydText(
+                      AppStringsAr.voucherFilterDateTo,
+                      slot: QaydTextStyleSlot.bodyMedium,
+                    ),
+                    subtitle: QaydText(
+                      _to != null ? df.format(_to!) : AppStringsAr.voucherFilterDateNotSet,
+                      slot: QaydTextStyleSlot.bodySmall,
+                    ),
+                    trailing: const Icon(Icons.calendar_month_rounded, size: 20),
+                    onTap: () => _pickDate(isFrom: false),
+                  ),
+                ),
+              ],
             ),
             _sectionTitle(AppStringsAr.voucherFilterAccountsSection),
             ListTile(
@@ -321,7 +330,6 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 Expanded(
-                  flex: 2,
                   child: FilledButton(
                     style: FilledButton.styleFrom(
                       backgroundColor: gold,
