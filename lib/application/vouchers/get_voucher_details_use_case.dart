@@ -79,6 +79,8 @@ class GetVoucherDetailsUseCase {
           linkedPartyName: linkedPartyName,
           transferGroupId: v.tripartiteMeta?.transferGroupId,
           isContingent: v.isContingent,
+          signatureHex: v.signatureHex,
+          signerPublicKeyHex: v.signerPublicKeyHex,
         ),
       );
     } catch (e, _) {

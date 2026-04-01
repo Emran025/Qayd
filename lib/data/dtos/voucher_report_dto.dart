@@ -6,6 +6,10 @@ class VoucherReportDto {
     required this.stateCode,
     required this.dateIso,
     required this.amountMinorUnits,
+    required this.currencyCode,
+    required this.currencyNameAr,
+    required this.currencySymbol,
+    required this.currencyDigits,
     required this.counterpartyAccountId,
     required this.counterpartyName,
     required this.affectedAccountId,
@@ -13,9 +17,15 @@ class VoucherReportDto {
     this.referenceNumber,
     this.description,
     this.notes,
+    this.qrData,
     required this.createdAtIso,
     this.confirmedAtIso,
     this.settledAtIso,
+    this.isTripartite = false,
+    this.tripartiteRole,
+    this.linkedPartyName,
+    this.signatureHex,
+    this.signerPublicKeyHex,
   });
 
   final String voucherId;
@@ -23,6 +33,10 @@ class VoucherReportDto {
   final String stateCode;
   final String dateIso;
   final int amountMinorUnits;
+  final String currencyCode;
+  final String currencyNameAr;
+  final String currencySymbol;
+  final int currencyDigits;
   final String counterpartyAccountId;
   final String counterpartyName;
   final String affectedAccountId;
@@ -30,7 +44,24 @@ class VoucherReportDto {
   final String? referenceNumber;
   final String? description;
   final String? notes;
+
+  /// QR payload (JSON with signature data); falls back to voucherId if null.
+  final String? qrData;
+
   final String createdAtIso;
   final String? confirmedAtIso;
   final String? settledAtIso;
+
+  // Tripartite transfer
+  final bool isTripartite;
+
+  /// 'receipt' → this leg is A→C, 'payment' → C→B.
+  final String? tripartiteRole;
+
+  /// The third party in the chain (B for receipt leg, A for payment leg).
+  final String? linkedPartyName;
+
+  // Digital signature
+  final String? signatureHex;
+  final String? signerPublicKeyHex;
 }

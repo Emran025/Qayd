@@ -26,6 +26,8 @@ class GetVoucherDetailsOutput {
     this.linkedPartyName,
     this.transferGroupId,
     this.isContingent = false,
+    this.signatureHex,
+    this.signerPublicKeyHex,
   });
 
   final String id;
@@ -48,7 +50,7 @@ class GetVoucherDetailsOutput {
   final String createdAtIso;
   final String? confirmedAtIso;
   final String? settledAtIso;
-  
+
   // Tripartite Transfer
   final bool isTripartite;
   final String? tripartiteRole;
@@ -56,4 +58,8 @@ class GetVoucherDetailsOutput {
   final String? linkedPartyName;
   final String? transferGroupId;
   final bool isContingent;
+
+  // Digital signature
+  final String? signatureHex;
+  final String? signerPublicKeyHex;
 }

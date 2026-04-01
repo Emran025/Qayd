@@ -30,6 +30,10 @@ Future<void> shareVoucherAsPdf(
     stateCode: data.stateCode,
     dateIso: data.dateIso,
     amountMinorUnits: data.amountMinorUnits,
+    currencyCode: data.currencyCode,
+    currencyNameAr: data.currencyNameAr,
+    currencySymbol: data.currencySymbol,
+    currencyDigits: data.currencyDigits,
     counterpartyAccountId: data.counterpartyAccountId,
     counterpartyName: data.counterpartyName,
     affectedAccountId: data.affectedAccountId,
@@ -37,9 +41,15 @@ Future<void> shareVoucherAsPdf(
     referenceNumber: data.referenceNumber,
     description: data.description,
     notes: data.notes,
+    qrData: data.qrData,
     createdAtIso: data.createdAtIso,
     confirmedAtIso: data.confirmedAtIso,
     settledAtIso: data.settledAtIso,
+    isTripartite: data.isTripartite,
+    tripartiteRole: data.tripartiteRole,
+    linkedPartyName: data.linkedPartyName,
+    signatureHex: data.signatureHex,
+    signerPublicKeyHex: data.signerPublicKeyHex,
   );
 
   final result = await InjectionContainer.voucherPdfGenerator.buildVoucherPdf(
