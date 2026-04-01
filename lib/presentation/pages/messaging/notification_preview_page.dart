@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
@@ -150,17 +151,12 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(height: SpacingTokens.sm),
-                        TextField(
+                        QaydTextField(
                           controller: _bodyController,
+                          label: AppStringsAr.notificationMessageBody,
                           maxLines: 12,
                           minLines: 8,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            alignLabelWithHint: true,
-                            filled: true,
-                          ),
+                          textInputAction: TextInputAction.done,
                           onChanged: (t) => context
                               .read<NotificationPreviewCubit>()
                               .setBodyText(t),

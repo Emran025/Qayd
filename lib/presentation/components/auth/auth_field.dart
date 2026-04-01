@@ -31,7 +31,7 @@ class AuthField extends StatelessWidget {
     final borderColor = ColorTokens.slate200.withValues(alpha: 0.18);
     final style = GoogleFonts.cairo(fontSize: 14, color: Theme.of(context).colorScheme.onSurface);
 
-    return TextFormField(
+    final field = TextFormField(
       controller: controller,
       style: style,
       keyboardType: keyboardType,
@@ -54,6 +54,21 @@ class AuthField extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
+
+    final isLtrType = keyboardType == TextInputType.number ||
+        keyboardType == const TextInputType.numberWithOptions(decimal: true) ||
+        keyboardType == const TextInputType.numberWithOptions(signed: true) ||
+        keyboardType == TextInputType.phone ||
+        keyboardType == TextInputType.emailAddress ||
+        keyboardType == TextInputType.url;
+
+    if (isLtrType) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: field,
+      );
+    }
+    return field;
   }
 
   OutlineInputBorder _border(Color color, {double width = 1.0}) =>

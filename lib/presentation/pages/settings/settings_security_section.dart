@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 
 /// PIN, app lock, and biometric toggles.
 class SettingsSecuritySection extends StatefulWidget {
@@ -49,23 +50,18 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
+            QaydNumericField(
               controller: pin1,
-              keyboardType: TextInputType.number,
               obscureText: true,
               maxLength: 8,
-              decoration: InputDecoration(
-                labelText: AppStringsAr.securityPinField,
-              ),
+              label: AppStringsAr.securityPinField,
             ),
-            TextField(
+            const SizedBox(height: SpacingTokens.md),
+            QaydNumericField(
               controller: pin2,
-              keyboardType: TextInputType.number,
               obscureText: true,
               maxLength: 8,
-              decoration: InputDecoration(
-                labelText: AppStringsAr.securityPinRepeat,
-              ),
+              label: AppStringsAr.securityPinRepeat,
             ),
           ],
         ),

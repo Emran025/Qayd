@@ -11,6 +11,7 @@ import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
@@ -350,26 +351,20 @@ class _VoucherListViewState extends State<_VoucherListView> {
             child: ListenableBuilder(
               listenable: _searchController,
               builder: (context, _) {
-                return TextField(
+                return QaydTextField(
                   controller: _searchController,
                   textInputAction: TextInputAction.search,
-                  decoration: InputDecoration(
-                    hintText: AppStringsAr.voucherSearchHint,
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: _searchController.text.isEmpty
-                        ? null
-                        : IconButton(
-                            icon: const Icon(Icons.clear_rounded),
-                            onPressed: () {
-                              _searchController.clear();
-                              context.read<VoucherListCubit>().clearSearch();
-                            },
-                          ),
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  hint: AppStringsAr.voucherSearchHint,
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: _searchController.text.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () {
+                            _searchController.clear();
+                            context.read<VoucherListCubit>().clearSearch();
+                          },
+                        ),
                   onChanged: (t) {
                     context.read<VoucherListCubit>().setSearchText(t);
                   },

@@ -10,7 +10,6 @@ import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/entry_id.dart';
 import 'package:qayd/domain/value_objects/entry_side.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
-import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 

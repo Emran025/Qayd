@@ -230,9 +230,10 @@ class _AnimatedIconState extends State<_AnimatedIcon>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-    _scale = Tween<double>(begin: 0.93, end: 1.07).animate(
-      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
-    );
+    _scale = Tween<double>(
+      begin: 0.93,
+      end: 1.07,
+    ).animate(CurvedAnimation(parent: _pulse, curve: Curves.easeInOut));
   }
 
   @override
@@ -251,7 +252,10 @@ class _AnimatedIconState extends State<_AnimatedIcon>
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: widget.color.withValues(alpha: 0.12),
-          border: Border.all(color: widget.color.withValues(alpha: 0.4), width: 1.5),
+          border: Border.all(
+            color: widget.color.withValues(alpha: 0.4),
+            width: 1.5,
+          ),
         ),
         child: Icon(widget.iconData, size: 48, color: widget.color),
       ),
@@ -271,7 +275,9 @@ class _TrialBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: ColorTokens.emerald500.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: ColorTokens.emerald500.withValues(alpha: 0.4)),
+        border: Border.all(
+          color: ColorTokens.emerald500.withValues(alpha: 0.4),
+        ),
       ),
       child: Text(
         '$days ${AppStringsAr.vaultTrialDaysRemaining}',
@@ -314,9 +320,9 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
       _errorAr = null;
     });
     final result = await context.read<SecurityCubit>().provisionDevice(
-          email: _emailCtrl.text.trim(),
-          password: _passCtrl.text,
-        );
+      email: _emailCtrl.text.trim(),
+      password: _passCtrl.text,
+    );
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) {
@@ -354,7 +360,8 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
-                  color: ColorTokens.emerald500.withValues(alpha: 0.7)),
+                color: ColorTokens.emerald500.withValues(alpha: 0.7),
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -383,7 +390,8 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
-                  color: ColorTokens.emerald500.withValues(alpha: 0.7)),
+                color: ColorTokens.emerald500.withValues(alpha: 0.7),
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -454,10 +462,7 @@ class _ContactBadge extends StatelessWidget {
       ),
       child: Text(
         messageAr,
-        style: GoogleFonts.cairo(
-          fontSize: 12,
-          color: ColorTokens.slate400,
-        ),
+        style: GoogleFonts.cairo(fontSize: 12, color: ColorTokens.slate400),
         textAlign: TextAlign.center,
       ),
     );

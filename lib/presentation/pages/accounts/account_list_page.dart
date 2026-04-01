@@ -7,6 +7,7 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
@@ -50,13 +51,16 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
     super.dispose();
   }
 
-  Future<void> _openCreate({String? parentId, String? parentName, String? parentStandardKind}) async {
+  Future<void> _openCreate({
+    String? parentId,
+    String? parentName,
+    String? parentStandardKind,
+  }) async {
     final created = await Navigator.of(context).push<bool>(
       QaydPageRoute.slideFromStart<bool>(
         builder: (ctx) => BlocProvider(
-          create: (_) => AccountCreateCubit(
-            InjectionContainer.createAccountUseCase,
-          ),
+          create: (_) =>
+              AccountCreateCubit(InjectionContainer.createAccountUseCase),
           child: AccountCreatePage(
             parentAccountId: parentId,
             parentName: parentName,
@@ -74,9 +78,9 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
     await Navigator.of(context).push<void>(
       QaydPageRoute.slideFromStart<void>(
         builder: (ctx) => BlocProvider(
-          create: (_) => AccountDetailCubit(
-            InjectionContainer.getAccountDetailsUseCase,
-          )..load(accountId),
+          create: (_) =>
+              AccountDetailCubit(InjectionContainer.getAccountDetailsUseCase)
+                ..load(accountId),
           child: const AccountDetailPage(),
         ),
       ),
@@ -93,9 +97,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
           AppStringsAr.chartOfAccountsTitle,
           slot: QaydTextStyleSlot.titleLarge,
         ),
-        actions: const [
-          SettingsAppBarAction(),
-        ],
+        actions: const [SettingsAppBarAction()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(3),
           child: Container(
@@ -132,15 +134,10 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
               SpacingTokens.md,
               SpacingTokens.xs,
             ),
-            child: TextField(
+            child: QaydTextField(
               controller: _searchController,
-              textAlign: TextAlign.start,
-              decoration: InputDecoration(
-                hintText: AppStringsAr.searchAccountsHint,
-                prefixIcon: const Icon(Icons.search_rounded),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
-              ),
+              hint: AppStringsAr.searchAccountsHint,
+              prefixIcon: const Icon(Icons.search_rounded),
               onChanged: (q) =>
                   context.read<AccountListCubit>().setSearchQuery(q),
             ),
@@ -190,29 +187,29 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                 return switch (state) {
                   AccountListInitial() => const SizedBox.shrink(),
                   AccountListLoading() => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    child: CircularProgressIndicator(),
+                  ),
                   AccountListFailure(:final failure) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(SpacingTokens.lg),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            QaydText(
-                              failure.messageAr,
-                              slot: QaydTextStyleSlot.bodyLarge,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: SpacingTokens.md),
-                            FilledButton.tonal(
-                              onPressed: () =>
-                                  context.read<AccountListCubit>().load(),
-                              child: Text(AppStringsAr.retryAction),
-                            ),
-                          ],
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(SpacingTokens.lg),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          QaydText(
+                            failure.messageAr,
+                            slot: QaydTextStyleSlot.bodyLarge,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: SpacingTokens.md),
+                          FilledButton.tonal(
+                            onPressed: () =>
+                                context.read<AccountListCubit>().load(),
+                            child: Text(AppStringsAr.retryAction),
+                          ),
+                        ],
                       ),
                     ),
+                  ),
                   AccountListReady(
                     :final allAccounts,
                     :final filteredAccounts,
@@ -277,21 +274,23 @@ class _AccountListBody extends StatelessWidget {
         final item = flat[index];
         return switch (item) {
           _HeaderRow(:final title) => Padding(
-              padding: const EdgeInsets.only(
-                top: SpacingTokens.md,
-                bottom: SpacingTokens.sm,
-              ),
-              child: QaydText(
-                title,
-                slot: QaydTextStyleSlot.titleMedium,
-                color: Theme.of(context).extension<QaydCustomColors>()!.goldAccent,
-              ),
+            padding: const EdgeInsets.only(
+              top: SpacingTokens.md,
+              bottom: SpacingTokens.sm,
             ),
+            child: QaydText(
+              title,
+              slot: QaydTextStyleSlot.titleMedium,
+              color: Theme.of(
+                context,
+              ).extension<QaydCustomColors>()!.goldAccent,
+            ),
+          ),
           _DataRow(:final dto) => _AccountCard(
-              dto: dto,
-              onTap: () => onTap(dto.id),
-              onAddChild: () => onAddChild(dto),
-            ),
+            dto: dto,
+            onTap: () => onTap(dto.id),
+            onAddChild: () => onAddChild(dto),
+          ),
         };
       },
     );
@@ -341,8 +340,9 @@ class _AccountCard extends StatelessWidget {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
     final natureDebit = dto.natureCode == 'debit';
     final natureColor = natureDebit ? custom.debit : custom.credit;
-    final natureLabel =
-        natureDebit ? AppStringsAr.natureDebitShort : AppStringsAr.natureCreditShort;
+    final natureLabel = natureDebit
+        ? AppStringsAr.natureDebitShort
+        : AppStringsAr.natureCreditShort;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
@@ -413,18 +413,23 @@ class _AccountCard extends StatelessWidget {
                                   QaydText(
                                     code,
                                     slot: QaydTextStyleSlot.labelSmall,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                   ),
                                   const SizedBox(width: 4),
                                   QaydMoneyDisplay(
                                     money: Money.nonNegative(
-                                        minor.abs(),
-                                        PredefinedCurrencies.all.firstWhere(
-                                            (c) => c.code == code,
-                                            orElse: () => CurrencyCode(
-                                                code: code,
-                                                nameAr: code,
-                                                symbol: code))),
+                                      minor.abs(),
+                                      PredefinedCurrencies.all.firstWhere(
+                                        (c) => c.code == code,
+                                        orElse: () => CurrencyCode(
+                                          code: code,
+                                          nameAr: code,
+                                          symbol: code,
+                                        ),
+                                      ),
+                                    ),
                                     displayNegative: minor < 0,
                                     size: QaydMoneyDisplaySize.small,
                                   ),

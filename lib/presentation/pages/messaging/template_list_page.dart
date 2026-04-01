@@ -9,6 +9,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_state.dart';
 import 'package:qayd/presentation/pages/settings/settings_app_bar_action.dart';
+import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -79,22 +80,17 @@ class _TemplateListScaffold extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: SpacingTokens.md),
-                  TextField(
+                  QaydTextField(
                     controller: nameCtrl,
-                    decoration: InputDecoration(
-                      labelText: AppStringsAr.templateNameLabel,
-                      border: const OutlineInputBorder(),
-                    ),
+                    label: AppStringsAr.templateNameLabel,
+                    textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: SpacingTokens.md),
-                  TextField(
+                  QaydTextField(
                     controller: bodyCtrl,
+                    label: AppStringsAr.templateBodyLabel,
                     maxLines: 8,
-                    decoration: InputDecoration(
-                      labelText: AppStringsAr.templateBodyLabel,
-                      border: const OutlineInputBorder(),
-                      alignLabelWithHint: true,
-                    ),
+                    textInputAction: TextInputAction.done,
                   ),
                 ],
               ),
@@ -165,22 +161,17 @@ class _TemplateListScaffold extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
+              QaydTextField(
                 controller: nameCtrl,
-                decoration: InputDecoration(
-                  labelText: AppStringsAr.templateNameLabel,
-                  border: const OutlineInputBorder(),
-                ),
+                label: AppStringsAr.templateNameLabel,
+                textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: SpacingTokens.md),
-              TextField(
+              QaydTextField(
                 controller: bodyCtrl,
+                label: AppStringsAr.templateBodyLabel,
                 maxLines: 10,
-                decoration: InputDecoration(
-                  labelText: AppStringsAr.templateBodyLabel,
-                  border: const OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
+                textInputAction: TextInputAction.done,
               ),
             ],
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 
 class CurrencyManagementScreen extends StatefulWidget {
   const CurrencyManagementScreen({super.key});
@@ -63,12 +64,10 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                 ),
                 textAlign: TextAlign.right,
               ),
-              TextField(
+              QaydNumericField(
                 controller: digitsController,
-                decoration: const InputDecoration(
-                  labelText: 'عدد الأرقام العشرية',
-                ),
-                keyboardType: TextInputType.number,
+                label: 'عدد الأرقام العشرية',
+                maxLength: 1,
                 textAlign: TextAlign.right,
               ),
             ],

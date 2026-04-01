@@ -54,7 +54,7 @@ class QaydTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    final field = TextFormField(
       obscureText: obscureText,
       controller: controller,
       initialValue: controller == null ? initialValue : null,
@@ -81,5 +81,21 @@ class QaydTextField extends StatelessWidget {
         suffixIcon: suffixIcon,
       ),
     );
+
+    final isLtrType = keyboardType == TextInputType.number ||
+        keyboardType == const TextInputType.numberWithOptions(decimal: true) ||
+        keyboardType == const TextInputType.numberWithOptions(signed: true) ||
+        keyboardType == TextInputType.phone ||
+        keyboardType == TextInputType.emailAddress ||
+        keyboardType == TextInputType.url;
+
+    if (isLtrType) {
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: field,
+      );
+    }
+
+    return field;
   }
 }
