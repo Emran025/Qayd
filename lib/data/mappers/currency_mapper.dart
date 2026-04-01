@@ -9,6 +9,7 @@ final class CurrencyMapper {
       symbol: currency.symbol,
       fractionalDigits: currency.fractionalDigits,
       isPredefined: isPredefined,
+      isActive: currency.isActive,
       createdAtIso: DateTime.now().toIso8601String(),
     );
   }
@@ -19,6 +20,7 @@ final class CurrencyMapper {
       nameAr: model.nameAr,
       symbol: model.symbol,
       fractionalDigits: model.fractionalDigits,
+      isActive: model.isActive,
     );
   }
 }

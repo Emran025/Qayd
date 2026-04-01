@@ -15,6 +15,8 @@ import 'package:qayd/application/messaging/log_notification_intent_use_case.dart
 import 'package:qayd/application/settings/get_base_currency_use_case.dart';
 import 'package:qayd/application/settings/list_currencies_use_case.dart';
 import 'package:qayd/application/settings/set_base_currency_use_case.dart';
+import 'package:qayd/application/settings/toggle_currency_status_use_case.dart';
+import 'package:qayd/application/settings/add_currency_use_case.dart';
 import 'package:qayd/application/suggestions/get_auto_suggestions_use_case.dart';
 import 'package:qayd/application/suggestions/mark_notification_message_processed_use_case.dart';
 import 'package:qayd/application/messaging/save_message_template_use_case.dart';
@@ -153,6 +155,8 @@ abstract final class InjectionContainer {
   static late final ListCurrenciesUseCase listCurrenciesUseCase;
   static late final GetBaseCurrencyUseCase getBaseCurrencyUseCase;
   static late final SetBaseCurrencyUseCase setBaseCurrencyUseCase;
+  static late final ToggleCurrencyStatusUseCase toggleCurrencyStatusUseCase;
+  static late final AddCurrencyUseCase addCurrencyUseCase;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -262,6 +266,8 @@ abstract final class InjectionContainer {
     listCurrenciesUseCase = ListCurrenciesUseCase(currencyRepository);
     getBaseCurrencyUseCase = GetBaseCurrencyUseCase(currencyRepository);
     setBaseCurrencyUseCase = SetBaseCurrencyUseCase(currencyRepository);
+    toggleCurrencyStatusUseCase = ToggleCurrencyStatusUseCase(currencyRepository);
+    addCurrencyUseCase = AddCurrencyUseCase(currencyRepository);
 
     createAccountUseCase = CreateAccountUseCase(
       accountRepository,

@@ -27,7 +27,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
   @override
   void initState() {
     super.initState();
-    _currenciesFuture = InjectionContainer.listCurrenciesUseCase();
+    _currenciesFuture = InjectionContainer.listCurrenciesUseCase(onlyActive: true);
   }
 
   @override

@@ -6,7 +6,9 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 /// All currency types (real, virtual, user-defined) are treated identically.
 abstract interface class CurrencyRepository {
   /// Retrieve all currencies (predefined + user-defined).
-  Future<Result<List<CurrencyCode>>> getAll();
+  ///
+  /// If [onlyActive] is true, only returns active currencies.
+  Future<Result<List<CurrencyCode>>> getAll({bool onlyActive = false});
 
   /// Retrieve a single currency by code.
   Future<Result<CurrencyCode?>> getByCode(String code);
@@ -14,8 +16,8 @@ abstract interface class CurrencyRepository {
   /// Create or update a currency.
   Future<Result<void>> save(CurrencyCode currency, {bool isPredefined = false});
 
-  /// Delete a user-defined currency (must not be in use).
-  Future<Result<void>> delete(String code);
+  /// Toggle currency active status.
+  Future<Result<void>> toggleActiveStatus(String code, bool isActive);
 
   /// Retrieve the current base currency code.
   Future<Result<String>> getBaseCurrencyCode();

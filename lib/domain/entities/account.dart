@@ -131,6 +131,12 @@ final class Account {
 
   /// Deactivate only when [balance] is zero (see accounting domain model).
   Account deactivate({required Money balance}) {
+    if (isDefault) {
+      throw const AccountDeletionException(
+        messageAr: 'لا يمكن إيقاف الحساب الافتراضي.',
+        code: 'account_deactivate_default',
+      );
+    }
     if (!balance.isZero) {
       throw const AccountDeletionException(
         messageAr: 'لا يمكن إيقاف حساب له رصيد غير صفر.',
@@ -176,6 +182,12 @@ final class Account {
     required Money balance,
     required bool hasChildAccounts,
   }) {
+    if (isDefault) {
+      throw const AccountDeletionException(
+        messageAr: 'لا يمكن حذف الحساب الافتراضي.',
+        code: 'account_delete_default',
+      );
+    }
     if (!balance.isZero) {
       throw const AccountDeletionException(
         messageAr: 'لا يمكن حذف حساب له رصيد غير صفر.',

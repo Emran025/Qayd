@@ -12,10 +12,30 @@ final class SqliteCurrencyRepository implements CurrencyRepository {
   final Database _db;
 
   @override
-  Future<Result<List<CurrencyCode>>> getAll() async {
+  Future<Result<List<CurrencyCode>>> getAll({bool onlyActive = false}) async {
     try {
-      final maps = await _db.query('currencies', orderBy: 'is_predefined DESC, code ASC');
+      final baseRes = await getBaseCurrencyCode();
+      final baseCode = baseRes.valueOrNull ?? 'SAR';
+
+      final whereClause = onlyActive ? 'is_active = 1' : null;
+      final maps = await _db.query(
+        'currencies',
+        where: whereClause,
+        orderBy: 'is_predefined DESC, code ASC',
+      );
       final list = maps.map((m) => CurrencyMapper.toEntity(CurrencyModel.fromMap(m))).toList();
+
+      // Sort: base currency first, then active status, then original repository order (predefined first)
+      list.sort((a, b) {
+        if (a.code == baseCode) return -1;
+        if (b.code == baseCode) return 1;
+        
+        if (a.isActive != b.isActive) {
+          return a.isActive ? -1 : 1;
+        }
+        return 0; // Maintain relative order from DB
+      });
+
       return Success(list);
     } catch (e) {
       return FailureResult(DatabaseFailure(messageAr: 'فشل تحميل العملات: $e'));
@@ -54,25 +74,17 @@ final class SqliteCurrencyRepository implements CurrencyRepository {
   }
 
   @override
-  Future<Result<void>> delete(String code) async {
+  Future<Result<void>> toggleActiveStatus(String code, bool isActive) async {
     try {
-      // Check if code is in use in vouchers or entries
-      final voucherCount = Sqflite.firstIntValue(await _db.rawQuery(
-        'SELECT COUNT(*) FROM vouchers WHERE currency_code = ?',
-        [code],
-      ));
-      if ((voucherCount ?? 0) > 0) {
-        return FailureResult(DatabaseFailure(messageAr: 'لا يمكن حذف العملة لأنها مستخدمة في سندات.'));
-      }
-
-      await _db.delete(
+      await _db.update(
         'currencies',
-        where: 'code = ? AND is_predefined = 0',
+        {'is_active': isActive ? 1 : 0},
+        where: 'code = ?',
         whereArgs: [code],
       );
       return const Success(null);
     } catch (e) {
-      return FailureResult(DatabaseFailure(messageAr: 'فشل حذف العملة: $e'));
+      return FailureResult(DatabaseFailure(messageAr: 'فشل تغيير حالة العملة: $e'));
     }
   }
 
@@ -85,10 +97,10 @@ final class SqliteCurrencyRepository implements CurrencyRepository {
         whereArgs: ['base_currency_code'],
         limit: 1,
       );
-      if (maps.isEmpty) return const Success('SAR');
+      if (maps.isEmpty) return const Success('YER');
       return Success(maps.first['value']! as String);
     } catch (e) {
-      return const Success('SAR'); // Fallback to SAR
+      return const Success('YER'); // Fallback to YER
     }
   }
 

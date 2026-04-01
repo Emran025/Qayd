@@ -6,6 +6,7 @@ final class CurrencyModel {
     required this.symbol,
     required this.fractionalDigits,
     required this.isPredefined,
+    required this.isActive,
     required this.createdAtIso,
   });
 
@@ -14,6 +15,7 @@ final class CurrencyModel {
   final String symbol;
   final int fractionalDigits;
   final bool isPredefined;
+  final bool isActive;
   final String createdAtIso;
 
   Map<String, Object?> toMap() => {
@@ -22,6 +24,7 @@ final class CurrencyModel {
         'symbol': symbol,
         'fractional_digits': fractionalDigits,
         'is_predefined': isPredefined ? 1 : 0,
+        'is_active': isActive ? 1 : 0,
         'created_at': createdAtIso,
       };
 
@@ -32,6 +35,7 @@ final class CurrencyModel {
       symbol: map['symbol']! as String,
       fractionalDigits: map['fractional_digits']! as int,
       isPredefined: (map['is_predefined']! as int) == 1,
+      isActive: (map['is_active']! as int) == 1,
       createdAtIso: map['created_at']! as String,
     );
   }

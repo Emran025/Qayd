@@ -8,6 +8,7 @@ final class CurrencyCode {
     required this.nameAr,
     required this.symbol,
     this.fractionalDigits = 2,
+    this.isActive = true,
   });
 
   /// ISO 4217 code or user-defined identifier (e.g., 'SAR', 'BTC', 'PTS').
@@ -21,6 +22,9 @@ final class CurrencyCode {
 
   /// Decimal places for this currency (e.g., 2 for SAR, 3 for KWD, 0 for JPY).
   final int fractionalDigits;
+
+  /// Whether the currency should be displayed in selection menus for new transactions.
+  final bool isActive;
 
   @override
   bool operator ==(Object other) =>
