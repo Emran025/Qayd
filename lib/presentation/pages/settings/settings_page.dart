@@ -10,6 +10,9 @@ import 'package:qayd/application/vouchers/dtos/list_vouchers_input.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/l10n/classification_labels.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/settings/auto_backup_settings_section.dart';
+import 'package:qayd/presentation/pages/settings/drive_backup_section.dart';
+import 'package:qayd/presentation/pages/settings/identity_settings_section.dart';
 import 'package:qayd/presentation/pages/settings/settings_security_section.dart';
 import 'package:qayd/presentation/pages/settings/currency_management_screen.dart';
 import 'package:qayd/core/error/failures.dart';
@@ -33,6 +36,12 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
+          // ── Auto backup ────────────────────────────────────────────────────
+          _SectionTitle(AppStringsAr.settingsSectionAutoBackup),
+          const AutoBackupSettingsSection(),
+          const Divider(),
+
+          // ── Manual backup / restore ────────────────────────────────────────
           _SectionTitle(AppStringsAr.settingsSectionBackup),
           ListTile(
             leading: const Icon(Icons.cloud_upload_outlined),
@@ -53,6 +62,12 @@ class SettingsPage extends StatelessWidget {
             onTap: () => _restore(context),
           ),
           const Divider(),
+
+          // ── Google Drive backup (suspended) ────────────────────────────────
+          _SectionTitle(AppStringsAr.settingsSectionDriveBackup),
+          const DriveBackupSection(),
+          const Divider(),
+
           _SectionTitle(AppStringsAr.settingsSectionExport),
           ListTile(
             leading: const Icon(Icons.table_chart_outlined),
@@ -74,6 +89,9 @@ class SettingsPage extends StatelessWidget {
           const Divider(),
           _SectionTitle(AppStringsAr.settingsSectionSecurity),
           const SettingsSecuritySection(),
+          const Divider(),
+          _SectionTitle(AppStringsAr.identitySettingsSection),
+          const IdentitySettingsSection(),
           const Divider(),
           _SectionTitle(AppStringsAr.settingsSectionCurrency),
           ListTile(

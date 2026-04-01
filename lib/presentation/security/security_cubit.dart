@@ -27,15 +27,20 @@ class SecurityCubit extends Cubit<SecurityState> {
     required AuthRepository authRepository,
     LocalAuthentication? localAuth,
     Duration lockAfterBackground = const Duration(minutes: 5),
-  })  : _pinStorage = pinStorage,
-        _licenseVault = licenseVault,
-        _hardwareIdService = hardwareIdService,
-        _clockGuard = clockGuard,
-        _panicWipeService = panicWipeService,
-        _authRepository = authRepository,
-        _localAuth = localAuth ?? LocalAuthentication(),
-        _lockAfterBackground = lockAfterBackground,
-        super(const SecurityUnlocked(licenseStatus: LicenseStatus.pending));
+  }) : _pinStorage = pinStorage,
+       _licenseVault = licenseVault,
+       _hardwareIdService = hardwareIdService,
+       _clockGuard = clockGuard,
+       _panicWipeService = panicWipeService,
+       _authRepository = authRepository,
+       _localAuth = localAuth ?? LocalAuthentication(),
+       _lockAfterBackground = lockAfterBackground,
+       super(
+         const SecurityUnlocked(
+           licenseStatus: LicenseStatus.pending,
+           trialDaysRemaining: LicenseVault.trialDurationDays,
+         ),
+       );
 
   final AppPinStorage _pinStorage;
   final LicenseVault _licenseVault;
@@ -55,20 +60,25 @@ class SecurityCubit extends Cubit<SecurityState> {
     // 1. Clock tamper detection.
     final tampered = await _clockGuard.detectTamper();
     if (tampered) {
-      emit(_withClock(ClockStatus.tampered));
+      final trialDays = await trialDaysRemaining();
+      emit(_withClock(ClockStatus.tampered, trialDaysRemaining: trialDays));
       return;
     }
 
     // 2. License check.
     final licenseStatus = await _resolveLicenseStatus();
+    final trialDays = await trialDaysRemaining();
 
     // 3. If FORCE_REVOKE — wipe immediately.
     if (licenseStatus == LicenseStatus.revoked) {
       await _panicWipeService.wipeAll();
-      emit(_buildState(
-        licenseStatus: LicenseStatus.revoked,
-        clockStatus: ClockStatus.clean,
-      ));
+      emit(
+        _buildState(
+          licenseStatus: LicenseStatus.revoked,
+          clockStatus: ClockStatus.clean,
+          trialDaysRemaining: trialDays,
+        ),
+      );
       return;
     }
 
@@ -77,9 +87,17 @@ class SecurityCubit extends Cubit<SecurityState> {
     final hasPin = await _pinStorage.hasPinConfigured();
     final shouldPinLock = lockEnabled && hasPin;
 
-    emit(shouldPinLock
-        ? SecurityLocked(licenseStatus: licenseStatus)
-        : SecurityUnlocked(licenseStatus: licenseStatus));
+    emit(
+      shouldPinLock
+          ? SecurityLocked(
+              licenseStatus: licenseStatus,
+              trialDaysRemaining: trialDays,
+            )
+          : SecurityUnlocked(
+              licenseStatus: licenseStatus,
+              trialDaysRemaining: trialDays,
+            ),
+    );
   }
 
   Future<LicenseStatus> _resolveLicenseStatus() async {
@@ -110,7 +128,8 @@ class SecurityCubit extends Cubit<SecurityState> {
       await _licenseVault.writeTrialStart(DateTime.now().toUtc());
       return LicenseStatus.trial;
     }
-    if (_licenseVault.isTrialExpired(trialStart)) return LicenseStatus.trialExpired;
+    if (_licenseVault.isTrialExpired(trialStart))
+      return LicenseStatus.trialExpired;
     return LicenseStatus.trial;
   }
 
@@ -122,7 +141,13 @@ class SecurityCubit extends Cubit<SecurityState> {
     final ls = state.licenseStatus;
     final cs = state.clockStatus;
     if (!lockOn || !hasPin) {
-      emit(SecurityUnlocked(licenseStatus: ls, clockStatus: cs));
+      emit(
+        SecurityUnlocked(
+          licenseStatus: ls,
+          clockStatus: cs,
+          trialDaysRemaining: state.trialDaysRemaining,
+        ),
+      );
     }
   }
 
@@ -147,10 +172,13 @@ class SecurityCubit extends Cubit<SecurityState> {
     final t = _pausedAt;
     if (t == null) return;
     if (DateTime.now().difference(t) >= _lockAfterBackground) {
-      emit(SecurityLocked(
-        licenseStatus: state.licenseStatus,
-        clockStatus: state.clockStatus,
-      ));
+      emit(
+        SecurityLocked(
+          licenseStatus: state.licenseStatus,
+          clockStatus: state.clockStatus,
+          trialDaysRemaining: state.trialDaysRemaining,
+        ),
+      );
     }
     _pausedAt = null;
   }
@@ -160,10 +188,13 @@ class SecurityCubit extends Cubit<SecurityState> {
   Future<void> unlockWithPin(String pin) async {
     final ok = await _pinStorage.verifyPin(pin);
     if (ok) {
-      emit(SecurityUnlocked(
-        licenseStatus: state.licenseStatus,
-        clockStatus: state.clockStatus,
-      ));
+      emit(
+        SecurityUnlocked(
+          licenseStatus: state.licenseStatus,
+          clockStatus: state.clockStatus,
+          trialDaysRemaining: state.trialDaysRemaining,
+        ),
+      );
     }
   }
 
@@ -179,10 +210,13 @@ class SecurityCubit extends Cubit<SecurityState> {
         persistAcrossBackgrounding: true,
       );
       if (ok) {
-        emit(SecurityUnlocked(
-          licenseStatus: state.licenseStatus,
-          clockStatus: state.clockStatus,
-        ));
+        emit(
+          SecurityUnlocked(
+            licenseStatus: state.licenseStatus,
+            clockStatus: state.clockStatus,
+            trialDaysRemaining: state.trialDaysRemaining,
+          ),
+        );
       }
       return ok;
     } catch (_) {
@@ -234,12 +268,20 @@ class SecurityCubit extends Cubit<SecurityState> {
       }
 
       final licenseStatus = await _resolveLicenseStatus();
-      emit(SecurityUnlocked(licenseStatus: licenseStatus));
+      final trialDays = await trialDaysRemaining();
+      emit(
+        SecurityUnlocked(
+          licenseStatus: licenseStatus,
+          trialDaysRemaining: trialDays,
+        ),
+      );
       return ProvisioningResult.success();
     } on AuthException catch (e) {
       return ProvisioningResult.failure(e.messageAr);
     } catch (_) {
-      return ProvisioningResult.failure('تعذر الاتصال بالخادم. تحقق من الاتصال.');
+      return ProvisioningResult.failure(
+        'تعذر الاتصال بالخادم. تحقق من الاتصال.',
+      );
     }
   }
 
@@ -247,7 +289,12 @@ class SecurityCubit extends Cubit<SecurityState> {
 
   Future<void> executePanicWipe() async {
     await _panicWipeService.wipeAll();
-    emit(const SecurityUnlocked(licenseStatus: LicenseStatus.pending));
+    emit(
+      const SecurityUnlocked(
+        licenseStatus: LicenseStatus.pending,
+        trialDaysRemaining: LicenseVault.trialDurationDays,
+      ),
+    );
   }
 
   // ── PIN management ────────────────────────────────────────────────────────
@@ -283,18 +330,23 @@ class SecurityCubit extends Cubit<SecurityState> {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  SecurityState _withClock(ClockStatus cs) => SecurityLocked(
-        licenseStatus: state.licenseStatus,
-        clockStatus: cs,
-      );
+  SecurityState _withClock(ClockStatus cs, {int? trialDaysRemaining}) {
+    return SecurityLocked(
+      licenseStatus: state.licenseStatus,
+      clockStatus: cs,
+      trialDaysRemaining: trialDaysRemaining ?? state.trialDaysRemaining,
+    );
+  }
 
   SecurityState _buildState({
     required LicenseStatus licenseStatus,
     required ClockStatus clockStatus,
+    int? trialDaysRemaining,
   }) {
     return SecurityUnlocked(
       licenseStatus: licenseStatus,
       clockStatus: clockStatus,
+      trialDaysRemaining: trialDaysRemaining ?? state.trialDaysRemaining,
     );
   }
 }

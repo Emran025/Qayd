@@ -382,6 +382,48 @@ abstract final class AppStringsAr {
   static const String identityNotSetup = 'لم يتم إعداد الهوية الرقمية';
   static const String identitySetupAction = 'إعداد الهوية';
   static const String identityViewSeed = 'عرض عبارة الاسترداد';
+  static const String identityViewSeedSubtitle =
+      'اعرض كلمات الاسترداد الـ 24 لحفظها أو مشاركتها بشكل آمن.';
+  static const String identityViewSeedWarningTitle = 'تحذير أمني';
+  static const String identityViewSeedWarningBody =
+      'ستظهر عبارة الاسترداد الخاصة بك. تأكد من أنك في مكان خاص. '
+      'لا تشاركها مع أي شخص لا تثق به تماماً — من يمتلكها يمتلك هويتك الرقمية.';
+  static const String identitySeedDialogBody =
+      'هذه هي عبارة الاسترداد المكونة من 24 كلمة. احتفظ بها في مكان آمن.';
+  static const String identitySeedWarning =
+      'لا تشارك هذه الكلمات مع أي شخص. فقدانها يعني فقدان القدرة على التوقيع الرقمي.';
+  static const String identitySeedCopy = 'نسخ';
+  static const String identitySeedShare = 'مشاركة';
+  static const String identitySeedCopied = 'تم نسخ عبارة الاسترداد.';
+  static const String identityShareSeedSubject = 'عبارة استرداد قيد — سري للغاية';
+  static const String identityPublicKeyCopy = 'نسخ المفتاح العام';
+  static const String identityPublicKeyCopied = 'تم نسخ المفتاح العام.';
+
+  // ── Auto backup ─────────────────────────────────────────────────────────
+  static const String settingsSectionAutoBackup = 'النسخ الاحتياطي التلقائي';
+  static const String autoBackupToggleTitle = 'نسخ احتياطي يومي تلقائي';
+  static const String autoBackupToggleSubtitle =
+      'يحفظ نسخة يومية من البيانات تلقائياً مثل واتساب — يحتفظ بآخر 7 نسخ.';
+  static const String autoBackupLastBackupLabel = 'آخر نسخة احتياطية';
+  static const String autoBackupNever = 'لم يتم النسخ بعد';
+  static const String autoBackupRunNow = 'نسخ الآن';
+  static const String autoBackupRunNowSuccess = 'تم إنشاء النسخة الاحتياطية بنجاح.';
+  static const String autoBackupSaveToDevice = 'حفظ في الجهاز';
+  static const String autoBackupSavedExternal =
+      'تم حفظ النسخة الاحتياطية في وحدة التخزين الخارجية.';
+
+  // ── Google Drive backup ─────────────────────────────────────────────────
+  static const String settingsSectionDriveBackup = 'النسخ الاحتياطي على Drive';
+  static const String driveBackupSuspendedNotice =
+      'هذه الخدمة موقوفة مؤقتاً. سيتم تفعيل النسخ الاحتياطي على Google Drive في إصدار قادم.';
+  static const String driveBackupToggleTitle = 'النسخ على Google Drive';
+  static const String driveBackupToggleSubtitle =
+      'نسخ تلقائي يومي إلى Google Drive — مثل واتساب بالضبط.';
+  static const String driveBackupAccountLabel = 'حساب Google';
+  static const String driveBackupNoAccount = 'لم يتم تسجيل الدخول';
+  static const String driveBackupFrequencyLabel = 'تكرار النسخ';
+  static const String driveBackupFrequencyDaily = 'يومياً';
+  static const String driveBackupRestoreAction = 'استعادة من Drive';
 
   // Signature status labels
   static const String signatureUnsigned = 'مسودة - بدون توقيع';

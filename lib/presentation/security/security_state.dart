@@ -35,10 +35,12 @@ sealed class SecurityState {
   const SecurityState({
     this.licenseStatus = LicenseStatus.active,
     this.clockStatus = ClockStatus.clean,
+    this.trialDaysRemaining,
   });
 
   final LicenseStatus licenseStatus;
   final ClockStatus clockStatus;
+  final int? trialDaysRemaining;
 
   /// True when PIN lock screen should be shown.
   bool get isLocked => this is SecurityLocked;
@@ -58,6 +60,7 @@ class SecurityUnlocked extends SecurityState {
   const SecurityUnlocked({
     super.licenseStatus = LicenseStatus.active,
     super.clockStatus = ClockStatus.clean,
+    super.trialDaysRemaining,
   });
 }
 
@@ -65,5 +68,6 @@ class SecurityLocked extends SecurityState {
   const SecurityLocked({
     super.licenseStatus = LicenseStatus.active,
     super.clockStatus = ClockStatus.clean,
+    super.trialDaysRemaining,
   });
 }

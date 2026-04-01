@@ -31,6 +31,7 @@ import 'package:qayd/application/vouchers/get_voucher_details_use_case.dart';
 import 'package:qayd/application/vouchers/list_vouchers_use_case.dart';
 import 'package:qayd/application/vouchers/update_draft_voucher_use_case.dart';
 import 'package:qayd/core/utils/id_generator.dart';
+import 'package:qayd/data/backup/auto_backup_service.dart';
 import 'package:qayd/data/backup/backup_service.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
@@ -70,6 +71,7 @@ import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/services/trial_balance_generator.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/data/security/ed25519_identity_service.dart';
+import 'package:qayd/data/security/identity_file_storage.dart';
 import 'package:qayd/data/security/mnemonic_vault.dart';
 import 'package:qayd/data/repositories/remote_identity_repository.dart';
 import 'package:qayd/domain/services/crypto_identity_service.dart';
@@ -90,6 +92,8 @@ abstract final class InjectionContainer {
   static late Database database;
 
   static late final BackupService backupService;
+  static late final AutoBackupService autoBackupService;
+  static late final IdentityFileStorage identityFileStorage;
 
   // ── Phase 7: Security services ─────────────────────────────────────────────
 
@@ -167,10 +171,17 @@ abstract final class InjectionContainer {
     licenseVault = LicenseVault();
     hardwareIdService = HardwareIdService();
     clockGuard = MonotonicClockGuard();
+
+    // Identity file storage requires the hardware ID; create it here so it
+    // can be passed to PanicWipeService for full key-material wipe.
+    final hwId = await hardwareIdService.obtainHardwareId();
+    identityFileStorage = IdentityFileStorage(hardwareId: hwId);
+
     panicWipeService = PanicWipeService(
       licenseVault: licenseVault,
       clockGuard: clockGuard,
       pinStorage: appPinStorage,
+      identityFileStorage: identityFileStorage,
     );
     final apiClient = ApiClient(
       baseUrl: ApiEndpoints.baseUrl,
@@ -203,6 +214,7 @@ abstract final class InjectionContainer {
       cryptoService: cryptoIdentityService,
       mnemonicVault: mnemonicVault,
       identityRepository: identityRepository,
+      identityFileStorage: identityFileStorage,
     );
     lookupPublicKeyUseCase = LookupPublicKeyUseCase(
       identityRepository: identityRepository,
@@ -210,6 +222,12 @@ abstract final class InjectionContainer {
     receiptSigningService = ReceiptSigningService(
       cryptoService: cryptoIdentityService,
     );
+
+    // Auto-restore identity from device file if secure storage was cleared
+    // (common after Android app reinstall).
+    if (!await mnemonicVault.hasIdentity()) {
+      await identityFileStorage.restoreToVaultIfAvailable(mnemonicVault);
+    }
 
     // ── Encryption key provider ─────────────────────────────────────────────
 
@@ -220,7 +238,11 @@ abstract final class InjectionContainer {
         );
 
     backupService = BackupService(keyProvider: _encryptionKeyProvider);
+    autoBackupService = AutoBackupService();
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
+
+    // Run daily auto-backup if due (fire-and-forget; non-blocking).
+    autoBackupService.performIfDue().ignore();
 
     // ── Governance ──────────────────────────────────────────────────────────
 

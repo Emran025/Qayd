@@ -158,6 +158,7 @@ class _VaultScreen extends StatelessWidget {
         bodyAr: AppStringsAr.vaultClockTamperedBody,
         showContactButton: true,
         contactAr: AppStringsAr.vaultContactSupport,
+        trialDaysRemaining: state.trialDaysRemaining,
       );
     }
 
@@ -169,6 +170,7 @@ class _VaultScreen extends StatelessWidget {
           titleAr: AppStringsAr.vaultPendingTitle,
           bodyAr: AppStringsAr.vaultPendingBody,
           showProvisioningButton: true,
+          trialDaysRemaining: state.trialDaysRemaining,
         );
       case LicenseStatus.trialExpired:
         return _OverlayConfig(
@@ -178,6 +180,7 @@ class _VaultScreen extends StatelessWidget {
           bodyAr: AppStringsAr.vaultTrialExpiredBody,
           showContactButton: true,
           contactAr: AppStringsAr.vaultContactSupport,
+          trialDaysRemaining: state.trialDaysRemaining,
         );
       case LicenseStatus.revoked:
         return _OverlayConfig(
@@ -187,6 +190,7 @@ class _VaultScreen extends StatelessWidget {
           bodyAr: AppStringsAr.vaultRevokedBody,
           showContactButton: true,
           contactAr: AppStringsAr.vaultContactSupport,
+          trialDaysRemaining: state.trialDaysRemaining,
         );
       case LicenseStatus.deviceUnbound:
         return _OverlayConfig(
@@ -196,6 +200,7 @@ class _VaultScreen extends StatelessWidget {
           bodyAr: AppStringsAr.vaultDeviceUnboundBody,
           showContactButton: true,
           contactAr: AppStringsAr.vaultContactSupport,
+          trialDaysRemaining: state.trialDaysRemaining,
         );
       default:
         return _OverlayConfig(
@@ -203,6 +208,7 @@ class _VaultScreen extends StatelessWidget {
           iconColor: ColorTokens.goldAccent,
           titleAr: AppStringsAr.lockScreenTitle,
           bodyAr: AppStringsAr.lockScreenSubtitle,
+          trialDaysRemaining: state.trialDaysRemaining,
         );
     }
   }
