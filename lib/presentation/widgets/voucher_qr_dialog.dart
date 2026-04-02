@@ -20,7 +20,6 @@ class VoucherQrDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF1E293B), // Navy800
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(SpacingTokens.xl),
@@ -30,13 +29,12 @@ class VoucherQrDialog extends StatelessWidget {
             QaydText(
               AppStringsAr.qrCodeDisplayTitle,
               slot: QaydTextStyleSlot.titleMedium,
-              color: Colors.white,
             ),
             const SizedBox(height: SpacingTokens.lg),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                
                 borderRadius: BorderRadius.circular(16),
               ),
               child: QrImageView(
@@ -64,7 +62,6 @@ class VoucherQrDialog extends StatelessWidget {
               QaydText(
                 voucherDescription,
                 slot: QaydTextStyleSlot.bodyMedium,
-                color: Colors.white.withOpacity(0.7),
                 textAlign: TextAlign.center,
               ),
             ],

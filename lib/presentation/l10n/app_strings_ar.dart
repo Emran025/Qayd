@@ -164,7 +164,7 @@ abstract final class AppStringsAr {
   static const String trialBalanceColCredit = 'إجمالي الدائن';
   static const String trialBalanceGrandTotal = 'الإجمالي';
   static const String trialBalanceBalanced =
-      'متوازن — إجمالي المدين يساوي إجمالي الدائن.';
+      'متوازن — إجمالي المدين يساوي إجمالي الدائن';
   static const String trialBalanceNotBalanced =
       'غير متوازن — يوجد فرق يجب مراجعته.';
   static const String trialBalanceImbalanceLabel = 'الفرق (مدين − دائن):';
@@ -395,7 +395,8 @@ abstract final class AppStringsAr {
   static const String identitySeedCopy = 'نسخ';
   static const String identitySeedShare = 'مشاركة';
   static const String identitySeedCopied = 'تم نسخ عبارة الاسترداد.';
-  static const String identityShareSeedSubject = 'عبارة استرداد قيد — سري للغاية';
+  static const String identityShareSeedSubject =
+      'عبارة استرداد قيد — سري للغاية';
   static const String identityPublicKeyCopy = 'نسخ المفتاح العام';
   static const String identityPublicKeyCopied = 'تم نسخ المفتاح العام.';
 
@@ -407,7 +408,8 @@ abstract final class AppStringsAr {
   static const String autoBackupLastBackupLabel = 'آخر نسخة احتياطية';
   static const String autoBackupNever = 'لم يتم النسخ بعد';
   static const String autoBackupRunNow = 'نسخ الآن';
-  static const String autoBackupRunNowSuccess = 'تم إنشاء النسخة الاحتياطية بنجاح.';
+  static const String autoBackupRunNowSuccess =
+      'تم إنشاء النسخة الاحتياطية بنجاح.';
   static const String autoBackupSaveToDevice = 'حفظ في الجهاز';
   static const String autoBackupSavedExternal =
       'تم حفظ النسخة الاحتياطية في وحدة التخزين الخارجية.';
@@ -424,6 +426,18 @@ abstract final class AppStringsAr {
   static const String driveBackupFrequencyLabel = 'تكرار النسخ';
   static const String driveBackupFrequencyDaily = 'يومياً';
   static const String driveBackupRestoreAction = 'استعادة من Drive';
+  static const String driveBackupSignOutTitle = 'تسجيل الخروج';
+  static const String driveBackupSignOutBody =
+      'هل أنت متأكد من أنك تريد تسجيل الخروج؟ سيتم إيقاف النسخ الاحتياطي التلقائي على Google Drive.';
+  static const String driveBackupUploadSuccess =
+      'تم رفع النسخة الاحتياطية إلى Google Drive بنجاح.';
+  static const String driveBackupRestoreTitle = 'استعادة من Google Drive';
+  static const String driveBackupRestoreBody =
+      'سيتم استبدال جميع البيانات الحالية بالنسخة الاحتياطية المرفوعة. لا يمكن التراجع عن هذا الإجراء. المتابعة؟';
+  static const String driveBackupLastDate = 'تاريخ الملف';
+  static const String driveBackupSignOut = 'خروج';
+  static const String driveBackupSignIn = 'ربط حساب';
+  static const String driveBackupNow = 'نسخ الآن';
 
   // Signature status labels
   static const String signatureUnsigned = 'مسودة - بدون توقيع';

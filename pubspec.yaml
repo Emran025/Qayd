@@ -60,6 +60,9 @@ dependencies:
   bip39: ^1.0.6
   pointycastle: ^3.9.1
   flag: ^7.0.2
+  google_sign_in: ^6.2.2
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0
 
 dev_dependencies:
   flutter_test:

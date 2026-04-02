@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SeedSetupPage extends StatefulWidget {
   const SeedSetupPage({super.key});
@@ -40,6 +43,25 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _copyPhrase() async {
+    if (_mnemonic == null) return;
+    await Clipboard.setData(ClipboardData(text: _mnemonic!.phrase));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(AppStringsAr.identitySeedCopied)),
+    );
+  }
+
+  Future<void> _sharePhrase() async {
+    if (_mnemonic == null) return;
+    await SharePlus.instance.share(
+      ShareParams(
+        text: _mnemonic!.phrase,
+        subject: AppStringsAr.identityShareSeedSubject,
+      ),
+    );
   }
 
   void _confirmBackup() async {
@@ -84,12 +106,25 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                 color: theme.colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                AppStringsAr.seedBackupWarning,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onErrorContainer,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 20,
+                    color: theme.colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      AppStringsAr.seedBackupWarning,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onErrorContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
@@ -97,12 +132,61 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               spacing: 8.0,
               runSpacing: 12.0,
               children: words.asMap().entries.map((entry) {
-                return Chip(
-                  label: Text('${entry.key + 1}. \${entry.value}'),
-                  backgroundColor: theme.colorScheme.surfaceVariant,
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${entry.key + 1}.',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        entry.value,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
             ),
+            const SizedBox(height: 24),
+
+            // ── Copy & Share actions ──────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _copyPhrase,
+                    icon: const Icon(Icons.copy_outlined, size: 18),
+                    label: const Text(AppStringsAr.identitySeedCopy),
+                  ),
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _sharePhrase,
+                    icon: const Icon(Icons.share_outlined, size: 18),
+                    label: const Text(AppStringsAr.identitySeedShare),
+                  ),
+                ),
+              ],
+            ),
+
             const SizedBox(height: 48),
             ElevatedButton(
               onPressed: _confirmBackup,

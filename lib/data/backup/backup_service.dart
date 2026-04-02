@@ -11,12 +11,18 @@ import 'package:qayd/data/database/database_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Copies the live encrypted DB and shares it, or restores from a validated backup.
+///
+/// When sharing or saving, also includes the identity file alongside the DB
+/// so the user has a complete backup including signing keys.
 final class BackupService {
   BackupService({
     required DatabaseEncryptionKeyProvider keyProvider,
   }) : _keyProvider = keyProvider;
 
   final DatabaseEncryptionKeyProvider _keyProvider;
+
+  // Must match IdentityFileStorage._fileName.
+  static const String _identityFileName = 'qayd_identity.dat';
 
   Future<String> _key() => _keyProvider.obtainKey();
 
@@ -30,13 +36,34 @@ final class BackupService {
     return out;
   }
 
+  /// Returns the identity file path (if it exists).
+  Future<File?> _findIdentityFile() async {
+    try {
+      final docsDir = await getApplicationDocumentsDirectory();
+      final f = File(p.join(docsDir.path, _identityFileName));
+      if (f.existsSync()) return f;
+    } catch (_) {}
+    return null;
+  }
+
   Future<Result<void>> shareDatabaseBackup() async {
     try {
-      final f = await copyDatabaseToTempFile();
+      final dbFile = await copyDatabaseToTempFile();
+      final files = <XFile>[
+        XFile(dbFile.path, mimeType: 'application/octet-stream'),
+      ];
+
+      // Include the identity file if available.
+      final idFile = await _findIdentityFile();
+      if (idFile != null) {
+        final tmpDir = await getTemporaryDirectory();
+        final idCopy = File(p.join(tmpDir.path, _identityFileName));
+        await idFile.copy(idCopy.path);
+        files.add(XFile(idCopy.path, mimeType: 'application/octet-stream'));
+      }
+
       await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(f.path, mimeType: 'application/octet-stream')],
-        ),
+        ShareParams(files: files),
       );
       return const Success(null);
     } catch (_) {
@@ -60,6 +87,15 @@ final class BackupService {
     try {
       final f = await copyDatabaseToTempFile();
       await f.copy(destinationPath);
+
+      // Also save the identity file alongside the DB if possible.
+      final idFile = await _findIdentityFile();
+      if (idFile != null) {
+        final destDir = File(destinationPath).parent.path;
+        final idDest = File(p.join(destDir, _identityFileName));
+        await idFile.copy(idDest.path);
+      }
+
       return const Success(null);
     } catch (_) {
       return const FailureResult(
@@ -90,6 +126,16 @@ final class BackupService {
       try {
         await File(tmp).delete();
       } catch (_) {}
+
+      // If an identity file exists alongside the backup, restore it too.
+      final backupDir = File(backupPath).parent.path;
+      final idSource = File(p.join(backupDir, _identityFileName));
+      if (idSource.existsSync()) {
+        final docsDir = await getApplicationDocumentsDirectory();
+        final idDest = File(p.join(docsDir.path, _identityFileName));
+        await idSource.copy(idDest.path);
+      }
+
       return const Success(null);
     } catch (_) {
       return const FailureResult(

@@ -13,8 +13,11 @@ import 'package:share_plus/share_plus.dart';
 ///
 /// Behaviour (mirrors WhatsApp's local backup model):
 /// - Runs a daily backup to [qayd_backups/] inside the app documents directory.
-/// - Keeps at most [_maxKeepCount] daily snapshots; older ones are pruned.
-/// - Also saves a copy to external app storage (survives reinstall on Android).
+/// - **Also copies to external storage** (survives reinstall on Android).
+/// - Keeps at most [_maxKeepCount] daily snapshots in each location; older ones
+///   are pruned.
+/// - Alongside the DB, the backup includes the identity file ([qayd_identity.dat])
+///   and a copy of the DB encryption key so that restoration is possible.
 /// - The user can disable automatic backups at any time.
 /// - All settings are stored in encrypted platform storage.
 final class AutoBackupService {
@@ -28,6 +31,11 @@ final class AutoBackupService {
 
   static const String _backupDirName = 'qayd_backups';
   static const int _maxKeepCount = 7;
+
+  // Key used to store the DB encryption key in the backup folder.
+  static const String _dbKeyFileName = 'qayd_db_key.dat';
+  // Identity file name (must match IdentityFileStorage._fileName).
+  static const String _identityFileName = 'qayd_identity.dat';
 
   // ── Settings ──────────────────────────────────────────────────────────────
 
@@ -81,20 +89,76 @@ final class AutoBackupService {
 
   Future<void> _runBackup() async {
     final srcPath = await DatabaseProvider.databaseFilePath();
-    final backupDir = await _localBackupDir();
     final stamp = DateFormat('yyyyMMdd').format(DateTime.now());
-    final destPath = p.join(backupDir.path, 'qayd_backup_$stamp.db');
-    await File(srcPath).copy(destPath);
+    final dbFileName = 'qayd_backup_$stamp.db';
+
+    // 1. Backup to internal (app documents) directory.
+    final internalDir = await _localBackupDir();
+    final internalDest = p.join(internalDir.path, dbFileName);
+    await File(srcPath).copy(internalDest);
+    await _copyKeyAndIdentityTo(internalDir);
+    await _pruneOld(internalDir);
+
+    // 2. Also backup to external storage (survives reinstall on Android).
+    try {
+      final externalDir = await _externalBackupDir();
+      if (externalDir != null &&
+          externalDir.path != internalDir.path) {
+        final externalDest = p.join(externalDir.path, dbFileName);
+        await File(srcPath).copy(externalDest);
+        await _copyKeyAndIdentityTo(externalDir);
+        await _pruneOld(externalDir);
+      }
+    } catch (_) {
+      // External storage unavailable — non-fatal.
+    }
+
     await _storage.write(
       key: _kLastDate,
       value: DateTime.now().toIso8601String(),
     );
-    await _pruneOld(backupDir);
+  }
+
+  /// Copies the DB encryption key and identity file alongside the backup.
+  Future<void> _copyKeyAndIdentityTo(Directory backupDir) async {
+    // Copy DB encryption key (from secure storage) to a file in the backup dir.
+    try {
+      final dbKey =
+          await _storage.read(key: 'qayd_db_derived_key_v2');
+      if (dbKey != null && dbKey.isNotEmpty) {
+        final keyFile = File(p.join(backupDir.path, _dbKeyFileName));
+        await keyFile.writeAsString(dbKey);
+      }
+    } catch (_) {}
+
+    // Copy identity file if it exists.
+    try {
+      final docsDir = await getApplicationDocumentsDirectory();
+      final identityFile = File(p.join(docsDir.path, _identityFileName));
+      if (identityFile.existsSync()) {
+        final dest = File(p.join(backupDir.path, _identityFileName));
+        await identityFile.copy(dest.path);
+      }
+    } catch (_) {}
   }
 
   Future<Directory> _localBackupDir() async {
     final base = await getApplicationDocumentsDirectory();
     final dir = Directory(p.join(base.path, _backupDirName));
+    if (!dir.existsSync()) await dir.create(recursive: true);
+    return dir;
+  }
+
+  /// Returns the external backup directory. On Android this persists across
+  /// reinstalls without needing WRITE_EXTERNAL_STORAGE on Android 10+.
+  /// Returns null if not available.
+  Future<Directory?> _externalBackupDir() async {
+    Directory? extDir;
+    if (Platform.isAndroid) {
+      extDir = await getExternalStorageDirectory();
+    }
+    if (extDir == null) return null;
+    final dir = Directory(p.join(extDir.path, _backupDirName));
     if (!dir.existsSync()) await dir.create(recursive: true);
     return dir;
   }
@@ -133,6 +197,10 @@ final class AutoBackupService {
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final destPath = p.join(backupFolder.path, 'qayd_backup_$stamp.db');
       await File(srcPath).copy(destPath);
+
+      // Also copy key and identity alongside.
+      await _copyKeyAndIdentityTo(backupFolder);
+
       return Success(destPath);
     } catch (_) {
       return const FailureResult(

@@ -79,30 +79,31 @@ class _TrialBalanceView extends StatelessWidget {
           return switch (state) {
             TrialBalanceInitial() => const SizedBox.shrink(),
             TrialBalanceLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: CircularProgressIndicator(),
+            ),
             TrialBalanceFailure(:final failure) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(SpacingTokens.lg),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      QaydText(
-                        failure.messageAr,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: SpacingTokens.md),
-                      FilledButton.tonal(
-                        onPressed: () =>
-                            context.read<TrialBalanceCubit>().load(),
-                        child: Text(AppStringsAr.retryAction),
-                      ),
-                    ],
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.all(SpacingTokens.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    QaydText(
+                      failure.messageAr,
+                      slot: QaydTextStyleSlot.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: SpacingTokens.md),
+                    FilledButton.tonal(
+                      onPressed: () => context.read<TrialBalanceCubit>().load(),
+                      child: Text(AppStringsAr.retryAction),
+                    ),
+                  ],
                 ),
               ),
-            TrialBalanceReady(:final output) => _TrialBalanceBody(output: output),
+            ),
+            TrialBalanceReady(:final output) => _TrialBalanceBody(
+              output: output,
+            ),
           };
         },
       ),
@@ -202,10 +203,7 @@ class _TrialBalanceTable extends StatelessWidget {
       widgets.addAll(
         List.generate(
           entry.value.length,
-          (i) => _DataRow(
-            line: entry.value[i],
-            stripe: i.isOdd,
-          ),
+          (i) => _DataRow(line: entry.value[i], stripe: i.isOdd),
         ),
       );
     }
@@ -228,9 +226,7 @@ class _TableHeaderRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: scheme.outline.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: scheme.outline.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -264,10 +260,7 @@ class _TableHeaderRow extends StatelessWidget {
 }
 
 class _DataRow extends StatelessWidget {
-  const _DataRow({
-    required this.line,
-    required this.stripe,
-  });
+  const _DataRow({required this.line, required this.stripe});
 
   final TrialBalanceLineDto line;
   final bool stripe;
@@ -408,7 +401,10 @@ class _CurrencySectionFooter extends StatelessWidget {
                   child: Align(
                     alignment: AlignmentDirectional.centerEnd,
                     child: QaydMoneyDisplay(
-                      money: Money.nonNegative(section.totalDebitMinorUnits, currency),
+                      money: Money.nonNegative(
+                        section.totalDebitMinorUnits,
+                        currency,
+                      ),
                       size: QaydMoneyDisplaySize.medium,
                       textAlign: TextAlign.end,
                     ),
@@ -419,7 +415,10 @@ class _CurrencySectionFooter extends StatelessWidget {
                   child: Align(
                     alignment: AlignmentDirectional.centerEnd,
                     child: QaydMoneyDisplay(
-                      money: Money.nonNegative(section.totalCreditMinorUnits, currency),
+                      money: Money.nonNegative(
+                        section.totalCreditMinorUnits,
+                        currency,
+                      ),
                       size: QaydMoneyDisplaySize.medium,
                       textAlign: TextAlign.end,
                     ),
@@ -435,8 +434,10 @@ class _CurrencySectionFooter extends StatelessWidget {
                   section.isBalanced
                       ? Icons.verified_rounded
                       : Icons.warning_amber_rounded,
-                  size: 32,
-                  color: section.isBalanced ? emerald : ColorTokens.warningAmber,
+                  size: 22,
+                  color: section.isBalanced
+                      ? emerald
+                      : ColorTokens.warningAmber,
                 ),
                 const SizedBox(width: SpacingTokens.md),
                 Expanded(
@@ -447,7 +448,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                         section.isBalanced
                             ? AppStringsAr.trialBalanceBalanced
                             : AppStringsAr.trialBalanceNotBalanced,
-                        slot: QaydTextStyleSlot.titleMedium,
+                        slot: QaydTextStyleSlot.bodyMedium,
                         color: section.isBalanced ? emerald : scheme.error,
                       ),
                       if (!section.isBalanced) ...[

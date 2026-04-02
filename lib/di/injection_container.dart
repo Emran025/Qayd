@@ -33,6 +33,7 @@ import 'package:qayd/application/vouchers/update_draft_voucher_use_case.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/data/backup/auto_backup_service.dart';
 import 'package:qayd/data/backup/backup_service.dart';
+import 'package:qayd/data/backup/google_drive_backup_service.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
 import 'package:qayd/data/database/hardware_backed_encryption_key_provider.dart';
@@ -93,6 +94,7 @@ abstract final class InjectionContainer {
 
   static late final BackupService backupService;
   static late final AutoBackupService autoBackupService;
+  static late final GoogleDriveBackupService driveBackupService;
   static late final IdentityFileStorage identityFileStorage;
 
   // ── Phase 7: Security services ─────────────────────────────────────────────
@@ -239,10 +241,14 @@ abstract final class InjectionContainer {
 
     backupService = BackupService(keyProvider: _encryptionKeyProvider);
     autoBackupService = AutoBackupService();
+    driveBackupService = GoogleDriveBackupService();
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
 
     // Run daily auto-backup if due (fire-and-forget; non-blocking).
     autoBackupService.performIfDue().ignore();
+
+    // Run daily Drive backup if due (fire-and-forget; non-blocking).
+    driveBackupService.performIfDue().ignore();
 
     // ── Governance ──────────────────────────────────────────────────────────
 

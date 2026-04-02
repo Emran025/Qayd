@@ -25,9 +25,13 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(AppStringsAr.qrScannerTitle, style: const TextStyle(fontFamily: 'Cairo')),
+        title: Text(
+          AppStringsAr.qrScannerTitle,
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+
         foregroundColor: Colors.white,
       ),
       body: Stack(
@@ -57,14 +61,17 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(
                   AppStringsAr.qrScannerHint,
-                  style: const TextStyle(color: Colors.white, fontFamily: 'Cairo'),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ),

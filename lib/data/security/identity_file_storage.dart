@@ -19,6 +19,10 @@ import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 /// - Provides meaningful protection against casual file inspection.
 /// - The hardware-derived key means the file is device-bound.
 /// - Full-disk encryption on modern Android/iOS provides the outer layer.
+///
+/// The identity is persisted to TWO locations:
+/// 1. App documents directory — primary location (may be deleted on uninstall).
+/// 2. External app storage — secondary location (survives uninstall on Android).
 final class IdentityFileStorage {
   IdentityFileStorage({required String hardwareId})
       : _hardwareId = hardwareId;
@@ -70,16 +74,28 @@ final class IdentityFileStorage {
     return cipher.process(data);
   }
 
-  // ── File path ─────────────────────────────────────────────────────────────
+  // ── File paths ────────────────────────────────────────────────────────────
 
+  /// Primary path: app documents directory.
   Future<File> get _file async {
     final dir = await getApplicationDocumentsDirectory();
     return File(p.join(dir.path, _fileName));
   }
 
+  /// Secondary path: external storage (survives uninstall on Android).
+  /// Falls back to documents directory on iOS / non-Android platforms.
+  Future<File> get _externalFile async {
+    Directory? extDir;
+    if (Platform.isAndroid) {
+      extDir = await getExternalStorageDirectory();
+    }
+    final baseDir = extDir ?? await getApplicationDocumentsDirectory();
+    return File(p.join(baseDir.path, _fileName));
+  }
+
   // ── Public API ────────────────────────────────────────────────────────────
 
-  /// Persists [mnemonic] and [keyPair] to the device file alongside the DB.
+  /// Persists [mnemonic] and [keyPair] to BOTH internal and external storage.
   Future<void> persist({
     required MnemonicPhrase mnemonic,
     required CryptoKeyPair keyPair,
@@ -92,18 +108,33 @@ final class IdentityFileStorage {
         'private_key': keyPair.privateKeyHex,
       });
       final encrypted = _encrypt(Uint8List.fromList(utf8.encode(payload)));
+
+      // Write to primary (app documents).
       final file = await _file;
       await file.writeAsBytes(encrypted);
+
+      // Write to secondary (external storage, survives uninstall).
+      try {
+        final extFile = await _externalFile;
+        if (extFile.path != file.path) {
+          await extFile.writeAsBytes(encrypted);
+        }
+      } catch (_) {
+        // External storage not available — non-fatal.
+      }
     } catch (_) {
       // Non-fatal: secure storage remains the primary source of truth.
     }
   }
 
-  /// Returns true if an identity file exists on disk.
+  /// Returns true if an identity file exists on disk (checks both locations).
   Future<bool> hasStoredIdentity() async {
     try {
       final f = await _file;
-      return f.existsSync();
+      if (f.existsSync()) return true;
+      // Fallback: check external storage.
+      final ef = await _externalFile;
+      return ef.existsSync();
     } catch (_) {
       return false;
     }
@@ -111,10 +142,25 @@ final class IdentityFileStorage {
 
   /// Reads from the file and writes to [vault] if the vault has no identity.
   ///
+  /// Tries primary file first, then falls back to external file.
   /// Called during [InjectionContainer.init] to auto-restore after reinstall.
   Future<bool> restoreToVaultIfAvailable(MnemonicVault vault) async {
+    // Try primary location first.
+    final restored = await _tryRestoreFromFile(await _file, vault);
+    if (restored) return true;
+
+    // Fallback: try external storage location.
     try {
-      final f = await _file;
+      final extFile = await _externalFile;
+      return await _tryRestoreFromFile(extFile, vault);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Attempts to restore identity from a specific file.
+  Future<bool> _tryRestoreFromFile(File f, MnemonicVault vault) async {
+    try {
       if (!f.existsSync()) return false;
       final encrypted = await f.readAsBytes();
       final decrypted = _decrypt(encrypted);
@@ -136,11 +182,15 @@ final class IdentityFileStorage {
     }
   }
 
-  /// Deletes the stored identity file. Called by [PanicWipeService].
+  /// Deletes the stored identity file from both locations. Called by [PanicWipeService].
   Future<void> delete() async {
     try {
       final f = await _file;
       if (f.existsSync()) await f.delete();
+    } catch (_) {}
+    try {
+      final ef = await _externalFile;
+      if (ef.existsSync()) await ef.delete();
     } catch (_) {}
   }
 }
