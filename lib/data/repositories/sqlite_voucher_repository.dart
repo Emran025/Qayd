@@ -57,6 +57,12 @@ final class SqliteVoucherRepository implements VoucherRepository {
       args.add(filter.dateRange!.start.toIso8601String());
       args.add(filter.dateRange!.end.toIso8601String());
     }
+    if (filter.excludeTripartite == true) {
+      whereParts.add('${p}transfer_group_id IS NULL');
+    }
+    if (filter.onlyTripartite == true) {
+      whereParts.add('${p}transfer_group_id IS NOT NULL');
+    }
   }
 
   Future<List<Voucher>> _mapVoucherRows(List<Map<String, Object?>> rows) async {

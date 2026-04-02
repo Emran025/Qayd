@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
@@ -15,6 +17,7 @@ import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_page.dart';
 import 'package:qayd/presentation/utils/account_statement_pdf_export.dart';
+import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -47,6 +50,26 @@ class AccountDetailPage extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+                IconButton(
+                  tooltip: 'محادثة كشف الحساب',
+                  icon: const Icon(Icons.forum_outlined),
+                  onPressed: () => Navigator.of(context).push<void>(
+                    QaydPageRoute.slideFromStart<void>(
+                      builder: (ctx) => BlocProvider(
+                        create: (_) => StatementChatCubit(
+                          listStatement:
+                              InjectionContainer.listAccountStatementChatUseCase,
+                          listAccounts:
+                              InjectionContainer.listAccountsUseCase,
+                          counterpartyAccountId: state.data.accountId,
+                        )..load(),
+                        child: AccountStatementChatPage(
+                          counterpartyAccountId: state.data.accountId,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 IconButton(
                   tooltip: AppStringsAr.accountStatementExportPdfTooltip,

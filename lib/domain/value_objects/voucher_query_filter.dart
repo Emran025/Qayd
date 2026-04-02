@@ -11,6 +11,8 @@ final class VoucherQueryFilter {
     this.counterpartyId,
     this.affectedAccountId,
     this.type,
+    this.excludeTripartite,
+    this.onlyTripartite,
   });
 
   final VoucherState? state;
@@ -18,11 +20,15 @@ final class VoucherQueryFilter {
   final AccountId? counterpartyId;
   final AccountId? affectedAccountId;
   final VoucherType? type;
+  final bool? excludeTripartite;
+  final bool? onlyTripartite;
 
   bool get isEmpty =>
       state == null &&
       dateRange == null &&
       counterpartyId == null &&
       affectedAccountId == null &&
-      type == null;
+      type == null &&
+      excludeTripartite == null &&
+      onlyTripartite == null;
 }

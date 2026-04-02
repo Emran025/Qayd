@@ -50,6 +50,7 @@ Future<void> shareVoucherAsPdf(
     linkedPartyName: data.linkedPartyName,
     signatureHex: data.signatureHex,
     signerPublicKeyHex: data.signerPublicKeyHex,
+    agreementStatusCode: data.agreementStatusCode,
   );
 
   final result = await InjectionContainer.voucherPdfGenerator.buildVoucherPdf(

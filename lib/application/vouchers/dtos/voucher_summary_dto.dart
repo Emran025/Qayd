@@ -14,9 +14,11 @@ class VoucherSummaryDto {
     required this.affectedAccountId,
     required this.affectedName,
     this.isTripartite = false,
+    this.transferGroupId,
     this.tripartiteRole,
     this.linkedPartyId,
     this.isContingent = false,
+    required this.agreementStatusCode,
   });
 
   final String id;
@@ -35,7 +37,9 @@ class VoucherSummaryDto {
   
   // Tripartite Transfer
   final bool isTripartite;
+  final String? transferGroupId;
   final String? tripartiteRole;
   final String? linkedPartyId;
   final bool isContingent;
+  final String agreementStatusCode;
 }

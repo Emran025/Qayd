@@ -3,6 +3,7 @@ import 'package:qayd/application/accounts/create_account_use_case.dart';
 import 'package:qayd/application/accounts/deactivate_account_use_case.dart';
 import 'package:qayd/application/accounts/get_account_details_use_case.dart';
 import 'package:qayd/application/accounts/get_account_statement_use_case.dart';
+import 'package:qayd/application/accounts/list_account_statement_chat_use_case.dart';
 import 'package:qayd/application/accounts/list_accounts_use_case.dart';
 import 'package:qayd/application/accounts/update_account_use_case.dart';
 import 'package:qayd/application/governance/check_governance_status_use_case.dart';
@@ -22,6 +23,8 @@ import 'package:qayd/application/suggestions/mark_notification_message_processed
 import 'package:qayd/application/messaging/save_message_template_use_case.dart';
 import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/reject_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/resubmit_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/create_tripartite_transfer_use_case.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/application/accounts/find_account_by_phone_use_case.dart';
@@ -136,10 +139,13 @@ abstract final class InjectionContainer {
   static late final FindAccountByPhoneUseCase findAccountByPhoneUseCase;
   static late final ListAccountsUseCase listAccountsUseCase;
   static late final GetAccountStatementUseCase getAccountStatementUseCase;
+  static late final ListAccountStatementChatUseCase listAccountStatementChatUseCase;
   static late final CreateVoucherUseCase createVoucherUseCase;
   static late final CreateTripartiteTransferUseCase createTripartiteTransferUseCase;
   static late final UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
   static late final ConfirmVoucherUseCase confirmVoucherUseCase;
+  static late final RejectVoucherUseCase rejectVoucherUseCase;
+  static late final ResubmitVoucherUseCase resubmitVoucherUseCase;
   static late final ListVouchersUseCase listVouchersUseCase;
   static late final GetVoucherDetailsUseCase getVoucherDetailsUseCase;
   static late final GenerateTrialBalanceUseCase generateTrialBalanceUseCase;
@@ -332,6 +338,10 @@ abstract final class InjectionContainer {
       ledgerRepository,
       voucherRepository,
     );
+    listAccountStatementChatUseCase = ListAccountStatementChatUseCase(
+      accountRepository: accountRepository,
+      voucherRepository: voucherRepository,
+    );
     createVoucherUseCase = CreateVoucherUseCase(
       voucherRepository,
       currencyRepository,
@@ -353,6 +363,14 @@ abstract final class InjectionContainer {
       voucherRepository,
       entryGenerator,
       _idGenerator,
+      governanceWriteGuard,
+    );
+    rejectVoucherUseCase = RejectVoucherUseCase(
+      voucherRepository,
+      governanceWriteGuard,
+    );
+    resubmitVoucherUseCase = ResubmitVoucherUseCase(
+      voucherRepository,
       governanceWriteGuard,
     );
     listVouchersUseCase = ListVouchersUseCase(
@@ -388,7 +406,7 @@ abstract final class InjectionContainer {
       _idGenerator,
     );
     getAutoSuggestionsUseCase =
-        GetAutoSuggestionsUseCase(notificationMessageRepository);
+        GetAutoSuggestionsUseCase(notificationMessageRepository, voucherRepository);
     markNotificationMessageProcessedUseCase =
         MarkNotificationMessageProcessedUseCase(notificationMessageRepository);
     logNotificationIntentUseCase = LogNotificationIntentUseCase(

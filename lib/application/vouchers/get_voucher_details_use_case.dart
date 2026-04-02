@@ -81,6 +81,7 @@ class GetVoucherDetailsUseCase {
           isContingent: v.isContingent,
           signatureHex: v.signatureHex,
           signerPublicKeyHex: v.signerPublicKeyHex,
+          agreementStatusCode: v.agreementStatus.name,
         ),
       );
     } catch (e, _) {

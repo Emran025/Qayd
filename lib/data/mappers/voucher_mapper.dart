@@ -6,7 +6,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/attachment_ref.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
-import 'package:qayd/domain/value_objects/signature_status.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
@@ -46,7 +46,7 @@ final class VoucherMapper {
       settledAtIso: voucher.settledAt?.toIso8601String(),
       signatureHex: voucher.signatureHex,
       signerPublicKeyHex: voucher.signerPublicKeyHex,
-      signatureStatus: voucher.signatureStatus.name,
+      signatureStatus: voucher.agreementStatus.name,
       signerPhone: voucher.signerPhone,
       transferGroupId: voucher.tripartiteMeta?.transferGroupId,
       tripartiteRole: voucher.tripartiteMeta?.role.columnValue,
@@ -91,17 +91,17 @@ final class VoucherMapper {
           model.settledAtIso != null ? DateTime.parse(model.settledAtIso!) : null,
       signatureHex: model.signatureHex,
       signerPublicKeyHex: model.signerPublicKeyHex,
-      signatureStatus: _parseSignatureStatus(model.signatureStatus),
+      agreementStatus: _parseAgreementStatus(model.signatureStatus),
       signerPhone: model.signerPhone,
       tripartiteMeta: _parseTripartiteMeta(model),
     );
   }
 
-  static SignatureStatus _parseSignatureStatus(String raw) {
-    for (final s in SignatureStatus.values) {
+  static AgreementStatus _parseAgreementStatus(String raw) {
+    for (final s in AgreementStatus.values) {
       if (s.name == raw) return s;
     }
-    return SignatureStatus.unsigned;
+    return AgreementStatus.underRequest;
   }
 
   /// Reconstructs [TripartiteMeta] from model fields; returns null if absent.

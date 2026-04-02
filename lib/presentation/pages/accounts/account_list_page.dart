@@ -16,6 +16,8 @@ import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_grouping.dart';
+import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
+import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/settings/settings_app_bar_action.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_state.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -82,6 +84,24 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
               AccountDetailCubit(InjectionContainer.getAccountDetailsUseCase)
                 ..load(accountId),
           child: const AccountDetailPage(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openChat(String accountId) async {
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (ctx) => BlocProvider(
+          create: (_) => StatementChatCubit(
+            listStatement:
+                InjectionContainer.listAccountStatementChatUseCase,
+            listAccounts: InjectionContainer.listAccountsUseCase,
+            counterpartyAccountId: accountId,
+          )..load(),
+          child: AccountStatementChatPage(
+            counterpartyAccountId: accountId,
+          ),
         ),
       ),
     );
@@ -218,6 +238,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                       accounts: filteredAccounts,
                       chartIsEmpty: allAccounts.isEmpty,
                       onTap: _openDetail,
+                      onChat: _openChat,
                       onAddChild: (dto) => _openCreate(
                         parentId: dto.id,
                         parentName: dto.name,
@@ -239,12 +260,14 @@ class _AccountListBody extends StatelessWidget {
     required this.accounts,
     required this.chartIsEmpty,
     required this.onTap,
+    required this.onChat,
     required this.onAddChild,
   });
 
   final List<AccountSummaryDto> accounts;
   final bool chartIsEmpty;
   final void Function(String accountId) onTap;
+  final void Function(String accountId) onChat;
   final void Function(AccountSummaryDto dto) onAddChild;
 
   @override
@@ -289,6 +312,7 @@ class _AccountListBody extends StatelessWidget {
           _DataRow(:final dto) => _AccountCard(
             dto: dto,
             onTap: () => onTap(dto.id),
+            onChat: () => onChat(dto.id),
             onAddChild: () => onAddChild(dto),
           ),
         };
@@ -328,11 +352,13 @@ class _AccountCard extends StatelessWidget {
   const _AccountCard({
     required this.dto,
     required this.onTap,
+    required this.onChat,
     required this.onAddChild,
   });
 
   final AccountSummaryDto dto;
   final VoidCallback onTap;
+  final VoidCallback onChat;
   final VoidCallback onAddChild;
 
   @override
@@ -444,15 +470,31 @@ class _AccountCard extends StatelessWidget {
                             ),
                         ],
                       ),
-                      if (dto.isRoot)
-                        IconButton(
-                          tooltip: AppStringsAr.addChildAccountTooltip,
-                          icon: Icon(
-                            Icons.add_circle_outline_rounded,
-                            color: custom.goldAccent,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: AppStringsAr.statementChatTitle,
+                            icon: Icon(
+                              Icons.forum_outlined,
+                              size: 20,
+                              color: custom.debit.withValues(alpha: 0.7),
+                            ),
+                            onPressed: onChat,
+                            visualDensity: VisualDensity.compact,
                           ),
-                          onPressed: onAddChild,
-                        ),
+                          if (dto.isRoot)
+                            IconButton(
+                              tooltip: AppStringsAr.addChildAccountTooltip,
+                              icon: Icon(
+                                Icons.add_circle_outline_rounded,
+                                color: custom.goldAccent,
+                              ),
+                              onPressed: onAddChild,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ],

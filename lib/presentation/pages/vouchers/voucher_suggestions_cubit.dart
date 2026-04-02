@@ -77,10 +77,12 @@ class VoucherSuggestionsCubit extends Cubit<VoucherSuggestionsState> {
   }
 
   Future<void> acceptAndMarkProcessed(ScoredSuggestionDto s) async {
-    final mr = await _markProcessed(s.messageId);
-    if (mr.isFailure) {
-      emit(VoucherSuggestionsError(mr.failureOrNull!.messageAr));
-      return;
+    if (!s.messageId.startsWith('freq_')) {
+      final mr = await _markProcessed(s.messageId);
+      if (mr.isFailure) {
+        emit(VoucherSuggestionsError(mr.failureOrNull!.messageAr));
+        return;
+      }
     }
     emit(
       VoucherSuggestionsApplied(

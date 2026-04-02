@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
@@ -112,19 +113,21 @@ class _VoucherListViewState extends State<_VoucherListView> {
         builder: (ctx) => const VoucherQrScannerPage(),
       ),
     );
-    
+
     if (data != null && context.mounted) {
       final phone = data['counterpartyPhone'] as String?;
       if (phone != null && phone.isNotEmpty) {
-        final findResult =
-            await InjectionContainer.findAccountByPhoneUseCase.call(phone);
+        final findResult = await InjectionContainer.findAccountByPhoneUseCase
+            .call(phone);
         if (findResult.isSuccess) {
           final accId = findResult.valueOrNull!;
           data['counterpartyAccountId'] = accId;
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('لا يوجد حساب مرتبط برقم الهاتف في الرمز. تم رفض السند.'),
+              content: Text(
+                'لا يوجد حساب مرتبط برقم الهاتف في الرمز. تم رفض السند.',
+              ),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
             ),
@@ -134,7 +137,9 @@ class _VoucherListViewState extends State<_VoucherListView> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('الرمز لا يحتوي على رقم هاتف لمعرفة الحساب. تم رفض السند.'),
+            content: Text(
+              'الرمز لا يحتوي على رقم هاتف لمعرفة الحساب. تم رفض السند.',
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -183,10 +188,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
     }
   }
 
-  List<Widget> _filterChips(
-    BuildContext context,
-    VoucherListCubit cubit,
-  ) {
+  List<Widget> _filterChips(BuildContext context, VoucherListCubit cubit) {
     final chips = <Widget>[];
     final q = cubit.searchQuery.trim();
     if (q.isNotEmpty) {
@@ -232,8 +234,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
       chips.add(
         InputChip(
           label: Text('$from — $to'),
-          onDeleted: () =>
-              cubit.patchAdvancedFilter((x) => x.clearDateRange()),
+          onDeleted: () => cubit.patchAdvancedFilter((x) => x.clearDateRange()),
         ),
       );
     }
@@ -262,8 +263,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          onDeleted: () =>
-              cubit.patchAdvancedFilter((x) => x.clearAffected()),
+          onDeleted: () => cubit.patchAdvancedFilter((x) => x.clearAffected()),
         ),
       );
     }
@@ -375,7 +375,8 @@ class _VoucherListViewState extends State<_VoucherListView> {
           BlocBuilder<VoucherListCubit, VoucherListState>(
             builder: (context, state) {
               final cubit = context.read<VoucherListCubit>();
-              final showChips = cubit.searchQuery.trim().isNotEmpty ||
+              final showChips =
+                  cubit.searchQuery.trim().isNotEmpty ||
                   cubit.advancedFilter.hasAny;
               if (!showChips) {
                 return const SizedBox.shrink();
@@ -405,33 +406,30 @@ class _VoucherListViewState extends State<_VoucherListView> {
                 return switch (state) {
                   VoucherListInitial() => const SizedBox.shrink(),
                   VoucherListLoading() => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    child: CircularProgressIndicator(),
+                  ),
                   VoucherListFailure(:final failure) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(SpacingTokens.lg),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            QaydText(
-                              failure.messageAr,
-                              slot: QaydTextStyleSlot.bodyLarge,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: SpacingTokens.md),
-                            FilledButton.tonal(
-                              onPressed: () =>
-                                  context.read<VoucherListCubit>().load(),
-                              child: Text(AppStringsAr.retryAction),
-                            ),
-                          ],
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(SpacingTokens.lg),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          QaydText(
+                            failure.messageAr,
+                            slot: QaydTextStyleSlot.bodyLarge,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: SpacingTokens.md),
+                          FilledButton.tonal(
+                            onPressed: () =>
+                                context.read<VoucherListCubit>().load(),
+                            child: Text(AppStringsAr.retryAction),
+                          ),
+                        ],
                       ),
                     ),
-                  VoucherListReady(
-                    :final vouchers,
-                    :final hasActiveQuery,
-                  ) =>
+                  ),
+                  VoucherListReady(:final vouchers, :final hasActiveQuery) =>
                     vouchers.isEmpty
                         ? Center(
                             child: QaydText(
@@ -469,10 +467,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
 }
 
 class _VoucherTile extends StatelessWidget {
-  const _VoucherTile({
-    required this.dto,
-    required this.onTap,
-  });
+  const _VoucherTile({required this.dto, required this.onTap});
 
   final VoucherSummaryDto dto;
   final VoidCallback onTap;
@@ -487,8 +482,7 @@ class _VoucherTile extends StatelessWidget {
     final iconBg = isReceipt
         ? ColorTokens.emerald600.withValues(alpha: 0.2)
         : ColorTokens.goldAccent.withValues(alpha: 0.22);
-    final iconFg =
-        isReceipt ? ColorTokens.emerald700 : ColorTokens.navy900;
+    final iconFg = isReceipt ? ColorTokens.emerald700 : ColorTokens.navy900;
 
     final dateStr = DateFormat.yMMMd('ar').format(DateTime.parse(dto.dateIso));
 
@@ -516,7 +510,10 @@ class _VoucherTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Wrap(
+                          spacing: SpacingTokens.xs,
+                          runSpacing: SpacingTokens.xs,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             QaydText(
                               isReceipt
@@ -524,25 +521,29 @@ class _VoucherTile extends StatelessWidget {
                                   : AppStringsAr.voucherTypePayment,
                               slot: QaydTextStyleSlot.labelLarge,
                             ),
-                            const SizedBox(width: SpacingTokens.sm),
                             QaydBadge(
                               state: voucherStateFromCode(dto.stateCode),
+                              context: context,
                             ),
-                            if (dto.isTripartite) ...[
-                              const SizedBox(width: SpacingTokens.sm),
+                            QaydBadge.agreement(
+                              status: AgreementStatus.values.byName(
+                                dto.agreementStatusCode,
+                              ),
+                              context: context,
+                            ),
+                            if (dto.isTripartite)
                               Tooltip(
                                 message: AppStringsAr.tripartiteBridgeTooltip,
                                 child: Icon(
-                                  Icons.account_tree_outlined, // Bridge/tree icon
+                                  Icons
+                                      .account_tree_outlined, // Bridge/tree icon
                                   size: 16,
-                                  color: Theme.of(context)
-                                      .extension<QaydCustomColors>()!
-                                      .goldAccent,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<QaydCustomColors>()!.goldAccent,
                                 ),
                               ),
-                            ],
-                            if (dto.isContingent) ...[
-                              const SizedBox(width: SpacingTokens.sm),
+                            if (dto.isContingent)
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
@@ -554,24 +555,40 @@ class _VoucherTile extends StatelessWidget {
                                 ),
                                 child: Text(
                                   AppStringsAr.tripartiteContingentBadge,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
+                                  style: Theme.of(context).textTheme.labelSmall
                                       ?.copyWith(
                                         color: scheme.onSurfaceVariant,
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
                               ),
-                            ],
                           ],
                         ),
-                        const SizedBox(height: SpacingTokens.xs),
-                        QaydText(
-                          dto.counterpartyName,
-                          slot: QaydTextStyleSlot.titleSmall,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: QaydText(
+                                dto.counterpartyName,
+                                slot: QaydTextStyleSlot.titleSmall,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: SpacingTokens.md),
+                            QaydMoneyDisplay(
+                              money: Money.nonNegative(
+                                dto.amountMinorUnits,
+                                CurrencyCode(
+                                  code: dto.currencyCode,
+                                  nameAr: dto.currencyNameAr,
+                                  symbol: dto.currencySymbol,
+                                  fractionalDigits: dto.currencyDigits,
+                                ),
+                              ),
+                              size: QaydMoneyDisplaySize.medium,
+                            ),
+                          ],
                         ),
                         QaydText(
                           dateStr,
@@ -580,23 +597,6 @@ class _VoucherTile extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      QaydMoneyDisplay(
-                        money: Money.nonNegative(
-                          dto.amountMinorUnits,
-                          CurrencyCode(
-                            code: dto.currencyCode,
-                            nameAr: dto.currencyNameAr,
-                            symbol: dto.currencySymbol,
-                            fractionalDigits: dto.currencyDigits,
-                          ),
-                        ),
-                        size: QaydMoneyDisplaySize.medium,
-                      ),
-                    ],
                   ),
                 ],
               ),

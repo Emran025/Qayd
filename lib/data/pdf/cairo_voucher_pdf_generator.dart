@@ -11,20 +11,26 @@ import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-/// High-fidelity neo-minimalist financial voucher PDF.
-/// Layout: RTL, Cairo font, Deep Navy / Royal Gold / Emerald palette.
+/// Professional financial voucher PDF matching the Galal Nasser Exchange format.
+///
+/// Layout: RTL, Cairo font.
+/// Rules per user spec:
+///   - App name + logo in header
+///   - Intermediary shown as origin for tripartite
+///   - No manager signature
+///   - QR barcode for each transaction
+///   - Non-tripartite: single-party only (no second client row)
 final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   const CairoVoucherPdfGenerator();
 
-  // ── Brand palette ───────────────────────────────────────────────────────
-  static final _navy    = PdfColor.fromInt(0xFF0F2741);
-  static final _gold    = PdfColor.fromInt(0xFFC9A227);
-  static final _emerald = PdfColor.fromInt(0xFF047857);
-  static final _muted   = PdfColor.fromInt(0xFF64748B);
-  static final _light   = PdfColor.fromInt(0xFFF8FAFC);
-  static final _border  = PdfColor.fromInt(0xFFE2E8F0);
-  static final _goldLight  = PdfColor.fromInt(0xFFFDF8EC);
-  static final _emeraldLight = PdfColor.fromInt(0xFFECFDF5);
+  // ── Brand palette ─────────────────────────────────────────────────────────
+  static final _navy       = PdfColor.fromInt(0xFF0F2741);
+  static final _gold       = PdfColor.fromInt(0xFFC9A227);
+  static final _emerald    = PdfColor.fromInt(0xFF047857);
+  static final _muted      = PdfColor.fromInt(0xFF64748B);
+  static final _border     = PdfColor.fromInt(0xFFCBD5E1);
+  static final _headerBg   = PdfColor.fromInt(0xFFE8EDF3);
+  static final _error      = PdfColor.fromInt(0xFFDC2626);
 
   @override
   Future<Result<Uint8List>> buildVoucherPdf(VoucherReportDto report) async {
@@ -33,22 +39,23 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       final theme = pw.ThemeData.withFont(base: font, bold: font);
 
       final isReceipt = report.typeCode == 'receipt';
-      final accent     = isReceipt ? _emerald : _gold;
-      final accentBg   = isReceipt ? _emeraldLight : _goldLight;
-      final typeAr     = isReceipt ? 'سند قبض' : 'سند صرف';
-      final typeEn     = isReceipt ? 'Receipt Voucher' : 'Payment Voucher';
+      final accent    = isReceipt ? _emerald : _gold;
+      final typeAr    = isReceipt ? 'سند قبض' : 'سند صرف';
 
-      final dateFmt = DateFormat.yMMMMd('ar');
+      final dateFmt = DateFormat('dd/MM/yyyy');
       final dateStr = dateFmt.format(DateTime.parse(report.dateIso));
+      final createdFmt = DateFormat('hh:mm:ss a  dd/MM/yyyy');
+      final createdStr = createdFmt.format(DateTime.parse(report.createdAtIso));
 
       final divisor  = math.pow(10, report.currencyDigits).toDouble();
       final amount   = report.amountMinorUnits / divisor;
       final fmt = NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en');
-      final amountStr  = fmt.format(amount);
-      final tafqeetStr = _tafqeet(report.amountMinorUnits, report.currencyDigits, report.currencyNameAr);
+      final amountStr  = '#${fmt.format(amount)} ${report.currencyCode}#';
 
-      final stateAr = _stateAr(report.stateCode);
       final qrPayload = report.qrData ?? report.voucherId;
+
+      // Title logic
+      final titleAr = _buildTitle(report, typeAr);
 
       final doc = pw.Document(theme: theme);
 
@@ -57,72 +64,53 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           pageFormat: PdfPageFormat.a4,
           textDirection: pw.TextDirection.rtl,
           margin: pw.EdgeInsets.zero,
-          build: (ctx) => pw.Stack(
+          build: (ctx) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
-              // ── Faint background watermark ──────────────────────────────
-              pw.Positioned.fill(
-                child: pw.Center(
-                  child: pw.Transform.rotate(
-                    angle: -math.pi / 5,
-                    child: pw.Opacity(
-                      opacity: 0.025,
-                      child: pw.Text(
-                        'قيد',
-                        style: pw.TextStyle(
-                          font: font,
-                          fontSize: 220,
-                          color: _navy,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              // ── HEADER BAR ──────────────────────────────────────────
+              _buildHeaderBar(font),
 
-              // ── Main content ─────────────────────────────────────────────
+              // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
+              _buildTitleRow(font, report, titleAr, dateStr, accent),
+
+              pw.SizedBox(height: 6),
+
+              // ── ENTRY SECTIONS ──────────────────────────────────────
               pw.Padding(
-                padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 44,
-                  vertical: 36,
-                ),
+                padding: const pw.EdgeInsets.symmetric(horizontal: 24),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                   children: [
-
-                    // ── HEADER ────────────────────────────────────────────
-                    _buildHeader(font, typeAr, typeEn, accent, qrPayload),
-                    pw.SizedBox(height: 18),
-                    _hairline(accent),
-                    pw.SizedBox(height: 18),
-
-                    // ── TRIPARTITE FLOW (conditional) ─────────────────────
-                    if (report.isTripartite) ...[
-                      _buildTripartiteFlow(font, report, accent),
-                      pw.SizedBox(height: 18),
-                      _hairline(accent),
-                      pw.SizedBox(height: 18),
-                    ],
-
-                    // ── AMOUNT DISPLAY ────────────────────────────────────
-                    _buildAmountBlock(
-                      font,
-                      amountStr,
-                      report.currencyNameAr,
-                      tafqeetStr,
-                      accent,
-                      accentBg,
+                    // Debit entry (from account)
+                    _buildEntrySection(
+                      font: font,
+                      amountStr: amountStr,
+                      sectionType: 'debit',
+                      report: report,
+                      accent: accent,
                     ),
-                    pw.SizedBox(height: 20),
-                    _hairline(_border),
+
+                    pw.SizedBox(height: 8),
+
+                    // Credit entry (to account) — only for tripartite
+                    if (report.isTripartite)
+                      _buildEntrySection(
+                        font: font,
+                        amountStr: amountStr,
+                        sectionType: 'credit',
+                        report: report,
+                        accent: accent,
+                      ),
+
                     pw.SizedBox(height: 14),
 
-                    // ── METADATA GRID ─────────────────────────────────────
-                    _buildMetadataGrid(font, report, stateAr, dateStr),
-                    pw.SizedBox(height: 20),
+                    // ── SIGNATURE ROW ──────────────────────────────────
+                    _buildSignatureRow(font, report),
 
-                    // ── SECURITY FOOTER ───────────────────────────────────
-                    _buildSecurityFooter(font, report, accent),
+                    pw.SizedBox(height: 14),
+
+                    // ── FOOTER ─────────────────────────────────────────
+                    _buildFooter(font, report, createdStr, qrPayload),
                   ],
                 ),
               ),
@@ -139,384 +127,96 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     }
   }
 
-  // ── Header ────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── HEADER BAR (Company-style) ─────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildHeader(
-    pw.Font font,
-    String typeAr,
-    String typeEn,
-    PdfColor accent,
-    String qrPayload,
-  ) {
-    return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: pw.CrossAxisAlignment.center,
-      children: [
-        // Logo badge (right in RTL → visually left)
-        pw.Container(
-          width: 72,
-          height: 72,
-          decoration: pw.BoxDecoration(
-            color: _navy,
-            borderRadius: pw.BorderRadius.circular(12),
-            border: pw.Border.all(color: _gold, width: 1.5),
-          ),
-          child: pw.Column(
-            mainAxisAlignment: pw.MainAxisAlignment.center,
-            children: [
-              pw.Text(
-                'قيد',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 22,
-                  color: _gold,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 2),
-              pw.Text(
-                'Qayd',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 9,
-                  color: PdfColors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Centre: type badge
-        pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.center,
-          children: [
-            pw.Container(
-              padding: const pw.EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 8,
-              ),
-              decoration: pw.BoxDecoration(
-                color: accent,
-                borderRadius: pw.BorderRadius.circular(8),
-              ),
-              child: pw.Text(
-                typeAr,
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 17,
-                  color: PdfColors.white,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ),
-            pw.SizedBox(height: 6),
-            pw.Text(
-              typeEn,
-              style: pw.TextStyle(
-                font: font,
-                fontSize: 9,
-                color: _muted,
-              ),
-            ),
-          ],
-        ),
-
-        // QR code (top-right, left in RTL → visually right)
-        pw.BarcodeWidget(
-          barcode: Barcode.qrCode(),
-          data: qrPayload,
-          width: 72,
-          height: 72,
-          drawText: false,
-        ),
-      ],
-    );
-  }
-
-  // ── Tripartite flow map ───────────────────────────────────────────────────
-
-  pw.Widget _buildTripartiteFlow(
-    pw.Font font,
-    VoucherReportDto report,
-    PdfColor accent,
-  ) {
-    // Derive party names based on role
-    final isReceiptLeg = report.tripartiteRole == 'receipt';
-
-    final partyA = isReceiptLeg
-        ? report.counterpartyName   // original sender
-        : (report.linkedPartyName ?? '—');
-
-    final partyC = report.affectedName; // intermediary (Qayd user)
-
-    final partyB = isReceiptLeg
-        ? (report.linkedPartyName ?? '—')
-        : report.counterpartyName;  // final recipient
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-      children: [
-        pw.Center(
-          child: pw.Text(
-            'مسار التحويل الثلاثي',
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 10,
-              color: _muted,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ),
-        ),
-        pw.SizedBox(height: 10),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.center,
-          crossAxisAlignment: pw.CrossAxisAlignment.center,
-          children: [
-            _flowPartyBox(font, 'المُرسِل\n(الأصلي)', partyA, accent),
-            _flowArrow(font, accent),
-            _flowPartyBox(font, 'الوسيط\n(مستخدم قيد)', partyC, accent,
-                isCenter: true),
-            _flowArrow(font, accent),
-            _flowPartyBox(
-                font, 'المستفيد\n(النهائي)', partyB, accent),
-          ],
-        ),
-        pw.SizedBox(height: 8),
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: pw.BoxDecoration(
-            color: _goldLight,
-            borderRadius: pw.BorderRadius.circular(6),
-            border: pw.Border.all(color: _gold, width: 0.5),
-          ),
-          child: pw.Text(
-            'هذا السند يُمثّل ${isReceiptLeg ? "دور الاستلام" : "دور الدفع"} في تحويل ثلاثي الأطراف — '
-            'يرتبط السندان ببعضهما تشفيريًا لضمان الشفافية الكاملة.',
-            style: pw.TextStyle(font: font, fontSize: 8, color: _muted),
-            textAlign: pw.TextAlign.center,
-          ),
-        ),
-      ],
-    );
-  }
-
-  pw.Widget _flowPartyBox(
-    pw.Font font,
-    String roleLabel,
-    String name,
-    PdfColor accent, {
-    bool isCenter = false,
-  }) {
+  pw.Widget _buildHeaderBar(pw.Font font) {
     return pw.Container(
-      width: 110,
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      decoration: pw.BoxDecoration(
-        color: isCenter ? _navy : _light,
-        borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(
-          color: isCenter ? accent : _border,
-          width: isCenter ? 1.5 : 1,
-        ),
-      ),
-      child: pw.Column(
-        children: [
-          pw.Text(
-            roleLabel,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 7.5,
-              color: isCenter ? accent : _muted,
-            ),
-            textAlign: pw.TextAlign.center,
-          ),
-          pw.SizedBox(height: 4),
-          pw.Text(
-            name,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 9.5,
-              color: isCenter ? PdfColors.white : _navy,
-              fontWeight: pw.FontWeight.bold,
-            ),
-            textAlign: pw.TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _flowArrow(pw.Font font, PdfColor accent) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 6),
+      color: _headerBg,
+      padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 14),
       child: pw.Row(
-        mainAxisSize: pw.MainAxisSize.min,
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
-          pw.Container(width: 20, height: 1.5, color: accent),
-          pw.Container(
-            width: 6,
-            height: 6,
-            decoration: pw.BoxDecoration(
-              color: accent,
-              shape: pw.BoxShape.circle,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Amount block ─────────────────────────────────────────────────────────
-
-  pw.Widget _buildAmountBlock(
-    pw.Font font,
-    String amountStr,
-    String currencyNameAr,
-    String tafqeet,
-    PdfColor accent,
-    PdfColor accentBg,
-  ) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-      children: [
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-          decoration: pw.BoxDecoration(
-            color: accentBg,
-            borderRadius: pw.BorderRadius.circular(10),
-            border: pw.Border.all(color: accent, width: 1.2),
-          ),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Text(
-                'المبلغ',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 10,
-                  color: _muted,
-                ),
-              ),
-              pw.SizedBox(height: 6),
-              pw.Text(
-                amountStr,
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 36,
-                  color: _navy,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                textAlign: pw.TextAlign.center,
-              ),
-              pw.SizedBox(height: 4),
-              pw.Text(
-                currencyNameAr,
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 13,
-                  color: accent,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Tafqeet (amount in Arabic words)
-        pw.SizedBox(height: 8),
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-          decoration: pw.BoxDecoration(
-            color: _light,
-            borderRadius: pw.BorderRadius.circular(6),
-            border: pw.Border.all(color: _border, width: 1),
-          ),
-          child: pw.Row(
-            children: [
-              pw.Expanded(
-                child: pw.Text(
-                  tafqeet,
+          // ── Right: Arabic info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(
+                  'قيد — المحاسبة الشخصية',
                   style: pw.TextStyle(
                     font: font,
-                    fontSize: 10.5,
+                    fontSize: 11,
                     color: _navy,
                     fontWeight: pw.FontWeight.bold,
                   ),
                   textAlign: pw.TextAlign.right,
                 ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ── Metadata grid ─────────────────────────────────────────────────────────
-
-  pw.Widget _buildMetadataGrid(
-    pw.Font font,
-    VoucherReportDto report,
-    String stateAr,
-    String dateStr,
-  ) {
-    final rows = <MapEntry<String, String>>[
-      MapEntry('رقم السند', _shortId(report.voucherId)),
-      MapEntry('التاريخ', dateStr),
-      MapEntry('الحالة', stateAr),
-      MapEntry('الحساب المتأثر', report.affectedName),
-      MapEntry('الطرف المقابل', report.counterpartyName),
-      if (_notEmpty(report.referenceNumber))
-        MapEntry('المرجع', report.referenceNumber!.trim()),
-      if (_notEmpty(report.description))
-        MapEntry('البيان', report.description!.trim()),
-      if (_notEmpty(report.notes))
-        MapEntry('ملاحظات', report.notes!.trim()),
-    ];
-
-    final widgets = <pw.Widget>[];
-    for (var i = 0; i < rows.length; i++) {
-      widgets.add(_metaRow(font, rows[i].key, rows[i].value, isEven: i.isEven));
-    }
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-      children: widgets,
-    );
-  }
-
-  pw.Widget _metaRow(
-    pw.Font font,
-    String label,
-    String value, {
-    bool isEven = true,
-  }) {
-    return pw.Container(
-      color: isEven ? PdfColors.white : _light,
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-      child: pw.Row(
-        children: [
-          pw.SizedBox(width: 120,
-            child: pw.Text(
-              label,
-              style: pw.TextStyle(
-                font: font,
-                fontSize: 10,
-                color: _muted,
-              ),
-              textAlign: pw.TextAlign.right,
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'نظام السندات المالية المشفّرة',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 8,
+                    color: _muted,
+                  ),
+                  textAlign: pw.TextAlign.right,
+                ),
+              ],
             ),
           ),
-          pw.Container(width: 1, height: 14, color: _border,
-            margin: const pw.EdgeInsets.symmetric(horizontal: 10)),
-          pw.Expanded(
-            child: pw.Text(
-              value,
-              style: pw.TextStyle(
-                font: font,
-                fontSize: 10.5,
-                color: _navy,
-                fontWeight: pw.FontWeight.bold,
+
+          pw.SizedBox(width: 16),
+
+          // ── Center: Logo badge
+          pw.Container(
+            width: 52,
+            height: 52,
+            decoration: pw.BoxDecoration(
+              color: _navy,
+              borderRadius: pw.BorderRadius.circular(26),
+              border: pw.Border.all(color: _gold, width: 2),
+            ),
+            child: pw.Center(
+              child: pw.Text(
+                'قيد',
+                style: pw.TextStyle(
+                  font: font,
+                  fontSize: 18,
+                  color: _gold,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
-              textAlign: pw.TextAlign.right,
+            ),
+          ),
+
+          pw.SizedBox(width: 16),
+
+          // ── Left: English info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Qayd — Personal Accounting',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 9,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'Encrypted Financial Voucher System',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    color: _muted,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -524,77 +224,43 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     );
   }
 
-  // ── Security footer ───────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── TITLE ROW (Voucher # + Title + Date) ───────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildSecurityFooter(
+  pw.Widget _buildTitleRow(
     pw.Font font,
     VoucherReportDto report,
+    String titleAr,
+    String dateStr,
     PdfColor accent,
   ) {
-    final hasSig = report.signatureHex != null &&
-        report.signatureHex!.isNotEmpty;
-    final hasPubKey = report.signerPublicKeyHex != null &&
-        report.signerPublicKeyHex!.isNotEmpty;
-
     return pw.Container(
-      padding: const pw.EdgeInsets.all(12),
-      decoration: pw.BoxDecoration(
-        color: _light,
-        borderRadius: pw.BorderRadius.circular(8),
-        border: pw.Border.all(color: _border, width: 1),
-      ),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
-          // Seal line
+          // Top row: voucher number + date in bordered boxes
           pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.center,
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text(
-                '— وثيقة موقَّعة تشفيريًا عبر قيد —',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 10,
-                  color: accent,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                textAlign: pw.TextAlign.center,
-              ),
+              // Voucher number box (right in RTL)
+              _borderedLabel(font, 'رقم السند:', _shortId(report.voucherId)),
+              // Date box (left in RTL)
+              _borderedLabel(font, 'التاريخ:', dateStr),
             ],
           ),
-          pw.SizedBox(height: 8),
-          pw.Divider(color: _border, thickness: 0.5),
-          pw.SizedBox(height: 8),
+          pw.SizedBox(height: 10),
 
-          // Signature hex
-          if (hasSig) ...[
-            _sigRow(font, 'توقيع Ed25519', _truncateHex(report.signatureHex!)),
-            pw.SizedBox(height: 5),
-          ],
-
-          // Public key
-          if (hasPubKey) ...[
-            _sigRow(font, 'المفتاح العام', _truncateHex(report.signerPublicKeyHex!)),
-            pw.SizedBox(height: 5),
-          ],
-
-          if (!hasSig && !hasPubKey)
-            pw.Center(
-              child: pw.Text(
-                'سند مسودة — التوقيع الرقمي يُضاف عند التأكيد',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 8.5,
-                  color: _muted,
-                ),
-              ),
-            ),
-
-          pw.SizedBox(height: 6),
+          // Title center
           pw.Center(
             child: pw.Text(
-              'هذا السند صادر من تطبيق قيد للمحاسبة الشخصية — سجل دائم وغير قابل للتعديل',
-              style: pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
+              titleAr,
+              style: pw.TextStyle(
+                font: font,
+                fontSize: 13,
+                color: _navy,
+                fontWeight: pw.FontWeight.bold,
+              ),
               textAlign: pw.TextAlign.center,
             ),
           ),
@@ -603,33 +269,452 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     );
   }
 
-  pw.Widget _sigRow(pw.Font font, String label, String value) {
-    return pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.SizedBox(
-          width: 80,
-          child: pw.Text(
+  pw.Widget _borderedLabel(pw.Font font, String label, String value) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: _navy, width: 1),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      child: pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        children: [
+          pw.Text(
             label,
-            style: pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
-            textAlign: pw.TextAlign.right,
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 9,
+              color: _navy,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
-        ),
-        pw.SizedBox(width: 8),
-        pw.Expanded(
-          child: pw.Text(
+          pw.SizedBox(width: 6),
+          pw.Text(
             value,
-            style: pw.TextStyle(font: font, fontSize: 7.5, color: _navy),
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 10,
+              color: _navy,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── ENTRY SECTION (Debit / Credit) ─────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _hairline(PdfColor color) =>
-      pw.Divider(color: color, thickness: 0.75);
+  pw.Widget _buildEntrySection({
+    required pw.Font font,
+    required String amountStr,
+    required String sectionType, // 'debit' or 'credit'
+    required VoucherReportDto report,
+    required PdfColor accent,
+  }) {
+    final isDebit = sectionType == 'debit';
+    final isReceipt = report.typeCode == 'receipt';
+
+    // Determine section label and account name
+    String sectionLabel;
+    String accountName;
+    String descriptionText;
+    String notesText;
+
+    if (report.isTripartite) {
+      // Tripartite: show intermediary in origin
+      final isReceiptLeg = report.tripartiteRole == 'receipt';
+
+      if (isDebit) {
+        // Debit section = "from" account
+        sectionLabel = isReceiptLeg
+            ? 'بيانات القيد (المدين) - من حساب العميل:'
+            : 'بيانات القيد (المدين) - من حساب الوسيط:';
+        accountName = isReceiptLeg
+            ? report.counterpartyName
+            : report.affectedName;
+      } else {
+        // Credit section = "to" account
+        sectionLabel = isReceiptLeg
+            ? 'بيانات القيد (الدائن) - إلى حساب الوسيط:'
+            : 'بيانات القيد (الدائن) - إلى حساب العميل المستلم:';
+        accountName = isReceiptLeg
+            ? report.affectedName
+            : report.counterpartyName;
+      }
+
+      descriptionText = _buildTripartiteDescription(report, isDebit);
+      notesText = _buildTripartiteNotes(report, isDebit);
+    } else {
+      // Standard voucher: single party
+      if (isReceipt) {
+        sectionLabel = 'بيانات القيد - من حساب العميل:';
+        accountName = report.counterpartyName;
+      } else {
+        sectionLabel = 'بيانات القيد - إلى حساب العميل:';
+        accountName = report.counterpartyName;
+      }
+      descriptionText = report.description ?? '';
+      notesText = report.notes ?? '';
+    }
+
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: _border, width: 1),
+        borderRadius: pw.BorderRadius.circular(6),
+      ),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // ── Amount box (left column) ──
+          pw.Container(
+            width: 100,
+            padding: const pw.EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+            decoration: pw.BoxDecoration(
+              border: pw.Border(
+                left: pw.BorderSide(color: _border, width: 1),
+              ),
+            ),
+            child: pw.Center(
+              child: pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 6,
+                ),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: _navy, width: 1.2),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.Text(
+                  amountStr,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 9,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+
+          // ── Entry details (right column) ──
+          pw.Expanded(
+            child: pw.Padding(
+              padding: const pw.EdgeInsets.all(12),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                children: [
+                  // Section header with account name
+                  pw.RichText(
+                    text: pw.TextSpan(
+                      children: [
+                        pw.TextSpan(
+                          text: '$sectionLabel ',
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 10,
+                            color: _navy,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.TextSpan(
+                          text: accountName,
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 10,
+                            color: accent,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    textAlign: pw.TextAlign.right,
+                  ),
+
+                  // Description
+                  if (descriptionText.trim().isNotEmpty) ...[
+                    pw.SizedBox(height: 6),
+                    _labeledLine(font, 'البيان التفصيلي:', descriptionText),
+                  ],
+
+                  // Notes
+                  if (notesText.trim().isNotEmpty) ...[
+                    pw.SizedBox(height: 4),
+                    _labeledLine(font, 'الملاحظات:', notesText),
+                  ],
+
+                  // Reference
+                  if (_notEmpty(report.referenceNumber)) ...[
+                    pw.SizedBox(height: 4),
+                    _labeledLine(font, 'المرجع:', report.referenceNumber!),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _labeledLine(pw.Font font, String label, String value) {
+    return pw.RichText(
+      text: pw.TextSpan(
+        children: [
+          pw.TextSpan(
+            text: '$label ',
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 9,
+              color: _navy,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.TextSpan(
+            text: value,
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 9,
+              color: _muted,
+            ),
+          ),
+        ],
+      ),
+      textAlign: pw.TextAlign.right,
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── SIGNATURE ROW ──────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  pw.Widget _buildSignatureRow(pw.Font font, VoucherReportDto report) {
+    final hasSig = report.signatureHex != null &&
+        report.signatureHex!.isNotEmpty;
+    
+    // For non-tripartite: only show client signature + QR
+    // For tripartite: show client 1 + client 2 signatures
+    final columns = <pw.Widget>[];
+
+    if (report.isTripartite) {
+      // Client 1 signature (counterparty)
+      columns.add(
+        pw.Expanded(
+          child: _signatureBox(font, '(توقيع العميل الأول)', hasSig),
+        ),
+      );
+      columns.add(pw.SizedBox(width: 8));
+      // Client 2 signature (linked party)
+      columns.add(
+        pw.Expanded(
+          child: _signatureBox(font, '(توقيع العميل الثاني)', false),
+        ),
+      );
+    } else {
+      // Single-party: just client signature
+      columns.add(
+        pw.Expanded(
+          flex: 2,
+          child: _signatureBox(font, '(توقيع العميل)', hasSig),
+        ),
+      );
+      columns.add(pw.SizedBox(width: 8));
+      // Digital verification
+      columns.add(
+        pw.Expanded(
+          child: pw.Container(
+            height: 70,
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: _border, width: 0.8),
+              borderRadius: pw.BorderRadius.circular(4),
+            ),
+            padding: const pw.EdgeInsets.all(6),
+            child: pw.Column(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Text(
+                  'حالة التوقيع',
+                  style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  _agreementAr(report.agreementStatusCode),
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 8,
+                    color: _agreementColor(report.agreementStatusCode),
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.end,
+      children: columns,
+    );
+  }
+
+  pw.Widget _signatureBox(pw.Font font, String label, bool hasSig) {
+    return pw.Container(
+      height: 70,
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: _border, width: 0.8),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.end,
+        children: [
+          if (hasSig)
+            pw.Expanded(
+              child: pw.Center(
+                child: pw.Text(
+                  '✓ موقّع رقمياً',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 9,
+                    color: _emerald,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          pw.Divider(color: _border, thickness: 0.5),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            label,
+            style: pw.TextStyle(font: font, fontSize: 8, color: _muted),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── FOOTER ─────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  pw.Widget _buildFooter(
+    pw.Font font,
+    VoucherReportDto report,
+    String createdStr,
+    String qrPayload,
+  ) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      decoration: pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: _border, width: 1)),
+      ),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          // ── Left info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'تم الإنشاء:  $createdStr',
+                  style: pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
+                ),
+                pw.SizedBox(height: 3),
+                pw.Text(
+                  'المصدر: تطبيق قيد للمحاسبة الشخصية',
+                  style: pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
+                ),
+
+                // Crypto info
+                if (report.signerPublicKeyHex != null &&
+                    report.signerPublicKeyHex!.isNotEmpty) ...[
+                  pw.SizedBox(height: 3),
+                  pw.Text(
+                    'مفتاح الموقّع: ${_truncateHex(report.signerPublicKeyHex!)}',
+                    style: pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
+                  ),
+                ],
+
+                if (report.signatureHex != null &&
+                    report.signatureHex!.isNotEmpty) ...[
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    'التوقيع: ${_truncateHex(report.signatureHex!)}',
+                    style: pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // ── QR code (right)
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
+            children: [
+              pw.BarcodeWidget(
+                barcode: Barcode.qrCode(),
+                data: qrPayload,
+                width: 64,
+                height: 64,
+                drawText: false,
+              ),
+              pw.SizedBox(height: 3),
+              pw.Text(
+                'تحقق من السند',
+                style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── Helpers ────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  String _buildTitle(VoucherReportDto report, String typeAr) {
+    if (!report.isTripartite) return typeAr;
+
+    final isReceiptLeg = report.tripartiteRole == 'receipt';
+    final legLabel = isReceiptLeg ? 'إشعار للطرفين' : 'إشعار قيد العميل المحوّل';
+    return 'سند قيد مزدوج وإشعار قيد ($legLabel)\n- $legLabel';
+  }
+
+  String _buildTripartiteDescription(VoucherReportDto report, bool isDebit) {
+    final isReceiptLeg = report.tripartiteRole == 'receipt';
+
+    if (isDebit) {
+      if (isReceiptLeg) {
+        return 'تحويل مالي بنكي إلى حساب العميل المستلم: ${report.linkedPartyName ?? '—'}.';
+      } else {
+        return 'تحويل مالي مستلم من حساب ${report.counterpartyName}.';
+      }
+    } else {
+      if (isReceiptLeg) {
+        return report.description ?? 'تحويل مالي مستلم.';
+      } else {
+        return 'تحويل مالي مستلم من حساب ${report.linkedPartyName ?? '—'}.';
+      }
+    }
+  }
+
+  String _buildTripartiteNotes(VoucherReportDto report, bool isDebit) {
+    if (isDebit) {
+      return 'يعتبر هذا السند إشعاراً بالخصم من رصيد حسابكم الجاري.';
+    } else {
+      return 'يعتبر هذا السند إشعاراً بالإضافة إلى رصيد حسابكم الجاري كتحويل مالي مستلم.';
+    }
+  }
 
   bool _notEmpty(String? s) => s != null && s.trim().isNotEmpty;
 
@@ -643,86 +728,22 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     return '${hex.substring(0, 16)}…${hex.substring(hex.length - 16)}';
   }
 
-  String _stateAr(String code) {
+  String _agreementAr(String code) {
     return switch (code) {
-      'draft'     => 'مسودة',
-      'confirmed' => 'مؤكد',
-      'settled'   => 'مسوّى',
-      _           => code,
+      'underRequest' => 'بانتظار الموافقة',
+      'accepted'     => 'مقبول وموقّع',
+      'rejected'     => 'مرفوض',
+      'unverified'   => 'غير مؤكد',
+      _              => code,
     };
   }
 
-  // ── Tafqeet ───────────────────────────────────────────────────────────────
-  // Converts an amount in minor units to Arabic words (تفقيط).
-
-  String _tafqeet(int minorUnits, int digits, String currencyNameAr) {
-    final divisor = math.pow(10, digits).toInt();
-    final major = minorUnits ~/ divisor;
-    final minor = minorUnits % divisor;
-
-    final majorWords = _intToArabic(major);
-    if (minor == 0) {
-      return 'فقط $majorWords $currencyNameAr لا غير';
-    }
-    final minorWords = _intToArabic(minor);
-    return 'فقط $majorWords $currencyNameAr و$minorWords لا غير';
-  }
-
-  static const _ones = [
-    '', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة',
-    'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة',
-    'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر',
-    'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر',
-  ];
-
-  static const _tens = [
-    '', '', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون',
-    'ستون', 'سبعون', 'ثمانون', 'تسعون',
-  ];
-
-  String _intToArabic(int n) {
-    if (n == 0) return 'صفر';
-    if (n < 0) return 'سالب ${_intToArabic(-n)}';
-
-    final parts = <String>[];
-    var rem = n;
-
-    if (rem >= 1000000) {
-      final m = rem ~/ 1000000;
-      rem = rem % 1000000;
-      if (m == 1)       parts.add('مليون');
-      else if (m == 2)  parts.add('مليونان');
-      else if (m <= 10) parts.add('${_intToArabic(m)} ملايين');
-      else              parts.add('${_intToArabic(m)} مليون');
-    }
-
-    if (rem >= 1000) {
-      final t = rem ~/ 1000;
-      rem = rem % 1000;
-      if (t == 1)       parts.add('ألف');
-      else if (t == 2)  parts.add('ألفان');
-      else if (t <= 10) parts.add('${_ones[t]} آلاف');
-      else              parts.add('${_intToArabic(t)} ألف');
-    }
-
-    if (rem >= 100) {
-      final h = rem ~/ 100;
-      rem = rem % 100;
-      if (h == 1)      parts.add('مئة');
-      else if (h == 2) parts.add('مئتان');
-      else             parts.add('${_ones[h]} مئة');
-    }
-
-    if (rem > 0) {
-      if (rem < 20) {
-        parts.add(_ones[rem]);
-      } else {
-        final t = rem ~/ 10;
-        final o = rem % 10;
-        parts.add(o == 0 ? _tens[t] : '${_ones[o]} و${_tens[t]}');
-      }
-    }
-
-    return parts.join(' و');
+  PdfColor _agreementColor(String code) {
+    return switch (code) {
+      'accepted'   => _emerald,
+      'rejected'   => _error,
+      'underRequest' => _gold,
+      _            => _muted,
+    };
   }
 }

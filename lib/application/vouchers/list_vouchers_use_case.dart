@@ -4,6 +4,7 @@ import 'package:qayd/application/vouchers/dtos/list_vouchers_output.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/application/vouchers/voucher_filter_mapper.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
@@ -27,7 +28,16 @@ class ListVouchersUseCase {
         for (final a in accountsR.valueOrNull!) a.id.value: a.name,
       };
 
-      final domainFilter = VoucherFilterMapper.toDomain(input.advancedFilter);
+      final mappedFilter = VoucherFilterMapper.toDomain(input.advancedFilter);
+      final domainFilter = VoucherQueryFilter(
+        state: mappedFilter?.state,
+        type: mappedFilter?.type,
+        dateRange: mappedFilter?.dateRange,
+        counterpartyId: mappedFilter?.counterpartyId,
+        affectedAccountId: mappedFilter?.affectedAccountId,
+        excludeTripartite: input.excludeTripartite,
+        onlyTripartite: input.onlyTripartite,
+      );
       final q = input.searchQuery?.trim() ?? '';
       final Result<List<Voucher>> r = q.isEmpty
           ? await _voucherRepository.getAll(
@@ -66,9 +76,11 @@ class ListVouchersUseCase {
                       nameById[v.affectedAccountId.value] ??
                       v.affectedAccountId.value,
                   isTripartite: v.isTripartite,
+                  transferGroupId: v.tripartiteMeta?.transferGroupId,
                   tripartiteRole: v.tripartiteMeta?.role.columnValue,
                   linkedPartyId: v.tripartiteMeta?.linkedPartyId.value,
                   isContingent: v.isContingent,
+                  agreementStatusCode: v.agreementStatus.name,
                 ),
               )
               .toList(growable: false),

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
@@ -14,6 +15,7 @@ import 'package:qayd/presentation/pages/messaging/notification_preview_page.dart
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_cubit.dart';
 import 'package:qayd/presentation/utils/voucher_pdf_export.dart';
 import 'package:qayd/presentation/utils/voucher_sharing_util.dart';
+import 'package:qayd/presentation/utils/voucher_image_export.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -92,7 +94,7 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                 IconButton(
                   tooltip: AppStringsAr.shareAsImageTooltip,
                   icon: const Icon(Icons.image_outlined),
-                  onPressed: () => shareVoucherAsImage(context, _boundaryKey),
+                  onPressed: () => shareVoucherAsFormattedImage(context, state.data),
                 ),
                 IconButton(
                   tooltip: AppStringsAr.exportSharePdfTooltip,
@@ -218,7 +220,12 @@ class _VoucherDetailBody extends StatelessWidget {
               slot: QaydTextStyleSlot.headlineSmall,
             ),
             const SizedBox(width: SpacingTokens.sm),
-            QaydBadge(state: voucherStateFromCode(data.stateCode)),
+            QaydBadge(state: voucherStateFromCode(data.stateCode), context: context),
+            const SizedBox(width: SpacingTokens.xs),
+            QaydBadge.agreement(
+              status: AgreementStatus.values.byName(data.agreementStatusCode),
+              context: context,
+            ),
             if (data.isContingent) ...[
               const SizedBox(width: SpacingTokens.sm),
               Container(

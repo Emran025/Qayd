@@ -69,6 +69,7 @@ class VoucherListCubit extends Cubit<VoucherListState> {
       ListVouchersInput(
         searchQuery: _searchQuery,
         advancedFilter: _advancedFilter.hasAny ? _advancedFilter : null,
+        excludeTripartite: true,
       ),
     );
     result.fold(

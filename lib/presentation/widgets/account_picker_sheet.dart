@@ -12,6 +12,9 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
   BuildContext context, {
   required ListAccountsUseCase listAccounts,
   String? excludeAccountId,
+  bool rootAllowed = true,
+  bool requireNoRoot = false,
+  String? requireParentClassification,
 }) async {
   final result = await listAccounts(const ListAccountsInput(activeOnly: true));
   if (!context.mounted) {
@@ -23,9 +26,32 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
     );
     return null;
   }
-  final accounts = result.valueOrNull!.accounts
-      .where((a) => a.id != excludeAccountId)
-      .toList(growable: false);
+  // Map parent standard classification to child
+  final roots = result.valueOrNull!.accounts.where((a) => a.isRoot).toList();
+  final classMap = {
+    for (final r in roots)
+      r.id: r.standardClassificationKind
+  };
+
+  final accounts = result.valueOrNull!.accounts.where((a) {
+    if (a.id == excludeAccountId) return false;
+    if (requireNoRoot && a.isRoot) return false;
+    if (!rootAllowed && a.isRoot) return false;
+    
+    if (requireParentClassification != null) {
+      if (a.isRoot) {
+         if (a.standardClassificationKind != requireParentClassification) return false;
+      } else {
+         if (a.parentId != null) {
+           final pClass = classMap[a.parentId!];
+           if (pClass != requireParentClassification) return false;
+         } else {
+           return false;
+         }
+      }
+    }
+    return true;
+  }).toList(growable: false);
   if (!context.mounted) {
     return null;
   }

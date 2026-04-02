@@ -27,12 +27,22 @@ final class PublicKeyLookupResult {
   const PublicKeyLookupResult({
     required this.phone,
     required this.publicKeyHex,
+    this.previousPublicKeysHex = const [],
     required this.keyGeneration,
     required this.name,
   });
 
   final String phone;
+
+  /// The most recent (active) public key.
   final String publicKeyHex;
+
+  /// History of rotated public keys for this identity.
+  final List<String> previousPublicKeysHex;
+
   final int keyGeneration;
   final String name;
+
+  /// All keys authorized to sign for this identity.
+  List<String> get allAuthorizedKeys => [publicKeyHex, ...previousPublicKeysHex];
 }

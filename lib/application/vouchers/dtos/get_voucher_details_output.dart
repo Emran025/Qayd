@@ -28,6 +28,7 @@ class GetVoucherDetailsOutput {
     this.isContingent = false,
     this.signatureHex,
     this.signerPublicKeyHex,
+    required this.agreementStatusCode,
   });
 
   final String id;
@@ -62,4 +63,5 @@ class GetVoucherDetailsOutput {
   // Digital signature
   final String? signatureHex;
   final String? signerPublicKeyHex;
+  final String agreementStatusCode;
 }

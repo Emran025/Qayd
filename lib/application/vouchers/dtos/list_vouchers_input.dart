@@ -6,6 +6,8 @@ class ListVouchersInput {
     this.advancedFilter,
     this.limit,
     this.offset,
+    this.excludeTripartite = false,
+    this.onlyTripartite = false,
   });
 
   /// When null or blank after trim, listing uses [getAll] with filter only.
@@ -14,4 +16,6 @@ class ListVouchersInput {
   final AdvancedFilterInput? advancedFilter;
   final int? limit;
   final int? offset;
+  final bool excludeTripartite;
+  final bool onlyTripartite;
 }

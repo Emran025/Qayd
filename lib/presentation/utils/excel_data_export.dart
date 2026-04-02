@@ -61,11 +61,27 @@ String _natureAr(String code) {
   }
 }
 
+String _agreementStatusAr(String code) {
+  switch (code) {
+    case 'underRequest':
+      return AppStringsAr.agreementUnderRequest;
+    case 'accepted':
+      return AppStringsAr.agreementAccepted;
+    case 'rejected':
+      return AppStringsAr.agreementRejected;
+    case 'unverified':
+      return AppStringsAr.agreementUnverified;
+    default:
+      return code;
+  }
+}
+
 Uint8List buildVouchersExcelBytes(List<VoucherSummaryDto> vouchers) {
   final headers = [
     'التاريخ',
     'النوع',
     'الحالة',
+    'اتفاق التوقيع',
     'المبلغ',
     'الطرف المقابل',
     'الحساب المتأثر',
@@ -77,6 +93,7 @@ Uint8List buildVouchersExcelBytes(List<VoucherSummaryDto> vouchers) {
       _formatDateIso(v.dateIso),
       _voucherTypeAr(v.typeCode),
       _voucherStateAr(v.stateCode),
+      _agreementStatusAr(v.agreementStatusCode),
       _moneyMinor(
         v.amountMinorUnits,
         digits: v.currencyDigits,
@@ -153,6 +170,7 @@ Uint8List buildCombinedExportExcelBytes({
     'التاريخ',
     'النوع',
     'الحالة',
+    'اتفاق التوقيع',
     'المبلغ',
     'الطرف المقابل',
     'الحساب المتأثر',
@@ -163,6 +181,7 @@ Uint8List buildCombinedExportExcelBytes({
       _formatDateIso(v.dateIso),
       _voucherTypeAr(v.typeCode),
       _voucherStateAr(v.stateCode),
+      _agreementStatusAr(v.agreementStatusCode),
       _moneyMinor(
         v.amountMinorUnits,
         digits: v.currencyDigits,

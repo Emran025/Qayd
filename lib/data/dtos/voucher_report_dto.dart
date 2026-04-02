@@ -26,6 +26,7 @@ class VoucherReportDto {
     this.linkedPartyName,
     this.signatureHex,
     this.signerPublicKeyHex,
+    required this.agreementStatusCode,
   });
 
   final String voucherId;
@@ -64,4 +65,5 @@ class VoucherReportDto {
   // Digital signature
   final String? signatureHex;
   final String? signerPublicKeyHex;
+  final String agreementStatusCode;
 }

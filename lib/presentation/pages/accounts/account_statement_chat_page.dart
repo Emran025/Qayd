@@ -1,0 +1,1256 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/core/result/result.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
+import 'package:qayd/application/vouchers/dtos/confirm_voucher_input.dart';
+import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
+import 'package:qayd/domain/value_objects/voucher_state.dart';
+import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
+import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
+import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
+import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/statement_chat_filter_sheet.dart';
+import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
+
+/// Chat-style "Statement of Account" between two parties (accounts).
+///
+/// Full implementation with:
+/// - BLoC-powered state management
+/// - Search bar with debounce
+/// - Advanced filtering (agreement status, type, date range, brought-forward)
+/// - Color-coded bubbles (Green/Blue/Orange/Red)
+/// - Running balance on each bubble
+/// - Summary footer with net balance
+/// - Accept / Reject / Resubmit interactive actions
+final class AccountStatementChatPage extends StatefulWidget {
+  const AccountStatementChatPage({
+    super.key,
+    required this.counterpartyAccountId,
+  });
+
+  final String counterpartyAccountId;
+
+  @override
+  State<AccountStatementChatPage> createState() =>
+      _AccountStatementChatPageState();
+}
+
+class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
+  bool _mutating = false;
+  bool _showSearch = false;
+  final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // ── Actions ──
+
+  Future<void> _acceptVoucher(BuildContext context, String voucherId) async {
+    if (_mutating) return;
+    setState(() => _mutating = true);
+    try {
+      final r = await InjectionContainer.confirmVoucherUseCase.call(
+        ConfirmVoucherInput(voucherId: voucherId),
+      );
+      if (r.isFailure && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
+        return;
+      }
+      if (mounted) {
+        context.read<StatementChatCubit>().reload();
+      }
+    } finally {
+      if (mounted) setState(() => _mutating = false);
+    }
+  }
+
+  Future<void> _rejectVoucher(BuildContext context, String voucherId) async {
+    if (_mutating) return;
+    setState(() => _mutating = true);
+    try {
+      final r = await InjectionContainer.rejectVoucherUseCase.call(
+        voucherId: voucherId,
+      );
+      if (r.isFailure && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
+        return;
+      }
+      if (mounted) context.read<StatementChatCubit>().reload();
+    } finally {
+      if (mounted) setState(() => _mutating = false);
+    }
+  }
+
+  Future<void> _resubmitVoucher(BuildContext context, String voucherId) async {
+    if (_mutating) return;
+    setState(() => _mutating = true);
+    try {
+      final r = await InjectionContainer.resubmitVoucherUseCase.call(
+        voucherId: voucherId,
+      );
+      if (r.isFailure && mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
+        return;
+      }
+      if (mounted) {
+        context.read<StatementChatCubit>().reload();
+      }
+    } finally {
+      if (mounted) setState(() => _mutating = false);
+    }
+  }
+
+  Future<void> _openAccountProfile(String accountId) async {
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (ctx) => BlocProvider(
+          create: (_) =>
+              AccountDetailCubit(InjectionContainer.getAccountDetailsUseCase)
+                ..load(accountId),
+          child: const AccountDetailPage(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openFilterSheet(StatementChatCubit cubit) async {
+    final result = await showStatementChatFilterSheet(
+      context,
+      initial: cubit.filter,
+    );
+    if (result != null && mounted) {
+      cubit.setFilter(result);
+    }
+  }
+
+  // ── Build ──
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<StatementChatCubit, StatementChatState>(
+      builder: (context, state) {
+        if (state is StatementChatInitial || state is StatementChatLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is StatementChatFailure) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(SpacingTokens.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    QaydText(
+                      state.failure.messageAr,
+                      slot: QaydTextStyleSlot.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: SpacingTokens.md),
+                    FilledButton(
+                      onPressed: () =>
+                          context.read<StatementChatCubit>().load(),
+                      child: Text(AppStringsAr.retryAction),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        final data = state as StatementChatReady;
+        final cubit = context.read<StatementChatCubit>();
+        final custom = Theme.of(context).extension<QaydCustomColors>()!;
+
+        return Scaffold(
+          body: Column(
+            children: [
+              // ── Header ──
+              _ChatHeader(
+                counterpartyName: data.counterpartyName,
+                counterpartyAccountId: data.counterpartyAccountId,
+                messageCount: data.messages.length,
+                hasFilters: data.hasActiveFilters,
+                showSearch: _showSearch,
+                onProfileTap: () =>
+                    _openAccountProfile(data.counterpartyAccountId),
+                onSearchToggle: () {
+                  setState(() {
+                    _showSearch = !_showSearch;
+                    if (!_showSearch) {
+                      _searchController.clear();
+                      cubit.clearSearch();
+                    }
+                  });
+                },
+                onFilterTap: () => _openFilterSheet(cubit),
+              ),
+
+              // ── Search bar ──
+              if (_showSearch)
+                _SearchBar(
+                  controller: _searchController,
+                  onChanged: (text) => cubit.setSearchText(text),
+                  onClear: () {
+                    _searchController.clear();
+                    cubit.clearSearch();
+                  },
+                ),
+
+              // ── Filter chips ──
+              if (data.hasActiveFilters)
+                _ActiveFilterChips(
+                  data: data,
+                  onClearAll: () {
+                    _searchController.clear();
+                    cubit.clearAllFiltersAndSearch();
+                  },
+                ),
+
+              // ── Brought Forward Balance card ──
+              if (data.broughtForwardMinorUnits != 0 &&
+                  data.filter.includePreviousBalance)
+                _BroughtForwardCard(
+                  balanceMinorUnits: data.broughtForwardMinorUnits,
+                  currencySymbol: data.currencySymbol,
+                  currencyDigits: data.currencyDigits,
+                ),
+
+              // ── Messages list ──
+              Expanded(
+                child: data.messages.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(SpacingTokens.lg),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 56,
+                                color: custom.subtleBorder,
+                              ),
+                              const SizedBox(height: SpacingTokens.md),
+                              QaydText(
+                                data.hasActiveFilters
+                                    ? AppStringsAr.statementChatEmptyFiltered
+                                    : AppStringsAr.statementChatEmpty,
+                                slot: QaydTextStyleSlot.bodyLarge,
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () => cubit.reload(),
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SpacingTokens.sm,
+                            vertical: SpacingTokens.sm,
+                          ),
+                          itemCount: data.messages.length,
+                          itemBuilder: (context, i) {
+                            return _MessageBubble(
+                              msg: data.messages[i],
+                              mutating: _mutating,
+                              onAccept: (id) => _acceptVoucher(context, id),
+                              onReject: (id) => _rejectVoucher(context, id),
+                              onResubmit: (id) => _resubmitVoucher(context, id),
+                            );
+                          },
+                        ),
+                      ),
+              ),
+
+              // ── Summary footer ──
+              if (data.messages.isNotEmpty)
+                _SummaryFooter(
+                  finalBalanceMinorUnits: data.finalBalanceMinorUnits,
+                  messageCount: data.messages.length,
+                  currencySymbol: data.currencySymbol,
+                  currencyDigits: data.currencyDigits,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Chat Header ──────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ChatHeader extends StatelessWidget {
+  const _ChatHeader({
+    required this.counterpartyName,
+    required this.counterpartyAccountId,
+    required this.messageCount,
+    required this.hasFilters,
+    required this.showSearch,
+    required this.onProfileTap,
+    required this.onSearchToggle,
+    required this.onFilterTap,
+  });
+
+  final String counterpartyName;
+  final String counterpartyAccountId;
+  final int messageCount;
+  final bool hasFilters;
+  final bool showSearch;
+  final VoidCallback onProfileTap;
+  final VoidCallback onSearchToggle;
+  final VoidCallback onFilterTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Material(
+      elevation: 2,
+      shadowColor: scheme.shadow.withValues(alpha: 0.08),
+      child: SafeArea(
+        bottom: false,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.xs,
+            vertical: SpacingTokens.xs,
+          ),
+          child: Row(
+            children: [
+              // Back button
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
+                onPressed: () => Navigator.of(context).maybePop(),
+                tooltip: 'رجوع',
+              ),
+              // Avatar + Name
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(RadiusTokens.md),
+                  onTap: onProfileTap,
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: custom.debit.withValues(alpha: 0.15),
+                        foregroundColor: custom.debit,
+                        child: Text(
+                          counterpartyName.isNotEmpty
+                              ? counterpartyName.trim().substring(0, 1)
+                              : '?',
+                          textDirection: TextDirection.rtl,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: SpacingTokens.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              counterpartyName,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '$messageCount ${AppStringsAr.statementVoucherCount}',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Search toggle
+              IconButton(
+                icon: Icon(
+                  showSearch ? Icons.search_off_rounded : Icons.search_rounded,
+                  size: 22,
+                ),
+                onPressed: onSearchToggle,
+              ),
+              // Filter
+              Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.tune_rounded, size: 22),
+                    onPressed: onFilterTap,
+                  ),
+                  if (hasFilters)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: custom.goldAccent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Search Bar ───────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      color: scheme.surfaceContainerLow,
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.sm,
+      ),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        textDirection: TextDirection.rtl,
+        decoration: InputDecoration(
+          hintText: AppStringsAr.statementChatSearchHint,
+          prefixIcon: const Icon(Icons.search_rounded, size: 20),
+          suffixIcon: controller.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded, size: 18),
+                  onPressed: onClear,
+                )
+              : null,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.md,
+            vertical: SpacingTokens.sm,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(RadiusTokens.pill),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: scheme.surfaceContainerHighest,
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Active Filter Chips ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ActiveFilterChips extends StatelessWidget {
+  const _ActiveFilterChips({required this.data, required this.onClearAll});
+
+  final StatementChatReady data;
+  final VoidCallback onClearAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final chips = <Widget>[];
+
+    if (data.searchQuery.trim().isNotEmpty) {
+      chips.add(
+        InputChip(
+          label: Text(
+            '${AppStringsAr.voucherFilterChipSearchPrefix}${data.searchQuery}',
+          ),
+          onDeleted: () => context.read<StatementChatCubit>().clearSearch(),
+          deleteIconColor: custom.goldAccent,
+        ),
+      );
+    }
+
+    if (data.filter.agreementStatus != null) {
+      final label = switch (data.filter.agreementStatus!) {
+        AgreementStatus.accepted => AppStringsAr.statementStatusConfirmed,
+        AgreementStatus.underRequest => AppStringsAr.statementStatusPending,
+        AgreementStatus.rejected => AppStringsAr.statementStatusRejected,
+        AgreementStatus.unverified => AppStringsAr.agreementUnverified,
+      };
+      chips.add(
+        InputChip(
+          label: Text(label),
+          onDeleted: () {
+            final cubit = context.read<StatementChatCubit>();
+            cubit.setFilter(cubit.filter.copyWith(clearAgreementStatus: true));
+          },
+          deleteIconColor: custom.goldAccent,
+        ),
+      );
+    }
+
+    if (data.filter.type != null) {
+      final label = data.filter.type == VoucherType.receipt
+          ? AppStringsAr.voucherTypeReceipt
+          : AppStringsAr.voucherTypePayment;
+      chips.add(
+        InputChip(
+          label: Text(label),
+          onDeleted: () {
+            final cubit = context.read<StatementChatCubit>();
+            cubit.setFilter(cubit.filter.copyWith(clearType: true));
+          },
+          deleteIconColor: custom.goldAccent,
+        ),
+      );
+    }
+
+    if (data.filter.fromDate != null || data.filter.toDate != null) {
+      final df = DateFormat.yMd('ar');
+      final from = data.filter.fromDate != null
+          ? df.format(data.filter.fromDate!)
+          : '…';
+      final to = data.filter.toDate != null
+          ? df.format(data.filter.toDate!)
+          : '…';
+      chips.add(
+        InputChip(
+          label: Text('$from → $to'),
+          onDeleted: () {
+            final cubit = context.read<StatementChatCubit>();
+            cubit.setFilter(
+              cubit.filter.copyWith(clearFromDate: true, clearToDate: true),
+            );
+          },
+          deleteIconColor: custom.goldAccent,
+        ),
+      );
+    }
+
+    chips.add(
+      ActionChip(
+        label: Text(AppStringsAr.voucherClearAllFiltersChip),
+        onPressed: onClearAll,
+        avatar: Icon(
+          Icons.clear_all_rounded,
+          size: 16,
+          color: custom.goldAccent,
+        ),
+      ),
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.xs,
+      ),
+      child: Wrap(
+        spacing: SpacingTokens.sm,
+        runSpacing: SpacingTokens.xs,
+        children: chips,
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Brought Forward Card ─────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _BroughtForwardCard extends StatelessWidget {
+  const _BroughtForwardCard({
+    required this.balanceMinorUnits,
+    required this.currencySymbol,
+    required this.currencyDigits,
+  });
+
+  final int balanceMinorUnits;
+  final String currencySymbol;
+  final int currencyDigits;
+
+  @override
+  Widget build(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final isPositive = balanceMinorUnits >= 0;
+    final color = isPositive ? custom.credit : ColorTokens.errorDeep;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.sm,
+      ),
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(RadiusTokens.md),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.history_rounded, size: 20, color: color),
+          const SizedBox(width: SpacingTokens.sm),
+          Expanded(
+            child: QaydText(
+              AppStringsAr.statementBroughtForward,
+              slot: QaydTextStyleSlot.bodyMedium,
+            ),
+          ),
+          _BalanceAmountText(
+            minorUnits: balanceMinorUnits,
+            currencySymbol: currencySymbol,
+            currencyDigits: currencyDigits,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Summary Footer ───────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _SummaryFooter extends StatelessWidget {
+  const _SummaryFooter({
+    required this.finalBalanceMinorUnits,
+    required this.messageCount,
+    required this.currencySymbol,
+    required this.currencyDigits,
+  });
+
+  final int finalBalanceMinorUnits;
+  final int messageCount;
+  final String currencySymbol;
+  final int currencyDigits;
+
+  @override
+  Widget build(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final scheme = Theme.of(context).colorScheme;
+    final isPositive = finalBalanceMinorUnits > 0;
+    final isNegative = finalBalanceMinorUnits < 0;
+    final statusLabel = isPositive
+        ? AppStringsAr.statementBalanceForYou
+        : isNegative
+        ? AppStringsAr.statementBalanceAgainstYou
+        : AppStringsAr.statementBalanceSettled;
+    final statusColor = isPositive
+        ? custom.credit
+        : isNegative
+        ? ColorTokens.errorDeep
+        : custom.confirmedState;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        border: Border(
+          top: BorderSide(color: custom.subtleBorder.withValues(alpha: 0.5)),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        left: SpacingTokens.md,
+        right: SpacingTokens.md,
+        top: SpacingTokens.sm + 2,
+        bottom: MediaQuery.paddingOf(context).bottom + SpacingTokens.sm + 2,
+      ),
+      child: Row(
+        children: [
+          // Status indicator
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: statusColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: SpacingTokens.sm),
+          // Labels
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  AppStringsAr.statementFinalBalance,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+                Text(
+                  statusLabel,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Balance amount
+          _BalanceAmountText(
+            minorUnits: finalBalanceMinorUnits,
+            currencySymbol: currencySymbol,
+            currencyDigits: currencyDigits,
+            large: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Message Bubble ───────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _MessageBubble extends StatelessWidget {
+  const _MessageBubble({
+    required this.msg,
+    required this.mutating,
+    required this.onAccept,
+    required this.onReject,
+    required this.onResubmit,
+  });
+
+  final AccountStatementChatMessageDto msg;
+  final bool mutating;
+  final Future<void> Function(String voucherId) onAccept;
+  final Future<void> Function(String voucherId) onReject;
+  final Future<void> Function(String voucherId) onResubmit;
+
+  bool get _isIncoming => msg.direction == 'incoming';
+  bool get _isOutgoing => msg.direction == 'outgoing';
+
+  // ── Color-coded status system ──
+  // 🟢 Green  = Confirmed (accepted)
+  // 🔵 Blue   = Receipt voucher
+  // 🟠 Orange = Pending (underRequest)
+  // 🔴 Red    = Rejected
+
+  Color _statusColor(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final agreement = AgreementStatus.values.byName(msg.signatureStatusCode);
+    if (agreement.isRejected) return ColorTokens.errorDeep;
+    if (agreement.isAccepted) return custom.confirmedState;
+    if (msg.typeCode == VoucherType.receipt.name) return custom.debit;
+    return custom.draftState;
+  }
+
+  String _typeLabel() {
+    return msg.typeCode == VoucherType.receipt.name
+        ? AppStringsAr.voucherTypeReceipt
+        : AppStringsAr.voucherTypePayment;
+  }
+
+  IconData _typeIcon() {
+    return msg.typeCode == VoucherType.receipt.name
+        ? Icons.south_west_rounded
+        : Icons.north_east_rounded;
+  }
+
+  IconData _ticksIcon() {
+    final agreement = AgreementStatus.values.byName(msg.signatureStatusCode);
+    if (agreement.isRejected) return Icons.close_rounded;
+    if (agreement.isAccepted) return Icons.done_all_rounded;
+    if (agreement.isUnderRequest) return Icons.check_rounded;
+    return Icons.schedule_rounded;
+  }
+
+  Widget _stateWidget(BuildContext context) {
+    final status = AgreementStatus.values.byName(msg.signatureStatusCode);
+    if (status.isRejected) {
+      return QaydBadge.agreement(
+        status: AgreementStatus.rejected,
+        context: context,
+      );
+    }
+    if (status.isAccepted) {
+      return QaydBadge.agreement(
+        status: AgreementStatus.accepted,
+        context: context,
+      );
+    }
+    final state = VoucherState.values.byName(msg.voucherStateCode);
+    return QaydBadge(state: state, context: context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dateStr = DateFormat.yMMMd('ar').format(DateTime.parse(msg.dateIso));
+    final statusColor = _statusColor(context);
+    final scheme = Theme.of(context).colorScheme;
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+
+    final currency = CurrencyCode(
+      code: msg.currencyCode,
+      nameAr: msg.currencyCode,
+      symbol: msg.currencySymbol,
+      fractionalDigits: msg.currencyDigits,
+    );
+    final money = Money.nonNegative(msg.amountMinorUnits, currency);
+
+    final alignment = _isIncoming
+        ? AlignmentDirectional.centerStart
+        : AlignmentDirectional.centerEnd;
+
+    return Align(
+      alignment: alignment,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.sizeOf(context).width * 0.82,
+        ),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: SpacingTokens.sm + 2),
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadiusDirectional.only(
+              topStart: const Radius.circular(RadiusTokens.lg),
+              topEnd: const Radius.circular(RadiusTokens.lg),
+              bottomStart: _isIncoming
+                  ? const Radius.circular(RadiusTokens.xs)
+                  : const Radius.circular(RadiusTokens.lg),
+              bottomEnd: _isOutgoing
+                  ? const Radius.circular(RadiusTokens.xs)
+                  : const Radius.circular(RadiusTokens.lg),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: statusColor.withValues(alpha: 0.10),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+              BoxShadow(
+                color: scheme.shadow.withValues(alpha: 0.04),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── Colored accent strip ──
+                Container(
+                  width: 5,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        statusColor,
+                        statusColor.withValues(alpha: 0.40),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Card content ──
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ──── Header: type + badge + ticks ────
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(
+                          SpacingTokens.md,
+                          SpacingTokens.sm + 2,
+                          SpacingTokens.md,
+                          SpacingTokens.sm,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.06),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: statusColor.withValues(alpha: 0.12),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // Type icon in circle
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _typeIcon(),
+                                size: 14,
+                                color: statusColor,
+                              ),
+                            ),
+                            const SizedBox(width: SpacingTokens.sm),
+                            // Type label
+                            Expanded(
+                              child: Text(
+                                _typeLabel(),
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.3,
+                                    ),
+                              ),
+                            ),
+                            // Badge
+                            _stateWidget(context),
+                            const SizedBox(width: SpacingTokens.xs),
+                            // Ticks
+                            Icon(
+                              _ticksIcon(),
+                              size: 15,
+                              color: statusColor.withValues(alpha: 0.7),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ──── Amount display ────
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SpacingTokens.md,
+                          vertical: SpacingTokens.sm + 2,
+                        ),
+                        child: Row(
+                          children: [
+                            // Amount
+                            Expanded(
+                              child: QaydMoneyDisplay(
+                                money: money,
+                                size: QaydMoneyDisplaySize.large,
+                                displayNegative: false,
+                              ),
+                            ),
+                            // Currency code chip
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: SpacingTokens.sm,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(
+                                  RadiusTokens.xs,
+                                ),
+                              ),
+                              child: Text(
+                                msg.currencyCode,
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ──── Description ────
+                      if (msg.description.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            SpacingTokens.md,
+                            0,
+                            SpacingTokens.md,
+                            SpacingTokens.sm,
+                          ),
+                          child: Text(
+                            msg.description,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  height: 1.4,
+                                ),
+                          ),
+                        ),
+
+                      // ──── Footer: date + running balance ────
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SpacingTokens.md,
+                          vertical: SpacingTokens.xs + 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: custom.surfaceElevated.withValues(alpha: 0.5),
+                          border: Border(
+                            top: BorderSide(
+                              color: custom.subtleBorder.withValues(alpha: 0.3),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // Date
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 11,
+                              color: scheme.onSurfaceVariant.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              dateStr,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: scheme.onSurfaceVariant.withValues(
+                                      alpha: 0.6,
+                                    ),
+                                    fontSize: 10,
+                                  ),
+                            ),
+                            const Spacer(),
+                            // Running balance
+                            Icon(
+                              Icons.account_balance_wallet_outlined,
+                              size: 11,
+                              color: scheme.onSurfaceVariant.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${AppStringsAr.statementRunningBalance}: ',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: scheme.onSurfaceVariant.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    fontSize: 10,
+                                  ),
+                            ),
+                            _BalanceAmountText(
+                              minorUnits: msg.runningBalanceMinorUnits,
+                              currencySymbol: msg.currencySymbol,
+                              currencyDigits: msg.currencyDigits,
+                              fontSize: 10,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // ──── Action buttons ────
+                      _actionArea(context),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool get _isDraft => msg.voucherStateCode == VoucherState.draft.name;
+  bool get _isRejected =>
+      msg.signatureStatusCode == AgreementStatus.rejected.name;
+
+  Widget _actionArea(BuildContext context) {
+    final showAcceptReject = _isIncoming && _isDraft && !_isRejected;
+    final showResubmit = _isOutgoing && _isDraft && _isRejected;
+
+    if (!showAcceptReject && !showResubmit) return const SizedBox.shrink();
+
+    final statusColor = _statusColor(context);
+
+    if (showAcceptReject) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SpacingTokens.md,
+          vertical: SpacingTokens.sm,
+        ),
+        decoration: BoxDecoration(
+          color: statusColor.withValues(alpha: 0.04),
+          border: Border(
+            top: BorderSide(color: statusColor.withValues(alpha: 0.15)),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: mutating
+                    ? null
+                    : () async => onAccept(msg.voucherId),
+                icon: const Icon(Icons.check_rounded, size: 16),
+                label: Text(AppStringsAr.statementChatAccept),
+                style: FilledButton.styleFrom(
+                  backgroundColor: statusColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: SpacingTokens.sm,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: SpacingTokens.sm),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: mutating
+                    ? null
+                    : () async => onReject(msg.voucherId),
+                icon: const Icon(Icons.close_rounded, size: 16),
+                label: Text(AppStringsAr.statementChatReject),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColorTokens.errorDeep,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: SpacingTokens.sm,
+                  ),
+                  side: BorderSide(
+                    color: ColorTokens.errorDeep.withValues(alpha: 0.5),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.sm,
+      ),
+      decoration: BoxDecoration(
+        color: ColorTokens.errorDeep.withValues(alpha: 0.04),
+        border: Border(
+          top: BorderSide(color: ColorTokens.errorDeep.withValues(alpha: 0.15)),
+        ),
+      ),
+      child: OutlinedButton.icon(
+        onPressed: mutating ? null : () async => onResubmit(msg.voucherId),
+        icon: const Icon(Icons.refresh_rounded, size: 16),
+        label: Text(AppStringsAr.statementChatResubmit),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: ColorTokens.errorDeep,
+          padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
+          side: BorderSide(color: ColorTokens.errorDeep.withValues(alpha: 0.5)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(RadiusTokens.sm),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Shared Balance Amount Text ───────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _BalanceAmountText extends StatelessWidget {
+  const _BalanceAmountText({
+    required this.minorUnits,
+    required this.currencySymbol,
+    required this.currencyDigits,
+    this.large = false,
+    this.fontSize,
+  });
+
+  final int minorUnits;
+  final String currencySymbol;
+  final int currencyDigits;
+  final bool large;
+  final double? fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final isPositive = minorUnits > 0;
+    final isNegative = minorUnits < 0;
+    final color = isPositive
+        ? custom.credit
+        : isNegative
+        ? ColorTokens.errorDeep
+        : custom.confirmedState;
+
+    num divisor = 1;
+    for (var i = 0; i < currencyDigits; i++) {
+      divisor *= 10;
+    }
+    final abs = minorUnits.abs();
+    final major = abs / divisor;
+    final formatted = major.toStringAsFixed(currencyDigits);
+
+    final effectiveFontSize = fontSize ?? (large ? 18.0 : 13.0);
+
+    return Text(
+      '$formatted $currencySymbol',
+      textDirection: TextDirection.ltr,
+      style: TextStyle(
+        color: color,
+        fontWeight: large ? FontWeight.w800 : FontWeight.w600,
+        fontSize: effectiveFontSize,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+  }
+}

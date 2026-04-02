@@ -8,7 +8,7 @@ import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
-import 'package:qayd/application/vouchers/dtos/create_tripartite_transfer_input.dart';
+
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -50,12 +50,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   String? _hiddenLinkedPartyId;
   bool _hiddenIsContingent = false;
 
-  // ── Tripartite mode ──────────────────────────────────────────────────────
-  bool _isTripartiteMode = false;
-  AccountSummaryDto? _tripartiteSource;
-  AccountSummaryDto? _tripartiteDest;
-  AccountSummaryDto? _tripartiteAffected;
-
   late final AnimationController _slideController;
   late final Animation<Offset> _slideOffset;
 
@@ -81,6 +75,24 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       _applyFromQr(widget.initialQrData!);
     } else {
       _loadBaseCurrency();
+    }
+    _loadDefaultFundAccount();
+  }
+
+  Future<void> _loadDefaultFundAccount() async {
+    final res = await InjectionContainer.listAccountsUseCase.call(
+      const ListAccountsInput(activeOnly: true),
+    );
+    if (res.isSuccess && mounted) {
+      final accounts = res.valueOrNull!.accounts;
+      final roots = accounts.where((a) => a.standardClassificationKind == 'liquidAssets' && a.isRoot);
+      final fund = roots.isNotEmpty
+          ? roots.first
+          : accounts.where((a) => a.standardClassificationKind == 'liquidAssets').firstOrNull ?? accounts.firstOrNull;
+      
+      if (fund != null && _affected == null) {
+        setState(() => _affected = fund);
+      }
     }
   }
 
@@ -174,22 +186,12 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     }
   }
 
-  Future<void> _pickAffected() async {
-    final a = await showAccountPickerSheet(
-      context,
-      listAccounts: InjectionContainer.listAccountsUseCase,
-      excludeAccountId: _counterparty?.id,
-    );
-    if (a != null) {
-      setState(() => _affected = a);
-    }
-  }
-
   Future<void> _pickCounterparty() async {
     final a = await showAccountPickerSheet(
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
       excludeAccountId: _affected?.id,
+      requireNoRoot: true,
     );
     if (a != null) {
       setState(() => _counterparty = a);
@@ -201,39 +203,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     }
   }
 
-  // ── Tripartite pickers ─────────────────────────────────────────────────
 
-  Future<void> _pickTripartiteSource() async {
-    final a = await showAccountPickerSheet(
-      context,
-      listAccounts: InjectionContainer.listAccountsUseCase,
-      excludeAccountId: _tripartiteDest?.id,
-    );
-    if (a != null) {
-      setState(() => _tripartiteSource = a);
-    }
-  }
-
-  Future<void> _pickTripartiteDest() async {
-    final a = await showAccountPickerSheet(
-      context,
-      listAccounts: InjectionContainer.listAccountsUseCase,
-      excludeAccountId: _tripartiteSource?.id,
-    );
-    if (a != null) {
-      setState(() => _tripartiteDest = a);
-    }
-  }
-
-  Future<void> _pickTripartiteAffected() async {
-    final a = await showAccountPickerSheet(
-      context,
-      listAccounts: InjectionContainer.listAccountsUseCase,
-    );
-    if (a != null) {
-      setState(() => _tripartiteAffected = a);
-    }
-  }
 
   Future<void> _pickCurrency() async {
     final c = await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
@@ -255,11 +225,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       return;
     }
 
-    if (_isTripartiteMode) {
-      await _submitTripartite(messenger, minor);
-    } else {
-      await _submitStandard(messenger, minor);
-    }
+    await _submitStandard(messenger, minor);
   }
 
   Future<void> _submitStandard(
@@ -298,43 +264,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     await context.read<VoucherCreateCubit>().submit(input);
   }
 
-  Future<void> _submitTripartite(
-    ScaffoldMessengerState messenger,
-    int minor,
-  ) async {
-    if (_tripartiteSource == null ||
-        _tripartiteDest == null ||
-        _tripartiteAffected == null) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('يرجى اختيار المصدر والوجهة وحسابك الوسيط.'),
-        ),
-      );
-      return;
-    }
-    if (_tripartiteSource!.id == _tripartiteDest!.id) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('لا يمكن أن يكون المصدر والوجهة نفس الطرف.'),
-        ),
-      );
-      return;
-    }
 
-    final input = CreateTripartiteTransferInput(
-      sourceAccountId: _tripartiteSource!.id,
-      destinationAccountId: _tripartiteDest!.id,
-      affectedAccountId: _tripartiteAffected!.id,
-      amountMinorUnits: minor,
-      currencyCode: _currencyCode,
-      date: _voucherDate,
-      description: _descriptionController.text.trim().isEmpty
-          ? null
-          : _descriptionController.text.trim(),
-    );
-
-    await context.read<VoucherCreateCubit>().submitTripartite(input);
-  }
 
   String _typeLabel(VoucherType t) =>
       t == VoucherType.receipt
@@ -386,15 +316,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
             );
             Navigator.of(context).pop(state.voucherId);
           }
-          if (state is VoucherCreateTripartiteSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppStringsAr.tripartiteCreatedSuccess),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            Navigator.of(context).pop(state.receiptVoucherId);
-          }
         },
         builder: (context, state) {
           final submitting = state is VoucherCreateSubmitting;
@@ -413,18 +334,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                 child: ListView(
                   padding: const EdgeInsets.all(SpacingTokens.lg),
                   children: [
-                    // ── Tripartite toggle ──────────────────────────────
-                    _TripartiteToggle(
-                      value: _isTripartiteMode,
-                      goldAccent: gold,
-                      onChanged: (v) {
-                        setState(() => _isTripartiteMode = v);
-                        _slideController.forward(from: 0);
-                      },
-                    ),
-                    const SizedBox(height: SpacingTokens.md),
-
-                    if (!_isTripartiteMode) ...[
                       // ── Standard mode ─────────────────────────────────
                       SegmentedButton<VoucherType>(
                         segments: const [
@@ -452,30 +361,14 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: QaydText(
-                          AppStringsAr.voucherAffectedAccountLabel,
-                          slot: QaydTextStyleSlot.labelLarge,
-                        ),
-                        subtitle: QaydText(
-                          _affected?.name ??
-                              AppStringsAr.voucherPickAffectedHint,
-                          slot: QaydTextStyleSlot.bodyLarge,
-                          color: _affected == null
-                              ? Theme.of(context).colorScheme.onSurfaceVariant
-                              : null,
-                        ),
-                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
-                        onTap: _pickAffected,
-                      ),
-                      const SizedBox(height: SpacingTokens.sm),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: QaydText(
-                          AppStringsAr.voucherCounterpartyLabel,
+                          _type == VoucherType.payment
+                              ? AppStringsAr.voucherCounterpartyLabel
+                              : 'الحساب المتأثر (طَرَف)',
                           slot: QaydTextStyleSlot.labelLarge,
                         ),
                         subtitle: QaydText(
                           _counterparty?.name ??
-                              AppStringsAr.voucherPickCounterpartyHint,
+                              'اختر حساب الطرف (العميل/المورد)',
                           slot: QaydTextStyleSlot.bodyLarge,
                           color: _counterparty == null
                               ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -486,55 +379,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       ),
                       if (_counterparty != null)
                         _buildSuggestionsStrip(context),
-                    ] else ...[
-                      // ── Tripartite mode ───────────────────────────────
-                      _buildDateTile(gold),
-                      const Divider(),
-                      _buildCurrencyTile(gold),
-                      const Divider(),
-                      _buildTripartiteAccountTile(
-                        label: AppStringsAr.tripartiteSourceLabel,
-                        hint: AppStringsAr.tripartitePickSourceHint,
-                        account: _tripartiteSource,
-                        icon: Icons.arrow_back_rounded,
-                        gold: gold,
-                        onTap: _pickTripartiteSource,
-                      ),
-                      const SizedBox(height: SpacingTokens.xs),
-                      Center(
-                        child: Icon(
-                          Icons.arrow_downward_rounded,
-                          color: gold.withValues(alpha: 0.5),
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(height: SpacingTokens.xs),
-                      _buildTripartiteAccountTile(
-                        label: AppStringsAr.tripartiteAffectedLabel,
-                        hint: AppStringsAr.tripartitePickAffectedHint,
-                        account: _tripartiteAffected,
-                        icon: Icons.account_balance_wallet_rounded,
-                        gold: gold,
-                        onTap: _pickTripartiteAffected,
-                      ),
-                      const SizedBox(height: SpacingTokens.xs),
-                      Center(
-                        child: Icon(
-                          Icons.arrow_downward_rounded,
-                          color: gold.withValues(alpha: 0.5),
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(height: SpacingTokens.xs),
-                      _buildTripartiteAccountTile(
-                        label: AppStringsAr.tripartiteDestinationLabel,
-                        hint: AppStringsAr.tripartitePickDestHint,
-                        account: _tripartiteDest,
-                        icon: Icons.arrow_forward_rounded,
-                        gold: gold,
-                        onTap: _pickTripartiteDest,
-                      ),
-                    ],
                     const SizedBox(height: SpacingTokens.md),
                     SlideTransition(
                       position: _slideOffset,
@@ -569,9 +413,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : Text(_isTripartiteMode
-                                    ? AppStringsAr.tripartiteToggleLabel
-                                    : AppStringsAr.voucherSaveDraft),
+                                : Text(AppStringsAr.voucherSaveDraft),
                           ),
                         ],
                       ),
@@ -614,31 +456,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
         onTap: _pickCurrency,
       );
 
-  Widget _buildTripartiteAccountTile({
-    required String label,
-    required String hint,
-    required AccountSummaryDto? account,
-    required IconData icon,
-    required Color gold,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        leading: Icon(icon, color: gold, size: 22),
-        title: QaydText(label, slot: QaydTextStyleSlot.labelLarge),
-        subtitle: QaydText(
-          account?.name ?? hint,
-          slot: QaydTextStyleSlot.bodyLarge,
-          color: account == null
-              ? Theme.of(context).colorScheme.onSurfaceVariant
-              : null,
-        ),
-        trailing: Icon(Icons.chevron_left_rounded, color: gold),
-        onTap: onTap,
-      ),
-    );
-  }
+
 
   Widget _buildSuggestionsStrip(BuildContext context) {
     return BlocBuilder<VoucherSuggestionsCubit, VoucherSuggestionsState>(
@@ -704,65 +522,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 }
 
-// ── Tripartite toggle widget ──────────────────────────────────────────────────
-
-class _TripartiteToggle extends StatelessWidget {
-  const _TripartiteToggle({
-    required this.value,
-    required this.goldAccent,
-    required this.onChanged,
-  });
-
-  final bool value;
-  final Color goldAccent;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: value
-              ? goldAccent.withValues(alpha: 0.6)
-              : Theme.of(context).colorScheme.outlineVariant,
-          width: value ? 1.5 : 1,
-        ),
-        color: value
-            ? goldAccent.withValues(alpha: 0.08)
-            : Colors.transparent,
-      ),
-      child: SwitchListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
-        title: Row(
-          children: [
-            Icon(
-              Icons.swap_horiz_rounded,
-              color: goldAccent,
-              size: 22,
-            ),
-            const SizedBox(width: SpacingTokens.sm),
-            QaydText(
-              AppStringsAr.tripartiteToggleLabel,
-              slot: QaydTextStyleSlot.titleSmall,
-            ),
-          ],
-        ),
-        subtitle: QaydText(
-          AppStringsAr.tripartiteToggleSubtitle,
-          slot: QaydTextStyleSlot.bodySmall,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-        value: value,
-        onChanged: onChanged,
-        activeColor: goldAccent,
-      ),
-    );
-  }
-}
 
 // ── Suggestion card (unchanged) ──────────────────────────────────────────────
 

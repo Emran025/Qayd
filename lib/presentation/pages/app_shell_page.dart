@@ -3,6 +3,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_page.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
+import 'package:qayd/presentation/pages/vouchers/tripartite_list_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_page.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 
@@ -26,6 +27,7 @@ class _AppShellPageState extends State<AppShellPage> {
         index: _index,
         children: const [
           VoucherListPage(),
+          TripartiteListPage(),
           AccountListPage(),
           TrialBalancePage(),
           NotificationTemplatesPage(),
@@ -40,6 +42,11 @@ class _AppShellPageState extends State<AppShellPage> {
             icon: const Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long_rounded, color: gold),
             label: AppStringsAr.navVouchersTab,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.swap_horiz_outlined),
+            selectedIcon: Icon(Icons.swap_horizontal_circle_rounded, color: gold),
+            label: AppStringsAr.navTripartiteTab,
           ),
           NavigationDestination(
             icon: const Icon(Icons.account_balance_wallet_outlined),

@@ -2,6 +2,7 @@ import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_output.dart';
+import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
@@ -38,6 +39,19 @@ class ConfirmVoucherUseCase {
         return FailureResult(loaded.failureOrNull!);
       }
       final draft = loaded.valueOrNull!;
+      
+      // 2. Enforce agreement (digital signature) before confirmation.
+      // Payers (Payments) sign themselves => usually Accepted by default.
+      // Receivers (Receipts) need counterparty signature => must be Accepted.
+      if (!draft.agreementStatus.isAccepted) {
+        return const FailureResult(
+          ValidationFailure(
+            messageAr: 'لا يمكن تأكيد السند حتى يتم توقيعه من قبل الطرف المسؤول.',
+            code: 'voucher_not_accepted',
+          ),
+        );
+      }
+
       final now = DateTime.now();
       final confirmed = draft.confirm(now);
 
@@ -123,7 +137,7 @@ class ConfirmVoucherUseCase {
         settledAt: sibling.settledAt,
         signatureHex: sibling.signatureHex,
         signerPublicKeyHex: sibling.signerPublicKeyHex,
-        signatureStatus: sibling.signatureStatus,
+        agreementStatus: sibling.agreementStatus,
         signerPhone: sibling.signerPhone,
         tripartiteMeta: siblingMeta.release(),
       );

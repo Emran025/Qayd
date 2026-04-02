@@ -6,13 +6,17 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/attachment_ref.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
-import 'package:qayd/domain/value_objects/signature_status.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
 /// Receipt or payment document with strict draft → confirmed → settled lifecycle.
+/// 
+/// Separation of concerns:
+/// - [state] (VoucherState): Tracks the creator's workflow (Draft vs Confirmed).
+/// - [agreementStatus] (AgreementStatus): Tracks the digital signature agreement (Accepted, Pending/UnderRequest, Rejected).
 final class Voucher {
   const Voucher._({
     required this.id,
@@ -33,7 +37,7 @@ final class Voucher {
     required this.settledAt,
     required this.signatureHex,
     required this.signerPublicKeyHex,
-    required this.signatureStatus,
+    required this.agreementStatus,
     required this.signerPhone,
     required this.tripartiteMeta,
   });
@@ -46,6 +50,8 @@ final class Voucher {
   final CurrencyCode currency;
   final AccountId counterpartyId;
   final AccountId affectedAccountId;
+  
+  /// Creator's validation state (Draft: mutable/internal, Confirmed: entries recorded).
   final VoucherState state;
   final String? description;
   final List<AttachmentRef> attachmentRefs;
@@ -63,8 +69,8 @@ final class Voucher {
   /// Public key of the signer (64 hex chars) or null.
   final String? signerPublicKeyHex;
 
-  /// Cryptographic verification state of the signature.
-  final SignatureStatus signatureStatus;
+  /// Digital confirmation state (Accepted, Rejected, Under Request).
+  final AgreementStatus agreementStatus;
 
   /// Phone number of the signing party (for matching and discovery).
   final String? signerPhone;
@@ -80,6 +86,12 @@ final class Voucher {
 
   /// Whether this voucher is locked pending its parent's confirmation.
   bool get isContingent => tripartiteMeta?.isContingent ?? false;
+
+  /// Whether a cryptographic signature is present on this voucher.
+  bool get hasSignature => signatureHex != null;
+
+  bool get isReceipt => type == VoucherType.receipt;
+  bool get isPayment => type == VoucherType.payment;
 
   /// Rehydrates a voucher from persistence (data layer); not for new business creates.
   factory Voucher.restore({
@@ -101,7 +113,7 @@ final class Voucher {
     DateTime? settledAt,
     String? signatureHex,
     String? signerPublicKeyHex,
-    SignatureStatus signatureStatus = SignatureStatus.unsigned,
+    AgreementStatus agreementStatus = AgreementStatus.underRequest,
     String? signerPhone,
     TripartiteMeta? tripartiteMeta,
   }) {
@@ -124,12 +136,17 @@ final class Voucher {
       settledAt: settledAt,
       signatureHex: signatureHex,
       signerPublicKeyHex: signerPublicKeyHex,
-      signatureStatus: signatureStatus,
+      agreementStatus: agreementStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
     );
   }
 
+  /// New business create. 
+  /// 
+  /// Policy:
+  /// - Payments (الصرف) are "Accepted" by default because the creator is the signer (the payer).
+  /// - Receipts (القبض) are "Under Request" because they require the counterparty's signature.
   factory Voucher.draft({
     required VoucherId id,
     required VoucherType type,
@@ -146,7 +163,7 @@ final class Voucher {
     List<String> tags = const [],
     String? signatureHex,
     String? signerPublicKeyHex,
-    SignatureStatus signatureStatus = SignatureStatus.unsigned,
+    AgreementStatus? agreementStatus,
     String? signerPhone,
     TripartiteMeta? tripartiteMeta,
   }) {
@@ -162,6 +179,15 @@ final class Voucher {
         code: 'voucher_amount_zero',
       );
     }
+    
+    // Default agreement status based on type:
+    // الصرف (Payment): Accepted (signed by me as Payer)
+    // القبض (Receipt): Under Request (needs signature from B as Payer)
+    final finalAgreementStatus = agreementStatus ??
+        (type == VoucherType.payment
+            ? AgreementStatus.accepted
+            : AgreementStatus.underRequest);
+
     return Voucher._(
       id: id,
       type: type,
@@ -181,7 +207,7 @@ final class Voucher {
       settledAt: null,
       signatureHex: signatureHex,
       signerPublicKeyHex: signerPublicKeyHex,
-      signatureStatus: signatureStatus,
+      agreementStatus: finalAgreementStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
     );
@@ -214,7 +240,7 @@ final class Voucher {
       settledAt: null,
       signatureHex: signatureHex,
       signerPublicKeyHex: signerPublicKeyHex,
-      signatureStatus: signatureStatus,
+      agreementStatus: agreementStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
     );
@@ -247,17 +273,17 @@ final class Voucher {
       settledAt: settledAt,
       signatureHex: signatureHex,
       signerPublicKeyHex: signerPublicKeyHex,
-      signatureStatus: signatureStatus,
+      agreementStatus: agreementStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
     );
   }
 
-  /// Attaches a cryptographic signature to a draft voucher.
+  /// Attaches a cryptographic signature to a voucher.
   Voucher attachSignature({
     required String signatureHex,
     required String signerPublicKeyHex,
-    required SignatureStatus status,
+    required AgreementStatus status,
     String? signerPhone,
   }) {
     return Voucher._(
@@ -279,7 +305,7 @@ final class Voucher {
       settledAt: settledAt,
       signatureHex: signatureHex,
       signerPublicKeyHex: signerPublicKeyHex,
-      signatureStatus: status,
+      agreementStatus: status,
       signerPhone: signerPhone ?? this.signerPhone,
       tripartiteMeta: tripartiteMeta,
     );
@@ -348,7 +374,7 @@ final class Voucher {
       settledAt: settledAt,
       signatureHex: this.signatureHex,
       signerPublicKeyHex: this.signerPublicKeyHex,
-      signatureStatus: this.signatureStatus,
+      agreementStatus: this.agreementStatus,
       signerPhone: this.signerPhone,
       tripartiteMeta: tripartiteMeta,
     );

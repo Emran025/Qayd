@@ -1,20 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
-/// Voucher lifecycle badge (draft / confirmed / settled) with theme tokens and RTL-safe padding.
+/// Unified status badge for Voucher states (Draft/Confirmed) and Agreement statuses (Accepted/Rejected/etc).
 class QaydBadge extends StatelessWidget {
-  const QaydBadge({
-    super.key,
-    required this.state,
+  const QaydBadge._({
+    required this.label,
+    required this.bgColor,
+    required this.fgColor,
+    this.isDashed = false,
   });
 
-  final VoucherState state;
+  final String label;
+  final Color bgColor;
+  final Color fgColor;
+  final bool isDashed;
 
-  static String _label(VoucherState state) {
+  factory QaydBadge({required VoucherState state, required BuildContext context}) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final (bg, fg, dashed) = switch (state) {
+      VoucherState.draft => (custom.draftState, custom.badgeOnDraft, true),
+      VoucherState.confirmed => (custom.confirmedState, custom.badgeOnConfirmed, false),
+      VoucherState.settled => (custom.settledState, custom.badgeOnSettled, false),
+    };
+    final label = _stateLabel(state);
+    return QaydBadge._(label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
+  }
+
+  factory QaydBadge.agreement({required AgreementStatus status, required BuildContext context}) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final (bg, fg, dashed) = switch (status) {
+      AgreementStatus.underRequest => (custom.draftState.withValues(alpha: 0.1), custom.draftState, true),
+      AgreementStatus.accepted => (custom.confirmedState.withValues(alpha: 0.1), custom.confirmedState, false),
+      AgreementStatus.rejected => (ColorTokens.errorSoft.withValues(alpha: 0.2), ColorTokens.errorDeep, false),
+      AgreementStatus.unverified => (custom.draftState.withValues(alpha: 0.1), custom.badgeOnDraft, true),
+    };
+    final label = _agreementLabel(status);
+    return QaydBadge._(label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
+  }
+
+  static String _stateLabel(VoucherState state) {
     return switch (state) {
       VoucherState.draft => AppStringsAr.voucherStateDraft,
       VoucherState.confirmed => AppStringsAr.voucherStateConfirmed,
@@ -22,23 +52,24 @@ class QaydBadge extends StatelessWidget {
     };
   }
 
+  static String _agreementLabel(AgreementStatus status) {
+    return switch (status) {
+      AgreementStatus.underRequest => AppStringsAr.agreementUnderRequest,
+      AgreementStatus.accepted => AppStringsAr.agreementAccepted,
+      AgreementStatus.rejected => AppStringsAr.agreementRejected,
+      AgreementStatus.unverified => AppStringsAr.agreementUnverified,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    final custom = Theme.of(context).extension<QaydCustomColors>()!;
     final textTheme = Theme.of(context).textTheme;
 
-    final (Color bg, Color fg, bool dashed) = switch (state) {
-      VoucherState.draft => (custom.draftState, custom.badgeOnDraft, true),
-      VoucherState.confirmed => (custom.confirmedState, custom.badgeOnConfirmed, false),
-      VoucherState.settled => (custom.settledState, custom.badgeOnSettled, false),
-    };
-
-    final label = _label(state);
     final text = Text(
       label,
       style: textTheme.labelMedium?.copyWith(
-        color: fg,
-        fontWeight: FontWeight.w600,
+        color: fgColor,
+        fontWeight: FontWeight.w700,
       ),
     );
 
@@ -52,17 +83,15 @@ class QaydBadge extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: bg.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(RadiusTokens.sm),
-        border: dashed
-            ? null
-            : Border.all(color: fg.withValues(alpha: 0.35), width: 1),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(RadiusTokens.xs),
+        border: Border.all(color: fgColor.withValues(alpha: 0.15), width: 1),
       ),
-      child: dashed
+      child: isDashed
           ? CustomPaint(
               painter: _DashedRoundedRectPainter(
-                color: fg.withValues(alpha: 0.65),
-                radius: RadiusTokens.sm,
+                color: fgColor.withValues(alpha: 0.4),
+                radius: RadiusTokens.xs,
               ),
               child: padding,
             )
@@ -71,44 +100,27 @@ class QaydBadge extends StatelessWidget {
   }
 }
 
-/// Dashed outline for draft state (design system §3.2).
-final class _DashedRoundedRectPainter extends CustomPainter {
-  _DashedRoundedRectPainter({
-    required this.color,
-    required this.radius,
-  });
-
+class _DashedRoundedRectPainter extends CustomPainter {
+  _DashedRoundedRectPainter({required this.color, required this.radius});
   final Color color;
   final double radius;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final r = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
+    final r = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
     final path = Path()..addRRect(r);
-    const dash = 4.0;
-    const gap = 3.0;
+    const dash = 3.0;
+    const gap = 2.0;
     for (final metric in path.computeMetrics()) {
       var d = 0.0;
       while (d < metric.length) {
         final end = (d + dash).clamp(0.0, metric.length);
-        final extract = metric.extractPath(d, end);
-        canvas.drawPath(
-          extract,
-          Paint()
-            ..color = color
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.2,
-        );
+        canvas.drawPath(metric.extractPath(d, end), Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 1.0);
         d += dash + gap;
       }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _DashedRoundedRectPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.radius != radius;
-  }
+  bool shouldRepaint(covariant _DashedRoundedRectPainter oldDelegate) => oldDelegate.color != color;
 }

@@ -87,8 +87,9 @@ abstract final class AppStringsAr {
   static const String classificationOther = 'تصنيف آخر';
 
   // Shell
-  static const String navAccountsTab = 'الحسابات';
   static const String navVouchersTab = 'السندات';
+  static const String navTripartiteTab = 'التحويلات';
+  static const String navAccountsTab = 'الحسابات';
   static const String navReportsTab = 'التقارير';
   static const String navMessagesTab = 'الرسائل';
 
@@ -145,6 +146,9 @@ abstract final class AppStringsAr {
   static const String voucherDetailTitle = 'تفاصيل السند';
   static const String voucherConfirmAction = 'تأكيد';
   static const String voucherConfirmedSuccess = 'تم تأكيد السند وتسجيل القيود.';
+  static const String statementChatAccept = 'قبول';
+  static const String statementChatReject = 'رفض';
+  static const String statementChatResubmit = 'إعادة العرض';
   static const String voucherSaveDraft = 'حفظ كمسودة';
   static const String affectedAccountSection = 'الحساب المتأثر';
   static const String counterpartySection = 'الطرف المقابل';
@@ -439,11 +443,11 @@ abstract final class AppStringsAr {
   static const String driveBackupSignIn = 'ربط حساب';
   static const String driveBackupNow = 'نسخ الآن';
 
-  // Signature status labels
-  static const String signatureUnsigned = 'مسودة - بدون توقيع';
-  static const String signatureSigned = 'موقّع - بانتظار التحقق';
-  static const String signatureVerified = 'موثّق';
-  static const String signatureInvalid = 'توقيع غير صالح';
+  // Agreement status labels
+  static const String agreementUnderRequest = 'بانتظار الموافقة';
+  static const String agreementAccepted = 'مقبول وموقّع';
+  static const String agreementRejected = 'مرفوض';
+  static const String agreementUnverified = 'غير مؤكد';
 
   // Receipt sharing
   static const String shareReceiptTitle = 'مشاركة الإيصال';
@@ -482,4 +486,31 @@ abstract final class AppStringsAr {
   static const String tripartiteReceiptLeg = 'سند القبض';
   static const String tripartitePaymentLeg = 'سند الصرف';
   static const String tripartiteGroupLabel = 'مجموعة التحويل';
+
+  // ── Statement of Account Chat (كشف الحساب) ─────────────────────────────
+  static const String statementChatTitle = 'كشف الحساب';
+  static const String statementChatSearchHint = 'بحث بالبيان أو الرقم أو المبلغ…';
+  static const String statementChatEmpty = 'لا توجد سندات بين الطرفين بعد.';
+  static const String statementChatEmptyFiltered =
+      'لا سندات مطابقة للتصفية الحالية.';
+  static const String statementFilterTitle = 'تصفية كشف الحساب';
+  static const String statementFilterStatusSection = 'حالة الموافقة (اللون)';
+  static const String statementStatusConfirmed = 'مؤكد (أخضر)';
+  static const String statementStatusReceipt = 'سند قبض (أزرق)';
+  static const String statementStatusPending = 'بانتظار الموافقة (برتقالي)';
+  static const String statementStatusRejected = 'مرفوض (أحمر)';
+  static const String statementDateThisMonth = 'هذا الشهر';
+  static const String statementDateLastQuarter = 'الربع السابق';
+  static const String statementDateThisYear = 'هذه السنة';
+  static const String statementIncludePreviousBalance =
+      'تضمين رصيد ما قبل الفترة';
+  static const String statementIncludePreviousBalanceHint =
+      'يعرض الرصيد الافتتاحي المحسوب من جميع السندات قبل تاريخ البداية.';
+  static const String statementBroughtForward = 'رصيد مرحّل';
+  static const String statementFinalBalance = 'الرصيد النهائي';
+  static const String statementBalanceForYou = 'لصالحك';
+  static const String statementBalanceAgainstYou = 'عليك';
+  static const String statementBalanceSettled = 'مسوّى';
+  static const String statementRunningBalance = 'الرصيد';
+  static const String statementVoucherCount = 'سند';
 }

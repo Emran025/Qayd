@@ -1,5 +1,5 @@
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
-import 'package:qayd/domain/value_objects/signature_status.dart';
 
 /// Represents a receipt received via SMS or QR code for reconciliation.
 class IncomingReceipt {
@@ -7,7 +7,7 @@ class IncomingReceipt {
     required this.receipt,
     required this.signatureHex,
     required this.signerPublicKeyHex,
-    required this.signatureStatus,
+    required this.agreementStatus,
   });
 
   /// The parsed receipt payload data.
@@ -19,8 +19,8 @@ class IncomingReceipt {
   /// The public key of the signer.
   final String? signerPublicKeyHex;
 
-  /// The initial status of the signature (unsigned/signed).
-  final SignatureStatus signatureStatus;
+  /// The initial status of the signature (UnderRequest/Accepted).
+  final AgreementStatus agreementStatus;
 }
 
 abstract interface class SmsReceiptListener {

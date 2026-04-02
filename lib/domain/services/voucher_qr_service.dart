@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:qayd/domain/entities/voucher.dart';
-import 'package:qayd/domain/value_objects/signature_status.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
 class VoucherQrService {
@@ -15,7 +15,7 @@ class VoucherQrService {
       // v3 includes tripartite support, v2 includes signature support.
       'v': voucher.tripartiteMeta != null
           ? 3
-          : (voucher.signatureStatus.hasCryptographicSignature ? 2 : 1),
+          : (voucher.hasSignature ? 2 : 1),
       't': voucher.type == VoucherType.payment ? 'P' : 'R',
       'a': voucher.amount.minorUnits,
       'c': voucher.currency.code,
@@ -75,9 +75,9 @@ class VoucherQrService {
         result['signatureHex'] = map['sig'] as String?;
         result['signerPublicKeyHex'] = map['pk'] as String?;
         result['signerPhone'] = map['sp'] as String?;
-        result['signatureStatus'] = (map['sig'] != null)
-            ? SignatureStatus.signed
-            : SignatureStatus.unsigned;
+        result['agreementStatus'] = (map['sig'] != null)
+            ? AgreementStatus.accepted.name
+            : AgreementStatus.underRequest.name;
       }
 
       // v3: include tripartite metadata.
