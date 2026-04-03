@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
-import 'package:qayd/presentation/pages/messaging/template_list_page.dart';
+import 'package:qayd/presentation/pages/messaging/messaging_hub_page.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_page.dart';
@@ -25,12 +25,12 @@ class _AppShellPageState extends State<AppShellPage> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [
+        children: [
           VoucherListPage(),
           TripartiteListPage(),
           AccountListPage(),
           TrialBalancePage(),
-          NotificationTemplatesPage(),
+          MessagingHubPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(

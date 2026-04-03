@@ -35,10 +35,6 @@ class NotificationsPage extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الإشعارات'),
-        centerTitle: true,
-      ),
       body: mockNotifications.isEmpty
           ? Center(
               child: Text(

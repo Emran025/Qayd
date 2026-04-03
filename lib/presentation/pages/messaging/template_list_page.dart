@@ -8,7 +8,6 @@ import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_state.dart';
-import 'package:qayd/presentation/pages/settings/settings_app_bar_action.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -262,32 +261,6 @@ class _TemplateListScaffold extends StatelessWidget {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return Scaffold(
-      appBar: AppBar(
-        title: QaydText(
-          AppStringsAr.notificationTemplatesTitle,
-          slot: QaydTextStyleSlot.titleLarge,
-        ),
-        actions: const [
-          SettingsAppBarAction(),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3),
-          child: Container(
-            height: 3,
-            margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: LinearGradient(
-                colors: [
-                  gold.withValues(alpha: 0.85),
-                  gold.withValues(alpha: 0.12),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
       body: BlocBuilder<TemplateListCubit, TemplateListState>(
         builder: (context, state) {
           return switch (state) {

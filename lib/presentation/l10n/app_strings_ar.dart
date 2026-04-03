@@ -182,6 +182,8 @@ abstract final class AppStringsAr {
 
   // Messaging / templates (Phase 3, offline intents)
   static const String notificationTemplatesTitle = 'قوالب الرسائل';
+  static const String messagingInboxTab = 'البريد الوارد';
+  static const String messagingTemplatesTab = 'القوالب';
   static const String notificationPreviewTitle = 'إرسال إشعار';
   static const String notificationSelectTemplate = 'اختر القالب';
   static const String notificationMessageBody = 'نص الرسالة (يمكنك التعديل)';
