@@ -18,11 +18,11 @@ import 'package:qayd/presentation/pages/accounts/account_list_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_grouping.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
-import 'package:qayd/presentation/pages/settings/settings_app_bar_action.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_state.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 
 class AccountListPage extends StatelessWidget {
   const AccountListPage({super.key});
@@ -112,12 +112,12 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return Scaffold(
+      drawer: const SettingsSidebar(),
       appBar: AppBar(
         title: QaydText(
           AppStringsAr.chartOfAccountsTitle,
           slot: QaydTextStyleSlot.titleLarge,
         ),
-        actions: const [SettingsAppBarAction()],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(3),
           child: Container(

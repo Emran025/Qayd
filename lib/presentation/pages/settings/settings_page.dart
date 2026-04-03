@@ -1,30 +1,23 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:qayd/application/accounts/csv_accounts_import_draft.dart';
 import 'package:qayd/application/accounts/dtos/get_account_statement_input.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/list_vouchers_input.dart';
-import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
-import 'package:qayd/presentation/l10n/classification_labels.dart';
-import 'package:qayd/presentation/navigation/qayd_page_route.dart';
-import 'package:qayd/presentation/pages/settings/auto_backup_settings_section.dart';
-import 'package:qayd/presentation/pages/settings/drive_backup_section.dart';
-import 'package:qayd/presentation/pages/settings/identity_settings_section.dart';
-import 'package:qayd/presentation/pages/settings/settings_security_section.dart';
-import 'package:qayd/presentation/pages/settings/currency_management_screen.dart';
-import 'package:qayd/presentation/pages/settings/transfer_fees_settings_section.dart';
-import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/settings/groups/backup_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/groups/currency_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/groups/profile_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/groups/security_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/groups/support_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/excel_data_export.dart';
 import 'package:qayd/presentation/utils/share_export_bytes.dart';
+import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 
-/// Backup, restore, Excel export, CSV import, and security.
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -34,46 +27,45 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppStringsAr.settingsTitle),
       ),
+      drawer: const SettingsSidebar(),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
-          // ── Auto backup ────────────────────────────────────────────────────
-          _SectionTitle(AppStringsAr.settingsSectionAutoBackup),
-          const AutoBackupSettingsSection(),
-          const Divider(),
-
-          // ── Manual backup / restore ────────────────────────────────────────
-          _SectionTitle(AppStringsAr.settingsSectionBackup),
-          ListTile(
-            leading: const Icon(Icons.cloud_upload_outlined),
-            title: Text(AppStringsAr.settingsBackupShareTitle),
-            subtitle: Text(AppStringsAr.settingsBackupShareSubtitle),
-            onTap: () => _confirmBackupShare(context),
+          _CategoryTile(
+            icon: Icons.person_outline,
+            title: AppStringsAr.settingsGroupProfile,
+            onTap: () => _navTo(context, const ProfileSettingsPage()),
           ),
-          ListTile(
-            leading: const Icon(Icons.save_alt_outlined),
-            title: Text(AppStringsAr.settingsBackupSaveTitle),
-            subtitle: Text(AppStringsAr.settingsBackupSaveSubtitle),
-            onTap: () => _backupSaveToPath(context),
+          _CategoryTile(
+            icon: Icons.cloud_done_outlined,
+            title: AppStringsAr.settingsGroupBackup,
+            onTap: () => _navTo(context, const BackupSettingsPage()),
           ),
-          ListTile(
-            leading: const Icon(Icons.restore_outlined),
-            title: Text(AppStringsAr.settingsRestoreTitle),
-            subtitle: Text(AppStringsAr.settingsRestoreSubtitle),
-            onTap: () => _restore(context),
+          _CategoryTile(
+            icon: Icons.receipt_long_outlined,
+            title: AppStringsAr.settingsGroupTemplates,
+            onTap: () => _navTo(context, const TemplatesSettingsPage()),
+          ),
+          _CategoryTile(
+            icon: Icons.currency_exchange_rounded,
+            title: AppStringsAr.settingsGroupCurrency,
+            onTap: () => _navTo(context, const CurrencySettingsPage()),
+          ),
+          _CategoryTile(
+            icon: Icons.lock_outline,
+            title: AppStringsAr.settingsGroupSecurity,
+            onTap: () => _navTo(context, const SecuritySettingsPage()),
+          ),
+          _CategoryTile(
+            icon: Icons.support_agent_outlined,
+            title: AppStringsAr.settingsGroupSupport,
+            onTap: () => _navTo(context, const SupportSettingsPage()),
           ),
           const Divider(),
-
-          // ── Google Drive backup (suspended) ────────────────────────────────
-          _SectionTitle(AppStringsAr.settingsSectionDriveBackup),
-          const DriveBackupSection(),
-          const Divider(),
-
-          _SectionTitle(AppStringsAr.settingsSectionExport),
+          const _SectionTitle(AppStringsAr.settingsSectionExport),
           ListTile(
             leading: const Icon(Icons.table_chart_outlined),
             title: Text(AppStringsAr.settingsExportAllTitle),
-            subtitle: Text(AppStringsAr.settingsExportAllSubtitle),
             onTap: () => _exportAll(context),
           ),
           ListTile(
@@ -84,188 +76,17 @@ class SettingsPage extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.account_balance_outlined),
             title: Text(AppStringsAr.settingsExportStatementTitle),
-            subtitle: Text(AppStringsAr.settingsExportStatementSubtitle),
             onTap: () => _exportStatementPickAccount(context),
           ),
-          const Divider(),
-          _SectionTitle(AppStringsAr.settingsSectionSecurity),
-          const SettingsSecuritySection(),
-          const Divider(),
-          _SectionTitle(AppStringsAr.identitySettingsSection),
-          const IdentitySettingsSection(),
-          const Divider(),
-          _SectionTitle(AppStringsAr.settingsSectionCurrency),
-          ListTile(
-            leading: const Icon(Icons.currency_exchange_rounded),
-            title: const Text('إعدادات العملات الأساسية'),
-            subtitle: const Text('إدارة العملات والعملة الافتراضية للتطبيق.'),
-            onTap: () => Navigator.of(context).push(
-              QaydPageRoute.slideFromStart(
-                builder: (ctx) => const CurrencyManagementScreen(),
-              ),
-            ),
-          ),
-          const Divider(),
-          _SectionTitle('إعدادات التحويل'),
-          const TransferFeesSettingsSection(),
-          const Divider(),
-          _SectionTitle(AppStringsAr.settingsSectionDraft),
-          ListTile(
-            leading: const Icon(Icons.upload_file_outlined),
-            title: Text(AppStringsAr.settingsCsvImportTitle),
-            subtitle: Text(AppStringsAr.settingsCsvImportSubtitle),
-            onTap: () => _csvImportAccounts(context),
-          ),
         ],
       ),
     );
   }
 
-  Future<void> _confirmBackupShare(BuildContext context) async {
-    final go = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.settingsBackupConfirmTitle),
-        content: Text(AppStringsAr.settingsBackupConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
-          ),
-        ],
-      ),
+  void _navTo(BuildContext context, Widget page) {
+    Navigator.of(context).push(
+      QaydPageRoute.slideFromStart(builder: (_) => page),
     );
-    if (go != true || !context.mounted) return;
-    final r = await InjectionContainer.backupService.shareDatabaseBackup();
-    if (!context.mounted) return;
-    if (r.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
-      );
-    }
-  }
-
-  Future<void> _backupSaveToPath(BuildContext context) async {
-    final go = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.settingsBackupConfirmTitle),
-        content: Text(AppStringsAr.settingsBackupConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
-          ),
-        ],
-      ),
-    );
-    if (go != true || !context.mounted) return;
-
-    final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final path = await FilePicker.platform.saveFile(
-      dialogTitle: AppStringsAr.settingsBackupSaveTitle,
-      fileName: 'qayd_backup_$stamp.db',
-    );
-    if (path == null || !context.mounted) return;
-    final r = await InjectionContainer.backupService.saveBackupCopyToPath(path);
-    if (!context.mounted) return;
-    if (r.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.settingsBackupSaved)),
-      );
-    }
-  }
-
-  Future<void> _restore(BuildContext context) async {
-    final pick = await FilePicker.platform.pickFiles();
-    final path = pick?.files.single.path;
-    if (path == null || !context.mounted) return;
-
-    final v = await InjectionContainer.backupService.validateBackupFile(path);
-    if (!context.mounted) return;
-    if (v.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(v.failureOrNull!.messageAr)),
-      );
-      return;
-    }
-
-    final go = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.settingsRestoreWarningTitle),
-        content: Text(AppStringsAr.settingsRestoreWarningBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsRestoreConfirm),
-          ),
-        ],
-      ),
-    );
-    if (go != true || !context.mounted) return;
-
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      ),
-    );
-
-    await InjectionContainer.closeDatabaseForRestore();
-    late Result<void> r;
-    try {
-      r = await InjectionContainer.backupService.replaceDatabaseFromBackupFile(
-        path,
-      );
-    } catch (e) {
-      r = FailureResult(
-        FileSystemFailure(messageAr: '${AppStringsAr.settingsRestoreError}$e'),
-      );
-    } finally {
-      await InjectionContainer.reopenDatabaseAfterRestore();
-    }
-    if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
-    }
-    if (context.mounted) {
-      if (r.isFailure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(r.failureOrNull!.messageAr)),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStringsAr.settingsRestoreDone)),
-        );
-      }
-    }
   }
 
   Future<void> _exportAll(BuildContext context) async {
@@ -469,124 +290,26 @@ class SettingsPage extends StatelessWidget {
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
   }
+}
 
-  Future<void> _csvImportAccounts(BuildContext context) async {
-    final pick = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['csv', 'txt'],
-    );
-    final path = pick?.files.single.path;
-    if (path == null || !context.mounted) return;
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
 
-    final text = await File(path).readAsString();
-    final parsed = CsvAccountsImportDraft.parse(text);
-    if (!context.mounted) return;
-    if (parsed.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(parsed.failureOrNull!.messageAr)),
-      );
-      return;
-    }
-    final rows = parsed.valueOrNull!;
-    var defaultKind = StandardAccountClassificationKind.settlements;
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
 
-    final preview = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) {
-          return AlertDialog(
-            title: Text(AppStringsAr.settingsCsvPreviewTitle),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(AppStringsAr.settingsCsvPreviewBody(rows.length)),
-                  const SizedBox(height: 16),
-                  Text(AppStringsAr.settingsCsvDefaultClassification),
-                  DropdownButtonFormField<StandardAccountClassificationKind>(
-                    value: defaultKind,
-                    items: [
-                      for (final k in StandardAccountClassificationKind.values)
-                        DropdownMenuItem(
-                          value: k,
-                          child: Text(standardClassificationKindLabelAr(k)),
-                        ),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() => defaultKind = v);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(AppStringsAr.templateEditCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(AppStringsAr.settingsCsvImportExecute),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-    if (preview != true || !context.mounted) return;
-
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.settingsCsvImportConfirmTitle),
-        content: Text(AppStringsAr.settingsCsvImportConfirmBody(rows.length)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true || !context.mounted) return;
-
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      ),
-    );
-
-    final batchR = await InjectionContainer.batchImportAccountsFromCsvUseCase(
-      rows: rows,
-      defaultRootKind: defaultKind,
-    );
-    if (!context.mounted) return;
-    Navigator.of(context, rootNavigator: true).pop();
-
-    final out = batchR.valueOrNull!;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppStringsAr.settingsCsvImportDone(
-            out.createdCount,
-            out.failures.length,
-          ),
-        ),
-      ),
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }

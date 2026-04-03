@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_page.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_page.dart';
-import 'package:qayd/presentation/pages/settings/settings_app_bar_action.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 
 /// Hub for both notifications (inbox) and message templates.
 class MessagingHubPage extends StatelessWidget {
@@ -16,9 +16,9 @@ class MessagingHubPage extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        drawer: const SettingsSidebar(),
         appBar: AppBar(
           title: Text(AppStringsAr.navMessagesTab),
-          actions: const [SettingsAppBarAction()],
           bottom: TabBar(
             indicatorColor: gold,
             labelColor: gold,

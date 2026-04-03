@@ -10,10 +10,10 @@ import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_cubit.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_state.dart';
-import 'package:qayd/presentation/pages/settings/settings_app_bar_action.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 
 class TrialBalancePage extends StatelessWidget {
   const TrialBalancePage({super.key});
@@ -37,6 +37,7 @@ class _TrialBalanceView extends StatelessWidget {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return Scaffold(
+      drawer: const SettingsSidebar(),
       appBar: AppBar(
         title: QaydText(
           AppStringsAr.trialBalanceTitle,
@@ -54,7 +55,6 @@ class _TrialBalanceView extends StatelessWidget {
               );
             },
           ),
-          const SettingsAppBarAction(),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(3),

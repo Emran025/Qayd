@@ -515,4 +515,18 @@ abstract final class AppStringsAr {
   static const String statementBalanceSettled = 'مسوّى';
   static const String statementRunningBalance = 'الرصيد';
   static const String statementVoucherCount = 'سند';
+
+  static const String settingsGroupProfile = 'بيانات الحساب والهوية';
+  static const String settingsGroupBackup = 'النسخ الاحتياطي والأرشفة';
+  static const String settingsGroupTemplates = 'إعداد القوالب (PDF والرسائل)';
+  static const String settingsGroupCurrency = 'العملات والتحويل';
+  static const String settingsGroupSecurity = 'القفل والحماية';
+  static const String settingsGroupSupport = 'الدعم، السياسات والأسئلة الشائعة';
+
+  static const String settingsPrivacyPolicy = 'سياسة الخصوصية';
+  static const String settingsTermsOfUse = 'شروط الاستخدام';
+  static const String settingsFaqs = 'الأسئلة الشائعة (FAQ)';
+  static const String settingsContactSupport = 'التواصل مع الدعم الفني';
+  static const String settingsReportIssue = 'الإبلاغ عن مشكلة أو اقتراح';
+  static const String settingsVersionInfo = 'معلومات الإصدار';
 }

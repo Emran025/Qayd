@@ -6,6 +6,7 @@ import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_page.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 
 /// Bottom navigation between chart of accounts and vouchers (Phase 1 hub).
 class AppShellPage extends StatefulWidget {
@@ -23,9 +24,10 @@ class _AppShellPageState extends State<AppShellPage> {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return Scaffold(
+      drawer: const SettingsSidebar(),
       body: IndexedStack(
         index: _index,
-        children: [
+        children: const [
           VoucherListPage(),
           TripartiteListPage(),
           AccountListPage(),
