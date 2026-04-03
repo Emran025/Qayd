@@ -21,7 +21,7 @@ class ApiSyncRepository implements SyncRepository {
       return [];
     } catch (e) {
       if (e is AuthException) rethrow; // Ensure AuthExceptions bubble up
-      throw AuthException('Failed to pull sync nodes.');
+      throw Exception('Failed to pull sync nodes.');
     }
   }
 
@@ -34,7 +34,7 @@ class ApiSyncRepository implements SyncRepository {
       );
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw AuthException('Failed to push sync node.');
+      throw Exception('Failed to push sync node.');
     }
   }
 
@@ -51,7 +51,7 @@ class ApiSyncRepository implements SyncRepository {
       );
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw AuthException('Failed to acknowledge sync nodes.');
+      throw Exception('Failed to acknowledge sync nodes.');
     }
   }
 }

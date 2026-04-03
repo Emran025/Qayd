@@ -15,6 +15,8 @@ class SyncSocketService {
   WebSocketChannel? _channel;
   StreamSubscription? _subscription;
 
+  Timer? _reconnectTimer;
+
   final _nodeStreamController = StreamController<SyncNode>.broadcast();
 
   /// Stream of instantly pushed encrypted event nodes from counterparts
@@ -30,6 +32,8 @@ class SyncSocketService {
     try {
       final uri = Uri.parse('$wsUrl?token=\$token');
       _channel = WebSocketChannel.connect(uri);
+
+      await _channel?.ready;
 
       // Authenticate to private channel
       _channel?.sink.add(jsonEncode({
@@ -69,14 +73,21 @@ class SyncSocketService {
   }
 
   void _reconnect(int currentUserId) {
-    disconnect();
+    if (_reconnectTimer != null && _reconnectTimer!.isActive) return;
+    
+    // Clean up current references before reconnecting
+    _subscription?.cancel();
+    _channel?.sink.close();
+    _channel = null;
+
     // In production, add exponential backoff
-    Future.delayed(const Duration(seconds: 5), () {
+    _reconnectTimer = Timer(const Duration(seconds: 5), () {
       connect(currentUserId);
     });
   }
 
   void disconnect() {
+    _reconnectTimer?.cancel();
     _subscription?.cancel();
     _channel?.sink.close();
     _channel = null;
