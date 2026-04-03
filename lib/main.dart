@@ -13,6 +13,7 @@ import 'package:qayd/presentation/security/security_lifecycle_observer.dart';
 import 'package:qayd/presentation/security/security_lock_overlay.dart';
 import 'package:qayd/presentation/security/security_state.dart';
 import 'package:qayd/presentation/theme/app_theme.dart';
+import 'package:qayd/presentation/utils/no_stretch_scroll_behavior.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,9 +36,7 @@ void main() async {
           )..scheduleBackgroundVerification(),
         ),
       ],
-      child: const SecurityLifecycleObserver(
-        child: QaydApp(),
-      ),
+      child: const SecurityLifecycleObserver(child: QaydApp()),
     ),
   );
 }
@@ -50,6 +49,7 @@ class QaydApp extends StatelessWidget {
     final locale = Locale(AppConstants.defaultLanguageCode);
     return MaterialApp(
       title: AppStringsAr.appTitle,
+      scrollBehavior: const NoStretchScrollBehavior(),
       debugShowCheckedModeBanner: false,
       locale: locale,
       supportedLocales: const [Locale('ar')],
@@ -58,6 +58,7 @@ class QaydApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
@@ -82,9 +83,9 @@ class QaydApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
+      
       home: BlocBuilder<SecurityCubit, SecurityState>(
-        buildWhen: (prev, next) =>
-            prev.licenseStatus != next.licenseStatus,
+        buildWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
         builder: (context, state) {
           if (state.licenseStatus == LicenseStatus.pending) {
             return const LoginPage();

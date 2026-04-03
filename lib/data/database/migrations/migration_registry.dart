@@ -10,6 +10,7 @@ import 'package:qayd/data/database/migrations/migration_009_imported_signatures.
 import 'package:qayd/data/database/migrations/migration_010_tripartite_transfer.dart';
 import 'package:qayd/data/database/migrations/migration_011_default_accounts.dart';
 import 'package:qayd/data/database/migrations/migration_012_currency_is_active.dart';
+import 'package:qayd/data/database/migrations/migration_013_transaction_fees.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -30,6 +31,7 @@ final class MigrationRegistry {
     Migration010TripartiteTransfer(),
     Migration011DefaultAccounts(),
     Migration012CurrencyIsActive(),
+    Migration013TransactionFees(),
   ];
 
   static List<SchemaMigration> get ordered {

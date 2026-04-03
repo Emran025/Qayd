@@ -116,36 +116,18 @@ class _TrialBalanceBody extends StatelessWidget {
 
   final TrialBalanceOutput output;
 
-  static const double _minTableWidth = 520;
-
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () => context.read<TrialBalanceCubit>().load(),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final table = _TrialBalanceTable(output: output);
-          if (constraints.maxWidth < _minTableWidth) {
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: _minTableWidth,
-                  height: constraints.maxHeight,
-                  child: table,
-                ),
-              ),
-            );
-          }
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: table,
-            ),
-          );
-        },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.sizeOf(context).height * 0.7,
+          ),
+          child: _TrialBalanceTable(output: output),
+        ),
       ),
     );
   }
@@ -160,191 +142,230 @@ class _TrialBalanceTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
+    final grouped = <String, List<TrialBalanceLineDto>>{};
+    for (final line in output.lines) {
+      if (line.debitMinorUnits == 0 && line.creditMinorUnits == 0) continue;
+      grouped.putIfAbsent(line.accountName, () => []).add(line);
+    }
+    if (grouped.isEmpty && output.lines.isNotEmpty) {
+      for (final line in output.lines) {
+        grouped.putIfAbsent(line.accountName, () => []).add(line);
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        SpacingTokens.md,
         SpacingTokens.sm,
-        SpacingTokens.md,
+        SpacingTokens.sm,
+        SpacingTokens.sm,
         SpacingTokens.xxl,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _TableHeaderRow(scheme: scheme),
-          const SizedBox(height: SpacingTokens.xs),
-          ..._buildCurrencySections(context),
-          const SizedBox(height: SpacingTokens.md),
+          Container(
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: scheme.outlineVariant),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Table(
+              columnWidths: const {
+                0: FlexColumnWidth(12),
+                1: FlexColumnWidth(9),
+                2: FlexColumnWidth(5),
+              },
+              border: TableBorder.all(color: scheme.outlineVariant, width: 1),
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                _buildHeaderRow(scheme),
+                for (final entry in grouped.entries)
+                  _buildDataRow(context, entry.key, entry.value),
+              ],
+            ),
+          ),
+          const SizedBox(height: SpacingTokens.xl),
           _MultiCurrencyFooter(output: output),
         ],
       ),
     );
   }
 
-  List<Widget> _buildCurrencySections(BuildContext context) {
-    final grouped = <String, List<TrialBalanceLineDto>>{};
-    for (final line in output.lines) {
-      grouped.putIfAbsent(line.currencyCode, () => []).add(line);
-    }
+  TableRow _buildHeaderRow(ColorScheme scheme) {
+    return TableRow(
+      decoration: BoxDecoration(color: scheme.tertiary),
+      children: [
+        _HeaderPadding(
+          child: QaydText(
+            AppStringsAr.trialBalanceColAccount,
+            slot: QaydTextStyleSlot.labelMedium,
+          ),
+        ),
+        _HeaderPadding(
+          child: QaydText(
+            AppStringsAr.accountBalanceLabel,
+            slot: QaydTextStyleSlot.labelMedium,
+          ),
+        ),
+        _HeaderPadding(
+          child: QaydText('العملة', slot: QaydTextStyleSlot.labelMedium),
+        ),
+      ],
+    );
+  }
 
-    final widgets = <Widget>[];
-    for (final entry in grouped.entries) {
-      if (grouped.length > 1) {
-        widgets.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
-            child: QaydText(
-              'العملة: ${entry.key}',
-              slot: QaydTextStyleSlot.titleSmall,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+  TableRow _buildDataRow(
+    BuildContext context,
+    String accountName,
+    List<TrialBalanceLineDto> lines,
+  ) {
+    final amounts = <Widget>[];
+    final currencies = <Widget>[];
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+
+      final bool isDebit = line.debitMinorUnits > 0;
+      final bool isCredit = line.creditMinorUnits > 0;
+      final int amount = isDebit ? line.debitMinorUnits : line.creditMinorUnits;
+
+      if (i > 0) {
+        amounts.add(
+          Divider(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            height: 1,
+            thickness: 1,
+          ),
+        );
+        currencies.add(
+          Divider(
+            color: Theme.of(context).colorScheme.outlineVariant,
+            height: 1,
+            thickness: 1,
           ),
         );
       }
-      widgets.addAll(
-        List.generate(
-          entry.value.length,
-          (i) => _DataRow(line: entry.value[i], stripe: i.isOdd),
-        ),
-      );
-    }
-    return widgets;
-  }
-}
 
-class _TableHeaderRow extends StatelessWidget {
-  const _TableHeaderRow({required this.scheme});
-
-  final ColorScheme scheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: SpacingTokens.md,
-        vertical: SpacingTokens.sm + 2,
-      ),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 11,
-            child: QaydText(
-              AppStringsAr.trialBalanceColAccount,
-              slot: QaydTextStyleSlot.labelLarge,
-            ),
-          ),
-          Expanded(
-            flex: 7,
-            child: QaydText(
-              AppStringsAr.trialBalanceColDebit,
-              slot: QaydTextStyleSlot.labelLarge,
-              textAlign: TextAlign.end,
-            ),
-          ),
-          Expanded(
-            flex: 7,
-            child: QaydText(
-              AppStringsAr.trialBalanceColCredit,
-              slot: QaydTextStyleSlot.labelLarge,
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DataRow extends StatelessWidget {
-  const _DataRow({required this.line, required this.stripe});
-
-  final TrialBalanceLineDto line;
-  final bool stripe;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final bg = stripe
-        ? scheme.surfaceContainerLow.withValues(alpha: 0.65)
-        : Colors.transparent;
-
-    return ColoredBox(
-      color: bg,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SpacingTokens.md,
-          vertical: SpacingTokens.sm + 2,
-        ),
-        child: Row(
+      Widget amountWidget;
+      if (!isDebit && !isCredit) {
+        amountWidget = QaydText(
+          '—',
+          slot: QaydTextStyleSlot.bodySmall,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        );
+      } else {
+        amountWidget = Row(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
-              flex: 11,
+            Flexible(
+              child: QaydMoneyDisplay(
+                money: Money.nonNegative(
+                  amount,
+                  CurrencyCode(
+                    code: line.currencyCode,
+                    nameAr: '',
+                    symbol: line.currencySymbol,
+                    fractionalDigits: line.currencyDigits,
+                  ),
+                ),
+                size: QaydMoneyDisplaySize.small,
+              ),
+            ),
+            const SizedBox(width: SpacingTokens.xs),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: isDebit
+                    ? ColorTokens.debitBlue.withValues(alpha: 0.15)
+                    : ColorTokens.creditGreen.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: isDebit
+                      ? ColorTokens.debitBlue
+                      : ColorTokens.creditGreen,
+                ),
+              ),
               child: QaydText(
-                line.accountName,
-                slot: QaydTextStyleSlot.bodyLarge,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Expanded(
-              flex: 7,
-              child: _MoneyCell(
-                minorUnits: line.debitMinorUnits,
-                currency: CurrencyCode(
-                  code: line.currencyCode,
-                  nameAr: '',
-                  symbol: line.currencySymbol,
-                  fractionalDigits: line.currencyDigits,
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 7,
-              child: _MoneyCell(
-                minorUnits: line.creditMinorUnits,
-                currency: CurrencyCode(
-                  code: line.currencyCode,
-                  nameAr: '',
-                  symbol: line.currencySymbol,
-                  fractionalDigits: line.currencyDigits,
-                ),
+                isDebit
+                    ? AppStringsAr.natureDebitShort
+                    : AppStringsAr.natureCreditShort,
+                slot: QaydTextStyleSlot.labelSmall,
+                color: isDebit
+                    ? ColorTokens.debitBlue
+                    : ColorTokens.creditGreen,
               ),
             ),
           ],
+        );
+      }
+
+      amounts.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
+          child: amountWidget,
         ),
-      ),
+      );
+
+      currencies.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
+          child: QaydText(
+            line.currencyCode,
+            slot: QaydTextStyleSlot.labelMedium,
+          ),
+        ),
+      );
+    }
+
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.sm,
+            vertical: SpacingTokens.md,
+          ),
+          child: QaydText(
+            accountName,
+            slot: QaydTextStyleSlot.bodySmall,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: amounts,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: currencies,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _MoneyCell extends StatelessWidget {
-  const _MoneyCell({required this.minorUnits, required this.currency});
-
-  final int minorUnits;
-  final CurrencyCode currency;
+class _HeaderPadding extends StatelessWidget {
+  const _HeaderPadding({required this.child});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    if (minorUnits == 0) {
-      return QaydText(
-        '—',
-        slot: QaydTextStyleSlot.bodyMedium,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-        textAlign: TextAlign.end,
-      );
-    }
-    return Align(
-      alignment: AlignmentDirectional.centerEnd,
-      child: QaydMoneyDisplay(
-        money: Money.nonNegative(minorUnits, currency),
-        size: QaydMoneyDisplaySize.small,
-        textAlign: TextAlign.end,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.sm + 4,
       ),
+      child: child,
     );
   }
 }

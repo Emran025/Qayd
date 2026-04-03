@@ -99,7 +99,14 @@ abstract final class AppTheme {
     return base.copyWith(
       textTheme: textTheme,
       extensions: <ThemeExtension<dynamic>>[custom],
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (BuildContext context) => const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+        ),
+      ),
       appBarTheme: AppBarTheme(
+        iconTheme: IconThemeData(color: scheme.onSurface),
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0.5,
@@ -135,7 +142,9 @@ abstract final class AppTheme {
         focusedErrorBorder: inputBorder.copyWith(
           borderSide: BorderSide(color: scheme.error, width: 1.5),
         ),
-        labelStyle: textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
         hintStyle: textTheme.bodyMedium?.copyWith(
           color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
         ),

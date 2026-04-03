@@ -14,6 +14,8 @@ import 'package:qayd/application/messaging/delete_message_template_use_case.dart
 import 'package:qayd/application/messaging/list_message_templates_use_case.dart';
 import 'package:qayd/application/messaging/log_notification_intent_use_case.dart';
 import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
+import 'package:qayd/application/settings/get_active_transaction_fee_use_case.dart';
+import 'package:qayd/application/settings/manage_transaction_fee_use_case.dart';
 import 'package:qayd/application/settings/get_base_currency_use_case.dart';
 import 'package:qayd/application/settings/list_currencies_use_case.dart';
 import 'package:qayd/application/settings/set_base_currency_use_case.dart';
@@ -57,6 +59,7 @@ import 'package:qayd/data/pdf/account_statement_pdf_generator.dart';
 import 'package:qayd/data/pdf/cairo_voucher_pdf_generator.dart';
 import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
 import 'package:qayd/data/repositories/sqlite_currency_repository.dart';
+import 'package:qayd/data/repositories/sqlite_transaction_fee_settings_repository.dart';
 import 'package:qayd/data/repositories/sqlite_voucher_repository.dart';
 import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/data/security/hardware_id_service.dart';
@@ -69,6 +72,7 @@ import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/repositories/message_template_repository.dart';
 import 'package:qayd/domain/repositories/notification_log_repository.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
+import 'package:qayd/domain/repositories/transaction_fee_settings_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
@@ -171,6 +175,9 @@ abstract final class InjectionContainer {
   static late final SetBaseCurrencyUseCase setBaseCurrencyUseCase;
   static late final ToggleCurrencyStatusUseCase toggleCurrencyStatusUseCase;
   static late final AddCurrencyUseCase addCurrencyUseCase;
+  static late final TransactionFeeSettingsRepository transactionFeeSettingsRepository;
+  static late final GetActiveTransactionFeeUseCase getActiveTransactionFeeUseCase;
+  static late final ManageTransactionFeeUseCase manageTransactionFeeUseCase;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -299,6 +306,13 @@ abstract final class InjectionContainer {
     const trialBalanceGenerator = TrialBalanceGenerator();
     const voucherQrService = VoucherQrService();
 
+    transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(database);
+    getActiveTransactionFeeUseCase = GetActiveTransactionFeeUseCase(transactionFeeSettingsRepository);
+    manageTransactionFeeUseCase = ManageTransactionFeeUseCase(
+      transactionFeeSettingsRepository,
+      _idGenerator,
+    );
+
     listCurrenciesUseCase = ListCurrenciesUseCase(currencyRepository);
     getBaseCurrencyUseCase = GetBaseCurrencyUseCase(currencyRepository);
     setBaseCurrencyUseCase = SetBaseCurrencyUseCase(currencyRepository);
@@ -355,6 +369,8 @@ abstract final class InjectionContainer {
       currencyRepository,
       _idGenerator,
       governanceWriteGuard,
+      getActiveTransactionFeeUseCase,
+      accountRepository,
     );
     updateDraftVoucherUseCase = UpdateDraftVoucherUseCase(
       voucherRepository,

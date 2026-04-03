@@ -191,7 +191,9 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         final custom = Theme.of(context).extension<QaydCustomColors>()!;
 
         final int firstUnreadIndex = data.messages.indexWhere(
-          (m) => m.direction == 'incoming' && m.signatureStatusCode == 'underRequest',
+          (m) =>
+              m.direction == 'incoming' &&
+              m.signatureStatusCode == 'underRequest',
         );
 
         return Scaffold(
@@ -389,7 +391,7 @@ class _ChatHeader extends StatelessWidget {
             children: [
               // Back button
               IconButton(
-                icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.of(context).maybePop(),
                 tooltip: 'رجوع',
               ),
@@ -758,7 +760,11 @@ class _UnreadSessionDivider extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.mark_chat_unread_rounded, size: 14, color: custom.goldAccent),
+                Icon(
+                  Icons.mark_chat_unread_rounded,
+                  size: 14,
+                  color: custom.goldAccent,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   'رسائل جديدة غير مقروءة',

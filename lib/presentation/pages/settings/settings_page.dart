@@ -15,6 +15,7 @@ import 'package:qayd/presentation/pages/settings/drive_backup_section.dart';
 import 'package:qayd/presentation/pages/settings/identity_settings_section.dart';
 import 'package:qayd/presentation/pages/settings/settings_security_section.dart';
 import 'package:qayd/presentation/pages/settings/currency_management_screen.dart';
+import 'package:qayd/presentation/pages/settings/transfer_fees_settings_section.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -104,6 +105,9 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
           ),
+          const Divider(),
+          _SectionTitle('إعدادات التحويل'),
+          const TransferFeesSettingsSection(),
           const Divider(),
           _SectionTitle(AppStringsAr.settingsSectionDraft),
           ListTile(

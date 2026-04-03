@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
+import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/create_tripartite_transfer_input.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -109,9 +110,17 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final messenger = ScaffoldMessenger.of(context);
 
+    if (_affected == null) {
+      final accountsRes = await InjectionContainer.listAccountsUseCase.call(const ListAccountsInput());
+      if (accountsRes.isSuccess) {
+        final accounts = (accountsRes.valueOrNull as List<AccountSummaryDto>?) ?? [];
+        _affected = accounts.where((a) => a.standardClassificationKind == 'liquidAssets').firstOrNull ?? accounts.firstOrNull;
+      }
+    }
+
     if (_source == null || _affected == null || _dest == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار الحسابات الثلاثة')),
+        const SnackBar(content: Text('الرجاء اختيار الحسابات')),
       );
       return;
     }
@@ -180,13 +189,6 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
                     label: 'الحساب المُرْسِل (مَدين)',
                     account: _source,
                     onTap: () => _pickAccount(0),
-                    gold: gold,
-                  ),
-                  const SizedBox(height: SpacingTokens.sm),
-                  _buildAccountPicker(
-                    label: 'الحساب الوسيط (متأثر)',
-                    account: _affected,
-                    onTap: () => _pickAccount(1),
                     gold: gold,
                   ),
                   const SizedBox(height: SpacingTokens.sm),
