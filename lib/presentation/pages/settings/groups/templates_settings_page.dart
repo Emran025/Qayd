@@ -3,7 +3,6 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 
 class TemplatesSettingsPage extends StatelessWidget {
   const TemplatesSettingsPage({super.key});
@@ -14,7 +13,6 @@ class TemplatesSettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppStringsAr.settingsGroupTemplates),
       ),
-      drawer: const SettingsSidebar(),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [

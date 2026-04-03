@@ -98,6 +98,9 @@ import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qayd/domain/repositories/app_config_repository.dart';
+import 'package:qayd/data/repositories/api_app_config_repository.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -209,6 +212,10 @@ abstract final class InjectionContainer {
   static late final SyncRepository syncRepository;
   static late final E2EEEncryptionService e2eeService;
 
+  // ── App Settings & Info ────────────────────────────────────────────────
+  static late final SharedPreferences sharedPreferences;
+  static late final AppConfigRepository appConfigRepository;
+
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
   }) async {
@@ -233,6 +240,12 @@ abstract final class InjectionContainer {
       tokenProvider: () => null,
     );
     authRepository = RemoteAuthRepository(apiClient: apiClient);
+
+    sharedPreferences = await SharedPreferences.getInstance();
+    appConfigRepository = ApiAppConfigRepository(
+      apiClient: apiClient,
+      sharedPreferences: sharedPreferences,
+    );
 
     securityCubit = SecurityCubit(
       pinStorage: appPinStorage,

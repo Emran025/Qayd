@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/entities/app_document.dart';
 import 'package:qayd/presentation/components/auth/auth_admin_badge.dart';
 import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_error_banner.dart';
@@ -36,6 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _loading = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _agreedToTerms = false;
   String? _errorAr;
 
   @override
@@ -52,6 +54,10 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _submit() async {
     if (_loading) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!_agreedToTerms) {
+      setState(() => _errorAr = 'يجب الموافقة على شروط الاستخدام وسياسة الخصوصية');
+      return;
+    }
     setState(() {
       _loading = true;
       _errorAr = null;
@@ -201,6 +207,38 @@ class _RegisterPageState extends State<RegisterPage> {
                             ? AppStringsAr.passwordMismatch
                             : null,
                       ),
+                      
+                      // Terms and Privacy Checkbox
+                      const SizedBox(height: SpacingTokens.md),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _agreedToTerms,
+                            activeColor: ColorTokens.goldAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            onChanged: (v) {
+                              setState(() => _agreedToTerms = v ?? false);
+                            },
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: _showTermsAndPrivacy,
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    const TextSpan(text: 'أوافق على ', style: TextStyle(color: ColorTokens.slate400, fontSize: 13)),
+                                    TextSpan(text: 'شروط الاستخدام', style: const TextStyle(color: ColorTokens.goldAccent, fontSize: 13, decoration: TextDecoration.underline)),
+                                    const TextSpan(text: ' و', style: TextStyle(color: ColorTokens.slate400, fontSize: 13)),
+                                    TextSpan(text: 'سياسة الخصوصية', style: const TextStyle(color: ColorTokens.goldAccent, fontSize: 13, decoration: TextDecoration.underline)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
 
                       // Error
                       if (_errorAr != null) ...[
@@ -227,4 +265,205 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
     );
   }
+
+  Future<void> _showTermsAndPrivacy() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _DocumentBottomSheetDialog(),
+    );
+  }
 }
+
+class _DocumentBottomSheetDialog extends StatefulWidget {
+  @override
+  State<_DocumentBottomSheetDialog> createState() => _DocumentBottomSheetDialogState();
+}
+
+class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> {
+  bool _loading = true;
+  List<DocumentClause> _termsClauses = [];
+  List<DocumentClause> _privacyClauses = [];
+  String _termsFallback = 'جاري التحميل...';
+  String _privacyFallback = 'جاري التحميل...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDocs();
+  }
+
+  Future<void> _loadDocs() async {
+    final result = await InjectionContainer.appConfigRepository.getDocuments();
+    result.fold(
+      (failure) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _termsFallback = 'تعذر تحميل شروط الاستخدام. يرجى المحاولة لاحقاً.';
+            _privacyFallback = 'تعذر تحميل سياسة الخصوصية. يرجى المحاولة لاحقاً.';
+          });
+        }
+      },
+      (docs) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            final tDoc = docs['terms_of_use'];
+            final pDoc = docs['privacy_policy'];
+            
+            if (tDoc != null) {
+              _termsClauses = tDoc.clauses;
+              _termsFallback = tDoc.content.isNotEmpty ? tDoc.content : 'لا يوجد شروط استخدام حالياً.';
+            } else {
+              _termsFallback = 'لا يوجد شروط استخدام حالياً.';
+            }
+
+            if (pDoc != null) {
+              _privacyClauses = pDoc.clauses;
+              _privacyFallback = pDoc.content.isNotEmpty ? pDoc.content : 'لا يوجد سياسة خصوصية حالياً.';
+            } else {
+              _privacyFallback = 'لا يوجد سياسة خصوصية حالياً.';
+            }
+          });
+        }
+      },
+    );
+  }
+
+  Widget _buildClausesSection(String sectionTitle, List<DocumentClause> clauses, String fallback) {
+    if (clauses.isEmpty && fallback.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          sectionTitle,
+          style: const TextStyle(
+            color: ColorTokens.goldAccent,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: SpacingTokens.md),
+        if (clauses.isNotEmpty)
+          ...clauses.map((clause) => Container(
+                margin: const EdgeInsets.only(bottom: SpacingTokens.md),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B), // slate800
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(SpacingTokens.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      clause.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: SpacingTokens.sm),
+                    ...clause.details.map((detail) => Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '•',
+                                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16, height: 1.2),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  detail,
+                                  style: const TextStyle(
+                                    color: Color(0xFFCBD5E1),
+                                    fontSize: 14,
+                                    height: 1.6,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+              ))
+        else
+          Text(
+            fallback,
+            style: const TextStyle(
+              color: Color(0xFFCBD5E1),
+              fontSize: 14,
+              height: 1.6,
+            ),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color:  Color(0xFF0F172A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 48,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFF334155),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(SpacingTokens.lg),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'سياسة الخصوصية وشروط الاستخدام',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: ColorTokens.slate400),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: ColorTokens.slate800),
+          Expanded(
+            child: _loading
+                ? const Center(
+                    child: CircularProgressIndicator(color: ColorTokens.goldAccent),
+                  )
+                : ListView(
+                    padding: const EdgeInsets.all(SpacingTokens.lg),
+                    children: [
+                      _buildClausesSection('شروط الاستخدام', _termsClauses, _termsFallback),
+                      const SizedBox(height: SpacingTokens.xl),
+                      _buildClausesSection('سياسة الخصوصية', _privacyClauses, _privacyFallback),
+                      const SizedBox(height: SpacingTokens.xxl),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

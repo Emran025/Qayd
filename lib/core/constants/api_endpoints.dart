@@ -43,4 +43,8 @@ abstract final class ApiEndpoints {
   static const String syncPush = '$v1/sync/push';
   static const String syncPull = '$v1/sync/pull';
   static const String syncAcknowledge = '$v1/sync/acknowledge';
+
+  // ── Support & Documents ─────────────────────────────────────────────────
+  static const String documents = '$v1/documents';
+  static const String supportTickets = '$v1/support/tickets';
 }

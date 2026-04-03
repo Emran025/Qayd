@@ -30,7 +30,7 @@ class SyncSocketService {
     if (token == null) return;
 
     try {
-      final uri = Uri.parse('$wsUrl?token=\$token');
+      final uri = Uri.parse('$wsUrl?token=$token');
       _channel = WebSocketChannel.connect(uri);
 
       await _channel?.ready;

@@ -7,7 +7,6 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/settings/auto_backup_settings_section.dart';
 import 'package:qayd/presentation/pages/settings/drive_backup_section.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 class BackupSettingsPage extends StatelessWidget {
@@ -19,7 +18,6 @@ class BackupSettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppStringsAr.settingsGroupBackup),
       ),
-      drawer: const SettingsSidebar(),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [

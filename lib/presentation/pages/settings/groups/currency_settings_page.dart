@@ -4,7 +4,6 @@ import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/settings/currency_management_screen.dart';
 import 'package:qayd/presentation/pages/settings/transfer_fees_settings_section.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 
 class CurrencySettingsPage extends StatelessWidget {
   const CurrencySettingsPage({super.key});
@@ -15,7 +14,6 @@ class CurrencySettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppStringsAr.settingsGroupCurrency),
       ),
-      drawer: const SettingsSidebar(),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
