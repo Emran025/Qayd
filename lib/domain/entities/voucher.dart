@@ -372,10 +372,10 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       settledAt: settledAt,
-      signatureHex: this.signatureHex,
-      signerPublicKeyHex: this.signerPublicKeyHex,
-      agreementStatus: this.agreementStatus,
-      signerPhone: this.signerPhone,
+      signatureHex: signatureHex,
+      signerPublicKeyHex: signerPublicKeyHex,
+      agreementStatus: agreementStatus,
+      signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
     );
   }

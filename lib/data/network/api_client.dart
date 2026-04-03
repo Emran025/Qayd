@@ -18,7 +18,7 @@ import 'package:qayd/core/error/exceptions.dart';
 final class ApiClient {
   ApiClient({
     required String baseUrl,
-    String? Function()? tokenProvider,
+    Future<String?> Function()? tokenProvider,
     Dio? dio,
   }) : _dio = dio ?? _buildDio(baseUrl) {
     if (tokenProvider != null) {
@@ -63,7 +63,7 @@ final class ApiClient {
   ///
   /// Returns the parsed `data` field from the standard API envelope.
   /// Throws [AuthException] on 4xx/5xx or network errors.
-  Future<Map<String, dynamic>> post(
+  Future<dynamic> post(
     String path, {
     Map<String, dynamic>? body,
     Options? options,
@@ -80,7 +80,7 @@ final class ApiClient {
   ///
   /// Returns the parsed `data` field from the standard API envelope.
   /// Throws [AuthException] on 4xx/5xx or network errors.
-  Future<Map<String, dynamic>> get(
+  Future<dynamic> get(
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
@@ -95,10 +95,10 @@ final class ApiClient {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  Map<String, dynamic> _extractData(Response<Map<String, dynamic>> response) {
+  dynamic _extractData(Response<Map<String, dynamic>> response) {
     final body = response.data;
     if (body == null) return {};
-    return (body['data'] as Map<String, dynamic>?) ?? {};
+    return body['data'] ?? body;
   }
 }
 
@@ -108,11 +108,14 @@ final class ApiClient {
 final class AuthInterceptor extends Interceptor {
   const AuthInterceptor(this._tokenProvider);
 
-  final String? Function() _tokenProvider;
+  final Future<String?> Function() _tokenProvider;
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = _tokenProvider();
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final token = await _tokenProvider();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }

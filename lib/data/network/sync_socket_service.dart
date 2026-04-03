@@ -10,7 +10,7 @@ class SyncSocketService {
   SyncSocketService({required this.wsUrl, required this.tokenProvider});
 
   final String wsUrl;
-  final String? Function() tokenProvider;
+  final Future<String?> Function() tokenProvider;
 
   WebSocketChannel? _channel;
   StreamSubscription? _subscription;
@@ -26,7 +26,7 @@ class SyncSocketService {
   Future<void> connect(int currentUserId) async {
     disconnect();
     
-    final token = tokenProvider();
+    final token = await tokenProvider();
     if (token == null) return;
 
     try {

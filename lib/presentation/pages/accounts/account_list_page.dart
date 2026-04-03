@@ -462,7 +462,7 @@ class _AccountCard extends StatelessWidget {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                           if (dto.balancesMinorUnits.isEmpty)
                             QaydMoneyDisplay(
                               money: Money.zero(PredefinedCurrencies.sar),

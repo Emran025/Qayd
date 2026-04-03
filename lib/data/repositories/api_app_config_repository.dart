@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dartz/dartz.dart';
@@ -60,25 +61,38 @@ class ApiAppConfigRepository implements AppConfigRepository {
   Future<Map<String, AppDocument>> _fetchAndCacheDocuments() async {
     try {
       final response = await apiClient.get(ApiEndpoints.documents);
-      if (response['data'] != null) {
-        final data = response['data'] as Map<String, dynamic>;
+      debugPrint('AppConfig: Raw documents response: $response');
+
+      if (response != null && response is Map<String, dynamic>) {
+        final data = response;
         final documents = <String, AppDocument>{};
         final cacheMap = <String, dynamic>{};
 
         data.forEach((key, value) {
-          final doc = AppDocument.fromJson(value as Map<String, dynamic>);
-          documents[key] = doc;
-          cacheMap[key] = doc.toJson();
+          try {
+            debugPrint('AppConfig: Parsing document key: $key');
+            final doc = AppDocument.fromJson(value as Map<String, dynamic>);
+            documents[key] = doc;
+            cacheMap[key] = doc.toJson();
+          } catch (e) {
+            debugPrint('AppConfig: Error parsing document $key: $e');
+          }
         });
 
-        await sharedPreferences.setString(
-          _documentsCacheKey,
-          json.encode(cacheMap),
-        );
+        debugPrint('AppConfig: Successfully parsed ${documents.length} documents. Keys: ${documents.keys.toList()}');
+
+        if (documents.isNotEmpty) {
+          await sharedPreferences.setString(
+            _documentsCacheKey,
+            json.encode(cacheMap),
+          );
+        }
         return documents;
+      } else {
+        debugPrint('AppConfig: Response is null or not a Map: $response');
       }
     } catch (e) {
-      // Ignore background errors
+      debugPrint('AppConfig: Global fetch error: $e');
     }
     return {};
   }

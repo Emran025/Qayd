@@ -29,7 +29,7 @@ abstract final class TemplateBindingMaps {
 
   static Map<String, String> forAccount(GetAccountDetailsOutput d) {
     final balanceStr = d.balancesMinorUnits.entries
-        .map((e) => MoneyFormatter.formatDecimal(e.value.abs() / 100) + ' ' + e.key)
+        .map((e) => '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${e.key}')
         .join(', ');
     final nature = d.natureCode == 'debit' ? 'مدين' : 'دائن';
     return {

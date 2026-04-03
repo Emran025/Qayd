@@ -58,7 +58,7 @@ class AppDocument {
       type: json['type'] as String,
       content: rawContent,
       clauses: parsedClauses,
-      version: json['version'] as String,
+      version: json['version'] as String? ?? '1.0.0',
     );
   }
 

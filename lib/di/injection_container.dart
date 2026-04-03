@@ -219,6 +219,9 @@ abstract final class InjectionContainer {
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
   }) async {
+    // Force SharedPreferences up early as Pigeon channels for it can be finicky after hot restarts
+    sharedPreferences = await SharedPreferences.getInstance();
+
     // ── Phase 7: Security bootstrap ─────────────────────────────────────────
 
     appPinStorage = AppPinStorage();
@@ -237,15 +240,16 @@ abstract final class InjectionContainer {
     );
     final apiClient = ApiClient(
       baseUrl: ApiEndpoints.baseUrl,
-      tokenProvider: () => null,
+      tokenProvider: () => licenseVault.readJwt(),
     );
-    authRepository = RemoteAuthRepository(apiClient: apiClient);
 
-    sharedPreferences = await SharedPreferences.getInstance();
+    // Initialize appConfigRepository early before other services might need it
     appConfigRepository = ApiAppConfigRepository(
       apiClient: apiClient,
       sharedPreferences: sharedPreferences,
     );
+
+    authRepository = RemoteAuthRepository(apiClient: apiClient);
 
     securityCubit = SecurityCubit(
       pinStorage: appPinStorage,
@@ -316,12 +320,9 @@ abstract final class InjectionContainer {
     // ── Real-Time Sync Engine ────────────────────────────────────────────────
     syncRepository = ApiSyncRepository(apiClient);
     
-    // Attempt to read JWT for WebSocket authentication
-    final jwt = await licenseVault.readJwt();
-
     syncSocketService = SyncSocketService(
       wsUrl: 'wss://qayd-qq6w.onrender.com/ws', 
-      tokenProvider: () => jwt,
+      tokenProvider: () => licenseVault.readJwt(),
     );
     
     syncPayloadProcessor = SyncPayloadProcessor(

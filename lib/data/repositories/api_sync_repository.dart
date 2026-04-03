@@ -13,8 +13,8 @@ class ApiSyncRepository implements SyncRepository {
   Future<List<SyncNode>> pullNodes() async {
     try {
       final response = await _apiClient.get(ApiEndpoints.syncPull);
-      if (response.containsKey('data') && response['data'] is List) {
-        return (response['data'] as List)
+      if (response is List) {
+        return response
             .map((e) => SyncNode.fromJson(e as Map<String, dynamic>))
             .toList();
       }

@@ -98,7 +98,9 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
         return;
       }
-      if (mounted) context.read<StatementChatCubit>().reload();
+      if (mounted) {
+        context.read<StatementChatCubit>().reload();
+      }
     } finally {
       if (mounted) setState(() => _mutating = false);
     }
