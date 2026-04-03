@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/application/accounts/batch_import_accounts_from_csv_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
 import 'package:qayd/application/accounts/deactivate_account_use_case.dart';
@@ -84,9 +86,18 @@ import 'package:qayd/data/security/identity_file_storage.dart';
 import 'package:qayd/data/security/mnemonic_vault.dart';
 import 'package:qayd/data/repositories/remote_identity_repository.dart';
 import 'package:qayd/domain/services/crypto_identity_service.dart';
-import 'package:flutter/foundation.dart';
-import 'package:sqflite_sqlcipher/sqflite.dart';
-
+import 'package:qayd/application/sync/sync_coordinator_service.dart';
+import 'package:qayd/application/sync/sync_payload_processor.dart';
+import 'package:qayd/data/network/sync_socket_service.dart';
+import 'package:qayd/domain/services/native_notification_service.dart';
+import 'package:qayd/data/services/local_notification_service_impl.dart';
+import 'package:qayd/data/repositories/api_sync_repository.dart';
+import 'package:qayd/data/security/e2ee_encryption_service_impl.dart';
+import 'package:qayd/domain/services/e2ee_encryption_service.dart';
+import 'package:qayd/domain/repositories/sync_repository.dart';
+import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/domain/repositories/ledger_repository.dart';
+import 'package:qayd/domain/repositories/account_repository.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -133,6 +144,13 @@ abstract final class InjectionContainer {
   static late final SubmitActivationUseCase submitActivationUseCase;
   static late final GovernanceWriteGuard governanceWriteGuard;
 
+  // ── Accounting Repositories (Static for Sync access) ──────────────────────
+
+  static late final AccountRepository accountRepository;
+  static late final LedgerRepository ledgerRepository;
+  static late final VoucherRepository voucherRepository;
+  static late final CurrencyRepository currencyRepository;
+
   // ── Accounting use cases ───────────────────────────────────────────────────
 
   static late final CreateAccountUseCase createAccountUseCase;
@@ -144,9 +162,11 @@ abstract final class InjectionContainer {
   static late final FindAccountByPhoneUseCase findAccountByPhoneUseCase;
   static late final ListAccountsUseCase listAccountsUseCase;
   static late final GetAccountStatementUseCase getAccountStatementUseCase;
-  static late final ListAccountStatementChatUseCase listAccountStatementChatUseCase;
+  static late final ListAccountStatementChatUseCase
+      listAccountStatementChatUseCase;
   static late final CreateVoucherUseCase createVoucherUseCase;
-  static late final CreateTripartiteTransferUseCase createTripartiteTransferUseCase;
+  static late final CreateTripartiteTransferUseCase
+      createTripartiteTransferUseCase;
   static late final UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
   static late final AcceptVoucherUseCase acceptVoucherUseCase;
   static late final ConfirmVoucherUseCase confirmVoucherUseCase;
@@ -169,15 +189,25 @@ abstract final class InjectionContainer {
   static late final GetAutoSuggestionsUseCase getAutoSuggestionsUseCase;
   static late final MarkNotificationMessageProcessedUseCase
       markNotificationMessageProcessedUseCase;
-  static late final CurrencyRepository currencyRepository;
   static late final ListCurrenciesUseCase listCurrenciesUseCase;
   static late final GetBaseCurrencyUseCase getBaseCurrencyUseCase;
   static late final SetBaseCurrencyUseCase setBaseCurrencyUseCase;
   static late final ToggleCurrencyStatusUseCase toggleCurrencyStatusUseCase;
   static late final AddCurrencyUseCase addCurrencyUseCase;
-  static late final TransactionFeeSettingsRepository transactionFeeSettingsRepository;
-  static late final GetActiveTransactionFeeUseCase getActiveTransactionFeeUseCase;
+  static late final TransactionFeeSettingsRepository
+      transactionFeeSettingsRepository;
+  static late final GetActiveTransactionFeeUseCase
+      getActiveTransactionFeeUseCase;
   static late final ManageTransactionFeeUseCase manageTransactionFeeUseCase;
+
+  // ── Sync & Real-Time Components ──────────────────────────────────────────
+
+  static late final NativeNotificationService nativeNotificationService;
+  static late final SyncCoordinatorService syncCoordinatorService;
+  static late final SyncSocketService syncSocketService;
+  static late final SyncPayloadProcessor syncPayloadProcessor;
+  static late final SyncRepository syncRepository;
+  static late final E2EEEncryptionService e2eeService;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -189,8 +219,6 @@ abstract final class InjectionContainer {
     hardwareIdService = HardwareIdService();
     clockGuard = MonotonicClockGuard();
 
-    // Identity file storage requires the hardware ID; create it here so it
-    // can be passed to PanicWipeService for full key-material wipe.
     final hwId = await hardwareIdService.obtainHardwareId();
     identityFileStorage = IdentityFileStorage(hardwareId: hwId);
 
@@ -202,14 +230,7 @@ abstract final class InjectionContainer {
     );
     final apiClient = ApiClient(
       baseUrl: ApiEndpoints.baseUrl,
-      // Attach the stored JWT on every authenticated request.
-      tokenProvider: () {
-        // Fire-and-forget — the vault read is async, but we return null
-        // synchronously for unauthenticated requests (login/register).
-        // Authenticated requests use AuthInterceptor which reads the stored
-        // token via a synchronous cache updated by LicenseVault.
-        return null; // Token is written to vault; add sync cache in Phase 8 if needed.
-      },
+      tokenProvider: () => null,
     );
     authRepository = RemoteAuthRepository(apiClient: apiClient);
 
@@ -240,8 +261,6 @@ abstract final class InjectionContainer {
       cryptoService: cryptoIdentityService,
     );
 
-    // Auto-restore identity from device file if secure storage was cleared
-    // (common after Android app reinstall).
     if (!await mnemonicVault.hasIdentity()) {
       await identityFileStorage.restoreToVaultIfAvailable(mnemonicVault);
     }
@@ -259,10 +278,7 @@ abstract final class InjectionContainer {
     driveBackupService = GoogleDriveBackupService();
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
 
-    // Run daily auto-backup if due (fire-and-forget; non-blocking).
     autoBackupService.performIfDue().ignore();
-
-    // Run daily Drive backup if due (fire-and-forget; non-blocking).
     driveBackupService.performIfDue().ignore();
 
     // ── Governance ──────────────────────────────────────────────────────────
@@ -277,15 +293,50 @@ abstract final class InjectionContainer {
     submitActivationUseCase = SubmitActivationUseCase(governanceRepository);
     governanceWriteGuard = GovernanceWriteGuard(checkGovernanceStatusUseCase);
 
+    // ── Native Notifications & E2EE Service ──────────────────────────────────
+    nativeNotificationService = LocalNotificationServiceImpl();
+    await nativeNotificationService.initialize();
+    e2eeService = const E2EEEncryptionServiceImpl();
+
     _registerSqliteStack();
+
+    // ── Real-Time Sync Engine ────────────────────────────────────────────────
+    syncRepository = ApiSyncRepository(apiClient);
+    
+    // Attempt to read JWT for WebSocket authentication
+    final jwt = await licenseVault.readJwt();
+
+    syncSocketService = SyncSocketService(
+      wsUrl: 'wss://qayd-qq6w.onrender.com/ws', 
+      tokenProvider: () => jwt,
+    );
+    
+    syncPayloadProcessor = SyncPayloadProcessor(
+      identityRepository: identityRepository,
+      voucherRepository: voucherRepository,
+      ledgerRepository: ledgerRepository,
+      accountRepository: accountRepository,
+      e2eeService: e2eeService,
+      signingService: receiptSigningService,
+      getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair().then((v) => v!), 
+    );
+
+    syncCoordinatorService = SyncCoordinatorService(
+      syncRepository: syncRepository,
+      socketService: syncSocketService,
+      payloadProcessor: syncPayloadProcessor,
+      nativeNotificationService: nativeNotificationService,
+      currentUserId: 1, // Placeholder: in production, decode ID from JWT
+    );
+
+    // Initialize the background sync lifecycle
+    syncCoordinatorService.start();
   }
 
-  /// Call before replacing `qayd_finance.db` on disk (restore).
   static Future<void> closeDatabaseForRestore() async {
     await database.close();
   }
 
-  /// Reopens the DB and rewires SQLite-backed services after [closeDatabaseForRestore].
   static Future<void> reopenDatabaseAfterRestore() async {
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
     _registerSqliteStack();
@@ -293,10 +344,10 @@ abstract final class InjectionContainer {
   }
 
   static void _registerSqliteStack() {
-    final accountRepository = SqliteAccountRepository(database);
-    final ledgerRepository = SqliteLedgerRepository(database);
+    accountRepository = SqliteAccountRepository(database);
+    ledgerRepository = SqliteLedgerRepository(database);
     final transactionRunner = DatabaseTransactionRunner(database);
-    final voucherRepository = SqliteVoucherRepository(
+    voucherRepository = SqliteVoucherRepository(
       database,
       transactionRunner,
     );
@@ -306,8 +357,10 @@ abstract final class InjectionContainer {
     const trialBalanceGenerator = TrialBalanceGenerator();
     const voucherQrService = VoucherQrService();
 
-    transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(database);
-    getActiveTransactionFeeUseCase = GetActiveTransactionFeeUseCase(transactionFeeSettingsRepository);
+    transactionFeeSettingsRepository =
+        SqliteTransactionFeeSettingsRepository(database);
+    getActiveTransactionFeeUseCase =
+        GetActiveTransactionFeeUseCase(transactionFeeSettingsRepository);
     manageTransactionFeeUseCase = ManageTransactionFeeUseCase(
       transactionFeeSettingsRepository,
       _idGenerator,
@@ -341,9 +394,7 @@ abstract final class InjectionContainer {
       ledgerRepository,
       balanceCalculator,
     );
-    findAccountByPhoneUseCase = FindAccountByPhoneUseCase(
-      accountRepository,
-    );
+    findAccountByPhoneUseCase = FindAccountByPhoneUseCase(accountRepository);
     listAccountsUseCase = ListAccountsUseCase(
       accountRepository,
       ledgerRepository,

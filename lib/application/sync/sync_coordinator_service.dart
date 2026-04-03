@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:qayd/domain/entities/sync_node.dart';
 import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
+import 'package:qayd/domain/services/native_notification_service.dart';
 
 /// Manages multi-tiered polling and live WS connection for Real-Time Synchronization.
 /// Uses [SyncRepository], [SyncSocketService], and [SyncPayloadProcessor]
@@ -12,6 +14,7 @@ class SyncCoordinatorService {
     required this.syncRepository,
     required this.socketService,
     required this.payloadProcessor,
+    required this.nativeNotificationService,
     required this.currentUserId,
     this.syncInterval = const Duration(minutes: 10),
   });
@@ -19,6 +22,7 @@ class SyncCoordinatorService {
   final SyncRepository syncRepository;
   final SyncSocketService socketService;
   final SyncPayloadProcessor payloadProcessor;
+  final NativeNotificationService nativeNotificationService;
   final int currentUserId;
   final Duration syncInterval;
 
@@ -39,6 +43,19 @@ class SyncCoordinatorService {
       
       // Auto-acknowledge receipt to update the server's tracking state
       await _acknowledge([node.id], 'delivered');
+
+      // Trigger Native Notification if it's an important event
+      if (node.eventType == SyncEventType.claim) {
+         await nativeNotificationService.showImportantNotification(
+           title: 'طلب جديد',
+           body: 'تم استلام طلب سند جديد من شريكك.',
+         );
+      } else if (node.eventType == SyncEventType.acceptance) {
+         await nativeNotificationService.showLocalNotification(
+           title: 'تم الاعتماد',
+           body: 'تم قبول السند الخاص بك ومزامنته.',
+         );
+      }
     });
 
     // 3. Periodic safe polling (for extreme resilience)
