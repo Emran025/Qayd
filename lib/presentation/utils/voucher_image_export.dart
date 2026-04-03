@@ -20,6 +20,7 @@ import 'package:share_plus/share_plus.dart';
 /// - Entry sections with amount box + details
 /// - Signature row (no manager signature)
 /// - QR code + footer
+
 Future<void> shareVoucherAsFormattedImage(
   BuildContext context,
   GetVoucherDetailsOutput data,
@@ -86,7 +87,7 @@ Future<void> shareVoucherAsFormattedImage(
     await file.writeAsBytes(pngBytes);
 
     await Share.shareXFiles(
-      [XFile(file.path)],
+      [XFile(file.path, mimeType: 'image/png')],
       text: 'إيصال قيد — ${data.typeCode == 'receipt' ? 'سند قبض' : 'سند صرف'}',
     );
   } catch (e) {

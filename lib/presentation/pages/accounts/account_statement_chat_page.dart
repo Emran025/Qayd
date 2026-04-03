@@ -24,6 +24,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/utils/statement_chat_export.dart';
 
 /// Chat-style "Statement of Account" between two parties (accounts).
 ///
@@ -189,6 +190,10 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         final cubit = context.read<StatementChatCubit>();
         final custom = Theme.of(context).extension<QaydCustomColors>()!;
 
+        final int firstUnreadIndex = data.messages.indexWhere(
+          (m) => m.direction == 'incoming' && m.signatureStatusCode == 'underRequest',
+        );
+
         return Scaffold(
           body: Column(
             children: [
@@ -211,6 +216,23 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   });
                 },
                 onFilterTap: () => _openFilterSheet(cubit),
+                onExportPdf: () => shareStatementChatAsPdf(
+                  context,
+                  accountId: data.counterpartyAccountId,
+                  accountName: data.counterpartyName,
+                  filter: data.filter,
+                  messages: data.messages,
+                  broughtForwardMinorUnits: data.broughtForwardMinorUnits,
+                ),
+                onExportExcel: () => shareStatementChatAsExcel(
+                  context,
+                  accountId: data.counterpartyAccountId,
+                  accountName: data.counterpartyName,
+                  filter: data.filter,
+                  messages: data.messages,
+                  broughtForwardMinorUnits: data.broughtForwardMinorUnits,
+                  currencyDigits: data.currencyDigits,
+                ),
               ),
 
               // ── Search bar ──
@@ -279,13 +301,25 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                           ),
                           itemCount: data.messages.length,
                           itemBuilder: (context, i) {
-                            return _MessageBubble(
+                            final msgWidget = _MessageBubble(
                               msg: data.messages[i],
                               mutating: _mutating,
                               onAccept: (id) => _acceptVoucher(context, id),
                               onReject: (id) => _rejectVoucher(context, id),
                               onResubmit: (id) => _resubmitVoucher(context, id),
                             );
+
+                            if (i == firstUnreadIndex) {
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const _UnreadSessionDivider(),
+                                  msgWidget,
+                                ],
+                              );
+                            }
+
+                            return msgWidget;
                           },
                         ),
                       ),
@@ -321,6 +355,8 @@ class _ChatHeader extends StatelessWidget {
     required this.onProfileTap,
     required this.onSearchToggle,
     required this.onFilterTap,
+    required this.onExportPdf,
+    required this.onExportExcel,
   });
 
   final String counterpartyName;
@@ -331,6 +367,8 @@ class _ChatHeader extends StatelessWidget {
   final VoidCallback onProfileTap;
   final VoidCallback onSearchToggle;
   final VoidCallback onFilterTap;
+  final VoidCallback onExportPdf;
+  final VoidCallback onExportExcel;
 
   @override
   Widget build(BuildContext context) {
@@ -430,6 +468,36 @@ class _ChatHeader extends StatelessWidget {
                         ),
                       ),
                     ),
+                ],
+              ),
+              // Options Menu
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert_rounded, size: 22),
+                onSelected: (val) {
+                  if (val == 'pdf') onExportPdf();
+                  if (val == 'excel') onExportExcel();
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'pdf',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf_outlined, size: 20),
+                        const SizedBox(width: SpacingTokens.sm),
+                        Text(AppStringsAr.accountStatementExportPdfTooltip),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'excel',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.table_view_outlined, size: 20),
+                        const SizedBox(width: SpacingTokens.sm),
+                        Text(AppStringsAr.settingsExportStatementTitle),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -651,6 +719,62 @@ class _BroughtForwardCard extends StatelessWidget {
             minorUnits: balanceMinorUnits,
             currencySymbol: currencySymbol,
             currencyDigits: currencyDigits,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Unread Session Divider ───────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _UnreadSessionDivider extends StatelessWidget {
+  const _UnreadSessionDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: SpacingTokens.md),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(
+              color: custom.goldAccent.withValues(alpha: 0.5),
+              thickness: 1,
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.sm),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SpacingTokens.sm,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: custom.goldAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(RadiusTokens.pill),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.mark_chat_unread_rounded, size: 14, color: custom.goldAccent),
+                const SizedBox(width: 4),
+                Text(
+                  'رسائل جديدة غير مقروءة',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: custom.goldAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Divider(
+              color: custom.goldAccent.withValues(alpha: 0.5),
+              thickness: 1,
+            ),
           ),
         ],
       ),

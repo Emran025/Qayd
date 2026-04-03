@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/result/result.dart';
@@ -11,7 +13,7 @@ Future<void> shareVoucherAsPdf(
   GetVoucherDetailsOutput data,
 ) async {
   final messenger = ScaffoldMessenger.of(context);
-  await showDialog<void>(
+  showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => const Center(
@@ -53,14 +55,16 @@ Future<void> shareVoucherAsPdf(
     agreementStatusCode: data.agreementStatusCode,
   );
 
-  final result = await InjectionContainer.voucherPdfGenerator.buildVoucherPdf(
-    dto,
-  );
-
-  if (!context.mounted) {
-    return;
+  Result<Uint8List> result;
+  try {
+    result = await InjectionContainer.voucherPdfGenerator.buildVoucherPdf(
+      dto,
+    );
+  } finally {
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop(); // dismiss loading
+    }
   }
-  Navigator.of(context, rootNavigator: true).pop();
 
   if (result.isFailure) {
     messenger.showSnackBar(

@@ -39,7 +39,8 @@ abstract final class ApiEndpoints {
   static const String identityLookup = '$v1/identity/lookup';
   static const String identityLookupBatch = '$v1/identity/lookup-batch';
 
-  // ── Sync (Phase 8 skeleton) ───────────────────────────────────────────────
-  static const String syncUp = '$v1/sync/up';
-  static const String syncDown = '$v1/sync/down';
+  // ── Sync (E2EE Nodes) ───────────────────────────────────────────────────
+  static const String syncPush = '$v1/sync/push';
+  static const String syncPull = '$v1/sync/pull';
+  static const String syncAcknowledge = '$v1/sync/acknowledge';
 }

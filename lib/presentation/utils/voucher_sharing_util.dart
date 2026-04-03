@@ -49,7 +49,7 @@ Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey) as
     final file = File(imagePath);
     await file.writeAsBytes(pngBytes);
 
-    await Share.shareXFiles([XFile(file.path)], text: 'إيصال القيد');
+    await Share.shareXFiles([XFile(file.path, mimeType: 'image/png')], text: 'إيصال القيد');
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('تعذر مشاركة الإيصال كصورة: $e')),

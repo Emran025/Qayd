@@ -13,6 +13,7 @@ import 'package:qayd/application/messaging/create_message_template_use_case.dart
 import 'package:qayd/application/messaging/delete_message_template_use_case.dart';
 import 'package:qayd/application/messaging/list_message_templates_use_case.dart';
 import 'package:qayd/application/messaging/log_notification_intent_use_case.dart';
+import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
 import 'package:qayd/application/settings/get_base_currency_use_case.dart';
 import 'package:qayd/application/settings/list_currencies_use_case.dart';
 import 'package:qayd/application/settings/set_base_currency_use_case.dart';
@@ -21,7 +22,7 @@ import 'package:qayd/application/settings/add_currency_use_case.dart';
 import 'package:qayd/application/suggestions/get_auto_suggestions_use_case.dart';
 import 'package:qayd/application/suggestions/mark_notification_message_processed_use_case.dart';
 import 'package:qayd/application/messaging/save_message_template_use_case.dart';
-import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
+import 'package:qayd/application/vouchers/accept_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/reject_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/resubmit_voucher_use_case.dart';
@@ -143,6 +144,7 @@ abstract final class InjectionContainer {
   static late final CreateVoucherUseCase createVoucherUseCase;
   static late final CreateTripartiteTransferUseCase createTripartiteTransferUseCase;
   static late final UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
+  static late final AcceptVoucherUseCase acceptVoucherUseCase;
   static late final ConfirmVoucherUseCase confirmVoucherUseCase;
   static late final RejectVoucherUseCase rejectVoucherUseCase;
   static late final ResubmitVoucherUseCase resubmitVoucherUseCase;
