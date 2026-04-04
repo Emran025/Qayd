@@ -5,6 +5,7 @@ import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
+import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 
 /// Manages multi-tiered polling and live WS connection for Real-Time Synchronization.
@@ -16,6 +17,7 @@ class SyncCoordinatorService {
     required this.socketService,
     required this.payloadProcessor,
     required this.nativeNotificationService,
+    required this.notificationMessageRepository,
     required this.currentUserId,
     this.collateralExpiryChecker,
     this.syncInterval = const Duration(minutes: 10),
@@ -25,6 +27,7 @@ class SyncCoordinatorService {
   final SyncSocketService socketService;
   final SyncPayloadProcessor payloadProcessor;
   final NativeNotificationService nativeNotificationService;
+  final NotificationMessageRepository notificationMessageRepository;
   final int currentUserId;
   final CollateralExpiryChecker? collateralExpiryChecker;
   final Duration syncInterval;
@@ -48,16 +51,30 @@ class SyncCoordinatorService {
       // Auto-acknowledge receipt to update the server's tracking state
       await _acknowledge([node.id], 'delivered');
 
-      // Trigger Native Notification if it's an important event
+      // Trigger Native Notification and persist to inbox if it's an important event
       if (node.eventType == SyncEventType.claim) {
          await nativeNotificationService.showImportantNotification(
            title: 'طلب جديد',
            body: 'تم استلام طلب سند جديد من شريكك.',
          );
+         await notificationMessageRepository.insert(
+           id: node.id,
+           bodyText: 'تم استلام طلب سند جديد من شريكك.',
+           counterpartyAccountId: node.senderId.toString(),
+           createdAtIso: DateTime.now().toIso8601String(),
+           channel: 'server',
+         );
       } else if (node.eventType == SyncEventType.acceptance) {
          await nativeNotificationService.showLocalNotification(
            title: 'تم الاعتماد',
            body: 'تم قبول السند الخاص بك ومزامنته.',
+         );
+         await notificationMessageRepository.insert(
+           id: node.id,
+           bodyText: 'تم اعتماد سند الصرف الخاص بك (#${node.id.substring(0, 4)}).',
+           counterpartyAccountId: node.senderId.toString(),
+           createdAtIso: DateTime.now().toIso8601String(),
+           channel: 'server',
          );
       }
     });

@@ -39,7 +39,7 @@ class QaydAmountField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.ltr,
+      textDirection: TextDirection.rtl,
       child: TextFormField(
         controller: controller,
         focusNode: focusNode,

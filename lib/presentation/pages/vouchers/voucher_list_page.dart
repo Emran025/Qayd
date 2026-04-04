@@ -29,6 +29,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/voucher_state_codec.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class VoucherListPage extends StatelessWidget {
   const VoucherListPage({super.key});
@@ -293,7 +294,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
-    return Scaffold(
+    return QaydScaffold(
       appBar: QaydAppBar(
         leading: Builder(
           builder: (context) => IconButton(
@@ -313,7 +314,6 @@ class _VoucherListViewState extends State<_VoucherListView> {
             onPressed: () => _openFilterSheet(context),
             icon: const Icon(Icons.tune_rounded),
           ),
-          // const SettingsAppBarAction(),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(

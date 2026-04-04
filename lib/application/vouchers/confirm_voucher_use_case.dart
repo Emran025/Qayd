@@ -41,8 +41,8 @@ class ConfirmVoucherUseCase {
       final draft = loaded.valueOrNull!;
       
       // 2. Enforce agreement (digital signature) before confirmation.
-      // Payers (Payments) sign themselves => usually Accepted by default.
-      // Receivers (Receipts) need counterparty signature => must be Accepted.
+      // Receivers (Receipts) sign themselves => usually Accepted by default.
+      // Payers (Payments) need counterparty signature => must be Accepted.
       if (!draft.agreementStatus.isAccepted) {
         return const FailureResult(
           ValidationFailure(

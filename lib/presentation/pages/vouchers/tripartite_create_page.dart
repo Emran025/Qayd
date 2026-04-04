@@ -5,6 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:intl/intl.dart';
 
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/create_tripartite_transfer_input.dart';
@@ -168,11 +169,9 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
         final submitting = state is VoucherCreateSubmitting;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const QaydText(
+          appBar: QaydAppBar(
+            title: 
               'تحويل جديد',
-              slot: QaydTextStyleSlot.titleLarge,
-            ),
           ),
           body: AbsorbPointer(
             absorbing: submitting,

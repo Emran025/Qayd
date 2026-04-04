@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
@@ -60,11 +61,9 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return Scaffold(
-      appBar: AppBar(
-        title: QaydText(
-          AppStringsAr.notificationPreviewTitle,
-          slot: QaydTextStyleSlot.titleLarge,
-        ),
+      appBar: QaydAppBar(
+        title: 
+          AppStringsAr.notificationPreviewTitle,        
       ),
       body: BlocConsumer<NotificationPreviewCubit, NotificationPreviewState>(
         listenWhen: (p, c) {

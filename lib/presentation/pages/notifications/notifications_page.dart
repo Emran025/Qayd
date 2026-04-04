@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/inbox_notification.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
+import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
+import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -14,59 +20,106 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // In a real implementation, we'd use a BLoC here. For now, mocking data.
-    final mockNotifications = [
-      InboxNotification(
-        id: '1',
-        senderName: 'شركة التقنية الحديثة',
-        title: 'طلب اعتماد سند جديد',
-        body: 'تم إرسال سند قبض بمبلغ 5,000 ريال. يرجى المراجعة والاعتماد.',
-        isRead: false,
-        receivedAt: DateTime.now().subtract(const Duration(minutes: 5)),
-        actionRoute: '/chat/123',
-      ),
-      InboxNotification(
-        id: '2',
-        senderName: 'مؤسسة البناء',
-        title: 'تم اعتماد السند',
-        body: 'تم اعتماد سند الصرف الخاص بك (#405).',
-        isRead: true,
-        receivedAt: DateTime.now().subtract(const Duration(hours: 2)),
-        actionRoute: '/chat/124',
-      ),
-    ];
+    return BlocProvider(
+      create: (_) => InjectionContainer.notificationsCubit..load(),
+      child: const _NotificationsView(),
+    );
+  }
+}
 
+class _NotificationsView extends StatelessWidget {
+  const _NotificationsView();
+
+  Future<void> _openChat(BuildContext context, String accountId) async {
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (ctx) => BlocProvider(
+          create: (_) => StatementChatCubit(
+            listStatement: InjectionContainer.listAccountStatementChatUseCase,
+            listAccounts: InjectionContainer.listAccountsUseCase,
+            counterpartyAccountId: accountId,
+          )..load(),
+          child: AccountStatementChatPage(
+            counterpartyAccountId: accountId,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return QaydScaffold(
       appBar: QaydAppBar(title: AppStringsAr.messagingInboxTab),
-      body: mockNotifications.isEmpty
-          ? Center(
+      body: BlocBuilder<NotificationsCubit, NotificationsState>(
+        builder: (context, state) {
+          if (state is NotificationsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is NotificationsFailure) {
+            return Center(
               child: Text(
-                'لا توجد إشعارات جديدة',
+                state.failure.messageAr,
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: theme.colorScheme.error,
                 ),
               ),
-            )
-          : ListView.separated(
+            );
+          }
+
+          if (state is NotificationsReady) {
+            final notifications = state.notifications;
+
+            if (notifications.isEmpty) {
+              return Center(
+                child: Text(
+                  'لا توجد إشعارات جديدة',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            }
+
+            return ListView.separated(
               padding: const EdgeInsets.all(SpacingTokens.md),
-              itemCount: mockNotifications.length,
+              itemCount: notifications.length,
               separatorBuilder: (_, __) =>
                   const SizedBox(height: SpacingTokens.sm),
               itemBuilder: (context, index) {
-                final notif = mockNotifications[index];
-                return _NotificationTile(notification: notif);
+                final notif = notifications[index];
+                return _NotificationTile(
+                  notification: notif,
+                  onTap: () {
+                    context.read<NotificationsCubit>().markAsRead(notif.id);
+                    if (notif.actionRoute.startsWith('/chat/')) {
+                      final accountId = notif.actionRoute.substring(6);
+                      _openChat(context, accountId);
+                    }
+                  },
+                );
               },
-            ),
+            );
+          }
+
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 }
 
 class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({required this.notification});
+  const _NotificationTile({
+    required this.notification,
+    required this.onTap,
+  });
 
   final InboxNotification notification;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +133,7 @@ class _NotificationTile extends StatelessWidget {
           : theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(RadiusTokens.md),
       child: InkWell(
-        onTap: () {
-          // Navigate to Deep link actionRoute
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(RadiusTokens.md),
         child: Padding(
           padding: const EdgeInsets.all(SpacingTokens.md),
@@ -130,9 +181,7 @@ class _NotificationTile extends StatelessWidget {
                     Text(
                       notification.title,
                       style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: isUnread
-                            ? FontWeight.bold
-                            : FontWeight.w600,
+                        fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: SpacingTokens.xs),

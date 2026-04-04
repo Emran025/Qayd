@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 
 class CurrencyManagementScreen extends StatefulWidget {
@@ -107,11 +108,9 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
+      appBar: QaydAppBar(
+        title:  
           'إدارة العملات',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(

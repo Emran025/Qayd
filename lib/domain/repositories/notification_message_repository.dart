@@ -16,5 +16,7 @@ abstract class NotificationMessageRepository {
     int limit,
   });
 
+  Future<Result<List<NotificationMessage>>> listAllUnprocessed({int limit});
+
   Future<Result<void>> markProcessed(String id);
 }

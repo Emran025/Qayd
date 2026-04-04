@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/app_document.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -57,7 +58,7 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStringsAr.settingsGroupSupport)),
+      appBar: QaydAppBar(title: AppStringsAr.settingsGroupSupport),
 
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),

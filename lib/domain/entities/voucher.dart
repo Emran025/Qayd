@@ -181,10 +181,10 @@ final class Voucher {
     }
     
     // Default agreement status based on type:
-    // الصرف (Payment): Accepted (signed by me as Payer)
-    // القبض (Receipt): Under Request (needs signature from B as Payer)
+    // القبض (Receipt): Accepted (approved by user)
+    // الصرف (Payment): Under Request (waits for counterparty signature)
     final finalAgreementStatus = agreementStatus ??
-        (type == VoucherType.payment
+        (type == VoucherType.receipt
             ? AgreementStatus.accepted
             : AgreementStatus.underRequest);
 

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
+import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -110,8 +111,9 @@ import 'package:qayd/data/repositories/sqlite_attachment_repository.dart';
 import 'package:qayd/data/repositories/sqlite_collateral_repository.dart';
 import 'package:qayd/data/services/attachment_storage_service.dart';
 import 'package:qayd/data/encryption/voucher_key_service.dart';
-import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
+import 'package:qayd/application/notifications/list_inbox_notifications_use_case.dart';
 import 'package:qayd/application/vouchers/liquidate_collateral_use_case.dart';
+import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -190,6 +192,8 @@ abstract final class InjectionContainer {
   static late GetVoucherDetailsUseCase getVoucherDetailsUseCase;
   static late GenerateTrialBalanceUseCase generateTrialBalanceUseCase;
   static late VoucherPdfGenerator voucherPdfGenerator;
+  static late ListInboxNotificationsUseCase listInboxNotificationsUseCase;
+  static late NotificationsCubit notificationsCubit;
   static late AccountStatementPdfGenerator accountStatementPdfGenerator;
 
   static late MessageTemplateRepository messageTemplateRepository;
@@ -408,6 +412,7 @@ abstract final class InjectionContainer {
       nativeNotificationService: nativeNotificationService,
       currentUserId: userId,
       collateralExpiryChecker: collateralExpiryChecker,
+      notificationMessageRepository: notificationMessageRepository,
     );
 
     // Only initiate sync lifecycle if a valid user identity is active
@@ -574,6 +579,12 @@ abstract final class InjectionContainer {
       notificationMessageRepository,
       _idGenerator,
     );
+
+    listInboxNotificationsUseCase = ListInboxNotificationsUseCase(
+      notificationRepo: notificationMessageRepository,
+      accountRepository: accountRepository,
+    );
+    notificationsCubit = NotificationsCubit(listInboxNotificationsUseCase);
 
     // ── Collateral services ──────────────────────────────────────────────
     // (collateralExpiryChecker initialized earlier — before sync coordinator)

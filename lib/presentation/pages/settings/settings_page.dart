@@ -5,6 +5,7 @@ import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/list_vouchers_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/settings/groups/backup_settings_page.dart';
@@ -24,8 +25,8 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return QaydScaffold(
-      appBar: AppBar(
-        title: Text(AppStringsAr.settingsTitle),
+      appBar: QaydAppBar(
+        title: AppStringsAr.settingsTitle
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),

@@ -80,6 +80,41 @@ final class SqliteNotificationMessageRepository
   }
 
   @override
+  Future<Result<List<NotificationMessage>>> listAllUnprocessed({
+    int limit = 100,
+  }) async {
+    try {
+      final rows = await _db.query(
+        _table,
+        where: 'processed = 0',
+        orderBy: 'created_at DESC',
+        limit: limit,
+      );
+      final out = <NotificationMessage>[];
+      for (final r in rows) {
+        final cp = r['counterparty_account_id'] as String? ?? '';
+        final created = r['created_at'] as String?;
+        if (created == null) continue;
+        out.add(
+          NotificationMessage(
+            id: r['id'] as String,
+            bodyText: r['body_text'] as String,
+            channel: r['channel'] as String?,
+            counterpartyAccountId: cp,
+            createdAt: DateTime.parse(created),
+            processed: (r['processed'] as int? ?? 0) != 0,
+          ),
+        );
+      }
+      return Success(out);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر تحميل إشعارات الصندوق الوارد.'),
+      );
+    }
+  }
+
+  @override
   Future<Result<void>> markProcessed(String id) async {
     try {
       final n = await _db.update(
