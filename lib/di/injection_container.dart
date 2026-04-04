@@ -101,6 +101,13 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qayd/domain/repositories/app_config_repository.dart';
 import 'package:qayd/data/repositories/api_app_config_repository.dart';
+import 'package:qayd/domain/repositories/attachment_repository.dart';
+import 'package:qayd/domain/repositories/collateral_repository.dart';
+import 'package:qayd/data/repositories/sqlite_attachment_repository.dart';
+import 'package:qayd/data/repositories/sqlite_collateral_repository.dart';
+import 'package:qayd/data/encryption/voucher_key_service.dart';
+import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
+import 'package:qayd/application/vouchers/liquidate_collateral_use_case.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -216,6 +223,13 @@ abstract final class InjectionContainer {
   static late final SharedPreferences sharedPreferences;
   static late final AppConfigRepository appConfigRepository;
 
+  // ── Attachments & Collateral ────────────────────────────────────────────
+  static late final AttachmentRepository attachmentRepository;
+  static late final CollateralRepository collateralRepository;
+  static late final VoucherKeyService voucherKeyService;
+  static late final CollateralExpiryChecker collateralExpiryChecker;
+  static late final LiquidateCollateralUseCase liquidateCollateralUseCase;
+
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
   }) async {
@@ -320,9 +334,14 @@ abstract final class InjectionContainer {
     // ── Real-Time Sync Engine ────────────────────────────────────────────────
     syncRepository = ApiSyncRepository(apiClient);
     
+    final baseUrl = ApiEndpoints.baseUrl.trimRight().replaceAll(RegExp(r'/$'), '');
+    final wsBase = baseUrl.replaceFirst('http', 'ws');
+    const appKey = String.fromEnvironment('REVERB_APP_KEY', defaultValue: 'gpdnqol0mdp28abcbdl7');
+    
     syncSocketService = SyncSocketService(
-      wsUrl: 'wss://qayd-qq6w.onrender.com/ws', 
+      wsUrl: '$wsBase/app/$appKey?protocol=7&client=js&version=8.3.0',
       tokenProvider: () => licenseVault.readJwt(),
+      authUrl: '$baseUrl/broadcasting/auth',
     );
     
     syncPayloadProcessor = SyncPayloadProcessor(
@@ -333,6 +352,15 @@ abstract final class InjectionContainer {
       e2eeService: e2eeService,
       signingService: receiptSigningService,
       getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair().then((v) => v!), 
+      attachmentRepository: attachmentRepository,
+      collateralRepository: collateralRepository,
+      voucherKeyService: voucherKeyService,
+    );
+
+    // ── Collateral expiry monitoring (must init before sync coordinator) ──
+    collateralExpiryChecker = CollateralExpiryChecker(
+      collateralRepository: collateralRepository,
+      notificationService: nativeNotificationService,
     );
 
     syncCoordinatorService = SyncCoordinatorService(
@@ -341,6 +369,7 @@ abstract final class InjectionContainer {
       payloadProcessor: syncPayloadProcessor,
       nativeNotificationService: nativeNotificationService,
       currentUserId: 1, // Placeholder: in production, decode ID from JWT
+      collateralExpiryChecker: collateralExpiryChecker,
     );
 
     // Initialize the background sync lifecycle
@@ -460,11 +489,19 @@ abstract final class InjectionContainer {
       voucherRepository,
       accountRepository,
     );
+
+    // ── Attachments & Collateral (initialized early — needed by detail UC) ──
+    attachmentRepository = SqliteAttachmentRepository(database);
+    collateralRepository = SqliteCollateralRepository(database);
+    voucherKeyService = const VoucherKeyService();
+
     getVoucherDetailsUseCase = GetVoucherDetailsUseCase(
       voucherRepository,
       accountRepository,
       voucherQrService,
       licenseVault,
+      attachmentRepository,
+      collateralRepository,
     );
     generateTrialBalanceUseCase = GenerateTrialBalanceUseCase(
       accountRepository,
@@ -496,6 +533,20 @@ abstract final class InjectionContainer {
       notificationLogRepository,
       notificationMessageRepository,
       _idGenerator,
+    );
+
+    // ── Collateral services ──────────────────────────────────────────────
+    // (collateralExpiryChecker initialized earlier — before sync coordinator)
+
+    liquidateCollateralUseCase = LiquidateCollateralUseCase(
+      collateralRepository: collateralRepository,
+      voucherRepository: voucherRepository,
+      ledgerRepository: ledgerRepository,
+      accountRepository: accountRepository,
+      entryGenerator: entryGenerator,
+      balanceCalculator: balanceCalculator,
+      idGenerator: _idGenerator,
+      governanceWriteGuard: governanceWriteGuard,
     );
   }
 }

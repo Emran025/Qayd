@@ -3,6 +3,8 @@ import 'package:qayd/application/vouchers/dtos/get_voucher_details_input.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/repositories/attachment_repository.dart';
+import 'package:qayd/domain/repositories/collateral_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
@@ -15,12 +17,16 @@ class GetVoucherDetailsUseCase {
     this._accountRepository,
     this._qrService,
     this._licenseVault,
+    this._attachmentRepository,
+    this._collateralRepository,
   );
 
   final VoucherRepository _voucherRepository;
   final AccountRepository _accountRepository;
   final VoucherQrService _qrService;
   final LicenseVault _licenseVault;
+  final AttachmentRepository _attachmentRepository;
+  final CollateralRepository _collateralRepository;
 
   Future<Result<GetVoucherDetailsOutput>> call(
     GetVoucherDetailsInput input,
@@ -49,6 +55,30 @@ class GetVoucherDetailsUseCase {
       String? linkedPartyName;
       if (v.tripartiteMeta?.linkedPartyId != null) {
         linkedPartyName = await nameFor(v.tripartiteMeta!.linkedPartyId);
+      }
+
+      // ── Attachment count ────────────────────────────────────────────────
+      int attachmentCount = 0;
+      final attachR = await _attachmentRepository.getByVoucherId(v.id);
+      if (attachR.isSuccess) {
+        attachmentCount = attachR.valueOrNull!.length;
+      }
+
+      // ── Collateral info ─────────────────────────────────────────────────
+      bool hasCollateral = false;
+      String? collateralDescription;
+      String? collateralStatusCode;
+      int? collateralValueMinor;
+      String? collateralExpiryIso;
+
+      final collR = await _collateralRepository.getByVoucherId(v.id);
+      if (collR.isSuccess && collR.valueOrNull != null) {
+        final coll = collR.valueOrNull!;
+        hasCollateral = true;
+        collateralDescription = coll.description;
+        collateralStatusCode = coll.status.name;
+        collateralValueMinor = coll.estimatedValue.minorUnits;
+        collateralExpiryIso = coll.expiryDate?.toIso8601String();
       }
 
       return Success(
@@ -82,6 +112,12 @@ class GetVoucherDetailsUseCase {
           signatureHex: v.signatureHex,
           signerPublicKeyHex: v.signerPublicKeyHex,
           agreementStatusCode: v.agreementStatus.name,
+          attachmentCount: attachmentCount,
+          hasCollateral: hasCollateral,
+          collateralDescription: collateralDescription,
+          collateralStatusCode: collateralStatusCode,
+          collateralValueMinor: collateralValueMinor,
+          collateralExpiryIso: collateralExpiryIso,
         ),
       );
     } catch (e, _) {

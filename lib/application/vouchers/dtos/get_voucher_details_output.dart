@@ -29,6 +29,12 @@ class GetVoucherDetailsOutput {
     this.signatureHex,
     this.signerPublicKeyHex,
     required this.agreementStatusCode,
+    this.attachmentCount = 0,
+    this.hasCollateral = false,
+    this.collateralDescription,
+    this.collateralStatusCode,
+    this.collateralValueMinor,
+    this.collateralExpiryIso,
   });
 
   final String id;
@@ -64,4 +70,14 @@ class GetVoucherDetailsOutput {
   final String? signatureHex;
   final String? signerPublicKeyHex;
   final String agreementStatusCode;
+
+  // Attachments
+  final int attachmentCount;
+
+  // Collateral
+  final bool hasCollateral;
+  final String? collateralDescription;
+  final String? collateralStatusCode;
+  final int? collateralValueMinor;
+  final String? collateralExpiryIso;
 }

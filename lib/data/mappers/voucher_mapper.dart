@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:qayd/data/models/voucher_model.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/attachment_id.dart';
 import 'package:qayd/domain/value_objects/attachment_ref.dart';
+import 'package:qayd/domain/value_objects/attachment_source_type.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
@@ -12,6 +14,7 @@ import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:uuid/uuid.dart';
 
 final class VoucherMapper {
   static VoucherModel toModel(Voucher voucher) {
@@ -20,9 +23,13 @@ final class VoucherMapper {
       voucher.attachmentRefs
           .map(
             (a) => {
+              'id': a.id.value,
               'path': a.storagePath,
               if (a.mimeType != null) 'mimeType': a.mimeType,
               if (a.byteSize != null) 'byteSize': a.byteSize,
+              if (a.encryptedBlobHash != null) 'blobHash': a.encryptedBlobHash,
+              if (a.thumbnailPath != null) 'thumbPath': a.thumbnailPath,
+              'source': a.sourceType.name,
             },
           )
           .toList(),
@@ -63,9 +70,15 @@ final class VoucherMapper {
     final refs = rawAttach.map((e) {
       final m = e as Map<String, dynamic>;
       return AttachmentRef(
+        id: AttachmentId(m['id'] as String? ?? const Uuid().v4()),
         storagePath: m['path'] as String,
         mimeType: m['mimeType'] as String?,
         byteSize: m['byteSize'] as int?,
+        encryptedBlobHash: m['blobHash'] as String?,
+        thumbnailPath: m['thumbPath'] as String?,
+        sourceType: AttachmentSourceType.fromString(
+          m['source'] as String? ?? 'gallery',
+        ),
       );
     }).toList();
 

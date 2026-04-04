@@ -306,6 +306,45 @@ class _VoucherDetailBody extends StatelessWidget {
             label: AppStringsAr.voucherNotesLabel,
             value: data.notes!,
           ),
+
+        // ── Attachments section ──────────────────────────────────
+        if (data.attachmentCount > 0) ...[
+          const SizedBox(height: SpacingTokens.md),
+          Card(
+            color: gold.withValues(alpha: 0.06),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: gold.withValues(alpha: 0.2)),
+            ),
+            child: ListTile(
+              leading: Icon(Icons.attach_file_rounded, color: gold),
+              title: Text(
+                'المرفقات',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface,
+                    ),
+              ),
+              subtitle: Text(
+                '${data.attachmentCount} مرفق',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+              ),
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('سيتم فتح معرض المرفقات قريباً')),
+                );
+              },
+            ),
+          ),
+        ],
+
+        // ── Collateral section ───────────────────────────────────
+        if (data.hasCollateral) ...[
+          const SizedBox(height: SpacingTokens.md),
+          _CollateralSummaryCard(data: data),
+        ],
           ],
         ),
       ),
@@ -343,6 +382,121 @@ class _Row extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CollateralSummaryCard extends StatelessWidget {
+  const _CollateralSummaryCard({required this.data});
+
+  final GetVoucherDetailsOutput data;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
+    final scheme = Theme.of(context).colorScheme;
+
+    final (statusColor, statusLabel) = switch (data.collateralStatusCode) {
+      'active' => (Colors.green.shade400, 'نشط'),
+      'expired' => (Colors.orange.shade400, 'منتهي'),
+      'liquidated' => (Colors.red.shade400, 'تمت التصفية'),
+      'released' => (Colors.blue.shade400, 'محرر'),
+      _ => (Colors.grey, data.collateralStatusCode ?? '—'),
+    };
+
+    final valueStr = data.collateralValueMinor != null
+        ? NumberFormat.decimalPattern('ar')
+            .format(data.collateralValueMinor! / 100)
+        : '—';
+
+    return Card(
+      color: gold.withValues(alpha: 0.06),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: gold.withValues(alpha: 0.25)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(SpacingTokens.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.shield_rounded, size: 20, color: gold),
+                const SizedBox(width: SpacingTokens.sm),
+                Expanded(
+                  child: Text(
+                    'رهن / ضمان',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: scheme.onSurface,
+                        ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: statusColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: SpacingTokens.sm),
+            if (data.collateralDescription != null &&
+                data.collateralDescription!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
+                child: Text(
+                  data.collateralDescription!,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            Row(
+              children: [
+                Icon(Icons.attach_money_rounded,
+                    size: 14, color: scheme.onSurfaceVariant),
+                const SizedBox(width: 4),
+                Text(
+                  '$valueStr ${data.currencyCode}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+                if (data.collateralExpiryIso != null) ...[
+                  const SizedBox(width: SpacingTokens.lg),
+                  Icon(Icons.event_rounded,
+                      size: 14, color: scheme.onSurfaceVariant),
+                  const SizedBox(width: 4),
+                  Text(
+                    DateFormat.yMMMd('ar')
+                        .format(DateTime.parse(data.collateralExpiryIso!)),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

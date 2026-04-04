@@ -5,6 +5,7 @@ import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
+import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 
 /// Manages multi-tiered polling and live WS connection for Real-Time Synchronization.
 /// Uses [SyncRepository], [SyncSocketService], and [SyncPayloadProcessor]
@@ -16,6 +17,7 @@ class SyncCoordinatorService {
     required this.payloadProcessor,
     required this.nativeNotificationService,
     required this.currentUserId,
+    this.collateralExpiryChecker,
     this.syncInterval = const Duration(minutes: 10),
   });
 
@@ -24,9 +26,11 @@ class SyncCoordinatorService {
   final SyncPayloadProcessor payloadProcessor;
   final NativeNotificationService nativeNotificationService;
   final int currentUserId;
+  final CollateralExpiryChecker? collateralExpiryChecker;
   final Duration syncInterval;
 
   Timer? _periodicTimer;
+  Timer? _expiryTimer;
   StreamSubscription? _socketSubscription;
 
   /// Initiate the synchronization lifecycle
@@ -60,11 +64,22 @@ class SyncCoordinatorService {
 
     // 3. Periodic safe polling (for extreme resilience)
     _periodicTimer = Timer.periodic(syncInterval, (_) => _catchUpSync());
+
+    // 4. Schedule collateral expiry checks (every 6 hours)
+    if (collateralExpiryChecker != null) {
+      // Immediate first check
+      collateralExpiryChecker!.checkAndNotify();
+      _expiryTimer = Timer.periodic(
+        const Duration(hours: 6),
+        (_) => collateralExpiryChecker!.checkAndNotify(),
+      );
+    }
   }
 
   /// Stop sync lifecycle (e.g. app goes completely dormant or user logs out)
   void stop() {
     _periodicTimer?.cancel();
+    _expiryTimer?.cancel();
     _socketSubscription?.cancel();
     socketService.disconnect();
   }

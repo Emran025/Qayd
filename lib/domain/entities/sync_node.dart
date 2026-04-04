@@ -5,6 +5,9 @@ enum SyncEventType {
   acceptance,
   rejection,
   journalEntry,
+  attachmentSync,    // Blob reference + wrapped voucher key
+  collateralSync,    // Encrypted collateral data
+  collateralUpdate,  // Re-evaluation event
   unknown;
 
   static SyncEventType fromString(String val) {

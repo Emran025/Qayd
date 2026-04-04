@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
@@ -9,6 +10,9 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
+import 'package:qayd/presentation/widgets/attachment_picker_sheet.dart';
+import 'package:qayd/presentation/widgets/collateral_entry_sheet.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
@@ -50,6 +54,10 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   String? _hiddenTripartiteRole;
   String? _hiddenLinkedPartyId;
   bool _hiddenIsContingent = false;
+
+  // Attachment & collateral state
+  final List<XFile> _pickedImages = [];
+  CollateralInput? _collateralInput;
 
   late final AnimationController _slideController;
   late final Animation<Offset> _slideOffset;
@@ -210,6 +218,23 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     final c = await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
     if (c != null && mounted) {
       setState(() => _currencyCode = c.code);
+    }
+  }
+
+  Future<void> _pickAttachments() async {
+    final files = await AttachmentPickerSheet.show(context);
+    if (files != null && files.isNotEmpty && mounted) {
+      setState(() => _pickedImages.addAll(files));
+    }
+  }
+
+  Future<void> _addCollateral() async {
+    final input = await CollateralEntrySheet.show(
+      context,
+      currencyCode: _currencyCode,
+    );
+    if (input != null && mounted) {
+      setState(() => _collateralInput = input);
     }
   }
 
@@ -393,6 +418,162 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                             maxLines: 2,
                             textInputAction: TextInputAction.done,
                           ),
+                          const SizedBox(height: SpacingTokens.md),
+
+                          // ── Attachment & Collateral Actions ──────
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _pickAttachments,
+                                  icon: Icon(Icons.attach_file_rounded,
+                                      size: 18, color: gold),
+                                  label: Text(
+                                    'إرفاق صور',
+                                    style: TextStyle(color: gold),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                        color: gold.withValues(alpha: 0.4)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: SpacingTokens.sm),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _addCollateral,
+                                  icon: Icon(Icons.shield_rounded,
+                                      size: 18, color: gold),
+                                  label: Text(
+                                    'إضافة رهن',
+                                    style: TextStyle(color: gold),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                        color: gold.withValues(alpha: 0.4)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // ── Image thumbnails ────────────────────
+                          if (_pickedImages.isNotEmpty) ...[
+                            const SizedBox(height: SpacingTokens.sm),
+                            SizedBox(
+                              height: 72,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _pickedImages.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: SpacingTokens.xs),
+                                itemBuilder: (context, i) {
+                                  return Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                        child: Image.file(
+                                          File(_pickedImages[i].path),
+                                          width: 72,
+                                          height: 72,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 2,
+                                        right: 2,
+                                        child: GestureDetector(
+                                          onTap: () => setState(
+                                            () => _pickedImages.removeAt(i),
+                                          ),
+                                          child: Container(
+                                            padding:
+                                                const EdgeInsets.all(2),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.black54,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              size: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+
+                          // ── Collateral summary ──────────────────
+                          if (_collateralInput != null) ...[
+                            const SizedBox(height: SpacingTokens.sm),
+                            Container(
+                              padding:
+                                  const EdgeInsets.all(SpacingTokens.sm),
+                              decoration: BoxDecoration(
+                                color: gold.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: gold.withValues(alpha: 0.2)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.shield_rounded,
+                                      size: 18, color: gold),
+                                  const SizedBox(width: SpacingTokens.sm),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _collateralInput!.description,
+                                          maxLines: 1,
+                                          overflow:
+                                              TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
+                                        ),
+                                        Text(
+                                          'القيمة: ${(_collateralInput!.estimatedValueMinor / 100).toStringAsFixed(2)} $_currencyCode',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.close,
+                                        size: 18,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant),
+                                    onPressed: () => setState(
+                                      () => _collateralInput = null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
                           const SizedBox(height: SpacingTokens.xl),
                           FilledButton(
                             onPressed: submitting ? null : _submit,
