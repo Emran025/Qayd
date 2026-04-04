@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:share_plus/share_plus.dart';
@@ -84,7 +85,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
 
     if (_backupConfirmed) {
       return Scaffold(
-        appBar: AppBar(title: const Text(AppStringsAr.seedSetupTitle)),
+        appBar: QaydAppBar(title: AppStringsAr.seedSetupTitle),
         body: const Center(child: Text(AppStringsAr.seedBackupConfirmed)),
       );
     }
@@ -92,7 +93,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     final words = _mnemonic?.words ?? [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStringsAr.seedSetupTitle)),
+      appBar: QaydAppBar(title: AppStringsAr.seedSetupTitle),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(

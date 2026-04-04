@@ -15,19 +15,41 @@ class SettingsSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
       child: Column(
         children: [
-          DrawerHeader(
+          Container(
+            width: double.infinity,
+            height: 160,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
+              gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [
+                  Theme.of(context).colorScheme.tertiary,
+                  Theme.of(context).colorScheme.tertiary,
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primary,
+                ],
+                stops: const [0.0, 0.5, 0.5, 1.0],
+              ),
             ),
             child: Center(
               child: Text(
                 AppStringsAr.settingsTitle,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                          offset: const Offset(1, 1),
+                        ),
+                      ],
+                    ),
               ),
             ),
           ),

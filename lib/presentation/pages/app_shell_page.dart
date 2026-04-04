@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
-import 'package:qayd/presentation/pages/messaging/messaging_hub_page.dart';
+import 'package:qayd/presentation/pages/notifications/notifications_page.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_page.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
+
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 /// Bottom navigation between chart of accounts and vouchers (Phase 1 hub).
 class AppShellPage extends StatefulWidget {
@@ -23,8 +24,7 @@ class _AppShellPageState extends State<AppShellPage> {
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
-    return Scaffold(
-      drawer: const SettingsSidebar(),
+    return QaydScaffold(
       body: IndexedStack(
         index: _index,
         children: const [
@@ -32,7 +32,7 @@ class _AppShellPageState extends State<AppShellPage> {
           TripartiteListPage(),
           AccountListPage(),
           TrialBalancePage(),
-          MessagingHubPage(),
+          NotificationsPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(

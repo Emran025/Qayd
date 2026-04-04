@@ -5,15 +5,15 @@ import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_cubit.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_state.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
-import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class TrialBalancePage extends StatelessWidget {
   const TrialBalancePage({super.key});
@@ -34,15 +34,15 @@ class _TrialBalanceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
-
-    return Scaffold(
-      drawer: const SettingsSidebar(),
-      appBar: AppBar(
-        title: QaydText(
-          AppStringsAr.trialBalanceTitle,
-          slot: QaydTextStyleSlot.titleLarge,
+    return QaydScaffold(
+      appBar: QaydAppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
+        title: AppStringsAr.trialBalanceTitle,
         actions: [
           BlocBuilder<TrialBalanceCubit, TrialBalanceState>(
             builder: (context, state) {
@@ -56,23 +56,6 @@ class _TrialBalanceView extends StatelessWidget {
             },
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3),
-          child: Container(
-            height: 3,
-            margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: LinearGradient(
-                colors: [
-                  gold.withValues(alpha: 0.85),
-                  gold.withValues(alpha: 0.12),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
       body: BlocBuilder<TrialBalanceCubit, TrialBalanceState>(
         builder: (context, state) {
@@ -153,43 +136,58 @@ class _TrialBalanceTable extends StatelessWidget {
       }
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        SpacingTokens.sm,
-        SpacingTokens.sm,
-        SpacingTokens.sm,
-        SpacingTokens.xxl,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: scheme.outlineVariant),
+    return grouped.entries.isEmpty
+        ? Center(
+            child: Padding(
+              padding: const EdgeInsets.all(SpacingTokens.xxl),
+              child: QaydText(
+                AppStringsAr.trialBalanceEmpty,
+                slot: QaydTextStyleSlot.bodyLarge,
+                textAlign: TextAlign.center,
+                color: scheme.onSurfaceVariant,
+              ),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: Table(
-              columnWidths: const {
-                0: FlexColumnWidth(12),
-                1: FlexColumnWidth(9),
-                2: FlexColumnWidth(5),
-              },
-              border: TableBorder.all(color: scheme.outlineVariant, width: 1),
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          )
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SpacingTokens.sm,
+              SpacingTokens.sm,
+              SpacingTokens.sm,
+              SpacingTokens.xxl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildHeaderRow(scheme),
-                for (final entry in grouped.entries)
-                  _buildDataRow(context, entry.key, entry.value),
+                Container(
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: scheme.outlineVariant),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(12),
+                      1: FlexColumnWidth(9),
+                      2: FlexColumnWidth(5),
+                    },
+                    border: TableBorder.all(
+                      color: scheme.outlineVariant,
+                      width: 1,
+                    ),
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    children: [
+                      _buildHeaderRow(scheme),
+                      for (final entry in grouped.entries)
+                        _buildDataRow(context, entry.key, entry.value),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: SpacingTokens.xl),
+                _MultiCurrencyFooter(output: output),
               ],
             ),
-          ),
-          const SizedBox(height: SpacingTokens.xl),
-          _MultiCurrencyFooter(output: output),
-        ],
-      ),
-    );
+          );
   }
 
   TableRow _buildHeaderRow(ColorScheme scheme) {

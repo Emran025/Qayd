@@ -5,6 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
@@ -321,12 +322,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
           final submitting = state is VoucherCreateSubmitting;
 
           return Scaffold(
-            appBar: AppBar(
-              title: QaydText(
-                AppStringsAr.voucherNewTitle,
-                slot: QaydTextStyleSlot.titleLarge,
-              ),
-            ),
+            appBar: QaydAppBar(title: AppStringsAr.voucherNewTitle),
             body: AbsorbPointer(
               absorbing: submitting,
               child: Form(

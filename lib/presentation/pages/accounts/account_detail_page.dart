@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
@@ -29,13 +30,11 @@ class AccountDetailPage extends StatelessWidget {
     return BlocBuilder<AccountDetailCubit, AccountDetailState>(
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(
-            title: QaydText(
-              state is AccountDetailReady
-                  ? state.data.name
-                  : AppStringsAr.accountDetailTitle,
-              slot: QaydTextStyleSlot.titleLarge,
-            ),
+          appBar: QaydAppBar(
+            title: state is AccountDetailReady
+                ? state.data.name
+                : AppStringsAr.accountDetailTitle,
+            
             actions: [
               if (state is AccountDetailReady) ...[
                 IconButton(

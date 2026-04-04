@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/domain/entities/inbox_notification.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+
 /// Centralized inbox for all incoming interactions (مركز الإشعارات)
 /// Displaying pending requests, unread vouchers, and status shifts.
 class NotificationsPage extends StatelessWidget {
@@ -33,21 +37,23 @@ class NotificationsPage extends StatelessWidget {
     ];
 
     final theme = Theme.of(context);
-    
-    return Scaffold(
+
+    return QaydScaffold(
+      appBar: QaydAppBar(title: AppStringsAr.messagingInboxTab),
       body: mockNotifications.isEmpty
           ? Center(
               child: Text(
                 'لا توجد إشعارات جديدة',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             )
           : ListView.separated(
               padding: const EdgeInsets.all(SpacingTokens.md),
               itemCount: mockNotifications.length,
-              separatorBuilder: (_, __) => const SizedBox(height: SpacingTokens.sm),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: SpacingTokens.sm),
               itemBuilder: (context, index) {
                 final notif = mockNotifications[index];
                 return _NotificationTile(notification: notif);
@@ -69,7 +75,9 @@ class _NotificationTile extends StatelessWidget {
     final isUnread = !notification.isRead;
 
     return Material(
-      color: isUnread ? theme.colorScheme.primary.withOpacity(0.05) : theme.colorScheme.surface,
+      color: isUnread
+          ? theme.colorScheme.primary.withOpacity(0.05)
+          : theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(RadiusTokens.md),
       child: InkWell(
         onTap: () {
@@ -107,14 +115,14 @@ class _NotificationTile extends StatelessWidget {
                         Text(
                           notification.senderName,
                           style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         Text(
                           '${notification.receivedAt.hour}:${notification.receivedAt.minute.toString().padLeft(2, '0')}',
                           style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -122,15 +130,17 @@ class _NotificationTile extends StatelessWidget {
                     Text(
                       notification.title,
                       style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
-                          ),
+                        fontWeight: isUnread
+                            ? FontWeight.bold
+                            : FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: SpacingTokens.xs),
                     Text(
                       notification.body,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),

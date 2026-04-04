@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/settings/currency_management_screen.dart';
@@ -11,14 +12,15 @@ class CurrencySettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStringsAr.settingsGroupCurrency),
-      ),
+      appBar: QaydAppBar(title: AppStringsAr.settingsGroupCurrency),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
           ListTile(
-            leading: Icon(Icons.currency_exchange_rounded, color: Theme.of(context).colorScheme.primary),
+            leading: Icon(
+              Icons.currency_exchange_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             title: const Text('إعدادات العملات الأساسية'),
             subtitle: const Text('إدارة العملات والعملة الافتراضية للتطبيق.'),
             trailing: const Icon(Icons.chevron_right),
@@ -54,9 +56,9 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }

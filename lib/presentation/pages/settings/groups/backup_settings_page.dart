@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/settings/auto_backup_settings_section.dart';
 import 'package:qayd/presentation/pages/settings/drive_backup_section.dart';
@@ -15,9 +16,7 @@ class BackupSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStringsAr.settingsGroupBackup),
-      ),
+      appBar: QaydAppBar(title: AppStringsAr.settingsGroupBackup),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
@@ -78,9 +77,9 @@ class BackupSettingsPage extends StatelessWidget {
     final r = await InjectionContainer.backupService.shareDatabaseBackup();
     if (!context.mounted) return;
     if (r.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
     }
   }
 
@@ -113,9 +112,9 @@ class BackupSettingsPage extends StatelessWidget {
     final r = await InjectionContainer.backupService.saveBackupCopyToPath(path);
     if (!context.mounted) return;
     if (r.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text(AppStringsAr.settingsBackupSaved)),
@@ -131,9 +130,9 @@ class BackupSettingsPage extends StatelessWidget {
     final v = await InjectionContainer.backupService.validateBackupFile(path);
     if (!context.mounted) return;
     if (v.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(v.failureOrNull!.messageAr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(v.failureOrNull!.messageAr)));
       return;
     }
 
@@ -192,9 +191,9 @@ class BackupSettingsPage extends StatelessWidget {
     }
     if (context.mounted) {
       if (r.isFailure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(r.failureOrNull!.messageAr)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStringsAr.settingsRestoreDone)),
@@ -221,9 +220,9 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         text,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }

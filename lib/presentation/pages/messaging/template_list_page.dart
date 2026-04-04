@@ -4,6 +4,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/message_template.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_cubit.dart';
@@ -35,9 +36,7 @@ class _TemplateListScaffold extends StatelessWidget {
   Future<void> _openCreate(BuildContext context) async {
     var kind = MessageTemplateKind.receipt;
     final nameCtrl = TextEditingController();
-    final bodyCtrl = TextEditingController(
-      text: 'عزيزي {{customer}}،\n',
-    );
+    final bodyCtrl = TextEditingController(text: 'عزيزي {{customer}}،\n');
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -126,9 +125,9 @@ class _TemplateListScaffold extends StatelessWidget {
       return;
     }
     if (r.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
       return;
     }
     await context.read<TemplateListCubit>().load();
@@ -142,10 +141,7 @@ class _TemplateListScaffold extends StatelessWidget {
     };
   }
 
-  Future<void> _edit(
-    BuildContext context,
-    MessageTemplate t,
-  ) async {
+  Future<void> _edit(BuildContext context, MessageTemplate t) async {
     final nameCtrl = TextEditingController(text: t.name);
     final bodyCtrl = TextEditingController(text: t.body);
     final ok = await showDialog<bool>(
@@ -209,16 +205,13 @@ class _TemplateListScaffold extends StatelessWidget {
       return;
     }
     if (r.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
     }
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    MessageTemplate t,
-  ) async {
+  Future<void> _confirmDelete(BuildContext context, MessageTemplate t) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -250,9 +243,9 @@ class _TemplateListScaffold extends StatelessWidget {
       return;
     }
     if (r.isFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
     }
   }
 
@@ -261,91 +254,107 @@ class _TemplateListScaffold extends StatelessWidget {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return Scaffold(
+      appBar: QaydAppBar(
+        title: AppStringsAr.notificationTemplatesTitle,
+        actions: [
+          IconButton(
+            tooltip: AppStringsAr.retryAction,
+            onPressed: () => context.read<TemplateListCubit>().load(),
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ],
+      ),
       body: BlocBuilder<TemplateListCubit, TemplateListState>(
         builder: (context, state) {
           return switch (state) {
             TemplateListLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: CircularProgressIndicator(),
+            ),
             TemplateListFailure(:final failure) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(SpacingTokens.lg),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      QaydText(
-                        failure.messageAr,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: SpacingTokens.md),
-                      FilledButton.tonal(
-                        onPressed: () =>
-                            context.read<TemplateListCubit>().load(),
-                        child: Text(AppStringsAr.retryAction),
-                      ),
-                    ],
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.all(SpacingTokens.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    QaydText(
+                      failure.messageAr,
+                      slot: QaydTextStyleSlot.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: SpacingTokens.md),
+                    FilledButton.tonal(
+                      onPressed: () => context.read<TemplateListCubit>().load(),
+                      child: Text(AppStringsAr.retryAction),
+                    ),
+                  ],
                 ),
               ),
-            TemplateListReady(:final templates) => templates.isEmpty
-                ? Center(
-                    child: QaydText(
-                      AppStringsAr.notificationNoTemplates,
-                      slot: QaydTextStyleSlot.bodyLarge,
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(
-                      SpacingTokens.md,
-                      SpacingTokens.sm,
-                      SpacingTokens.md,
-                      SpacingTokens.xxl,
-                    ),
-                    itemCount: templates.length,
-                    itemBuilder: (context, i) {
-                      final t = templates[i];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
-                        child: Card(
-                          child: ListTile(
-                            title: QaydText(
-                              t.name,
-                              slot: QaydTextStyleSlot.titleSmall,
-                            ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: SpacingTokens.xs),
-                              child: QaydText(
-                                _kindLabel(t.kind),
-                                slot: QaydTextStyleSlot.bodySmall,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (!t.isSystem)
-                                  IconButton(
-                                    tooltip: AppStringsAr.templateDeleteTitle,
-                                    icon: const Icon(Icons.delete_outline_rounded),
-                                    onPressed: () =>
-                                        _confirmDelete(context, t),
-                                  ),
-                                IconButton(
-                                  tooltip: AppStringsAr.templateEditTitle,
-                                  icon: Icon(Icons.edit_rounded, color: gold),
-                                  onPressed: () => _edit(context, t),
-                                ),
-                              ],
-                            ),
-                            onTap: () => _edit(context, t),
+            ),
+            TemplateListReady(:final templates) =>
+              templates.isEmpty
+                  ? Center(
+                      child: QaydText(
+                        AppStringsAr.notificationNoTemplates,
+                        slot: QaydTextStyleSlot.bodyLarge,
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(
+                        SpacingTokens.md,
+                        SpacingTokens.sm,
+                        SpacingTokens.md,
+                        SpacingTokens.xxl,
+                      ),
+                      itemCount: templates.length,
+                      itemBuilder: (context, i) {
+                        final t = templates[i];
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: SpacingTokens.sm,
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                          child: Card(
+                            child: ListTile(
+                              title: QaydText(
+                                t.name,
+                                slot: QaydTextStyleSlot.titleSmall,
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(
+                                  top: SpacingTokens.xs,
+                                ),
+                                child: QaydText(
+                                  _kindLabel(t.kind),
+                                  slot: QaydTextStyleSlot.bodySmall,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (!t.isSystem)
+                                    IconButton(
+                                      tooltip: AppStringsAr.templateDeleteTitle,
+                                      icon: const Icon(
+                                        Icons.delete_outline_rounded,
+                                      ),
+                                      onPressed: () =>
+                                          _confirmDelete(context, t),
+                                    ),
+                                  IconButton(
+                                    tooltip: AppStringsAr.templateEditTitle,
+                                    icon: Icon(Icons.edit_rounded, color: gold),
+                                    onPressed: () => _edit(context, t),
+                                  ),
+                                ],
+                              ),
+                              onTap: () => _edit(context, t),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
           };
         },
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_page.dart';
@@ -10,9 +11,7 @@ class TemplatesSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStringsAr.settingsGroupTemplates),
-      ),
+      appBar: QaydAppBar(title: AppStringsAr.settingsGroupTemplates),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [

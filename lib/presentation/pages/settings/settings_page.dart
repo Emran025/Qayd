@@ -16,18 +16,17 @@ import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/excel_data_export.dart';
 import 'package:qayd/presentation/utils/share_export_bytes.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return QaydScaffold(
       appBar: AppBar(
         title: Text(AppStringsAr.settingsTitle),
       ),
-      drawer: const SettingsSidebar(),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [

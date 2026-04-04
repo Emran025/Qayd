@@ -172,6 +172,8 @@ abstract final class AppStringsAr {
   static const String trialBalanceNotBalanced =
       'غير متوازن — يوجد فرق يجب مراجعته.';
   static const String trialBalanceImbalanceLabel = 'الفرق (مدين − دائن):';
+  static const String trialBalanceEmpty =
+      'ميزان المراجعة فارغ — لا توجد أي عمليات مالية مسجلة بعد.';
   static const String voucherReferenceLabel = 'المرجع';
   static const String voucherNotesLabel = 'ملاحظات';
 

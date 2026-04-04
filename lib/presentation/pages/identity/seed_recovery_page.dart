@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 
 class SeedRecoveryPage extends StatefulWidget {
@@ -58,7 +59,7 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStringsAr.seedRecoveryTitle)),
+      appBar: QaydAppBar(title: AppStringsAr.seedRecoveryTitle),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(

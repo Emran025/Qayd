@@ -7,6 +7,7 @@ import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -23,7 +24,7 @@ import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class TripartiteListPage extends StatelessWidget {
   const TripartiteListPage({super.key});
@@ -97,13 +98,15 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
-    return Scaffold(
-      drawer: const SettingsSidebar(),
-      appBar: AppBar(
-        title: QaydText(
-          AppStringsAr.navTripartiteTab,
-          slot: QaydTextStyleSlot.titleLarge,
+    return QaydScaffold(
+      appBar: QaydAppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
+        title: AppStringsAr.navTripartiteTab,
         actions: [
           IconButton(
             tooltip: AppStringsAr.qrScannerTitle,
@@ -116,23 +119,6 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
             icon: const Icon(Icons.tune_rounded),
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3),
-          child: Container(
-            height: 3,
-            margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: LinearGradient(
-                colors: [
-                  gold.withValues(alpha: 0.85),
-                  gold.withValues(alpha: 0.12),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_tripartite_list',

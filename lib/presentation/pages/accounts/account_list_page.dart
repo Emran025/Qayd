@@ -5,6 +5,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -22,7 +23,7 @@ import 'package:qayd/presentation/pages/accounts/account_list_state.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class AccountListPage extends StatelessWidget {
   const AccountListPage({super.key});
@@ -111,30 +112,15 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
-    return Scaffold(
-      drawer: const SettingsSidebar(),
-      appBar: AppBar(
-        title: QaydText(
-          AppStringsAr.chartOfAccountsTitle,
-          slot: QaydTextStyleSlot.titleLarge,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3),
-          child: Container(
-            height: 3,
-            margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: LinearGradient(
-                colors: [
-                  gold.withValues(alpha: 0.9),
-                  gold.withValues(alpha: 0.15),
-                  Colors.transparent,
-                ],
-              ),
-            ),
+    return QaydScaffold(
+      appBar: QaydAppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
+        title: AppStringsAr.chartOfAccountsTitle,
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_account_list',

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/create_account_input.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -146,9 +147,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
         final submitting = state is AccountCreateSubmitting;
 
         return Scaffold(
-          appBar: AppBar(
-            title: QaydText(title, slot: QaydTextStyleSlot.titleLarge),
-          ),
+          appBar: QaydAppBar(title: title),
           body: AbsorbPointer(
             absorbing: submitting,
             child: Form(

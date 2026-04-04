@@ -9,6 +9,7 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -24,7 +25,6 @@ import 'package:qayd/presentation/pages/vouchers/voucher_filter_sheet.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_qr_scanner_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
-import 'package:qayd/presentation/widgets/settings_sidebar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -294,12 +294,14 @@ class _VoucherListViewState extends State<_VoucherListView> {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return Scaffold(
-      drawer: const SettingsSidebar(),
-      appBar: AppBar(
-        title: QaydText(
-          AppStringsAr.voucherListTitle,
-          slot: QaydTextStyleSlot.titleLarge,
+      appBar: QaydAppBar(
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
+        title: AppStringsAr.voucherListTitle,
         actions: [
           IconButton(
             tooltip: AppStringsAr.qrScannerTitle,
@@ -313,23 +315,6 @@ class _VoucherListViewState extends State<_VoucherListView> {
           ),
           // const SettingsAppBarAction(),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3),
-          child: Container(
-            height: 3,
-            margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: LinearGradient(
-                colors: [
-                  gold.withValues(alpha: 0.85),
-                  gold.withValues(alpha: 0.12),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_voucher_list',

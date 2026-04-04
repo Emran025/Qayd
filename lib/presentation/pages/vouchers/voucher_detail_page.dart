@@ -5,6 +5,7 @@ import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -64,13 +65,11 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(
-            title: QaydText(
-              state is VoucherDetailReady
-                  ? AppStringsAr.voucherDetailTitle
-                  : AppStringsAr.voucherDetailTitle,
-              slot: QaydTextStyleSlot.titleLarge,
-            ),
+          appBar: QaydAppBar(
+            title: state is VoucherDetailReady
+                ? AppStringsAr.voucherDetailTitle
+                : AppStringsAr.voucherDetailTitle,
+          
             actions: [
               if (state is VoucherDetailReady) ...[
                 IconButton(
