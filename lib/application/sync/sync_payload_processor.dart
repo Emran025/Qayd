@@ -41,6 +41,7 @@ class SyncPayloadProcessor {
     required this.attachmentRepository,
     required this.collateralRepository,
     required this.voucherKeyService,
+    this.onDecryptionFailure,
   });
 
   final IdentityRepository identityRepository;
@@ -53,6 +54,7 @@ class SyncPayloadProcessor {
   final AttachmentRepository attachmentRepository;
   final CollateralRepository collateralRepository;
   final VoucherKeyService voucherKeyService;
+  final void Function(String nodeId)? onDecryptionFailure;
 
   /// Ingests a list of pushed/pulled encrypted sync nodes
   Future<void> processIncomingNodes(List<SyncNode> nodes) async {
@@ -80,11 +82,18 @@ class SyncPayloadProcessor {
         final counterpartPublicKey = counterpartIdentityResult.publicKeyHex;
 
         // 2. Decrypt Payload Enclave
-        final decryptedRawPayload = await e2eeService.decryptPayload(
-          encryptedPayload: node.encryptedPayload,
-          receiverKeyPair: myKeyPair,
-          senderPublicKeyHex: counterpartPublicKey,
-        );
+        late final Map<String, dynamic> decryptedRawPayload;
+        try {
+          decryptedRawPayload = await e2eeService.decryptPayload(
+            encryptedPayload: node.encryptedPayload,
+            receiverKeyPair: myKeyPair,
+            senderPublicKeyHex: counterpartPublicKey,
+          );
+        } catch (e) {
+          debugPrint('Decryption failed for SyncNode [${node.id}]: $e');
+          onDecryptionFailure?.call(node.id);
+          continue; // Skip this node
+        }
 
         // 3. Process Domain Actions Structurally with Signatures
         switch (node.eventType) {

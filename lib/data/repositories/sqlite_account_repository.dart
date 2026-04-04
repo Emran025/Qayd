@@ -263,4 +263,14 @@ ORDER BY a.name COLLATE NOCASE
       );
     }
   }
+
+  @override
+  Future<Result<bool>> hasAnyAccounts() async {
+    try {
+      final rows = await _db.rawQuery('SELECT 1 FROM $_table LIMIT 1');
+      return Success(rows.isNotEmpty);
+    } catch (_) {
+      return const Success(false);
+    }
+  }
 }

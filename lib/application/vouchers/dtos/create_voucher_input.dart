@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
 class CreateVoucherInput {
@@ -15,6 +16,7 @@ class CreateVoucherInput {
     this.tripartiteRole,
     this.linkedPartyId,
     this.isContingent = false,
+    this.attachments = const [],
   });
 
   final VoucherType type;
@@ -30,4 +32,5 @@ class CreateVoucherInput {
   final String? tripartiteRole;
   final String? linkedPartyId;
   final bool isContingent;
+  final List<XFile> attachments;
 }

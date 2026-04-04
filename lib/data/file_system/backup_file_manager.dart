@@ -23,14 +23,50 @@ final class BackupFileManager {
   }
 
   /// External backup directory (survives uninstall on Android).
+  ///
+  /// On Android, this uses the /Android/media/pkg_name/ folder which is
+  /// often preserved during app updates or quick re-installs.
   /// Returns `null` on non-Android platforms.
   Future<Directory?> externalBackupDir() async {
     Directory? extDir;
     if (Platform.isAndroid) {
-      extDir = await getExternalStorageDirectory();
+      // Logic from AutoBackupService to find the media folder
+      final paths = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      if (paths != null && paths.isNotEmpty) {
+        final parts = p.split(paths.first.path);
+        final androidIdx = parts.indexOf('Android');
+        if (androidIdx != -1 && androidIdx + 1 < parts.length) {
+          final pkgName = parts[androidIdx + 2];
+          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()..addAll(['media', pkgName]));
+          extDir = Directory(mediaRoot);
+        }
+      }
     }
     if (extDir == null) return null;
     final dir = Directory(p.join(extDir.path, backupDirName));
+    if (!dir.existsSync()) await dir.create(recursive: true);
+    return dir;
+  }
+
+  /// External images directory for voucher attachments (survives uninstall on Android).
+  Future<Directory?> externalImagesDir() async {
+    Directory? extDir;
+    if (Platform.isAndroid) {
+      final paths = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      if (paths != null && paths.isNotEmpty) {
+        final parts = p.split(paths.first.path);
+        final androidIdx = parts.indexOf('Android');
+        if (androidIdx != -1 && androidIdx + 1 < parts.length) {
+          final pkgName = parts[androidIdx + 2];
+          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()..addAll(['media', pkgName]));
+          extDir = Directory(mediaRoot);
+        }
+      }
+    }
+    
+    // Default to app documents/images if external is unavailable
+    final base = extDir ?? await getApplicationDocumentsDirectory();
+    final dir = Directory(p.join(base.path, 'qayd_images'));
     if (!dir.existsSync()) await dir.create(recursive: true);
     return dir;
   }

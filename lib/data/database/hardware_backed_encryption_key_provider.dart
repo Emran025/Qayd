@@ -33,7 +33,7 @@ final class HardwareBackedEncryptionKeyProvider
 
   @override
   Future<String> obtainKey() async {
-    // Return cached derived key if available (key is stable per-device).
+    // Return cached derived key if available.
     final cached = await _storage.read(key: _kDerivedKey);
     if (cached != null && cached.isNotEmpty) return cached;
 
@@ -41,6 +41,23 @@ final class HardwareBackedEncryptionKeyProvider
     final key = await _deriveKey();
     await _storage.write(key: _kDerivedKey, value: key);
     return key;
+  }
+
+  /// Explicitly derives a DB key from a mnemonic.
+  /// Used during restoration if no key file is found.
+  Future<String> deriveKeyFromMnemonic(String mnemonicPhrase) async {
+    final hardwareId = await _hardwareIdService.obtainHardwareId();
+    // Deterministic entropy based on mnemonic + hardwareId
+    return Pbkdf2KeyDeriver.derive(
+      password: mnemonicPhrase,
+      salt: 'qayd_db_salt_$hardwareId',
+    );
+  }
+
+  /// Updates the cached key in secure storage.
+  /// Used after a successful restore with a custom key.
+  Future<void> updateCachedKey(String key) async {
+    await _storage.write(key: _kDerivedKey, value: key);
   }
 
   Future<String> _deriveKey() async {

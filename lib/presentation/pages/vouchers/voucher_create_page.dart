@@ -285,12 +285,11 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       tripartiteRole: _hiddenTripartiteRole,
       linkedPartyId: _hiddenLinkedPartyId,
       isContingent: _hiddenIsContingent,
+      attachments: _pickedImages,
     );
 
     await context.read<VoucherCreateCubit>().submit(input);
   }
-
-
 
   String _typeLabel(VoucherType t) =>
       t == VoucherType.receipt

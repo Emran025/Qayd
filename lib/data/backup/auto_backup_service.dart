@@ -13,7 +13,7 @@ import 'package:share_plus/share_plus.dart';
 ///
 /// Behaviour (mirrors WhatsApp's local backup model):
 /// - Runs a daily backup to [qayd_backups/] inside the app documents directory.
-/// - **Also copies to external storage** (survives reinstall on Android).
+/// - **Also copies to external storage** (survives reinstall on Android using media folder).
 /// - Keeps at most [_maxKeepCount] daily snapshots in each location; older ones
 ///   are pruned.
 /// - Alongside the DB, the backup includes the identity file ([qayd_identity.dat])
@@ -89,6 +89,8 @@ final class AutoBackupService {
 
   Future<void> _runBackup() async {
     final srcPath = await DatabaseProvider.databaseFilePath();
+    if (!File(srcPath).existsSync()) return;
+
     final stamp = DateFormat('yyyyMMdd').format(DateTime.now());
     final dbFileName = 'qayd_backup_$stamp.db';
 
@@ -150,13 +152,27 @@ final class AutoBackupService {
   }
 
   /// Returns the external backup directory. On Android this persists across
-  /// reinstalls without needing WRITE_EXTERNAL_STORAGE on Android 10+.
+  /// reinstalls without needing WRITE_EXTERNAL_STORAGE on Android 10+ (using media folder).
   /// Returns null if not available.
   Future<Directory?> _externalBackupDir() async {
     Directory? extDir;
     if (Platform.isAndroid) {
-      extDir = await getExternalStorageDirectory();
+      // Use the media directory as it's more likely to survive app uninstallation
+      // than the standard data folder on many Android builds.
+      final paths = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      if (paths != null && paths.isNotEmpty) {
+        // e.g. /storage/emulated/0/Android/data/com.example.app/files/Documents
+        // We want to transform this into /storage/emulated/0/Android/media/com.example.app/
+        final parts = p.split(paths.first.path);
+        final androidIdx = parts.indexOf('Android');
+        if (androidIdx != -1 && androidIdx + 1 < parts.length) {
+          final pkgName = parts[androidIdx + 2]; // com.example.app
+          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()..addAll(['media', pkgName]));
+          extDir = Directory(mediaRoot);
+        }
+      }
     }
+    
     if (extDir == null) return null;
     final dir = Directory(p.join(extDir.path, _backupDirName));
     if (!dir.existsSync()) await dir.create(recursive: true);
@@ -177,23 +193,57 @@ final class AutoBackupService {
     }
   }
 
+  // ── Recovery / Discovery ──────────────────────────────────────────────────
+
+  /// Finds the latest available local backup across all known locations.
+  /// Used during app reinstall to offer restoration.
+  Future<File?> latestLocalBackup() async {
+    final internalDir = await _localBackupDir();
+    final externalDir = await _externalBackupDir();
+    
+    final allFiles = <File>[];
+    if (internalDir.existsSync()) {
+      allFiles.addAll(internalDir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+    }
+    if (externalDir != null && externalDir.existsSync()) {
+      allFiles.addAll(externalDir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+    }
+
+    if (allFiles.isEmpty) return null;
+
+    allFiles.sort((a, b) => b.path.compareTo(a.path)); // Newest first by timestamp in name
+    return allFiles.first;
+  }
+
+  /// Attempts to find the DB encryption key file alongside the given backup file.
+  Future<String?> findKeyForBackup(File backupFile) async {
+    final dir = backupFile.parent;
+    final keyFile = File(p.join(dir.path, _dbKeyFileName));
+    if (keyFile.existsSync()) {
+      return keyFile.readAsString();
+    }
+    return null;
+  }
+
+  /// Attempts to find the identity file alongside the given backup file.
+  Future<File?> findIdentityForBackup(File backupFile) async {
+    final dir = backupFile.parent;
+    final idFile = File(p.join(dir.path, _identityFileName));
+    if (idFile.existsSync()) return idFile;
+    return null;
+  }
+
   // ── Save to external storage ──────────────────────────────────────────────
 
   /// Copies the latest backup (or creates one) to the external app directory.
   ///
-  /// On Android this is [getExternalStorageDirectory], which persists across
-  /// app data clears on Android 10+ without requiring WRITE_EXTERNAL_STORAGE.
+  /// On Android this is the persistent media directory.
   /// On iOS it falls back to the documents directory.
   Future<Result<String>> saveToExternalStorage() async {
     try {
       final srcPath = await DatabaseProvider.databaseFilePath();
-      Directory? extDir;
-      if (Platform.isAndroid) {
-        extDir = await getExternalStorageDirectory();
-      }
-      final baseDir = extDir ?? await getApplicationDocumentsDirectory();
-      final backupFolder = Directory(p.join(baseDir.path, _backupDirName));
-      if (!backupFolder.existsSync()) await backupFolder.create(recursive: true);
+      final backupFolder = await _externalBackupDir() ?? await _localBackupDir();
+      
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final destPath = p.join(backupFolder.path, 'qayd_backup_$stamp.db');
       await File(srcPath).copy(destPath);
@@ -215,6 +265,9 @@ final class AutoBackupService {
   Future<Result<void>> shareBackup() async {
     try {
       final srcPath = await DatabaseProvider.databaseFilePath();
+      if (!File(srcPath).existsSync()) {
+        return const FailureResult(FileSystemFailure(messageAr: 'قاعدة البيانات غير موجودة.'));
+      }
       final tmpDir = await getTemporaryDirectory();
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final tmp = p.join(tmpDir.path, 'qayd_backup_$stamp.db');
@@ -236,12 +289,17 @@ final class AutoBackupService {
   Future<List<File>> listLocalBackups() async {
     try {
       final dir = await _localBackupDir();
-      final files = dir
-          .listSync()
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.db'))
-          .toList()
-        ..sort((a, b) => b.path.compareTo(a.path));
+      final extDir = await _externalBackupDir();
+      
+      final files = <File>[];
+      if (dir.existsSync()) {
+        files.addAll(dir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+      }
+      if (extDir != null && extDir.existsSync()) {
+        files.addAll(extDir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+      }
+      
+      files.sort((a, b) => b.path.compareTo(a.path));
       return files;
     } catch (_) {
       return [];

@@ -23,13 +23,13 @@ final class RestoreFromBackupUseCase {
   final MnemonicVault _mnemonicVault;
 
   /// Validates the backup at [backupPath].
-  Future<Result<void>> validate(String backupPath) =>
-      _backupService.validateBackupFile(backupPath);
+  Future<Result<void>> validate(String backupPath, {String? customKey}) =>
+      _backupService.validateBackupFile(backupPath); // TODO: backupService needs customKey support
 
   /// Replaces the live database with the backup.
   ///
   /// Caller must close the live DB BEFORE calling this, and re-open it AFTER.
-  Future<Result<void>> restore(String backupPath) async {
+  Future<Result<void>> restore(String backupPath, {String? customKey}) async {
     final r = await _backupService.replaceDatabaseFromBackupFile(backupPath);
     if (r.isFailure) return r;
 

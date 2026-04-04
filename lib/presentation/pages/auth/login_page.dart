@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_error_banner.dart';
 import 'package:qayd/presentation/components/auth/auth_field.dart';
@@ -10,6 +12,7 @@ import 'package:qayd/presentation/components/auth/password_toggle_icon.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/auth/password_reset_page.dart';
 import 'package:qayd/presentation/pages/auth/register_page.dart';
+import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -58,6 +61,33 @@ class _LoginPageState extends State<LoginPage> {
         );
 
     if (!mounted) return;
+
+    if (result.success) {
+      // Provisioning success — now check for backups before BLoC emission swaps the UI.
+      // NOTE: SecurityCubit emits the new state at the end of provisionDevice, 
+      // but Flutter's build cycle happens after the current task.
+      
+      final restoreCubit = InjectionContainer.restoreCubit;
+      await restoreCubit.checkBackups();
+
+      if (restoreCubit.state is RestoreFound && mounted) {
+        final restored = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BlocProvider.value(
+              value: restoreCubit,
+              child: const RestoreDiscoveryPage(),
+            ),
+          ),
+        );
+
+        if (restored == true) {
+          // Re-open DB with restored file
+          await InjectionContainer.reopenDatabaseAfterRestore();
+        }
+      }
+    }
+
     setState(() => _loading = false);
     if (!result.success) setState(() => _errorAr = result.errorAr);
   }

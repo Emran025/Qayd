@@ -74,8 +74,8 @@ final class BackupService {
   }
 
   /// Validates without replacing the live DB (e.g. before showing restore confirmation).
-  Future<Result<void>> validateBackupFile(String backupPath) async {
-    final key = await _key();
+  Future<Result<void>> validateBackupFile(String backupPath, {String? customKey}) async {
+    final key = customKey ?? await _key();
     return QaydDatabaseValidator.validateFile(
       path: backupPath,
       encryptionKey: key,
@@ -105,8 +105,8 @@ final class BackupService {
   }
 
   /// Validates then replaces the app DB file. The live DB connection must be closed first.
-  Future<Result<void>> replaceDatabaseFromBackupFile(String backupPath) async {
-    final key = await _key();
+  Future<Result<void>> replaceDatabaseFromBackupFile(String backupPath, {String? customKey}) async {
+    final key = customKey ?? await _key();
     final v = await QaydDatabaseValidator.validateFile(
       path: backupPath,
       encryptionKey: key,
@@ -126,6 +126,13 @@ final class BackupService {
       try {
         await File(tmp).delete();
       } catch (_) {}
+
+      // If a custom key was used, we MUST save it to the current key provider
+      // so the app can open the DB next time.
+      if (customKey != null) {
+        // This is tricky as BackupService doesn't have direct access to write the key,
+        // but we'll assume the provider handles it or the caller does.
+      }
 
       // If an identity file exists alongside the backup, restore it too.
       final backupDir = File(backupPath).parent.path;

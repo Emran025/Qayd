@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:qayd/core/constants/app_constants.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
+import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/auth/login_page.dart';
 import 'package:qayd/presentation/pages/governance/governance_host_page.dart';
@@ -34,6 +35,9 @@ void main() async {
             InjectionContainer.checkGovernanceStatusUseCase,
             InjectionContainer.submitActivationUseCase,
           )..scheduleBackgroundVerification(),
+        ),
+        BlocProvider<SyncStatusCubit>(
+          create: (_) => InjectionContainer.syncStatusCubit,
         ),
       ],
       child: const SecurityLifecycleObserver(child: QaydApp()),

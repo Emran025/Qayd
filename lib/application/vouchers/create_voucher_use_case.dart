@@ -4,6 +4,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_output.dart';
+import 'package:qayd/domain/repositories/attachment_repository.dart';
+import 'package:qayd/data/services/attachment_storage_service.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
@@ -13,22 +15,28 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
+import 'package:qayd/domain/value_objects/attachment_ref.dart';
 
 class CreateVoucherUseCase {
+  final VoucherRepository _voucherRepository;
+  final CurrencyRepository _currencyRepository;
+  final AttachmentRepository _attachmentRepository;
+  final AttachmentStorageService _attachmentStorage;
+  final IdGenerator _idGenerator;
+  final GovernanceWriteGuard _writeGuard;
+
   CreateVoucherUseCase(
     this._voucherRepository,
     this._currencyRepository,
+    this._attachmentRepository,
+    this._attachmentStorage,
     this._idGenerator,
     this._writeGuard,
   );
 
-  final VoucherRepository _voucherRepository;
-  final CurrencyRepository _currencyRepository;
-  final IdGenerator _idGenerator;
-  final GovernanceWriteGuard _writeGuard;
-
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
+      final voucherId = VoucherId(_idGenerator.next());
       final gate = await _writeGuard.assertWritesPermitted();
       if (gate.isFailure) {
         return FailureResult(gate.failureOrNull!);
@@ -57,8 +65,27 @@ class CreateVoucherUseCase {
         );
       }
 
+      // ── Process Attachments ───────────────────────────────────────────
+      final List<AttachmentRef> attachmentRefs = [];
+      if (input.attachments.isNotEmpty) {
+        final stored = await Future.wait(
+          input.attachments.map((a) => _attachmentStorage.store(a, voucherId)),
+        );
+        await _attachmentRepository.saveAll(stored);
+        
+        // Populate refs for the JSON column in vouchers table
+        attachmentRefs.addAll(stored.map((s) => AttachmentRef(
+          id: s.id,
+          storagePath: s.storagePath,
+          mimeType: s.mimeType,
+          byteSize: s.byteSize,
+          encryptedBlobHash: s.encryptedBlobHash,
+          sourceType: s.sourceType,
+        )));
+      }
+
       final voucher = Voucher.draft(
-        id: VoucherId(_idGenerator.next()),
+        id: voucherId,
         type: input.type,
         date: input.date,
         amount: amount,
@@ -70,7 +97,9 @@ class CreateVoucherUseCase {
         description: input.description,
         notes: input.notes,
         tripartiteMeta: tripartiteMeta,
+        attachmentRefs: attachmentRefs,
       );
+
       final saved = await _voucherRepository.save(voucher);
       return saved.fold(
         (f) => FailureResult(f),

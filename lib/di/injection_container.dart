@@ -1,4 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
+import 'package:qayd/presentation/backup/restore_cubit.dart';
+import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/application/accounts/batch_import_accounts_from_csv_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
@@ -105,6 +108,7 @@ import 'package:qayd/domain/repositories/attachment_repository.dart';
 import 'package:qayd/domain/repositories/collateral_repository.dart';
 import 'package:qayd/data/repositories/sqlite_attachment_repository.dart';
 import 'package:qayd/data/repositories/sqlite_collateral_repository.dart';
+import 'package:qayd/data/services/attachment_storage_service.dart';
 import 'package:qayd/data/encryption/voucher_key_service.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/application/vouchers/liquidate_collateral_use_case.dart';
@@ -156,59 +160,59 @@ abstract final class InjectionContainer {
 
   // ── Accounting Repositories (Static for Sync access) ──────────────────────
 
-  static late final AccountRepository accountRepository;
-  static late final LedgerRepository ledgerRepository;
-  static late final VoucherRepository voucherRepository;
-  static late final CurrencyRepository currencyRepository;
+  static late AccountRepository accountRepository;
+  static late LedgerRepository ledgerRepository;
+  static late VoucherRepository voucherRepository;
+  static late CurrencyRepository currencyRepository;
 
   // ── Accounting use cases ───────────────────────────────────────────────────
 
-  static late final CreateAccountUseCase createAccountUseCase;
-  static late final BatchImportAccountsFromCsvUseCase
+  static late CreateAccountUseCase createAccountUseCase;
+  static late BatchImportAccountsFromCsvUseCase
       batchImportAccountsFromCsvUseCase;
-  static late final UpdateAccountUseCase updateAccountUseCase;
-  static late final DeactivateAccountUseCase deactivateAccountUseCase;
-  static late final GetAccountDetailsUseCase getAccountDetailsUseCase;
-  static late final FindAccountByPhoneUseCase findAccountByPhoneUseCase;
-  static late final ListAccountsUseCase listAccountsUseCase;
-  static late final GetAccountStatementUseCase getAccountStatementUseCase;
-  static late final ListAccountStatementChatUseCase
+  static late UpdateAccountUseCase updateAccountUseCase;
+  static late DeactivateAccountUseCase deactivateAccountUseCase;
+  static late GetAccountDetailsUseCase getAccountDetailsUseCase;
+  static late FindAccountByPhoneUseCase findAccountByPhoneUseCase;
+  static late ListAccountsUseCase listAccountsUseCase;
+  static late GetAccountStatementUseCase getAccountStatementUseCase;
+  static late ListAccountStatementChatUseCase
       listAccountStatementChatUseCase;
-  static late final CreateVoucherUseCase createVoucherUseCase;
-  static late final CreateTripartiteTransferUseCase
+  static late CreateVoucherUseCase createVoucherUseCase;
+  static late CreateTripartiteTransferUseCase
       createTripartiteTransferUseCase;
-  static late final UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
-  static late final AcceptVoucherUseCase acceptVoucherUseCase;
-  static late final ConfirmVoucherUseCase confirmVoucherUseCase;
-  static late final RejectVoucherUseCase rejectVoucherUseCase;
-  static late final ResubmitVoucherUseCase resubmitVoucherUseCase;
-  static late final ListVouchersUseCase listVouchersUseCase;
-  static late final GetVoucherDetailsUseCase getVoucherDetailsUseCase;
-  static late final GenerateTrialBalanceUseCase generateTrialBalanceUseCase;
-  static late final VoucherPdfGenerator voucherPdfGenerator;
-  static late final AccountStatementPdfGenerator accountStatementPdfGenerator;
+  static late UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
+  static late AcceptVoucherUseCase acceptVoucherUseCase;
+  static late ConfirmVoucherUseCase confirmVoucherUseCase;
+  static late RejectVoucherUseCase rejectVoucherUseCase;
+  static late ResubmitVoucherUseCase resubmitVoucherUseCase;
+  static late ListVouchersUseCase listVouchersUseCase;
+  static late GetVoucherDetailsUseCase getVoucherDetailsUseCase;
+  static late GenerateTrialBalanceUseCase generateTrialBalanceUseCase;
+  static late VoucherPdfGenerator voucherPdfGenerator;
+  static late AccountStatementPdfGenerator accountStatementPdfGenerator;
 
-  static late final MessageTemplateRepository messageTemplateRepository;
-  static late final NotificationLogRepository notificationLogRepository;
-  static late final ListMessageTemplatesUseCase listMessageTemplatesUseCase;
-  static late final SaveMessageTemplateUseCase saveMessageTemplateUseCase;
-  static late final DeleteMessageTemplateUseCase deleteMessageTemplateUseCase;
-  static late final CreateMessageTemplateUseCase createMessageTemplateUseCase;
-  static late final LogNotificationIntentUseCase logNotificationIntentUseCase;
-  static late final NotificationMessageRepository notificationMessageRepository;
-  static late final GetAutoSuggestionsUseCase getAutoSuggestionsUseCase;
-  static late final MarkNotificationMessageProcessedUseCase
+  static late MessageTemplateRepository messageTemplateRepository;
+  static late NotificationLogRepository notificationLogRepository;
+  static late ListMessageTemplatesUseCase listMessageTemplatesUseCase;
+  static late SaveMessageTemplateUseCase saveMessageTemplateUseCase;
+  static late DeleteMessageTemplateUseCase deleteMessageTemplateUseCase;
+  static late CreateMessageTemplateUseCase createMessageTemplateUseCase;
+  static late LogNotificationIntentUseCase logNotificationIntentUseCase;
+  static late NotificationMessageRepository notificationMessageRepository;
+  static late GetAutoSuggestionsUseCase getAutoSuggestionsUseCase;
+  static late MarkNotificationMessageProcessedUseCase
       markNotificationMessageProcessedUseCase;
-  static late final ListCurrenciesUseCase listCurrenciesUseCase;
-  static late final GetBaseCurrencyUseCase getBaseCurrencyUseCase;
-  static late final SetBaseCurrencyUseCase setBaseCurrencyUseCase;
-  static late final ToggleCurrencyStatusUseCase toggleCurrencyStatusUseCase;
-  static late final AddCurrencyUseCase addCurrencyUseCase;
-  static late final TransactionFeeSettingsRepository
+  static late ListCurrenciesUseCase listCurrenciesUseCase;
+  static late GetBaseCurrencyUseCase getBaseCurrencyUseCase;
+  static late SetBaseCurrencyUseCase setBaseCurrencyUseCase;
+  static late ToggleCurrencyStatusUseCase toggleCurrencyStatusUseCase;
+  static late AddCurrencyUseCase addCurrencyUseCase;
+  static late TransactionFeeSettingsRepository
       transactionFeeSettingsRepository;
-  static late final GetActiveTransactionFeeUseCase
+  static late GetActiveTransactionFeeUseCase
       getActiveTransactionFeeUseCase;
-  static late final ManageTransactionFeeUseCase manageTransactionFeeUseCase;
+  static late ManageTransactionFeeUseCase manageTransactionFeeUseCase;
 
   // ── Sync & Real-Time Components ──────────────────────────────────────────
 
@@ -224,11 +228,16 @@ abstract final class InjectionContainer {
   static late final AppConfigRepository appConfigRepository;
 
   // ── Attachments & Collateral ────────────────────────────────────────────
-  static late final AttachmentRepository attachmentRepository;
-  static late final CollateralRepository collateralRepository;
-  static late final VoucherKeyService voucherKeyService;
+  static late AttachmentRepository attachmentRepository;
+  static late CollateralRepository collateralRepository;
+  static late VoucherKeyService voucherKeyService;
   static late final CollateralExpiryChecker collateralExpiryChecker;
-  static late final LiquidateCollateralUseCase liquidateCollateralUseCase;
+  static late LiquidateCollateralUseCase liquidateCollateralUseCase;
+
+  static late final AttachmentStorageService attachmentStorage;
+  static late final RestoreFromBackupUseCase restoreFromBackupUseCase;
+  static late final RestoreCubit restoreCubit;
+  static late final SyncStatusCubit syncStatusCubit;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -307,6 +316,25 @@ abstract final class InjectionContainer {
     backupService = BackupService(keyProvider: _encryptionKeyProvider);
     autoBackupService = AutoBackupService();
     driveBackupService = GoogleDriveBackupService();
+
+    restoreFromBackupUseCase = RestoreFromBackupUseCase(
+      backupService: backupService,
+      identityFileStorage: identityFileStorage,
+      mnemonicVault: mnemonicVault,
+    );
+
+    restoreCubit = RestoreCubit(
+      autoBackupService: autoBackupService,
+      driveService: driveBackupService,
+      restoreUseCase: restoreFromBackupUseCase,
+      keyProvider: _encryptionKeyProvider as HardwareBackedEncryptionKeyProvider,
+      mnemonicVault: mnemonicVault,
+    );
+
+    attachmentStorage = AttachmentStorageService(
+      keyProvider: _encryptionKeyProvider,
+    );
+
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
 
     autoBackupService.performIfDue().ignore();
@@ -347,6 +375,8 @@ abstract final class InjectionContainer {
       authUrl: '$baseUrl/api/broadcasting/auth',
     );
     
+    syncStatusCubit = SyncStatusCubit();
+    
     syncPayloadProcessor = SyncPayloadProcessor(
       identityRepository: identityRepository,
       voucherRepository: voucherRepository,
@@ -358,6 +388,7 @@ abstract final class InjectionContainer {
       attachmentRepository: attachmentRepository,
       collateralRepository: collateralRepository,
       voucherKeyService: voucherKeyService,
+      onDecryptionFailure: (nodeId) => syncStatusCubit.reportDecryptionfailure(nodeId),
     );
 
     // ── Collateral expiry monitoring (must init before sync coordinator) ──
@@ -404,6 +435,9 @@ abstract final class InjectionContainer {
       transactionRunner,
     );
     currencyRepository = SqliteCurrencyRepository(database);
+    attachmentRepository = SqliteAttachmentRepository(database);
+    collateralRepository = SqliteCollateralRepository(database);
+    voucherKeyService = const VoucherKeyService();
     const balanceCalculator = BalanceCalculator();
     const entryGenerator = EntryGenerator();
     const trialBalanceGenerator = TrialBalanceGenerator();
@@ -464,6 +498,8 @@ abstract final class InjectionContainer {
     createVoucherUseCase = CreateVoucherUseCase(
       voucherRepository,
       currencyRepository,
+      attachmentRepository,
+      attachmentStorage,
       _idGenerator,
       governanceWriteGuard,
     );
@@ -498,11 +534,6 @@ abstract final class InjectionContainer {
       voucherRepository,
       accountRepository,
     );
-
-    // ── Attachments & Collateral (initialized early — needed by detail UC) ──
-    attachmentRepository = SqliteAttachmentRepository(database);
-    collateralRepository = SqliteCollateralRepository(database);
-    voucherKeyService = const VoucherKeyService();
 
     getVoucherDetailsUseCase = GetVoucherDetailsUseCase(
       voucherRepository,
