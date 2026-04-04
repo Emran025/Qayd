@@ -14,11 +14,22 @@ abstract interface class IdentityRepository {
   /// no public key has been registered.
   Future<PublicKeyLookupResult?> lookupByPhone({required String phone});
 
+  /// Looks up a user's public key by email.
+  Future<PublicKeyLookupResult?> lookupByEmail({required String email});
+
   /// Batch lookup of public keys by phone numbers.
   ///
   /// Returns a map of phone → result for each resolved phone number.
   Future<Map<String, PublicKeyLookupResult>> lookupBatch({
     required List<String> phones,
+  });
+
+  /// Protocol §4 — Reverse lookup: discover a user's identity by public key.
+  ///
+  /// Used when a device receives a voucher with a public key but no
+  /// phone/email, to discover the key owner via the server.
+  Future<PublicKeyLookupResult?> reverseLookupByPublicKey({
+    required String publicKeyHex,
   });
 }
 
@@ -26,6 +37,7 @@ abstract interface class IdentityRepository {
 final class PublicKeyLookupResult {
   const PublicKeyLookupResult({
     required this.phone,
+    this.email,
     required this.publicKeyHex,
     this.previousPublicKeysHex = const [],
     required this.keyGeneration,
@@ -33,6 +45,7 @@ final class PublicKeyLookupResult {
   });
 
   final String phone;
+  final String? email;
 
   /// The most recent (active) public key.
   final String publicKeyHex;

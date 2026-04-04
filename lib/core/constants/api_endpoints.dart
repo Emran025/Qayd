@@ -38,6 +38,7 @@ abstract final class ApiEndpoints {
   static const String identityRegisterKey = '$v1/identity/register-key';
   static const String identityLookup = '$v1/identity/lookup';
   static const String identityLookupBatch = '$v1/identity/lookup-batch';
+  static const String identityReverseLookup = '$v1/identity/reverse-lookup';
 
   // ── Sync (E2EE Nodes) ───────────────────────────────────────────────────
   static const String syncPush = '$v1/sync/push';

@@ -33,11 +33,51 @@ final class RemoteIdentityRepository implements IdentityRepository {
         queryParameters: {'phone': phone},
       );
       if (data['public_key'] == null) return null;
+
+      // Parse historical public keys for cross-vector verification.
+      final previousKeysRaw =
+          data['previous_public_keys'] as List<dynamic>? ?? [];
+      final previousKeys =
+          previousKeysRaw.map((e) => e as String).toList();
+
       return PublicKeyLookupResult(
         phone: data['phone'] as String? ?? phone,
         publicKeyHex: data['public_key'] as String,
+        previousPublicKeysHex: previousKeys,
         keyGeneration: (data['key_generation'] as int?) ?? 1,
         name: data['name'] as String? ?? '',
+        email: data['email'] as String?,
+      );
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      // Lookup failures are non-fatal — return null for offline/missing cases.
+      return null;
+    }
+  }
+
+  @override
+  Future<PublicKeyLookupResult?> lookupByEmail({required String email}) async {
+    try {
+      final data = await _client.get(
+        ApiEndpoints.identityLookup,
+        queryParameters: {'email': email},
+      );
+      if (data['public_key'] == null) return null;
+
+      // Parse historical public keys for cross-vector verification.
+      final previousKeysRaw =
+          data['previous_public_keys'] as List<dynamic>? ?? [];
+      final previousKeys =
+          previousKeysRaw.map((e) => e as String).toList();
+
+      return PublicKeyLookupResult(
+        phone: data['phone'] as String? ?? '',
+        publicKeyHex: data['public_key'] as String,
+        previousPublicKeysHex: previousKeys,
+        keyGeneration: (data['key_generation'] as int?) ?? 1,
+        name: data['name'] as String? ?? '',
+        email: data['email'] as String?,
       );
     } on AuthException {
       rethrow;
@@ -62,17 +102,53 @@ final class RemoteIdentityRepository implements IdentityRepository {
         final map = entry as Map<String, dynamic>;
         final phone = map['phone'] as String;
         if (map['public_key'] != null) {
+          final previousKeysRaw =
+              map['previous_public_keys'] as List<dynamic>? ?? [];
+          final previousKeys =
+              previousKeysRaw.map((e) => e as String).toList();
           results[phone] = PublicKeyLookupResult(
             phone: phone,
             publicKeyHex: map['public_key'] as String,
+            previousPublicKeysHex: previousKeys,
             keyGeneration: (map['key_generation'] as int?) ?? 1,
             name: map['name'] as String? ?? '',
+            email: map['email'] as String?,
           );
         }
       }
       return results;
     } catch (_) {
       return {};
+    }
+  }
+
+  @override
+  Future<PublicKeyLookupResult?> reverseLookupByPublicKey({
+    required String publicKeyHex,
+  }) async {
+    try {
+      final data = await _client.get(
+        ApiEndpoints.identityReverseLookup,
+        queryParameters: {'public_key': publicKeyHex},
+      );
+      final owner = data['owner'] as Map<String, dynamic>?;
+      if (owner == null) return null;
+
+      final previousKeysRaw =
+          owner['previous_public_keys'] as List<dynamic>? ?? [];
+      final previousKeys =
+          previousKeysRaw.map((e) => e as String).toList();
+
+      return PublicKeyLookupResult(
+        phone: owner['phone'] as String? ?? '',
+        publicKeyHex: owner['current_public_key'] as String? ?? publicKeyHex,
+        previousPublicKeysHex: previousKeys,
+        keyGeneration: (owner['key_generation'] as int?) ?? 1,
+        name: owner['name'] as String? ?? '',
+        email: owner['email'] as String?,
+      );
+    } catch (_) {
+      return null;
     }
   }
 }

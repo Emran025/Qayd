@@ -61,9 +61,9 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
           .requestPasswordReset(email: _emailCtrl.text.trim());
       if (mounted) setState(() => _step = 1);
     } on AuthException catch (e) {
-      setState(() => _errorAr = e.messageAr);
+      if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
-      setState(() => _errorAr = 'تعذر إرسال الطلب. تحقق من الاتصال.');
+      if (mounted) setState(() => _errorAr = 'تعذر إرسال الطلب. تحقق من الاتصال.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -92,10 +92,12 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
       );
       Navigator.of(context).maybePop();
     } on AuthException catch (e) {
-      setState(() => _errorAr = e.messageAr);
+      if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
-      setState(
-          () => _errorAr = 'تعذر تغيير كلمة المرور. حاول مرة أخرى.');
+      if (mounted) {
+        setState(
+            () => _errorAr = 'تعذر تغيير كلمة المرور. حاول مرة أخرى.');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

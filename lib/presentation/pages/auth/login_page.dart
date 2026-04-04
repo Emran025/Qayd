@@ -88,6 +88,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
 
+    if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) setState(() => _errorAr = result.errorAr);
   }

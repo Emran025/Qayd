@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/mappers/account_mapper.dart';
@@ -200,9 +202,13 @@ ORDER BY a.name COLLATE NOCASE
       final map = {
         'account_id': details.accountId.value,
         'phone_number': details.phoneNumber,
+        'email': details.email,
         'whatsapp_number': details.whatsappNumber,
         'bank_account_info': details.bankAccountInfo,
         'party_type': details.partyType,
+        'current_public_key_hex': details.currentPublicKeyHex,
+        'public_key_history_json': _encodeKeyHistory(details.publicKeyHistoryHex),
+        'server_account_id': details.serverAccountId,
       };
       await _db.insert(
         'party_details',
@@ -233,9 +239,15 @@ ORDER BY a.name COLLATE NOCASE
       return Success(PartyDetails(
         accountId: id,
         phoneNumber: row['phone_number'] as String?,
+        email: row['email'] as String?,
         whatsappNumber: row['whatsapp_number'] as String?,
         bankAccountInfo: row['bank_account_info'] as String?,
         partyType: row['party_type'] as String?,
+        currentPublicKeyHex: row['current_public_key_hex'] as String?,
+        publicKeyHistoryHex: _decodeKeyHistory(
+          row['public_key_history_json'] as String?,
+        ),
+        serverAccountId: row['server_account_id'] as int?,
       ));
     } catch (_) {
       return const FailureResult(
@@ -265,12 +277,48 @@ ORDER BY a.name COLLATE NOCASE
   }
 
   @override
+  Future<Result<AccountId?>> findAccountByEmail(String email) async {
+    try {
+      final rows = await _db.query(
+        'party_details',
+        where: 'email = ?',
+        whereArgs: [email],
+        limit: 1,
+      );
+      if (rows.isEmpty) {
+        return const Success(null);
+      }
+      return Success(AccountId(rows.first['account_id'] as String));
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر البحث بالبريد الإلكتروني.'),
+      );
+    }
+  }
+
+  @override
   Future<Result<bool>> hasAnyAccounts() async {
     try {
       final rows = await _db.rawQuery('SELECT 1 FROM $_table LIMIT 1');
       return Success(rows.isNotEmpty);
     } catch (_) {
       return const Success(false);
+    }
+  }
+
+  // ── JSON helpers for public key history ──────────────────────────────────
+
+  static String _encodeKeyHistory(List<String> keys) {
+    return jsonEncode(keys);
+  }
+
+  static List<String> _decodeKeyHistory(String? json) {
+    if (json == null || json.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(json) as List<dynamic>;
+      return decoded.map((e) => e as String).toList();
+    } catch (_) {
+      return const [];
     }
   }
 }

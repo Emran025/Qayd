@@ -91,10 +91,12 @@ class _RegisterPageState extends State<RegisterPage> {
       await InjectionContainer.securityCubit.bootCheck();
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
     } on AuthException catch (e) {
-      setState(() => _errorAr = e.messageAr);
+      if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
-      setState(
-          () => _errorAr = 'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.');
+      if (mounted) {
+        setState(
+            () => _errorAr = 'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

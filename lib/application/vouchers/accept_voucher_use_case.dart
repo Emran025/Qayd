@@ -1,33 +1,45 @@
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/domain/entities/sync_node.dart';
+import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/e2ee_encryption_service.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:uuid/uuid.dart';
 
 /// Executed when the user taps "Accept" on an incoming pending claim.
-/// 1. Generates local signature.
-/// 2. Updates local voucher to accepted.
-/// 3. Pushes E2EE Acceptance Node back to counterpart.
+///
+/// Protocol §1 — Signature Execution Post-Matching:
+/// 1. Resolves the current user's phone from LicenseVault.
+/// 2. Generates an Ed25519 signature over the canonical payload.
+/// 3. Attaches the signature locally and marks voucher as accepted.
+/// 4. Dispatches an E2EE acceptance SyncNode back to the counterparty.
 class AcceptVoucherUseCase {
   AcceptVoucherUseCase({
     required this.voucherRepository,
+    required this.accountRepository,
     required this.syncRepository,
     required this.signingService,
     required this.e2eeEncryptionService,
     required this.getCurrentUserKeyPair,
+    required this.licenseVault,
   });
 
   final VoucherRepository voucherRepository;
+  final AccountRepository accountRepository;
   final SyncRepository syncRepository;
   final ReceiptSigningService signingService;
   final E2EEEncryptionService e2eeEncryptionService;
   final Future<CryptoKeyPair> Function() getCurrentUserKeyPair;
+  final LicenseVault licenseVault;
 
   Future<Result<void>> call(String voucherId) async {
     try {
@@ -41,47 +53,107 @@ class AcceptVoucherUseCase {
         return const FailureResult(ValidationFailure(messageAr: 'السند مقبول مسبقاً.'));
       }
 
+      // Resolve current user's phone from license data.
+      final licenseData = await licenseVault.readLicenseData();
+      final myPhone = licenseData?['phone'] as String? ?? '';
+
+      // Resolve counterparty's phone for canonical payload.
+      final counterpartyParty =
+          await accountRepository.getPartyDetails(draft.counterpartyId);
+      final counterpartyPhone =
+          counterpartyParty.valueOrNull?.phoneNumber ?? draft.signerPhone ?? '';
+
       final keyPair = await getCurrentUserKeyPair();
 
-      // 1. Generate Mathematical Signature for Acceptance
+      // 1. Generate Mathematical Signature for Acceptance.
       final signable = SignableReceipt(
         amountMinor: draft.amount.minorUnits,
         currencyCode: draft.currency.code,
-        senderPhone: draft.signerPhone ?? '', // Depending on previous struct ...
-        receiverPhone: 'my_phone',
+        senderPhone: counterpartyPhone,
+        receiverPhone: myPhone,
         dateIso: draft.date.toIso8601String().split('T').first,
         receiptUuid: draft.id.value,
       );
 
       final signature = signingService.signReceipt(signable, keyPair);
-      final signatureHex = signature.signatureBytes
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
-      final pubKeyHex = signature.signerPublicKey
-          .map((b) => b.toRadixString(16).padLeft(2, '0'))
-          .join();
+      final signatureHex = signature.signatureHex;
+      final pubKeyHex = signature.signerPublicKeyHex;
 
-      // 2. Attach Locally
+      // 2. Attach Locally.
       final signedVoucher = draft.attachSignature(
         signatureHex: signatureHex,
         signerPublicKeyHex: pubKeyHex,
         status: AgreementStatus.accepted,
-        signerPhone: 'my_phone',
+        signerPhone: myPhone,
       );
 
       final saveResult = await voucherRepository.save(signedVoucher);
       if (saveResult.isFailure) return saveResult;
 
-      // 3. E2EE Dispatch 
-      // The server expects us to push a SyncNode back to the counterpart's receiver ID.
-      // E2EE logic can be dispatched from here to Counterpart.
-      // Not awaiting to prevent blocking the UI, fire and forget:
-      // final encrypted = await e2eeEncryptionService.encryptPayload( ... )
-      // syncRepository.pushNode(...)
+      // 3. E2EE Dispatch — push acceptance SyncNode back to counterparty.
+      // Fire-and-forget to avoid blocking the UI.
+      _dispatchAcceptanceSyncNode(
+        voucherId: voucherId,
+        signatureHex: signatureHex,
+        signerPublicKeyHex: pubKeyHex,
+        signerPhone: myPhone,
+        counterpartyId: draft.counterpartyId,
+        myKeyPair: keyPair,
+        counterpartyParty: counterpartyParty.valueOrNull,
+      );
 
       return const Success(null);
     } catch (e, _) {
       return FailureResult(failureFromDomainException(e));
+    }
+  }
+
+  /// Dispatches an encrypted acceptance node to the counterparty (fire-and-forget).
+  Future<void> _dispatchAcceptanceSyncNode({
+    required String voucherId,
+    required String signatureHex,
+    required String signerPublicKeyHex,
+    required String signerPhone,
+    required AccountId counterpartyId,
+    required CryptoKeyPair myKeyPair,
+    required dynamic counterpartyParty,
+  }) async {
+    try {
+      final counterpartyPubKey = counterpartyParty?.currentPublicKeyHex;
+      if (counterpartyPubKey == null) return;
+
+      final rawPayload = {
+        'voucher_id': voucherId,
+        'signature_hex': signatureHex,
+        'signer_public_key_hex': signerPublicKeyHex,
+        'signer_phone': signerPhone,
+      };
+
+      final encrypted = await e2eeEncryptionService.encryptPayload(
+        rawPayload: rawPayload,
+        senderKeyPair: myKeyPair,
+        receiverPublicKeyHex: counterpartyPubKey,
+      );
+
+      final licenseData = await licenseVault.readLicenseData();
+      final myUserId = (licenseData?['id'] as num?)?.toInt() ?? 0;
+
+      // Resolve counterparty's server-side user ID.
+      final serverAccountId = counterpartyParty?.serverAccountId ?? 0;
+
+      final node = SyncNode(
+        id: const Uuid().v4(),
+        senderId: myUserId,
+        receiverId: serverAccountId,
+        eventType: SyncEventType.acceptance,
+        encryptedPayload: encrypted,
+        syncState: 'pending',
+        clientTimestamp: DateTime.now(),
+      );
+
+      await syncRepository.pushNode(node);
+    } catch (_) {
+      // Non-fatal: the counterparty will discover via pull sync.
     }
   }
 }

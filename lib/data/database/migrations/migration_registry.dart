@@ -13,6 +13,7 @@ import 'package:qayd/data/database/migrations/migration_012_currency_is_active.d
 import 'package:qayd/data/database/migrations/migration_013_transaction_fees.dart';
 import 'package:qayd/data/database/migrations/migration_014_attachments.dart';
 import 'package:qayd/data/database/migrations/migration_015_collaterals.dart';
+import 'package:qayd/data/database/migrations/migration_016_counterparty_keys.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -36,6 +37,7 @@ final class MigrationRegistry {
     Migration013TransactionFees(),
     Migration014Attachments(),
     Migration015Collaterals(),
+    Migration016CounterpartyKeys(),
   ];
 
   static List<SchemaMigration> get ordered {

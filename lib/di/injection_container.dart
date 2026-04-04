@@ -113,6 +113,9 @@ import 'package:qayd/data/services/attachment_storage_service.dart';
 import 'package:qayd/data/encryption/voucher_key_service.dart';
 import 'package:qayd/application/notifications/list_inbox_notifications_use_case.dart';
 import 'package:qayd/application/vouchers/liquidate_collateral_use_case.dart';
+import 'package:qayd/application/vouchers/verify_incoming_voucher_use_case.dart';
+import 'package:qayd/domain/services/signature_verification_engine.dart';
+import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
@@ -243,6 +246,11 @@ abstract final class InjectionContainer {
   static late final RestoreCubit restoreCubit;
   static late final SyncStatusCubit syncStatusCubit;
 
+  // ── Digital Signature Protocol (§1–§5) ─────────────────────────────────
+  static late SignatureVerificationEngine signatureVerificationEngine;
+  static late VerifyIncomingVoucherUseCase verifyIncomingVoucherUseCase;
+  static late final CounterpartyQrService counterpartyQrService;
+
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
   }) async {
@@ -360,6 +368,7 @@ abstract final class InjectionContainer {
     nativeNotificationService = LocalNotificationServiceImpl();
     await nativeNotificationService.initialize();
     e2eeService = const E2EEEncryptionServiceImpl();
+    counterpartyQrService = const CounterpartyQrService();
 
     _registerSqliteStack();
 
@@ -507,6 +516,10 @@ abstract final class InjectionContainer {
       attachmentStorage,
       _idGenerator,
       governanceWriteGuard,
+      accountRepository: accountRepository,
+      signingService: receiptSigningService,
+      getKeyPair: () => setupIdentityUseCase.getKeyPair(),
+      licenseVault: licenseVault,
     );
     createTripartiteTransferUseCase = CreateTripartiteTransferUseCase(
       voucherRepository,
@@ -598,6 +611,28 @@ abstract final class InjectionContainer {
       balanceCalculator: balanceCalculator,
       idGenerator: _idGenerator,
       governanceWriteGuard: governanceWriteGuard,
+    );
+
+    // ── Digital Signature Protocol services ────────────────────────────────
+    signatureVerificationEngine = SignatureVerificationEngine(
+      signingService: receiptSigningService,
+      accountRepository: accountRepository,
+      identityRepository: identityRepository,
+    );
+    verifyIncomingVoucherUseCase = VerifyIncomingVoucherUseCase(
+      voucherRepository: voucherRepository,
+      accountRepository: accountRepository,
+      verificationEngine: signatureVerificationEngine,
+      licenseVault: licenseVault,
+    );
+    acceptVoucherUseCase = AcceptVoucherUseCase(
+      voucherRepository: voucherRepository,
+      accountRepository: accountRepository,
+      syncRepository: syncRepository,
+      signingService: receiptSigningService,
+      e2eeEncryptionService: e2eeService,
+      getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair().then((v) => v!),
+      licenseVault: licenseVault,
     );
   }
 }

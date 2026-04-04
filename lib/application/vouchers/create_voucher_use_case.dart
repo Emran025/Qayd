@@ -10,12 +10,19 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/attachment_ref.dart';
+import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/domain/services/receipt_signing_service.dart';
+import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
+import 'package:qayd/domain/value_objects/signable_receipt.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
+import 'package:qayd/data/security/license_vault.dart';
 
 class CreateVoucherUseCase {
   final VoucherRepository _voucherRepository;
@@ -24,6 +31,10 @@ class CreateVoucherUseCase {
   final AttachmentStorageService _attachmentStorage;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final AccountRepository? _accountRepository;
+  final ReceiptSigningService? _signingService;
+  final Future<CryptoKeyPair?> Function()? _getKeyPair;
+  final LicenseVault? _licenseVault;
 
   CreateVoucherUseCase(
     this._voucherRepository,
@@ -31,8 +42,15 @@ class CreateVoucherUseCase {
     this._attachmentRepository,
     this._attachmentStorage,
     this._idGenerator,
-    this._writeGuard,
-  );
+    this._writeGuard, {
+    AccountRepository? accountRepository,
+    ReceiptSigningService? signingService,
+    Future<CryptoKeyPair?> Function()? getKeyPair,
+    LicenseVault? licenseVault,
+  })  : _accountRepository = accountRepository,
+        _signingService = signingService,
+        _getKeyPair = getKeyPair,
+        _licenseVault = licenseVault;
 
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
@@ -84,7 +102,7 @@ class CreateVoucherUseCase {
         )));
       }
 
-      final voucher = Voucher.draft(
+      var voucher = Voucher.draft(
         id: voucherId,
         type: input.type,
         date: input.date,
@@ -99,6 +117,52 @@ class CreateVoucherUseCase {
         tripartiteMeta: tripartiteMeta,
         attachmentRefs: attachmentRefs,
       );
+
+      // ── Protocol §5: Auto-sign receipt vouchers ────────────────────────────
+      // "Receipt Vouchers (سند قبض) by the User: The user signs internally with
+      //  their own Private Key, because their Safe is the affected account."
+      if (input.type == VoucherType.receipt &&
+          _signingService != null &&
+          _getKeyPair != null) {
+        try {
+          final keyPair = await _getKeyPair();
+          if (keyPair != null) {
+            final licenseData = await _licenseVault?.readLicenseData();
+            final myPhone = licenseData?['phone'] as String? ?? '';
+
+            // Resolve the actual counterparty phone to populate senderPhone.
+            // The sender of funds is the counterparty; the receiver is our Safe.
+            String counterpartyPhone = '';
+            if (_accountRepository != null) {
+              final cpParty = await _accountRepository.getPartyDetails(
+                AccountId(input.counterpartyAccountId),
+              );
+              counterpartyPhone = cpParty.valueOrNull?.phoneNumber ?? '';
+            }
+
+            final signable = SignableReceipt(
+              amountMinor: input.amountMinorUnits,
+              currencyCode: input.currencyCode,
+              senderPhone: counterpartyPhone, // They sent the funds
+              receiverPhone: myPhone,         // Our Safe received them
+              dateIso: input.date.toIso8601String().split('T').first,
+              receiptUuid: voucherId.value,
+            );
+
+            final signature =
+                _signingService.signReceipt(signable, keyPair);
+
+            voucher = voucher.attachSignature(
+              signatureHex: signature.signatureHex,
+              signerPublicKeyHex: signature.signerPublicKeyHex,
+              status: AgreementStatus.accepted,
+              signerPhone: myPhone,
+            );
+          }
+        } catch (_) {
+          // Non-fatal: voucher is still created without self-signature.
+        }
+      }
 
       final saved = await _voucherRepository.save(voucher);
       return saved.fold(

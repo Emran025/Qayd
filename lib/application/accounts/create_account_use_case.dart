@@ -11,6 +11,7 @@ import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
+import 'package:qayd/core/error/failures.dart';
 
 class CreateAccountUseCase {
   CreateAccountUseCase(
@@ -29,6 +30,27 @@ class CreateAccountUseCase {
       if (gate.isFailure) {
         return FailureResult(gate.failureOrNull!);
       }
+
+      // Check for uniqueness of phone number and email for Counterparties.
+      if (input.phoneNumber?.isNotEmpty == true) {
+        final existingByPhone =
+            await _accountRepository.findAccountByPhone(input.phoneNumber!);
+        if (existingByPhone.valueOrNull != null) {
+          return const FailureResult(ValidationFailure(
+            messageAr: 'يوجد حساب مسجل مسبقاً برقم الهاتف هذا.',
+          ));
+        }
+      }
+      if (input.email?.isNotEmpty == true) {
+        final existingByEmail =
+            await _accountRepository.findAccountByEmail(input.email!);
+        if (existingByEmail.valueOrNull != null) {
+          return const FailureResult(ValidationFailure(
+            messageAr: 'يوجد حساب مسجل مسبقاً بالبريد الإلكتروني هذا.',
+          ));
+        }
+      }
+
       final id = AccountId(_idGenerator.next());
       final now = DateTime.now();
       final Account account;

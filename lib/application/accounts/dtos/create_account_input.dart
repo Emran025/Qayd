@@ -10,6 +10,7 @@ class CreateAccountInput {
     this.customClassificationNature,
     this.isDefault = false,
     this.phoneNumber,
+    this.email,
     this.whatsappNumber,
     this.bankAccountInfo,
     this.partyType,
@@ -26,6 +27,7 @@ class CreateAccountInput {
   final bool isDefault;
 
   final String? phoneNumber;
+  final String? email;
   final String? whatsappNumber;
   final String? bankAccountInfo;
   final String? partyType;
