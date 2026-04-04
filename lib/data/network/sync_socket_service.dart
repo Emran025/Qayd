@@ -57,6 +57,8 @@ class SyncSocketService {
                 // Perform HTTP auth for private channel
                 final channelName = 'private-user.sync.$currentUserId';
                 
+                debugPrint('Authenticating channel: $channelName for socket: $socketId');
+                
                 try {
                   final dio = Dio();
                   final response = await dio.post(
@@ -66,14 +68,18 @@ class SyncSocketService {
                       'channel_name': channelName,
                     },
                     options: Options(
+                      contentType: Headers.formUrlEncodedContentType,
                       headers: {
                         'Authorization': 'Bearer $token',
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                       },
                     )
                   );
                   
                   final authHash = response.data['auth'];
+                  debugPrint('Broadcasting Auth Success for $channelName');
                   
                   // Authenticate to private channel
                   _channel?.sink.add(jsonEncode({

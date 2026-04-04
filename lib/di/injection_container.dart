@@ -334,14 +334,17 @@ abstract final class InjectionContainer {
     // ── Real-Time Sync Engine ────────────────────────────────────────────────
     syncRepository = ApiSyncRepository(apiClient);
     
-    final baseUrl = ApiEndpoints.baseUrl.trimRight().replaceAll(RegExp(r'/$'), '');
-    final wsBase = baseUrl.replaceFirst('http', 'ws');
+    final baseUrl = ApiEndpoints.baseUrl.trim().replaceAll(RegExp(r'/$'), '');
+    final uri = Uri.parse(baseUrl);
+    final protocol = uri.scheme == 'https' ? 'wss' : 'ws';
+    final host = uri.host;
+    final port = uri.hasPort ? ':${uri.port}' : '';
     const appKey = String.fromEnvironment('REVERB_APP_KEY', defaultValue: 'gpdnqol0mdp28abcbdl7');
     
     syncSocketService = SyncSocketService(
-      wsUrl: '$wsBase/app/$appKey?protocol=7&client=js&version=8.3.0',
+      wsUrl: '$protocol://$host$port/app/$appKey?protocol=7&client=js&version=8.3.0',
       tokenProvider: () => licenseVault.readJwt(),
-      authUrl: '$baseUrl/broadcasting/auth',
+      authUrl: '$baseUrl/api/broadcasting/auth',
     );
     
     syncPayloadProcessor = SyncPayloadProcessor(
@@ -363,17 +366,23 @@ abstract final class InjectionContainer {
       notificationService: nativeNotificationService,
     );
 
+    // ── Real-time Sync Engine Initialization ─────────────────────────────────
+    final licenseData = await licenseVault.readLicenseData();
+    final userId = (licenseData?['id'] as num?)?.toInt() ?? 0;
+
     syncCoordinatorService = SyncCoordinatorService(
       syncRepository: syncRepository,
       socketService: syncSocketService,
       payloadProcessor: syncPayloadProcessor,
       nativeNotificationService: nativeNotificationService,
-      currentUserId: 1, // Placeholder: in production, decode ID from JWT
+      currentUserId: userId,
       collateralExpiryChecker: collateralExpiryChecker,
     );
 
-    // Initialize the background sync lifecycle
-    syncCoordinatorService.start();
+    // Only initiate sync lifecycle if a valid user identity is active
+    if (userId > 0) {
+      syncCoordinatorService.start();
+    }
   }
 
   static Future<void> closeDatabaseForRestore() async {
