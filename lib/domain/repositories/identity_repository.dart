@@ -31,6 +31,19 @@ abstract interface class IdentityRepository {
   Future<PublicKeyLookupResult?> reverseLookupByPublicKey({
     required String publicKeyHex,
   });
+
+  /// Updates the user's profile on the server.
+  ///
+  /// [name], [phone], [email], [whatsappNumber] are optional fields to update.
+  /// [avatarPath], [logoPath] are local file paths to images for upload.
+  Future<Map<String, dynamic>> updateProfile({
+    String? name,
+    String? phone,
+    String? email,
+    String? whatsappNumber,
+    String? avatarPath,
+    String? logoPath,
+  });
 }
 
 /// Result of a public key lookup from the server.
@@ -38,6 +51,7 @@ final class PublicKeyLookupResult {
   const PublicKeyLookupResult({
     required this.phone,
     this.email,
+    this.whatsappNumber,
     required this.publicKeyHex,
     this.previousPublicKeysHex = const [],
     required this.keyGeneration,
@@ -46,6 +60,7 @@ final class PublicKeyLookupResult {
 
   final String phone;
   final String? email;
+  final String? whatsappNumber;
 
   /// The most recent (active) public key.
   final String publicKeyHex;

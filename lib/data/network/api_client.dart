@@ -76,6 +76,23 @@ final class ApiClient {
     return _extractData(response);
   }
 
+  /// Performs a multipart/form-data POST request for file uploads.
+  Future<dynamic> postMultipart(
+    String path, {
+    required Map<String, dynamic> body,
+    Options? options,
+  }) async {
+    final formData = FormData.fromMap(body);
+    final response = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: formData,
+      options: (options ?? Options()).copyWith(
+        contentType: 'multipart/form-data',
+      ),
+    );
+    return _extractData(response);
+  }
+
   /// Performs a GET request to [path].
   ///
   /// Returns the parsed `data` field from the standard API envelope.

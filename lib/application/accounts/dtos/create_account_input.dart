@@ -14,6 +14,9 @@ class CreateAccountInput {
     this.whatsappNumber,
     this.bankAccountInfo,
     this.partyType,
+    this.currentPublicKeyHex,
+    this.publicKeyHistoryHex,
+    this.serverAccountId,
   });
 
   final String name;
@@ -31,4 +34,9 @@ class CreateAccountInput {
   final String? whatsappNumber;
   final String? bankAccountInfo;
   final String? partyType;
+
+  // Digital Signature Protocol (§3) fields
+  final String? currentPublicKeyHex;
+  final List<String>? publicKeyHistoryHex;
+  final int? serverAccountId;
 }

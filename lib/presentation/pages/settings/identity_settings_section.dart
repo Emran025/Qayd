@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/identity/seed_setup_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -105,10 +107,25 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
     }
     if (!_hasIdentity) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
-        child: Text(
-          AppStringsAr.identityNotSetup,
-          style: Theme.of(context).textTheme.bodySmall,
+        padding: const EdgeInsets.all(SpacingTokens.md),
+        child: Column(
+          children: [
+            Text(
+              AppStringsAr.identityNotSetup,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: SpacingTokens.sm),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                QaydPageRoute.slideFromStart(builder: (_) => const SeedSetupPage()),
+              ),
+              icon: const Icon(Icons.vpn_key_outlined),
+              label: Text(AppStringsAr.identitySetupAction),
+            ),
+          ],
         ),
       );
     }
@@ -146,8 +163,7 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
             vertical: SpacingTokens.xs,
           ),
           child: Text(
-            AppStringsAr.identityKeyGenerationLabel +
-                ': $_keyGeneration',
+            '${AppStringsAr.identityKeyGenerationLabel}: $_keyGeneration',
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),

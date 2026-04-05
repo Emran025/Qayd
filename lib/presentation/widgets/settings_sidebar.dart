@@ -8,6 +8,7 @@ import 'package:qayd/presentation/pages/settings/groups/security_settings_page.d
 import 'package:qayd/presentation/pages/settings/groups/support_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/widgets/identity_qr_dialog.dart';
 
 class SettingsSidebar extends StatelessWidget {
   const SettingsSidebar({super.key});
@@ -57,6 +58,14 @@ class SettingsSidebar extends StatelessWidget {
             icon: Icons.person_outline,
             title: AppStringsAr.settingsGroupProfile,
             onTap: () => _navTo(context, const ProfileSettingsPage()),
+          ),
+          _DrawerTile(
+            icon: Icons.qr_code_rounded,
+            title: AppStringsAr.identityQrShowTitle,
+            onTap: () {
+              Navigator.pop(context); // Close drawer
+              IdentityQrDialog.show(context);
+            },
           ),
           _DrawerTile(
             icon: Icons.cloud_done_outlined,

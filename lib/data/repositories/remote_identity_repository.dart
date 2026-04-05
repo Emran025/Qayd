@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:qayd/core/constants/api_endpoints.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/data/network/api_client.dart';
@@ -47,6 +48,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
         keyGeneration: (data['key_generation'] as int?) ?? 1,
         name: data['name'] as String? ?? '',
         email: data['email'] as String?,
+        whatsappNumber: data['whatsapp_number'] as String?,
       );
     } on AuthException {
       rethrow;
@@ -78,6 +80,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
         keyGeneration: (data['key_generation'] as int?) ?? 1,
         name: data['name'] as String? ?? '',
         email: data['email'] as String?,
+        whatsappNumber: data['whatsapp_number'] as String?,
       );
     } on AuthException {
       rethrow;
@@ -113,6 +116,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
             keyGeneration: (map['key_generation'] as int?) ?? 1,
             name: map['name'] as String? ?? '',
             email: map['email'] as String?,
+            whatsappNumber: map['whatsapp_number'] as String?,
           );
         }
       }
@@ -146,9 +150,43 @@ final class RemoteIdentityRepository implements IdentityRepository {
         keyGeneration: (owner['key_generation'] as int?) ?? 1,
         name: owner['name'] as String? ?? '',
         email: owner['email'] as String?,
+        whatsappNumber: owner['whatsapp_number'] as String?,
       );
     } catch (_) {
       return null;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateProfile({
+    String? name,
+    String? phone,
+    String? email,
+    String? whatsappNumber,
+    String? avatarPath,
+    String? logoPath,
+  }) async {
+    try {
+      final body = <String, dynamic>{
+        if (name != null) 'name': name,
+        if (phone != null) 'phone': phone,
+        if (email != null) 'email': email,
+        if (whatsappNumber != null) 'whatsapp_number': whatsappNumber,
+        if (avatarPath != null)
+          'avatar': await MultipartFile.fromFile(avatarPath),
+        if (logoPath != null)
+          'logo': await MultipartFile.fromFile(logoPath),
+      };
+
+      final data = await _client.postMultipart(
+        ApiEndpoints.authProfileUpdate,
+        body: body,
+      );
+
+      return data['user'] as Map<String, dynamic>;
+    } catch (e) {
+      throw AuthException(
+          'خطأ في تحديث البيانات: ${e.toString().split('\n').first}');
     }
   }
 }

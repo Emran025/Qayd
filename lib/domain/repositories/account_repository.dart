@@ -28,6 +28,8 @@ abstract interface class AccountRepository {
   Future<Result<AccountId?>> findAccountByPhone(String phone);
 
   Future<Result<AccountId?>> findAccountByEmail(String email);
-  
+
+  Future<Result<AccountId?>> findAccountByWhatsApp(String whatsapp);
+
   Future<Result<bool>> hasAnyAccounts();
 }

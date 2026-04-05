@@ -39,6 +39,7 @@ import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/application/accounts/find_account_by_phone_use_case.dart';
 import 'package:qayd/application/identity/lookup_public_key_use_case.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
+import 'package:qayd/application/identity/update_profile_use_case.dart';
 import 'package:qayd/application/vouchers/get_voucher_details_use_case.dart';
 import 'package:qayd/application/vouchers/list_vouchers_use_case.dart';
 import 'package:qayd/application/vouchers/update_draft_voucher_use_case.dart';
@@ -153,6 +154,7 @@ abstract final class InjectionContainer {
   static late final MnemonicVault mnemonicVault;
   static late final IdentityRepository identityRepository;
   static late final SetupIdentityUseCase setupIdentityUseCase;
+  static late final UpdateProfileUseCase updateProfileUseCase;
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
 
@@ -306,6 +308,10 @@ abstract final class InjectionContainer {
       identityRepository: identityRepository,
       identityFileStorage: identityFileStorage,
     );
+    updateProfileUseCase = UpdateProfileUseCase(
+      identityRepository: identityRepository,
+      licenseVault: licenseVault,
+    );
     lookupPublicKeyUseCase = LookupPublicKeyUseCase(
       identityRepository: identityRepository,
     );
@@ -369,11 +375,11 @@ abstract final class InjectionContainer {
     await nativeNotificationService.initialize();
     e2eeService = const E2EEEncryptionServiceImpl();
     counterpartyQrService = const CounterpartyQrService();
+    syncRepository = ApiSyncRepository(apiClient);
 
     _registerSqliteStack();
 
     // ── Real-Time Sync Engine ────────────────────────────────────────────────
-    syncRepository = ApiSyncRepository(apiClient);
     
     final baseUrl = ApiEndpoints.baseUrl.trim().replaceAll(RegExp(r'/$'), '');
     final uri = Uri.parse(baseUrl);

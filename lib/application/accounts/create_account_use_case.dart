@@ -95,9 +95,13 @@ class CreateAccountUseCase {
         final partyDetails = PartyDetails(
           accountId: id,
           phoneNumber: input.phoneNumber,
+          email: input.email, 
           whatsappNumber: input.whatsappNumber,
           bankAccountInfo: input.bankAccountInfo,
           partyType: input.partyType,
+          currentPublicKeyHex: input.currentPublicKeyHex,
+          publicKeyHistoryHex: input.publicKeyHistoryHex ?? [],
+          serverAccountId: input.serverAccountId,
         );
         await _accountRepository.savePartyDetails(partyDetails);
       }

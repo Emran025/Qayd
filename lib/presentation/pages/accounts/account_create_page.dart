@@ -12,6 +12,9 @@ import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/phone_zone.dart';
+import 'package:qayd/presentation/pages/accounts/counterparty_qr_scanner_page.dart';
+import 'package:qayd/domain/services/counterparty_qr_service.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 
 class AccountCreatePage extends StatefulWidget {
   const AccountCreatePage({
@@ -47,6 +50,9 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       StandardAccountClassificationKind.liquidAssets;
   bool _useCustomRootClassification = false;
   AccountNature _customNature = AccountNature.debit;
+
+  // Stored data from QR scan
+  CounterpartyQrData? _scannedData;
 
   bool get _showPartyDetails {
     if (!widget.isChild) return false;
@@ -111,9 +117,50 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
           ? _bankInfoController.text.trim()
           : null,
       partyType: _showPartyDetails ? _partyTypeController.text.trim() : null,
+      email: _scannedData?.email,
+      currentPublicKeyHex: _scannedData?.currentPublicKeyHex,
+      publicKeyHistoryHex: _scannedData?.publicKeyHistoryHex,
+      serverAccountId: _scannedData?.serverAccountId,
     );
 
     await context.read<AccountCreateCubit>().submit(input);
+  }
+
+  Future<void> _scanCounterparty() async {
+    final data = await Navigator.of(context).push<CounterpartyQrData?>(
+      QaydPageRoute.slideFromStart<CounterpartyQrData?>(
+        builder: (ctx) => const CounterpartyQrScannerPage(),
+      ),
+    );
+
+    if (data != null) {
+      setState(() {
+        _scannedData = data;
+        _nameController.text = data.name;
+
+        // Simple phone splitting (last 9 digits for phone, rest for zone)
+        // or just put all in phone and rely on manual adjustment if needed.
+        // Protocol §3 says phone is immutable on import, but UI should reflect it.
+        if (data.phone.isNotEmpty) {
+          final p = data.phone.replaceAll('+', '').replaceAll(' ', '');
+          if (p.length >= 9) {
+            _phoneController.text = p.substring(p.length - 9);
+            _phoneZoneController.text = p.substring(0, p.length - 9);
+          } else {
+            _phoneController.text = p;
+          }
+        }
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppStringsAr.identityQrScanSuccess),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -147,7 +194,17 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
         final submitting = state is AccountCreateSubmitting;
 
         return Scaffold(
-          appBar: QaydAppBar(title: title),
+          appBar: QaydAppBar(
+            title: title,
+            actions: [
+              if (_showPartyDetails)
+                IconButton(
+                  tooltip: AppStringsAr.identityQrScanTitle,
+                  icon: const Icon(Icons.qr_code_scanner_rounded),
+                  onPressed: _scanCounterparty,
+                ),
+            ],
+          ),
           body: AbsorbPointer(
             absorbing: submitting,
             child: Form(

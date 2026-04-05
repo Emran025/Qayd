@@ -161,6 +161,14 @@ abstract final class AppStringsAr {
   static String get qrScannerHint => 'ضع الرمز داخل المربع';
   static String get qrCloseAction => 'إغلاق';
 
+  // --- Identity QR Exchange (§3) ---
+  static String get identityQrShowTitle => 'هويتي الرقمية (QR)';
+  static String get identityQrShowSubtitle => 'اعرض الرمز للآخرين لإضافتك كطرف مقابل آمن';
+  static String get identityQrScanTitle => 'مسح هوية الطرف (QR)';
+  static String get identityQrScanHint => 'امسح رمز "هويتي الرقمية" الخاص بالطرف الآخر لإضافته تلقائياً';
+  static String get identityQrScanSuccess => 'تم التعرف على هوية الطرف بنجاح.';
+  static String get identityQrScanInvalid => 'رمز الهوية غير صالح أو غير تابع لتطبيق قيد.';
+
   // Trial balance
   static const String trialBalanceTitle = 'ميزان المراجعة';
   static const String trialBalanceColAccount = 'اسم الحساب';
@@ -531,4 +539,15 @@ abstract final class AppStringsAr {
   static const String settingsContactSupport = 'التواصل مع الدعم الفني';
   static const String settingsReportIssue = 'الإبلاغ عن مشكلة أو اقتراح';
   static const String settingsVersionInfo = 'معلومات الإصدار';
+
+  // ── Profile Management ──────────────────────────────────────────────────
+  static const String profileDetailsSection = 'بيانات الحساب والنشاط';
+  static const String profileNameLabel = 'الاسم الكامل';
+  static const String profilePhoneLabel = 'رقم الهاتف';
+  static const String profileWhatsAppLabel = 'رقم الواتساب';
+  static const String profileEmailLabel = 'البريد الإلكتروني';
+  static const String profileUpdateAction = 'حفظ التعديلات';
+  static const String profileUpdateSuccess = 'تم تحديث بيانات ملفك الشخصي بنجاح.';
+  static const String profileImageUpload = 'تغيير الصورة';
+  static const String profileLogoUpload = 'تغيير الشعار';
 }

@@ -17,6 +17,8 @@ final class Migration016CounterpartyKeys implements SchemaMigration {
     await db.execute(
         'ALTER TABLE party_details ADD COLUMN email TEXT');
     await db.execute(
+        'ALTER TABLE party_details ADD COLUMN whatsapp_number TEXT');
+    await db.execute(
         'ALTER TABLE party_details ADD COLUMN current_public_key_hex TEXT');
     await db.execute(
         "ALTER TABLE party_details ADD COLUMN public_key_history_json TEXT NOT NULL DEFAULT '[]'");
@@ -30,5 +32,7 @@ final class Migration016CounterpartyKeys implements SchemaMigration {
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_party_email_unique ON party_details(email) WHERE email IS NOT NULL AND email != ''");
     await db.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_party_phone_unique ON party_details(phone_number) WHERE phone_number IS NOT NULL AND phone_number != ''");
+    await db.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_party_whatsapp_unique ON party_details(whatsapp_number) WHERE whatsapp_number IS NOT NULL AND whatsapp_number != ''");
   }
 }

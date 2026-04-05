@@ -297,6 +297,26 @@ ORDER BY a.name COLLATE NOCASE
   }
 
   @override
+  Future<Result<AccountId?>> findAccountByWhatsApp(String whatsapp) async {
+    try {
+      final rows = await _db.query(
+        'party_details',
+        where: 'whatsapp_number = ?',
+        whereArgs: [whatsapp],
+        limit: 1,
+      );
+      if (rows.isEmpty) {
+        return const Success(null);
+      }
+      return Success(AccountId(rows.first['account_id'] as String));
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر البحث برقم واتساب.'),
+      );
+    }
+  }
+
+  @override
   Future<Result<bool>> hasAnyAccounts() async {
     try {
       final rows = await _db.rawQuery('SELECT 1 FROM $_table LIMIT 1');
