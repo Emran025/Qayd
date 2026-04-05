@@ -81,6 +81,11 @@ class StatementChatCubit extends Cubit<StatementChatState> {
     _fetch();
   }
 
+  void setViewMode(StatementChatViewMode mode) {
+    _filter = _filter.copyWith(viewMode: mode);
+    _fetch();
+  }
+
   void clearSearch() {
     _searchQuery = '';
     _searchDebounce?.cancel();
@@ -93,6 +98,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
     _searchDebounce?.cancel();
     _fetch();
   }
+
 
   Future<void> reload() => _fetch();
 

@@ -74,7 +74,28 @@ final class ListAccountStatementChatUseCase {
         return a.createdAt.compareTo(b.createdAt);
       });
 
-      // ── Brought-forward balance ──
+      // ── Apply view-mode filtering and calculate brought-forward ──
+      // "My Accounts" (Default): Perspective of the user (everything they claim + everything accepted).
+      // "Other Party Accounts": Perspective of the counterparty (everything they claim + what the user accepted).
+      
+      bool isIncludedInView(Voucher v, String direction) {
+        if (v.agreementStatus == AgreementStatus.rejected) return false;
+        if (filter.viewMode == StatementChatViewMode.myAccounts) return true;
+        
+        // In "Other Party Accounts" mode:
+        // Include if Accepted (mutual or acknowledged).
+        if (v.agreementStatus == AgreementStatus.accepted) return true;
+        
+        // Include if "Their Claim" (they uploaded it and it's pending).
+        // A payment they sent to me is 'incoming' and 'underRequest'.
+        if (v.agreementStatus == AgreementStatus.underRequest && direction == 'incoming') {
+          return true;
+        }
+
+        // Exclude if "My Claim" that they haven't approved yet.
+        return false;
+      }
+
       int broughtForward = 0;
       List<Voucher> periodVouchers = allVouchers;
 
@@ -88,7 +109,23 @@ final class ListAccountStatementChatUseCase {
         if (filter.includePreviousBalance) {
           final priorVouchers =
               allVouchers.where((v) => v.date.isBefore(fromStart)).toList();
-          broughtForward = _computeNetBalance(priorVouchers, myId);
+          
+          broughtForward = 0;
+          for (final v in priorVouchers) {
+            final dir = _directionFromMyPerspective(
+              vType: v.type,
+              affected: v.affectedAccountId,
+              counterparty: v.counterpartyId,
+              myId: myId,
+            );
+            if (isIncludedInView(v, dir)) {
+              if (dir == 'incoming') {
+                broughtForward += v.amount.minorUnits;
+              } else {
+                broughtForward -= v.amount.minorUnits;
+              }
+            }
+          }
         }
 
         periodVouchers =
@@ -110,6 +147,17 @@ final class ListAccountStatementChatUseCase {
 
       // ── Apply filters ──
       var filtered = periodVouchers;
+
+      // View Mode filtering
+      filtered = filtered.where((v) {
+        final dir = _directionFromMyPerspective(
+          vType: v.type,
+          affected: v.affectedAccountId,
+          counterparty: v.counterpartyId,
+          myId: myId,
+        );
+        return isIncludedInView(v, dir);
+      }).toList();
 
       // Agreement status filter
       if (filter.agreementStatus != null) {
@@ -162,13 +210,11 @@ final class ListAccountStatementChatUseCase {
           myId: myId,
         );
 
-        // Only include confirmed/accepted vouchers (not rejected) in balance.
-        if (v.agreementStatus != AgreementStatus.rejected) {
-          if (direction == 'incoming') {
-            runningBalance += v.amount.minorUnits;
-          } else {
-            runningBalance -= v.amount.minorUnits;
-          }
+        // All vouchers currently in 'filtered' list are already verified by isIncludedInView.
+        if (direction == 'incoming') {
+          runningBalance += v.amount.minorUnits;
+        } else {
+          runningBalance -= v.amount.minorUnits;
         }
 
         final mergedDescription = (v.description ?? v.notes ?? '').trim();
@@ -189,6 +235,7 @@ final class ListAccountStatementChatUseCase {
           referenceNumber: v.referenceNumber,
         ));
       }
+
 
       return Success(StatementChatOutput(
         messages: messages,
@@ -219,26 +266,5 @@ final class ListAccountStatementChatUseCase {
     }
 
     return isMyAffected ? 'incoming' : 'incoming';
-  }
-
-  /// Computes net balance from a list of vouchers relative to [myId].
-  /// Positive = counterparty owes me; Negative = I owe counterparty.
-  int _computeNetBalance(List<Voucher> vouchers, AccountId myId) {
-    int net = 0;
-    for (final v in vouchers) {
-      if (v.agreementStatus == AgreementStatus.rejected) continue;
-      final dir = _directionFromMyPerspective(
-        vType: v.type,
-        affected: v.affectedAccountId,
-        counterparty: v.counterpartyId,
-        myId: myId,
-      );
-      if (dir == 'incoming') {
-        net += v.amount.minorUnits;
-      } else {
-        net -= v.amount.minorUnits;
-      }
-    }
-    return net;
   }
 }

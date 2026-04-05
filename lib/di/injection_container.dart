@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
+import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -115,9 +116,16 @@ import 'package:qayd/data/encryption/voucher_key_service.dart';
 import 'package:qayd/application/notifications/list_inbox_notifications_use_case.dart';
 import 'package:qayd/application/vouchers/liquidate_collateral_use_case.dart';
 import 'package:qayd/application/vouchers/verify_incoming_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/withdraw_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/create_reversal_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/settle_voucher_use_case.dart';
+import 'package:qayd/application/sync/p2p_sync_service.dart';
+import 'package:qayd/data/repositories/outbox_dao.dart';
+import 'package:qayd/data/repositories/sync_watermark_dao.dart';
 import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -176,18 +184,16 @@ abstract final class InjectionContainer {
 
   static late CreateAccountUseCase createAccountUseCase;
   static late BatchImportAccountsFromCsvUseCase
-      batchImportAccountsFromCsvUseCase;
+  batchImportAccountsFromCsvUseCase;
   static late UpdateAccountUseCase updateAccountUseCase;
   static late DeactivateAccountUseCase deactivateAccountUseCase;
   static late GetAccountDetailsUseCase getAccountDetailsUseCase;
   static late FindAccountByPhoneUseCase findAccountByPhoneUseCase;
   static late ListAccountsUseCase listAccountsUseCase;
   static late GetAccountStatementUseCase getAccountStatementUseCase;
-  static late ListAccountStatementChatUseCase
-      listAccountStatementChatUseCase;
+  static late ListAccountStatementChatUseCase listAccountStatementChatUseCase;
   static late CreateVoucherUseCase createVoucherUseCase;
-  static late CreateTripartiteTransferUseCase
-      createTripartiteTransferUseCase;
+  static late CreateTripartiteTransferUseCase createTripartiteTransferUseCase;
   static late UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
   static late AcceptVoucherUseCase acceptVoucherUseCase;
   static late ConfirmVoucherUseCase confirmVoucherUseCase;
@@ -195,6 +201,7 @@ abstract final class InjectionContainer {
   static late ResubmitVoucherUseCase resubmitVoucherUseCase;
   static late ListVouchersUseCase listVouchersUseCase;
   static late GetVoucherDetailsUseCase getVoucherDetailsUseCase;
+  static late ResolveConflictUseCase resolveConflictUseCase;
   static late GenerateTrialBalanceUseCase generateTrialBalanceUseCase;
   static late VoucherPdfGenerator voucherPdfGenerator;
   static late ListInboxNotificationsUseCase listInboxNotificationsUseCase;
@@ -211,16 +218,14 @@ abstract final class InjectionContainer {
   static late NotificationMessageRepository notificationMessageRepository;
   static late GetAutoSuggestionsUseCase getAutoSuggestionsUseCase;
   static late MarkNotificationMessageProcessedUseCase
-      markNotificationMessageProcessedUseCase;
+  markNotificationMessageProcessedUseCase;
   static late ListCurrenciesUseCase listCurrenciesUseCase;
   static late GetBaseCurrencyUseCase getBaseCurrencyUseCase;
   static late SetBaseCurrencyUseCase setBaseCurrencyUseCase;
   static late ToggleCurrencyStatusUseCase toggleCurrencyStatusUseCase;
   static late AddCurrencyUseCase addCurrencyUseCase;
-  static late TransactionFeeSettingsRepository
-      transactionFeeSettingsRepository;
-  static late GetActiveTransactionFeeUseCase
-      getActiveTransactionFeeUseCase;
+  static late TransactionFeeSettingsRepository transactionFeeSettingsRepository;
+  static late GetActiveTransactionFeeUseCase getActiveTransactionFeeUseCase;
   static late ManageTransactionFeeUseCase manageTransactionFeeUseCase;
 
   // ── Sync & Real-Time Components ──────────────────────────────────────────
@@ -252,6 +257,15 @@ abstract final class InjectionContainer {
   static late SignatureVerificationEngine signatureVerificationEngine;
   static late VerifyIncomingVoucherUseCase verifyIncomingVoucherUseCase;
   static late final CounterpartyQrService counterpartyQrService;
+
+  // ── Threaded Financial Interactions (Protocol v1.3) ─────────────────────
+  static late WithdrawVoucherUseCase withdrawVoucherUseCase;
+  static late CreateReversalVoucherUseCase createReversalVoucherUseCase;
+  static late SettleVoucherUseCase settleVoucherUseCase;
+  static late OutboxDao outboxDao;
+  static late SyncWatermarkDao syncWatermarkDao;
+  static late P2PSyncService p2pSyncService;
+  static late final SyncEventDispatcher syncEventDispatcher;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -325,7 +339,8 @@ abstract final class InjectionContainer {
 
     // ── Encryption key provider ─────────────────────────────────────────────
 
-    _encryptionKeyProvider = encryptionKeyProvider ??
+    _encryptionKeyProvider =
+        encryptionKeyProvider ??
         HardwareBackedEncryptionKeyProvider(
           hardwareIdService: hardwareIdService,
           licenseVault: licenseVault,
@@ -345,7 +360,8 @@ abstract final class InjectionContainer {
       autoBackupService: autoBackupService,
       driveService: driveBackupService,
       restoreUseCase: restoreFromBackupUseCase,
-      keyProvider: _encryptionKeyProvider as HardwareBackedEncryptionKeyProvider,
+      keyProvider:
+          _encryptionKeyProvider as HardwareBackedEncryptionKeyProvider,
       mnemonicVault: mnemonicVault,
     );
 
@@ -365,8 +381,9 @@ abstract final class InjectionContainer {
       controller: governanceStubController,
     );
     final governanceRepository = GovernanceRepositoryImpl(governanceRemote);
-    checkGovernanceStatusUseCase =
-        CheckGovernanceStatusUseCase(governanceRepository);
+    checkGovernanceStatusUseCase = CheckGovernanceStatusUseCase(
+      governanceRepository,
+    );
     submitActivationUseCase = SubmitActivationUseCase(governanceRepository);
     governanceWriteGuard = GovernanceWriteGuard(checkGovernanceStatusUseCase);
 
@@ -380,22 +397,26 @@ abstract final class InjectionContainer {
     _registerSqliteStack();
 
     // ── Real-Time Sync Engine ────────────────────────────────────────────────
-    
+
     final baseUrl = ApiEndpoints.baseUrl.trim().replaceAll(RegExp(r'/$'), '');
     final uri = Uri.parse(baseUrl);
     final protocol = uri.scheme == 'https' ? 'wss' : 'ws';
     final host = uri.host;
     final port = uri.hasPort ? ':${uri.port}' : '';
-    const appKey = String.fromEnvironment('REVERB_APP_KEY', defaultValue: 'gpdnqol0mdp28abcbdl7');
-    
+    const appKey = String.fromEnvironment(
+      'REVERB_APP_KEY',
+      defaultValue: 'gpdnqol0mdp28abcbdl7',
+    );
+
     syncSocketService = SyncSocketService(
-      wsUrl: '$protocol://$host$port/app/$appKey?protocol=7&client=js&version=8.3.0',
+      wsUrl:
+          '$protocol://$host$port/app/$appKey?protocol=7&client=js&version=8.3.0',
       tokenProvider: () => licenseVault.readJwt(),
       authUrl: '$baseUrl/api/broadcasting/auth',
     );
-    
+
     syncStatusCubit = SyncStatusCubit();
-    
+
     syncPayloadProcessor = SyncPayloadProcessor(
       identityRepository: identityRepository,
       voucherRepository: voucherRepository,
@@ -403,11 +424,14 @@ abstract final class InjectionContainer {
       accountRepository: accountRepository,
       e2eeService: e2eeService,
       signingService: receiptSigningService,
-      getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair().then((v) => v!), 
+      getCurrentUserKeyPair: () =>
+          setupIdentityUseCase.getKeyPair().then((v) => v!),
       attachmentRepository: attachmentRepository,
       collateralRepository: collateralRepository,
       voucherKeyService: voucherKeyService,
-      onDecryptionFailure: (nodeId) => syncStatusCubit.reportDecryptionfailure(nodeId),
+      notificationMessageRepository: notificationMessageRepository,
+      onDecryptionFailure: (nodeId) =>
+          syncStatusCubit.reportDecryptionfailure(nodeId),
     );
 
     // ── Collateral expiry monitoring (must init before sync coordinator) ──
@@ -428,9 +452,10 @@ abstract final class InjectionContainer {
       currentUserId: userId,
       collateralExpiryChecker: collateralExpiryChecker,
       notificationMessageRepository: notificationMessageRepository,
+      outboxDao: outboxDao,
+      watermarkDao: syncWatermarkDao,
     );
 
-    // Only initiate sync lifecycle if a valid user identity is active
     if (userId > 0) {
       syncCoordinatorService.start();
     }
@@ -447,13 +472,22 @@ abstract final class InjectionContainer {
   }
 
   static void _registerSqliteStack() {
+    outboxDao = OutboxDao(database);
+    syncWatermarkDao = SyncWatermarkDao(database);
+
+    syncEventDispatcher = SyncEventDispatcher(
+      outboxDao: outboxDao,
+      e2eeEncryptionService: e2eeService,
+      accountRepository:
+          SqliteAccountRepository(database), // Use fresh instances or shared
+      identityRepository: identityRepository,
+      getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair(),
+    );
+
     accountRepository = SqliteAccountRepository(database);
     ledgerRepository = SqliteLedgerRepository(database);
     final transactionRunner = DatabaseTransactionRunner(database);
-    voucherRepository = SqliteVoucherRepository(
-      database,
-      transactionRunner,
-    );
+    voucherRepository = SqliteVoucherRepository(database, transactionRunner);
     currencyRepository = SqliteCurrencyRepository(database);
     attachmentRepository = SqliteAttachmentRepository(database);
     collateralRepository = SqliteCollateralRepository(database);
@@ -463,10 +497,12 @@ abstract final class InjectionContainer {
     const trialBalanceGenerator = TrialBalanceGenerator();
     const voucherQrService = VoucherQrService();
 
-    transactionFeeSettingsRepository =
-        SqliteTransactionFeeSettingsRepository(database);
-    getActiveTransactionFeeUseCase =
-        GetActiveTransactionFeeUseCase(transactionFeeSettingsRepository);
+    transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(
+      database,
+    );
+    getActiveTransactionFeeUseCase = GetActiveTransactionFeeUseCase(
+      transactionFeeSettingsRepository,
+    );
     manageTransactionFeeUseCase = ManageTransactionFeeUseCase(
       transactionFeeSettingsRepository,
       _idGenerator,
@@ -475,7 +511,9 @@ abstract final class InjectionContainer {
     listCurrenciesUseCase = ListCurrenciesUseCase(currencyRepository);
     getBaseCurrencyUseCase = GetBaseCurrencyUseCase(currencyRepository);
     setBaseCurrencyUseCase = SetBaseCurrencyUseCase(currencyRepository);
-    toggleCurrencyStatusUseCase = ToggleCurrencyStatusUseCase(currencyRepository);
+    toggleCurrencyStatusUseCase = ToggleCurrencyStatusUseCase(
+      currencyRepository,
+    );
     addCurrencyUseCase = AddCurrencyUseCase(currencyRepository);
 
     createAccountUseCase = CreateAccountUseCase(
@@ -483,8 +521,9 @@ abstract final class InjectionContainer {
       _idGenerator,
       governanceWriteGuard,
     );
-    batchImportAccountsFromCsvUseCase =
-        BatchImportAccountsFromCsvUseCase(createAccountUseCase);
+    batchImportAccountsFromCsvUseCase = BatchImportAccountsFromCsvUseCase(
+      createAccountUseCase,
+    );
     updateAccountUseCase = UpdateAccountUseCase(
       accountRepository,
       governanceWriteGuard,
@@ -505,7 +544,9 @@ abstract final class InjectionContainer {
       accountRepository,
       ledgerRepository,
       balanceCalculator,
+      voucherRepository,
     );
+
     getAccountStatementUseCase = GetAccountStatementUseCase(
       accountRepository,
       ledgerRepository,
@@ -526,6 +567,7 @@ abstract final class InjectionContainer {
       signingService: receiptSigningService,
       getKeyPair: () => setupIdentityUseCase.getKeyPair(),
       licenseVault: licenseVault,
+      syncEventDispatcher: syncEventDispatcher,
     );
     createTripartiteTransferUseCase = CreateTripartiteTransferUseCase(
       voucherRepository,
@@ -545,6 +587,7 @@ abstract final class InjectionContainer {
       entryGenerator,
       _idGenerator,
       governanceWriteGuard,
+      syncEventDispatcher: syncEventDispatcher,
     );
     rejectVoucherUseCase = RejectVoucherUseCase(
       voucherRepository,
@@ -577,20 +620,26 @@ abstract final class InjectionContainer {
 
     messageTemplateRepository = SqliteMessageTemplateRepository(database);
     notificationLogRepository = SqliteNotificationLogRepository(database);
-    notificationMessageRepository =
-        SqliteNotificationMessageRepository(database);
-    listMessageTemplatesUseCase =
-        ListMessageTemplatesUseCase(messageTemplateRepository);
-    saveMessageTemplateUseCase =
-        SaveMessageTemplateUseCase(messageTemplateRepository);
-    deleteMessageTemplateUseCase =
-        DeleteMessageTemplateUseCase(messageTemplateRepository);
+    notificationMessageRepository = SqliteNotificationMessageRepository(
+      database,
+    );
+    listMessageTemplatesUseCase = ListMessageTemplatesUseCase(
+      messageTemplateRepository,
+    );
+    saveMessageTemplateUseCase = SaveMessageTemplateUseCase(
+      messageTemplateRepository,
+    );
+    deleteMessageTemplateUseCase = DeleteMessageTemplateUseCase(
+      messageTemplateRepository,
+    );
     createMessageTemplateUseCase = CreateMessageTemplateUseCase(
       messageTemplateRepository,
       _idGenerator,
     );
-    getAutoSuggestionsUseCase =
-        GetAutoSuggestionsUseCase(notificationMessageRepository, voucherRepository);
+    getAutoSuggestionsUseCase = GetAutoSuggestionsUseCase(
+      notificationMessageRepository,
+      voucherRepository,
+    );
     markNotificationMessageProcessedUseCase =
         MarkNotificationMessageProcessedUseCase(notificationMessageRepository);
     logNotificationIntentUseCase = LogNotificationIntentUseCase(
@@ -637,8 +686,34 @@ abstract final class InjectionContainer {
       syncRepository: syncRepository,
       signingService: receiptSigningService,
       e2eeEncryptionService: e2eeService,
-      getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair().then((v) => v!),
+      getCurrentUserKeyPair: () =>
+          setupIdentityUseCase.getKeyPair().then((v) => v!),
       licenseVault: licenseVault,
+    );
+
+    // ── Threaded Financial Interactions ──────────────────────────────────
+    withdrawVoucherUseCase = WithdrawVoucherUseCase(
+      voucherRepository,
+      governanceWriteGuard,
+      syncEventDispatcher: syncEventDispatcher,
+    );
+    createReversalVoucherUseCase = CreateReversalVoucherUseCase(
+      voucherRepository,
+      currencyRepository,
+      _idGenerator,
+      governanceWriteGuard,
+    );
+    settleVoucherUseCase = SettleVoucherUseCase(
+      voucherRepository,
+      governanceWriteGuard,
+    );
+    p2pSyncService = P2PSyncService(
+      outboxDao: outboxDao,
+      watermarkDao: syncWatermarkDao,
+    );
+    resolveConflictUseCase = ResolveConflictUseCase(
+      notificationMessageRepository,
+      confirmVoucherUseCase,
     );
   }
 }

@@ -8,6 +8,9 @@ enum SyncEventType {
   attachmentSync,    // Blob reference + wrapped voucher key
   collateralSync,    // Encrypted collateral data
   collateralUpdate,  // Re-evaluation event
+  withdrawal,        // Voucher withdrawn by creator
+  settlement,        // Settlement linked via originVoucherId
+  p2pHandshake,      // P2P bidirectional sync handshake
   unknown;
 
   static SyncEventType fromString(String val) {

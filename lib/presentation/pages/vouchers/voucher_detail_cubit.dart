@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/withdraw_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_input.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
@@ -43,10 +44,12 @@ class VoucherDetailCubit extends Cubit<VoucherDetailState> {
   VoucherDetailCubit(
     this._getDetails,
     this._confirm,
+    this._withdraw,
   ) : super(const VoucherDetailInitial());
 
   final GetVoucherDetailsUseCase _getDetails;
   final ConfirmVoucherUseCase _confirm;
+  final WithdrawVoucherUseCase _withdraw;
 
   Future<void> load(String voucherId) async {
     emit(const VoucherDetailLoading());
@@ -121,5 +124,27 @@ class VoucherDetailCubit extends Cubit<VoucherDetailState> {
     if (s is VoucherDetailReady && s.showPostConfirmMessage) {
       emit(VoucherDetailReady(s.data));
     }
+  }
+
+  Future<void> withdraw() async {
+    final s = state;
+    if (s is! VoucherDetailReady || s.confirming) return;
+    
+    emit(VoucherDetailReady(s.data, confirming: true));
+    final result = await _withdraw(voucherId: s.data.id);
+    
+    if (isClosed) return;
+    
+    if (result.isFailure) {
+      emit(VoucherDetailReady(
+        s.data,
+        confirming: false,
+        confirmErrorAr: result.failureOrNull!.messageAr,
+      ));
+      return;
+    }
+
+    emit(const VoucherDetailLoading());
+    await _emitDetails(s.data.id, showPostConfirmMessage: false);
   }
 }

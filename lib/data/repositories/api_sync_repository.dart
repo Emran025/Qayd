@@ -10,9 +10,12 @@ class ApiSyncRepository implements SyncRepository {
   final ApiClient _apiClient;
 
   @override
-  Future<List<SyncNode>> pullNodes() async {
+  Future<List<SyncNode>> pullNodes({String? since}) async {
     try {
-      final response = await _apiClient.get(ApiEndpoints.syncPull);
+      final endpoint = since != null 
+          ? '${ApiEndpoints.syncPull}?since=$since'
+          : ApiEndpoints.syncPull;
+      final response = await _apiClient.get(endpoint);
       if (response is List) {
         return response
             .map((e) => SyncNode.fromJson(e as Map<String, dynamic>))

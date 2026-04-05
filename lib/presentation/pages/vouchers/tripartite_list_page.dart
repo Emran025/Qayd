@@ -387,6 +387,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
       VoucherState.draft => AppStringsAr.voucherStateDraft,
       VoucherState.confirmed => AppStringsAr.voucherStateConfirmed,
       VoucherState.settled => AppStringsAr.voucherStateSettled,
+      VoucherState.withdrawn => AppStringsAr.voucherStateWithdrawn,
     };
   }
 }

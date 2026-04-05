@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/domain/entities/sync_node.dart';
@@ -41,6 +43,7 @@ class SyncPayloadProcessor {
     required this.attachmentRepository,
     required this.collateralRepository,
     required this.voucherKeyService,
+    required this.notificationMessageRepository,
     this.onDecryptionFailure,
   });
 
@@ -48,6 +51,7 @@ class SyncPayloadProcessor {
   final VoucherRepository voucherRepository;
   final LedgerRepository ledgerRepository;
   final AccountRepository accountRepository;
+  final NotificationMessageRepository notificationMessageRepository;
   final E2EEEncryptionService e2eeService;
   final ReceiptSigningService signingService;
   final Future<CryptoKeyPair> Function() getCurrentUserKeyPair;
@@ -134,6 +138,16 @@ class SyncPayloadProcessor {
           case SyncEventType.collateralUpdate:
             await _inboundCollateralRevaluation(decryptedRawPayload);
             break;
+          case SyncEventType.withdrawal:
+            await _inboundVoucherWithdrawal(decryptedRawPayload);
+            break;
+          case SyncEventType.settlement:
+            await _inboundVoucherSettlement(decryptedRawPayload);
+            break;
+          case SyncEventType.p2pHandshake:
+            // P2P handshake is handled at the transport layer, not here.
+            debugPrint('P2P Handshake event received — delegating to P2P service.');
+            break;
           case SyncEventType.unknown:
             debugPrint('Warning: Unknown event type in SyncNode [${node.id}]');
             break;
@@ -190,6 +204,41 @@ class SyncPayloadProcessor {
       debugPrint(
         'VoucherClaim [$voucherIdStr]: signed claim received, '
         'signature verification pending on next read.',
+      );
+    }
+
+    // ── Protocol §1: Reciprocal Matching ─────────────────────────────────
+    // Before persisting, check for a matching local draft (inverse type,
+    // same amount/currency/counterparty, within ±24h window).
+    final reciprocalResult = await voucherRepository.findReciprocalMatch(
+      amountMinor: amountMinor,
+      currencyCode: currencyCode,
+      counterpartyAccountId: payload['counterparty_id'] as String? ?? '',
+      type: typeStr,
+      referenceDate: DateTime.tryParse(
+        payload['date'] as String? ?? '',
+      ) ?? DateTime.now(),
+    );
+    if (reciprocalResult.isSuccess && reciprocalResult.valueOrNull != null) {
+      final localMatch = reciprocalResult.valueOrNull!;
+      debugPrint(
+        'VoucherClaim [$voucherIdStr]: RECIPROCAL MATCH found with '
+        'local draft [${localMatch.id.value}]. Inserting merge proposal.',
+      );
+
+      // Flag for UI intervention via a specialized notification entry.
+      // ContextKind 'merge_proposal' triggers the Conflict UI in the Inbox/List.
+      await notificationMessageRepository.insert(
+        id: 'merge_${voucherIdStr}_${localMatch.id.value}',
+        bodyText: 'سند مطابق — هل ترغب في دمج هذا السند مع المسودة المحلية؟', 
+        counterpartyAccountId: payload['counterparty_id'] as String? ?? '',
+        createdAtIso: DateTime.now().toIso8601String(),
+        channel: 'conflict',
+        rawPayloadJson: json.encode({
+          'inbound_voucher_id': voucherIdStr,
+          'local_voucher_id': localMatch.id.value,
+          'inbound_payload': payload,
+        }),
       );
     }
   }
@@ -329,9 +378,8 @@ class SyncPayloadProcessor {
     );
     if (voucherResult.isFailure || voucherResult.valueOrNull == null) return;
 
-    final rejectedVoucher = voucherResult.valueOrNull!.attachSignature(
-      signatureHex: 'REJECTED', // Tombstone
-      signerPublicKeyHex: 'REJECTED',
+    final rejectedVoucher = voucherResult.valueOrNull!.attachRejection(
+      reason: payload['rejection_reason'] as String? ?? '',
       status: AgreementStatus.rejected,
     );
     await voucherRepository.save(rejectedVoucher);
@@ -461,6 +509,69 @@ class SyncPayloadProcessor {
 
     await collateralRepository.update(updated);
     await collateralRepository.saveRevaluation(revalAudit);
+  }
+
+  // ── Threaded Financial Interactions handlers ──────────────────────────
+
+  Future<void> _inboundVoucherWithdrawal(
+    Map<String, dynamic> payload,
+  ) async {
+    final String? voucherIdStr = payload['voucher_id'] as String?;
+    if (voucherIdStr == null) {
+      debugPrint('VoucherWithdrawal: missing voucher_id');
+      return;
+    }
+
+    final voucherResult = await voucherRepository.getById(
+      VoucherId(voucherIdStr),
+    );
+    if (voucherResult.isFailure || voucherResult.valueOrNull == null) {
+      debugPrint('VoucherWithdrawal [$voucherIdStr]: voucher not found locally.');
+      return;
+    }
+
+    final voucher = voucherResult.valueOrNull!;
+    if (voucher.state.isDraft) {
+      // Withdraw the local copy
+      final withdrawn = voucher.withdraw(DateTime.now());
+      await voucherRepository.save(withdrawn);
+      debugPrint('VoucherWithdrawal [$voucherIdStr]: local copy withdrawn.');
+    } else {
+      debugPrint(
+        'VoucherWithdrawal [$voucherIdStr]: cannot withdraw — '
+        'current state is ${voucher.state.name}.',
+      );
+    }
+  }
+
+  Future<void> _inboundVoucherSettlement(
+    Map<String, dynamic> payload,
+  ) async {
+    final String? voucherIdStr = payload['voucher_id'] as String?;
+    if (voucherIdStr == null) {
+      debugPrint('VoucherSettlement: missing voucher_id');
+      return;
+    }
+
+    final voucherResult = await voucherRepository.getById(
+      VoucherId(voucherIdStr),
+    );
+    if (voucherResult.isFailure || voucherResult.valueOrNull == null) {
+      debugPrint('VoucherSettlement [$voucherIdStr]: voucher not found locally.');
+      return;
+    }
+
+    final voucher = voucherResult.valueOrNull!;
+    if (voucher.state.isConfirmed) {
+      final settled = voucher.settle(DateTime.now());
+      await voucherRepository.save(settled);
+      debugPrint('VoucherSettlement [$voucherIdStr]: marked as settled.');
+    } else {
+      debugPrint(
+        'VoucherSettlement [$voucherIdStr]: cannot settle — '
+        'current state is ${voucher.state.name}.',
+      );
+    }
   }
 
   Uint8List _hexToBytes(String hex) {

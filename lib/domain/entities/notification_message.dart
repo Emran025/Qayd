@@ -7,6 +7,7 @@ final class NotificationMessage {
     required this.counterpartyAccountId,
     required this.createdAt,
     required this.processed,
+    this.rawPayloadJson,
   });
 
   final String id;
@@ -15,4 +16,5 @@ final class NotificationMessage {
   final String counterpartyAccountId;
   final DateTime createdAt;
   final bool processed;
+  final String? rawPayloadJson;
 }

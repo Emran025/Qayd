@@ -4,13 +4,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
 import 'package:qayd/application/vouchers/dtos/list_vouchers_input.dart';
 import 'package:qayd/application/vouchers/list_vouchers_use_case.dart';
+import 'package:qayd/domain/entities/notification_message.dart';
+import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
 
 class VoucherListCubit extends Cubit<VoucherListState> {
-  VoucherListCubit(this._listVouchers) : super(const VoucherListInitial());
+  VoucherListCubit(
+    this._listVouchers,
+    this._notificationRepo,
+  ) : super(const VoucherListInitial());
 
   final ListVouchersUseCase _listVouchers;
+  final NotificationMessageRepository _notificationRepo;
 
   String _searchQuery = '';
   AdvancedFilterInput _advancedFilter = AdvancedFilterInput.empty;
@@ -72,6 +78,14 @@ class VoucherListCubit extends Cubit<VoucherListState> {
         excludeTripartite: true,
       ),
     );
+
+    final proposalsResult = await _notificationRepo.listAllUnprocessed();
+    final proposals = proposalsResult.isSuccess
+        ? proposalsResult.valueOrNull!
+            .where((e) => e.channel == 'conflict')
+            .toList()
+        : <NotificationMessage>[];
+
     result.fold(
       (f) => emit(VoucherListFailure(f)),
       (out) {
@@ -84,6 +98,7 @@ class VoucherListCubit extends Cubit<VoucherListState> {
             searchQuery: _searchQuery,
             advancedFilter: _advancedFilter,
             accountNamesById: Map<String, String>.from(_accountNamesById),
+            mergeProposals: proposals,
           ),
         );
       },

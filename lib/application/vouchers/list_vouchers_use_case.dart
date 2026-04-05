@@ -81,6 +81,9 @@ class ListVouchersUseCase {
                   linkedPartyId: v.tripartiteMeta?.linkedPartyId.value,
                   isContingent: v.isContingent,
                   agreementStatusCode: v.agreementStatus.name,
+                  originVoucherId: v.originVoucherId?.value,
+                  reversalCount: v.reversalCount,
+                  firstChildId: v.firstChildId?.value,
                 ),
               )
               .toList(growable: false),

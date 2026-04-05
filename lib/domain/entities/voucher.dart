@@ -17,6 +17,11 @@ import 'package:qayd/domain/value_objects/voucher_type.dart';
 /// Separation of concerns:
 /// - [state] (VoucherState): Tracks the creator's workflow (Draft vs Confirmed).
 /// - [agreementStatus] (AgreementStatus): Tracks the digital signature agreement (Accepted, Pending/UnderRequest, Rejected).
+///
+/// Threaded Financial Interactions:
+/// - [originVoucherId]: Links reversals, corrections, and settlements back to the source voucher.
+/// - [rejectionReason]: Stores the reason when a voucher is rejected by the counterparty.
+/// - [withdrawnAt]: Timestamp when a voucher was withdrawn (non-destructive retraction).
 final class Voucher {
   const Voucher._({
     required this.id,
@@ -40,6 +45,11 @@ final class Voucher {
     required this.agreementStatus,
     required this.signerPhone,
     required this.tripartiteMeta,
+    required this.originVoucherId,
+    required this.rejectionReason,
+    required this.withdrawnAt,
+    this.reversalCount = 0,
+    this.firstChildId,
   });
 
   final VoucherId id;
@@ -81,17 +91,44 @@ final class Voucher {
   /// Links receipt (A→C) and payment (C→B) via a shared transfer group.
   final TripartiteMeta? tripartiteMeta;
 
+  // ── Threaded Financial Interactions fields (Protocol v1.3) ──────────────
+
+  /// UUID of the parent voucher for reversals, corrections, and settlements.
+  /// Enables the "Reply" mechanism: any voucher carrying this field is a
+  /// follow-up to the original voucher, rendered with a reply header in the UI.
+  final VoucherId? originVoucherId;
+
+  /// Reason provided when the counterparty rejects a voucher.
+  /// Used for "Corrective Resubmission" flow — the creator sees this reason
+  /// and can edit the draft before re-syncing.
+  final String? rejectionReason;
+
+  /// Timestamp when the voucher was withdrawn (non-destructive retraction).
+  /// The record remains in the database for audit but is flagged as withdrawn.
+  final DateTime? withdrawnAt;
+
+  // ── UI-only metadata for navigation/threaded view ─────────────────────
+  
+  /// Number of reversals/settlements linked back to this voucher.
+  final int reversalCount;
+
+  /// ID of the first reversal/settlement child for jump-to navigation.
+  final VoucherId? firstChildId;
+  
+  // ── Computed helpers ───────────────────────────────────────────────────
+  
+  bool get hasSignature => signatureHex != null && signatureHex!.isNotEmpty;
+
   /// Whether this voucher is part of a tripartite intermediary transfer.
   bool get isTripartite => tripartiteMeta != null;
 
   /// Whether this voucher is locked pending its parent's confirmation.
   bool get isContingent => tripartiteMeta?.isContingent ?? false;
 
-  /// Whether a cryptographic signature is present on this voucher.
-  bool get hasSignature => signatureHex != null;
-
   bool get isReceipt => type == VoucherType.receipt;
   bool get isPayment => type == VoucherType.payment;
+  bool get isReply => originVoucherId != null;
+  bool get isWithdrawn => state == VoucherState.withdrawn;
 
   /// Rehydrates a voucher from persistence (data layer); not for new business creates.
   factory Voucher.restore({
@@ -116,6 +153,11 @@ final class Voucher {
     AgreementStatus agreementStatus = AgreementStatus.underRequest,
     String? signerPhone,
     TripartiteMeta? tripartiteMeta,
+    VoucherId? originVoucherId,
+    String? rejectionReason,
+    DateTime? withdrawnAt,
+    int reversalCount = 0,
+    VoucherId? firstChildId,
   }) {
     return Voucher._(
       id: id,
@@ -139,6 +181,11 @@ final class Voucher {
       agreementStatus: agreementStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
+      originVoucherId: originVoucherId,
+      rejectionReason: rejectionReason,
+      withdrawnAt: withdrawnAt,
+      reversalCount: reversalCount,
+      firstChildId: firstChildId,
     );
   }
 
@@ -166,6 +213,7 @@ final class Voucher {
     AgreementStatus? agreementStatus,
     String? signerPhone,
     TripartiteMeta? tripartiteMeta,
+    VoucherId? originVoucherId,
   }) {
     if (counterpartyId == affectedAccountId) {
       throw const SelfCancelingEntryException(
@@ -210,6 +258,9 @@ final class Voucher {
       agreementStatus: finalAgreementStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
+      originVoucherId: originVoucherId,
+      rejectionReason: null,
+      withdrawnAt: null,
     );
   }
 
@@ -221,28 +272,9 @@ final class Voucher {
         to: VoucherState.confirmed,
       );
     }
-    return Voucher._(
-      id: id,
-      type: type,
-      referenceNumber: referenceNumber,
-      date: date,
-      amount: amount,
-      currency: currency,
-      counterpartyId: counterpartyId,
-      affectedAccountId: affectedAccountId,
+    return _copyWith(
       state: VoucherState.confirmed,
-      description: description,
-      attachmentRefs: attachmentRefs,
-      notes: notes,
-      tags: tags,
-      createdAt: createdAt,
       confirmedAt: confirmedAt,
-      settledAt: null,
-      signatureHex: signatureHex,
-      signerPublicKeyHex: signerPublicKeyHex,
-      agreementStatus: agreementStatus,
-      signerPhone: signerPhone,
-      tripartiteMeta: tripartiteMeta,
     );
   }
 
@@ -254,28 +286,26 @@ final class Voucher {
         to: VoucherState.settled,
       );
     }
-    return Voucher._(
-      id: id,
-      type: type,
-      referenceNumber: referenceNumber,
-      date: date,
-      amount: amount,
-      currency: currency,
-      counterpartyId: counterpartyId,
-      affectedAccountId: affectedAccountId,
+    return _copyWith(
       state: VoucherState.settled,
-      description: description,
-      attachmentRefs: attachmentRefs,
-      notes: notes,
-      tags: tags,
-      createdAt: createdAt,
-      confirmedAt: confirmedAt,
       settledAt: settledAt,
-      signatureHex: signatureHex,
-      signerPublicKeyHex: signerPublicKeyHex,
-      agreementStatus: agreementStatus,
-      signerPhone: signerPhone,
-      tripartiteMeta: tripartiteMeta,
+    );
+  }
+
+  /// Withdraws a voucher (non-destructive retraction).
+  /// Available only from Draft, UnderRequest, or Rejected agreement states.
+  /// The record remains in the database for audit integrity.
+  Voucher withdraw(DateTime withdrawnAt) {
+    if (!state.isDraft) {
+      throw InvalidVoucherTransitionException(
+        messageAr: 'يمكن سحب السند من حالة المسودة فقط.',
+        from: state,
+        to: VoucherState.withdrawn,
+      );
+    }
+    return _copyWith(
+      state: VoucherState.withdrawn,
+      withdrawnAt: withdrawnAt,
     );
   }
 
@@ -286,28 +316,22 @@ final class Voucher {
     required AgreementStatus status,
     String? signerPhone,
   }) {
-    return Voucher._(
-      id: id,
-      type: type,
-      referenceNumber: referenceNumber,
-      date: date,
-      amount: amount,
-      currency: currency,
-      counterpartyId: counterpartyId,
-      affectedAccountId: affectedAccountId,
-      state: state,
-      description: description,
-      attachmentRefs: attachmentRefs,
-      notes: notes,
-      tags: tags,
-      createdAt: createdAt,
-      confirmedAt: confirmedAt,
-      settledAt: settledAt,
+    return _copyWith(
       signatureHex: signatureHex,
       signerPublicKeyHex: signerPublicKeyHex,
       agreementStatus: status,
       signerPhone: signerPhone ?? this.signerPhone,
-      tripartiteMeta: tripartiteMeta,
+    );
+  }
+
+  /// Attaches a rejection reason from the counterparty.
+  Voucher attachRejection({
+    required String reason,
+    required AgreementStatus status,
+  }) {
+    return _copyWith(
+      agreementStatus: status,
+      rejectionReason: reason,
     );
   }
 
@@ -377,6 +401,9 @@ final class Voucher {
       agreementStatus: agreementStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
+      originVoucherId: originVoucherId,
+      rejectionReason: rejectionReason,
+      withdrawnAt: withdrawnAt,
     );
   }
 
@@ -396,5 +423,45 @@ final class Voucher {
         code: 'voucher_settled_immutable',
       );
     }
+  }
+
+  /// Internal copy-with helper to reduce boilerplate in state transitions.
+  Voucher _copyWith({
+    VoucherState? state,
+    DateTime? confirmedAt,
+    DateTime? settledAt,
+    DateTime? withdrawnAt,
+    String? signatureHex,
+    String? signerPublicKeyHex,
+    AgreementStatus? agreementStatus,
+    String? signerPhone,
+    String? rejectionReason,
+  }) {
+    return Voucher._(
+      id: id,
+      type: type,
+      referenceNumber: referenceNumber,
+      date: date,
+      amount: amount,
+      currency: currency,
+      counterpartyId: counterpartyId,
+      affectedAccountId: affectedAccountId,
+      state: state ?? this.state,
+      description: description,
+      attachmentRefs: attachmentRefs,
+      notes: notes,
+      tags: tags,
+      createdAt: createdAt,
+      confirmedAt: confirmedAt ?? this.confirmedAt,
+      settledAt: settledAt ?? this.settledAt,
+      signatureHex: signatureHex ?? this.signatureHex,
+      signerPublicKeyHex: signerPublicKeyHex ?? this.signerPublicKeyHex,
+      agreementStatus: agreementStatus ?? this.agreementStatus,
+      signerPhone: signerPhone ?? this.signerPhone,
+      tripartiteMeta: tripartiteMeta,
+      originVoucherId: originVoucherId,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      withdrawnAt: withdrawnAt ?? this.withdrawnAt,
+    );
   }
 }

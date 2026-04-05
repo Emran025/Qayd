@@ -4,7 +4,7 @@ import 'package:qayd/domain/entities/sync_node.dart';
 /// This handles pushing encrypted blocks, polling/pulling, and authenticating state.
 abstract class SyncRepository {
   /// Fetch outstanding sync nodes directed at this user
-  Future<List<SyncNode>> pullNodes();
+  Future<List<SyncNode>> pullNodes({String? since});
 
   /// Push an encrypted sync node up to the server to be routed to [receiverId]
   Future<void> pushNode(SyncNode node);

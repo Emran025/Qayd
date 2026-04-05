@@ -13,19 +13,22 @@ import 'package:qayd/domain/value_objects/entry_side.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 
 class ConfirmVoucherUseCase {
   ConfirmVoucherUseCase(
     this._voucherRepository,
     this._entryGenerator,
     this._idGenerator,
-    this._writeGuard,
-  );
+    this._writeGuard, {
+    SyncEventDispatcher? syncEventDispatcher,
+  }) : _syncEventDispatcher = syncEventDispatcher;
 
   final VoucherRepository _voucherRepository;
   final EntryGenerator _entryGenerator;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final SyncEventDispatcher? _syncEventDispatcher;
 
   Future<Result<ConfirmVoucherOutput>> call(ConfirmVoucherInput input) async {
     try {
@@ -77,6 +80,11 @@ class ConfirmVoucherUseCase {
 
       if (persisted.isFailure) {
         return FailureResult(persisted.failureOrNull!);
+      }
+
+      // §5.A: Enqueue acceptance into local outbox
+      if (_syncEventDispatcher != null) {
+        await _syncEventDispatcher.dispatchVoucherAcceptance(confirmed);
       }
 
       // ── Cascading release for tripartite transfers ─────────────────────

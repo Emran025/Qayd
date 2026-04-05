@@ -19,6 +19,9 @@ class VoucherSummaryDto {
     this.linkedPartyId,
     this.isContingent = false,
     required this.agreementStatusCode,
+    this.originVoucherId,
+    this.reversalCount = 0,
+    this.firstChildId,
   });
 
   final String id;
@@ -42,4 +45,7 @@ class VoucherSummaryDto {
   final String? linkedPartyId;
   final bool isContingent;
   final String agreementStatusCode;
+  final String? originVoucherId;
+  final int reversalCount;
+  final String? firstChildId;
 }

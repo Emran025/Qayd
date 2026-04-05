@@ -23,6 +23,7 @@ import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 
 class CreateVoucherUseCase {
   final VoucherRepository _voucherRepository;
@@ -35,6 +36,7 @@ class CreateVoucherUseCase {
   final ReceiptSigningService? _signingService;
   final Future<CryptoKeyPair?> Function()? _getKeyPair;
   final LicenseVault? _licenseVault;
+  final SyncEventDispatcher? _syncEventDispatcher;
 
   CreateVoucherUseCase(
     this._voucherRepository,
@@ -47,10 +49,12 @@ class CreateVoucherUseCase {
     ReceiptSigningService? signingService,
     Future<CryptoKeyPair?> Function()? getKeyPair,
     LicenseVault? licenseVault,
+    SyncEventDispatcher? syncEventDispatcher,
   })  : _accountRepository = accountRepository,
         _signingService = signingService,
         _getKeyPair = getKeyPair,
-        _licenseVault = licenseVault;
+        _licenseVault = licenseVault,
+        _syncEventDispatcher = syncEventDispatcher;
 
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
@@ -116,6 +120,9 @@ class CreateVoucherUseCase {
         notes: input.notes,
         tripartiteMeta: tripartiteMeta,
         attachmentRefs: attachmentRefs,
+        originVoucherId: input.originVoucherId != null 
+            ? VoucherId(input.originVoucherId!) 
+            : null,
       );
 
       // ── Protocol §5: Auto-sign receipt vouchers ────────────────────────────
@@ -165,6 +172,10 @@ class CreateVoucherUseCase {
       }
 
       final saved = await _voucherRepository.save(voucher);
+      if (saved.isSuccess && _syncEventDispatcher != null) {
+        // §5.A: Enqueue claim into local outbox
+        await _syncEventDispatcher.dispatchVoucherClaim(voucher);
+      }
       return saved.fold(
         (f) => FailureResult(f),
         (_) => Success(

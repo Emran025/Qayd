@@ -23,9 +23,29 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/voucher_state_codec.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/presentation/widgets/voucher_qr_dialog.dart';
+import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
+import '../../../di/injection_container.dart';
 
 class VoucherDetailPage extends StatefulWidget {
   const VoucherDetailPage({super.key});
+
+  /// Centralized navigation entry point to ensure Clean Architecture parity.
+  /// Decouples the UI from Cubit instantiation/injection logic.
+  static Future<void> show(BuildContext context, String voucherId) {
+    return Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (ctx) => BlocProvider(
+          create: (_) => VoucherDetailCubit(
+            InjectionContainer.getVoucherDetailsUseCase,
+            InjectionContainer.confirmVoucherUseCase,
+            InjectionContainer.withdrawVoucherUseCase,
+          )..load(voucherId),
+          child: const VoucherDetailPage(),
+        ),
+      ),
+    );
+  }
 
   @override
   State<VoucherDetailPage> createState() => _VoucherDetailPageState();
@@ -126,6 +146,24 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                       );
                     },
                   ),
+                
+                // --- Protocol §2: Withdrawal Action ---
+                if (state.data.stateCode == 'draft' || 
+                    state.data.agreementStatusCode == 'under_request' ||
+                    state.data.agreementStatusCode == 'rejected')
+                  PopupMenuButton<String>(
+                    onSelected: (val) {
+                      if (val == 'withdraw') {
+                        context.read<VoucherDetailCubit>().withdraw();
+                      }
+                    },
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(
+                        value: 'withdraw',
+                        child: Text('سحب السند'),
+                      ),
+                    ],
+                  ),
               ],
             ],
           ),
@@ -204,7 +242,124 @@ class _VoucherDetailBody extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(SpacingTokens.lg),
           children: [
-        Row(
+            if (data.stateCode == 'withdrawn')
+              Padding(
+                padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+                child: Container(
+                  padding: const EdgeInsets.all(SpacingTokens.md),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.info_outline_rounded, color: Colors.orange, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: QaydText(
+                              'تم سحب هذا السند. هل تريد تصحيح الوجهة وإعادة الإرسال؟',
+                              slot: QaydTextStyleSlot.bodySmall,
+                              color: Colors.orange.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: SpacingTokens.sm),
+                      FilledButton.icon(
+                        onPressed: () {
+                           Navigator.of(context).push(
+                             QaydPageRoute.slideFromStart(
+                               builder: (ctx) => VoucherCreatePage(
+                                 initialQrData: {
+                                   'type': data.typeCode == 'payment' ? VoucherType.payment : VoucherType.receipt,
+                                   'date': DateTime.parse(data.dateIso),
+                                   'amountMinorUnits': data.amountMinorUnits,
+                                   'description': data.description,
+                                   'counterpartyAccountId': data.counterpartyAccountId,
+                                   'originVoucherId': data.id,
+                                 },
+                               ),
+                             ),
+                           );
+                        },
+                        icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
+                        label: const Text('تصحيح وإعادة توجيه'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (data.successorVoucherId != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+                child: InkWell(
+                  onTap: () => VoucherDetailPage.show(context, data.successorVoucherId!),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(SpacingTokens.sm),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.forward_rounded, size: 16, color: Colors.amber),
+                        const SizedBox(width: SpacingTokens.sm),
+                        Expanded(
+                          child: QaydText(
+                            AppStringsAr.voucherJumpHeader,
+                            slot: QaydTextStyleSlot.labelMedium,
+                            color: Colors.amber,
+                          ),
+                        ),
+                        const Icon(Icons.chevron_left_rounded, size: 16, color: Colors.amber),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (data.originVoucherId != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+                child: InkWell(
+                  onTap: () => VoucherDetailPage.show(context, data.originVoucherId!),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(SpacingTokens.sm),
+                    decoration: BoxDecoration(
+                      color: scheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: scheme.primary.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.reply_rounded, size: 16, color: scheme.primary),
+                        const SizedBox(width: SpacingTokens.sm),
+                        Expanded(
+                          child: Text(
+                            AppStringsAr.voucherReplyHeader,
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                        Icon(Icons.chevron_left_rounded, size: 16, color: scheme.primary),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            Row(
           children: [
             Icon(
               isReceipt ? Icons.south_west_rounded : Icons.north_east_rounded,

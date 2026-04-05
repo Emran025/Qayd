@@ -27,6 +27,7 @@ class QaydBadge extends StatelessWidget {
       VoucherState.draft => (custom.draftState, custom.badgeOnDraft, true),
       VoucherState.confirmed => (custom.confirmedState, custom.badgeOnConfirmed, false),
       VoucherState.settled => (custom.settledState, custom.badgeOnSettled, false),
+      VoucherState.withdrawn => (ColorTokens.errorSoft.withValues(alpha: 0.2), ColorTokens.errorDeep, false),
     };
     final label = _stateLabel(state);
     return QaydBadge._(label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
@@ -49,6 +50,7 @@ class QaydBadge extends StatelessWidget {
       VoucherState.draft => AppStringsAr.voucherStateDraft,
       VoucherState.confirmed => AppStringsAr.voucherStateConfirmed,
       VoucherState.settled => AppStringsAr.voucherStateSettled,
+      VoucherState.withdrawn => AppStringsAr.voucherStateWithdrawn,
     };
   }
 

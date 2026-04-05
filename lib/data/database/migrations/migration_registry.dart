@@ -14,6 +14,9 @@ import 'package:qayd/data/database/migrations/migration_013_transaction_fees.dar
 import 'package:qayd/data/database/migrations/migration_014_attachments.dart';
 import 'package:qayd/data/database/migrations/migration_015_collaterals.dart';
 import 'package:qayd/data/database/migrations/migration_016_counterparty_keys.dart';
+import 'package:qayd/data/database/migrations/migration_017_threaded_interactions.dart';
+import 'package:qayd/data/database/migrations/migration_018_outbox.dart';
+import 'package:qayd/data/database/migrations/migration_019_sync_watermarks.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -38,6 +41,9 @@ final class MigrationRegistry {
     Migration014Attachments(),
     Migration015Collaterals(),
     Migration016CounterpartyKeys(),
+    Migration017ThreadedInteractions(),
+    Migration018Outbox(),
+    Migration019SyncWatermarks(),
   ];
 
   static List<SchemaMigration> get ordered {

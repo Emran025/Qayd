@@ -19,12 +19,12 @@ import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
-import 'package:qayd/presentation/pages/vouchers/voucher_detail_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_filter_sheet.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_qr_scanner_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
+import 'package:qayd/presentation/pages/vouchers/widgets/conflict_banner.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -37,8 +37,10 @@ class VoucherListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          VoucherListCubit(InjectionContainer.listVouchersUseCase)..load(),
+      create: (_) => VoucherListCubit(
+        InjectionContainer.listVouchersUseCase,
+        InjectionContainer.notificationMessageRepository,
+      )..load(),
       child: const _VoucherListView(),
     );
   }
@@ -61,17 +63,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
   }
 
   Future<void> _openDetail(BuildContext context, String voucherId) async {
-    await Navigator.of(context).push<void>(
-      QaydPageRoute.slideFromStart<void>(
-        builder: (ctx) => BlocProvider(
-          create: (_) => VoucherDetailCubit(
-            InjectionContainer.getVoucherDetailsUseCase,
-            InjectionContainer.confirmVoucherUseCase,
-          )..load(voucherId),
-          child: const VoucherDetailPage(),
-        ),
-      ),
-    );
+    await VoucherDetailPage.show(context, voucherId);
     if (context.mounted) {
       await context.read<VoucherListCubit>().load();
     }
@@ -287,6 +279,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
       VoucherState.draft => AppStringsAr.voucherStateDraft,
       VoucherState.confirmed => AppStringsAr.voucherStateConfirmed,
       VoucherState.settled => AppStringsAr.voucherStateSettled,
+      VoucherState.withdrawn => AppStringsAr.voucherStateWithdrawn,
     };
   }
 
@@ -327,6 +320,14 @@ class _VoucherListViewState extends State<_VoucherListView> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          BlocBuilder<VoucherListCubit, VoucherListState>(
+            builder: (context, state) {
+              if (state is VoucherListReady && state.mergeProposals.isNotEmpty) {
+                return ConflictBanner(proposals: state.mergeProposals);
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(
               SpacingTokens.md,
@@ -435,12 +436,18 @@ class _VoucherListViewState extends State<_VoucherListView> {
                             ),
                             itemCount: vouchers.length,
                             itemBuilder: (context, i) {
-                              return _VoucherTile(
-                                dto: vouchers[i],
-                                onTap: () =>
-                                    _openDetail(context, vouchers[i].id),
-                              );
-                            },
+                                return _VoucherTile(
+                                  dto: vouchers[i],
+                                  onTap: () =>
+                                      _openDetail(context, vouchers[i].id),
+                                  onOriginTap: vouchers[i].originVoucherId != null
+                                      ? () => _openDetail(context, vouchers[i].originVoucherId!)
+                                      : null,
+                                  onChildTap: vouchers[i].firstChildId != null
+                                      ? () => _openDetail(context, vouchers[i].firstChildId!)
+                                      : null,
+                                );
+                              },
                           ),
                 };
               },
@@ -453,10 +460,17 @@ class _VoucherListViewState extends State<_VoucherListView> {
 }
 
 class _VoucherTile extends StatelessWidget {
-  const _VoucherTile({required this.dto, required this.onTap});
+  const _VoucherTile({
+    required this.dto,
+    required this.onTap,
+    this.onOriginTap,
+    this.onChildTap,
+  });
 
   final VoucherSummaryDto dto;
   final VoidCallback onTap;
+  final VoidCallback? onOriginTap;
+  final VoidCallback? onChildTap;
 
   @override
   Widget build(BuildContext context) {
@@ -496,6 +510,28 @@ class _VoucherTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (dto.originVoucherId != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
+                            child: InkWell(
+                              onTap: onOriginTap,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.reply_rounded, size: 14, color: scheme.primary),
+                                  const SizedBox(width: SpacingTokens.xs),
+                                  Expanded(
+                                    child: Text(
+                                      AppStringsAr.voucherReplyHeader,
+                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                        color: scheme.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         Wrap(
                           spacing: SpacingTokens.xs,
                           runSpacing: SpacingTokens.xs,
@@ -544,6 +580,33 @@ class _VoucherTile extends StatelessWidget {
                                   style: Theme.of(context).textTheme.labelSmall
                                       ?.copyWith(
                                         color: scheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ),
+                            // ── Transaction Markers (Protocol §3.3) ─────────
+                            if (dto.reversalCount > 0)
+                              ActionChip(
+                                padding: EdgeInsets.zero,
+                                labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                                avatar: const Icon(Icons.history_rounded, size: 12),
+                                label: Text(
+                                  '${AppStringsAr.voucherReversalIndicator} ${dto.reversalCount}',
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                                onPressed: onChildTap,
+                              ),
+                            if (dto.stateCode == 'settled')
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: ColorTokens.emerald600.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  AppStringsAr.voucherSettlementIndicator,
+                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                        color: ColorTokens.emerald700,
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),

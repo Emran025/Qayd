@@ -93,4 +93,32 @@ class VoucherQrService {
       return null;
     }
   }
+
+  /// Generates a P2P connection string for WiFi Direct sync.
+  /// Format: qayd://p2p?ip=...&port=...&pk=...
+  String generateP2PConnectData({
+    required String ip,
+    required int port,
+    required String publicKey,
+  }) {
+    return 'qayd://p2p?ip=$ip&port=$port&pk=$publicKey';
+  }
+
+  /// Checks if the scanned data is a P2P connection link.
+  bool isP2PLink(String data) => data.startsWith('qayd://p2p?');
+
+  /// Parses P2P link params into a map.
+  Map<String, String>? parseP2PLink(String data) {
+    if (!isP2PLink(data)) return null;
+    try {
+      final uri = Uri.parse(data);
+      return {
+        'ip': uri.queryParameters['ip'] ?? '',
+        'port': uri.queryParameters['port'] ?? '8443',
+        'pk': uri.queryParameters['pk'] ?? '',
+      };
+    } catch (_) {
+      return null;
+    }
+  }
 }

@@ -81,6 +81,14 @@ class GetVoucherDetailsUseCase {
         collateralExpiryIso = coll.expiryDate?.toIso8601String();
       }
 
+      // ── Successor lookup (Threading v1.3) ────────────────────────────────
+      String? successorVoucherId;
+      final successorR = await _voucherRepository.getByOriginVoucherId(v.id);
+      if (successorR.isSuccess && successorR.valueOrNull!.isNotEmpty) {
+        // The first child (earliest) is typically the immediate correction/reversal.
+        successorVoucherId = successorR.valueOrNull!.first.id.value;
+      }
+
       return Success(
         GetVoucherDetailsOutput(
           id: v.id.value,
@@ -112,12 +120,14 @@ class GetVoucherDetailsUseCase {
           signatureHex: v.signatureHex,
           signerPublicKeyHex: v.signerPublicKeyHex,
           agreementStatusCode: v.agreementStatus.name,
+          originVoucherId: v.originVoucherId?.value,
           attachmentCount: attachmentCount,
           hasCollateral: hasCollateral,
           collateralDescription: collateralDescription,
           collateralStatusCode: collateralStatusCode,
           collateralValueMinor: collateralValueMinor,
           collateralExpiryIso: collateralExpiryIso,
+          successorVoucherId: successorVoucherId,
         ),
       );
     } catch (e, _) {

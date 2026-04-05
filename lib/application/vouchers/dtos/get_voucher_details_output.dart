@@ -29,12 +29,14 @@ class GetVoucherDetailsOutput {
     this.signatureHex,
     this.signerPublicKeyHex,
     required this.agreementStatusCode,
+    this.originVoucherId,
     this.attachmentCount = 0,
     this.hasCollateral = false,
     this.collateralDescription,
     this.collateralStatusCode,
     this.collateralValueMinor,
     this.collateralExpiryIso,
+    this.successorVoucherId,
   });
 
   final String id;
@@ -70,6 +72,7 @@ class GetVoucherDetailsOutput {
   final String? signatureHex;
   final String? signerPublicKeyHex;
   final String agreementStatusCode;
+  final String? originVoucherId;
 
   // Attachments
   final int attachmentCount;
@@ -80,4 +83,7 @@ class GetVoucherDetailsOutput {
   final String? collateralStatusCode;
   final int? collateralValueMinor;
   final String? collateralExpiryIso;
+
+  // Threading (Protocol v1.3)
+  final String? successorVoucherId;
 }

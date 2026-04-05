@@ -10,10 +10,14 @@ abstract final class AppStringsAr {
         return bootstrapMessage;
       case StringKeys.voucherStateDraft:
         return voucherStateDraft;
+      case StringKeys.voucherStateSent:
+        return voucherStateSent;
       case StringKeys.voucherStateConfirmed:
         return voucherStateConfirmed;
       case StringKeys.voucherStateSettled:
         return voucherStateSettled;
+      case StringKeys.voucherJumpHeader:
+        return voucherJumpHeader;
       default:
         return '';
     }
@@ -23,10 +27,15 @@ abstract final class AppStringsAr {
 
   static const String bootstrapMessage =
       'تم تهيئة التطبيق بالعربية واتجاه من اليمين إلى اليسار.';
+  static const String voucherStateSent = 'مرسل مجهول';
+  static const String voucherStateConfirmed = 'مؤكد (على الحساب)';
+  static const String voucherStateSettled = 'مسوى (نقد)';
+  static const String tripartiteContingentBadge = 'ذمم مشروطة';
+  static const String voucherReplyHeader = 'رد على سنده رقم #...';
+  static const String voucherJumpHeader = 'يوجد إصدار أحدث لهذا السند. اضغط للانتقال.';
 
   static const String voucherStateDraft = 'مسودة';
-  static const String voucherStateConfirmed = 'مؤكد';
-  static const String voucherStateSettled = 'مسوّى';
+  static const String voucherStateWithdrawn = 'مسحوب';
 
   // Accounts — list
   static const String chartOfAccountsTitle = 'دليل الحسابات';
@@ -485,7 +494,6 @@ abstract final class AppStringsAr {
   static const String tripartitePickAffectedHint = 'اختر حسابك (مثل النقدية)';
   static const String tripartiteCreatedSuccess =
       'تم إنشاء سندات التحويل الوسيط (قبض + صرف).';
-  static const String tripartiteContingentBadge = 'معلّق';
   static const String tripartiteContingentHint =
       'هذا السند معلّق حتى يتم تأكيد سند القبض المقابل.';
   static const String tripartiteReleasedInfo =
@@ -525,6 +533,8 @@ abstract final class AppStringsAr {
   static const String statementBalanceSettled = 'مسوّى';
   static const String statementRunningBalance = 'الرصيد';
   static const String statementVoucherCount = 'سند';
+  static const String statementViewModeMy = 'بناءً على حساباتي';
+  static const String statementViewModeOther = 'بناءً على حسابات الطرف الآخر';
 
   static const String settingsGroupProfile = 'بيانات الحساب والهوية';
   static const String settingsGroupBackup = 'النسخ الاحتياطي والأرشفة';
@@ -550,4 +560,32 @@ abstract final class AppStringsAr {
   static const String profileUpdateSuccess = 'تم تحديث بيانات ملفك الشخصي بنجاح.';
   static const String profileImageUpload = 'تغيير الصورة';
   static const String profileLogoUpload = 'تغيير الشعار';
+
+  // ── Threaded Financial Interactions ──────────────────────────────────────
+  static const String voucherWithdrawAction = 'سحب السند';
+  static const String voucherWithdrawConfirmTitle = 'تأكيد سحب السند';
+  static const String voucherWithdrawConfirmBody =
+      'سيتم سحب هذا السند نهائياً. لن يظهر عند الطرف المقابل ولا يمكن التراجع.';
+  static const String voucherWithdrawnSuccess = 'تم سحب السند بنجاح.';
+  static const String voucherReversalIndicator = '↩ مرتجع';
+  static const String voucherSettlementIndicator = '✓ تسوية';
+  static const String voucherCreateReversal = 'إنشاء مرتجع';
+  static const String voucherCreateSettlement = 'تسوية';
+  static const String voucherRejectionReasonLabel = 'سبب الرفض';
+  static const String voucherOriginLabel = 'السند الأصلي';
+  static const String voucherReciprocalMatchTitle = 'تطابق مكتشف';
+  static const String voucherReciprocalMatchBody =
+      'تم اكتشاف سند مطابق. هل تريد دمجهما في معاملة واحدة مؤكدة؟';
+  static const String voucherMergeAction = 'دمج';
+  static const String p2pScanTitle = 'مزامنة شخصية (P2P)';
+  static const String p2pScanSubtitle = 'امسح رمز الطرف الآخر للمزامنة المباشرة';
+  static const String p2pSyncSuccess = 'تمت المزامنة المباشرة بنجاح.';
+  static const String p2pSyncFailed = 'فشلت المزامنة المباشرة.';
 }
+
+     
+     
+     
+     
+     
+     

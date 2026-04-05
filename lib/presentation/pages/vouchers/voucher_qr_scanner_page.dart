@@ -43,14 +43,24 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
               final List<Barcode> barcodes = capture.barcodes;
               for (final barcode in barcodes) {
                 final code = barcode.rawValue;
-                if (code != null) {
-                  final data = const VoucherQrService().parseQrData(code);
-                  if (data != null) {
-                    setState(() => _found = true);
-                    Navigator.pop(context, data);
-                    return;
+                  if (code != null) {
+                    const qrService = VoucherQrService();
+                    if (qrService.isP2PLink(code)) {
+                      final p2p = qrService.parseP2PLink(code);
+                      if (p2p != null) {
+                        setState(() => _found = true);
+                        Navigator.pop(context, {'p2p': p2p});
+                        return;
+                      }
+                    }
+
+                    final data = qrService.parseQrData(code);
+                    if (data != null) {
+                      setState(() => _found = true);
+                      Navigator.pop(context, data);
+                      return;
+                    }
                   }
-                }
               }
             },
           ),

@@ -68,6 +68,7 @@ final class SqliteNotificationMessageRepository
             counterpartyAccountId: cp,
             createdAt: DateTime.parse(created),
             processed: (r['processed'] as int? ?? 0) != 0,
+            rawPayloadJson: r['raw_payload_json'] as String?,
           ),
         );
       }
@@ -103,6 +104,7 @@ final class SqliteNotificationMessageRepository
             counterpartyAccountId: cp,
             createdAt: DateTime.parse(created),
             processed: (r['processed'] as int? ?? 0) != 0,
+            rawPayloadJson: r['raw_payload_json'] as String?,
           ),
         );
       }

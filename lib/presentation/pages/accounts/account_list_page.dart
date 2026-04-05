@@ -22,8 +22,10 @@ import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_state.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+
 
 class AccountListPage extends StatelessWidget {
   const AccountListPage({super.key});
@@ -297,7 +299,7 @@ class _AccountListBody extends StatelessWidget {
           ),
           _DataRow(:final dto) => _AccountCard(
             dto: dto,
-            onTap: () => onTap(dto.id),
+            onTap: () => onChat(dto.id),
             onChat: () => onChat(dto.id),
             onAddChild: () => onAddChild(dto),
           ),
@@ -350,6 +352,7 @@ class _AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final scheme = Theme.of(context).colorScheme;
     final natureDebit = dto.natureCode == 'debit';
     final natureColor = natureDebit ? custom.debit : custom.credit;
     final natureLabel = natureDebit
@@ -367,94 +370,49 @@ class _AccountCard extends StatelessWidget {
             margin: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(SpacingTokens.md),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsetsDirectional.only(
-                            start: dto.isRoot ? 0 : SpacingTokens.md,
-                          ),
-                          child: QaydText(
-                            dto.name,
-                            slot: QaydTextStyleSlot.titleSmall,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: SpacingTokens.xs),
-                        Row(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Padding(
+                              padding: EdgeInsetsDirectional.only(
+                                start: dto.isRoot ? 0 : SpacingTokens.md,
+                              ),
+                              child: QaydText(
+                                dto.name,
+                                slot: QaydTextStyleSlot.titleSmall,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(height: SpacingTokens.xs),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: SpacingTokens.sm,
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: natureColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
+                                color: natureColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(RadiusTokens.xs),
+                                border: Border.all(
+                                  color: natureColor.withValues(alpha: 0.2),
+                                ),
                               ),
                               child: QaydText(
                                 natureLabel,
                                 slot: QaydTextStyleSlot.labelSmall,
                                 color: natureColor,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          ...dto.balancesMinorUnits.entries.map((e) {
-                            final code = e.key;
-                            final minor = e.value;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  QaydText(
-                                    code,
-                                    slot: QaydTextStyleSlot.labelSmall,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  QaydMoneyDisplay(
-                                    money: Money.nonNegative(
-                                      minor.abs(),
-                                      PredefinedCurrencies.all.firstWhere(
-                                        (c) => c.code == code,
-                                        orElse: () => CurrencyCode(
-                                          code: code,
-                                          nameAr: code,
-                                          symbol: code,
-                                        ),
-                                      ),
-                                    ),
-                                    displayNegative: minor < 0,
-                                    size: QaydMoneyDisplaySize.small,
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                          if (dto.balancesMinorUnits.isEmpty)
-                            QaydMoneyDisplay(
-                              money: Money.zero(PredefinedCurrencies.sar),
-                              size: QaydMoneyDisplaySize.small,
-                            ),
-                        ],
                       ),
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -463,8 +421,8 @@ class _AccountCard extends StatelessWidget {
                             tooltip: AppStringsAr.statementChatTitle,
                             icon: Icon(
                               Icons.forum_outlined,
-                              size: 20,
-                              color: custom.debit.withValues(alpha: 0.7),
+                              size: 22,
+                              color: custom.debit.withValues(alpha: 0.8),
                             ),
                             onPressed: onChat,
                             visualDensity: VisualDensity.compact,
@@ -474,6 +432,7 @@ class _AccountCard extends StatelessWidget {
                               tooltip: AppStringsAr.addChildAccountTooltip,
                               icon: Icon(
                                 Icons.add_circle_outline_rounded,
+                                size: 22,
                                 color: custom.goldAccent,
                               ),
                               onPressed: onAddChild,
@@ -483,6 +442,85 @@ class _AccountCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (dto.balancesMinorUnits.isNotEmpty) ...[
+                    const SizedBox(height: SpacingTokens.sm),
+                    const Divider(height: 1, thickness: 0.5),
+                    const SizedBox(height: SpacingTokens.sm),
+                    Table(
+                      columnWidths: const {
+                        0: IntrinsicColumnWidth(), // Currency
+                        1: FlexColumnWidth(),      // Amount
+                        2: IntrinsicColumnWidth(), // Side
+                      },
+                      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                      children: dto.balancesMinorUnits.entries.map((e) {
+                        final code = e.key;
+                        final minor = e.value;
+                        
+                        // Side determination: 
+                        // For Debit accounts: positive = Debit, negative = Credit
+                        // For Credit accounts: positive = Credit, negative = Debit
+                        final isDebitSide = (dto.natureCode == 'debit' && minor >= 0) || 
+                                           (dto.natureCode == 'credit' && minor < 0);
+                        
+                        final sideLabel = isDebitSide 
+                            ? AppStringsAr.natureDebitShort 
+                            : AppStringsAr.natureCreditShort;
+                        final sideColor = isDebitSide ? custom.debit : custom.credit;
+
+                        return TableRow(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: QaydText(
+                                code,
+                                slot: QaydTextStyleSlot.labelMedium,
+                                color: scheme.onSurfaceVariant,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
+                              child: QaydMoneyDisplay(
+                                money: Money.nonNegative(
+                                  minor.abs(),
+                                  PredefinedCurrencies.all.firstWhere(
+                                    (c) => c.code == code,
+                                    orElse: () => CurrencyCode(
+                                      code: code,
+                                      nameAr: code,
+                                      symbol: code,
+                                    ),
+                                  ),
+                                ),
+                                displayNegative: false, // Handled by Side column
+                                size: QaydMoneyDisplaySize.small,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsetsDirectional.only(start: SpacingTokens.md),
+                              child: QaydText(
+                                sideLabel,
+                                slot: QaydTextStyleSlot.labelSmall,
+                                color: sideColor,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.end,
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: SpacingTokens.sm),
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: QaydMoneyDisplay(
+                        money: Money.zero(PredefinedCurrencies.sar),
+                        size: QaydMoneyDisplaySize.small,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

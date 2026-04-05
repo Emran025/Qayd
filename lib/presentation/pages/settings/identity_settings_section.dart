@@ -167,7 +167,47 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
+        const Divider(indent: 16, endIndent: 16),
+        ListTile(
+          leading: const Icon(Icons.sync_rounded),
+          title: const Text('رمز مزامنة P2P (Snap-Sync)'),
+          subtitle: const Text('لربط جهازين مباشرة عبر الشبكة المحلية دون إنترنت.'),
+          trailing: const Icon(Icons.qr_code_2_rounded),
+          onTap: _showP2PCode,
+        ),
       ],
+    );
+  }
+
+  void _showP2PCode() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('مزامنة Snap-Sync'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.qr_code_2_rounded, size: 80, color: Colors.blueGrey),
+            const SizedBox(height: 16),
+            const Text(
+              'امسح هذا الرمز من الجهاز الآخر لبدء المزامنة المباشرة عالية السرعة.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'IP: (جارٍ اكتشاف الشبكة…)',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
     );
   }
 }

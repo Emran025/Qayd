@@ -1,6 +1,15 @@
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
+enum StatementChatViewMode {
+  /// Includes user's own claims (uploaded bonds) and what they've accepted.
+  /// According to the prompt: includes everything except rejected.
+  myAccounts,
+
+  /// Includes what the other party claims and what they've accepted from the user.
+  otherPartyAccounts,
+}
+
 /// Filter criteria for the Statement of Account chat view.
 ///
 /// Supports filtering by agreement status (color-coded), voucher type & direction,
@@ -15,6 +24,7 @@ class StatementChatFilterInput {
     this.amountMinMinorUnits,
     this.amountMaxMinorUnits,
     this.includePreviousBalance = false,
+    this.viewMode = StatementChatViewMode.myAccounts,
   });
 
   /// Filter by agreement status (maps to color in UI).
@@ -44,6 +54,9 @@ class StatementChatFilterInput {
   /// balance calculated from all vouchers before [fromDate].
   final bool includePreviousBalance;
 
+  /// Perspective for balance calculation and filtering (User vs Other Party).
+  final StatementChatViewMode viewMode;
+
   static const StatementChatFilterInput empty = StatementChatFilterInput();
 
   bool get hasAny =>
@@ -53,7 +66,8 @@ class StatementChatFilterInput {
       toDate != null ||
       (searchQuery != null && searchQuery!.trim().isNotEmpty) ||
       amountMinMinorUnits != null ||
-      amountMaxMinorUnits != null;
+      amountMaxMinorUnits != null ||
+      viewMode != StatementChatViewMode.myAccounts;
 
   StatementChatFilterInput copyWith({
     AgreementStatus? agreementStatus,
@@ -64,6 +78,7 @@ class StatementChatFilterInput {
     int? amountMinMinorUnits,
     int? amountMaxMinorUnits,
     bool? includePreviousBalance,
+    StatementChatViewMode? viewMode,
     bool clearAgreementStatus = false,
     bool clearType = false,
     bool clearFromDate = false,
@@ -73,14 +88,20 @@ class StatementChatFilterInput {
     bool clearAmountMax = false,
   }) {
     return StatementChatFilterInput(
-      agreementStatus: clearAgreementStatus ? null : (agreementStatus ?? this.agreementStatus),
+      agreementStatus:
+          clearAgreementStatus ? null : (agreementStatus ?? this.agreementStatus),
       type: clearType ? null : (type ?? this.type),
       fromDate: clearFromDate ? null : (fromDate ?? this.fromDate),
       toDate: clearToDate ? null : (toDate ?? this.toDate),
       searchQuery: clearSearchQuery ? null : (searchQuery ?? this.searchQuery),
-      amountMinMinorUnits: clearAmountMin ? null : (amountMinMinorUnits ?? this.amountMinMinorUnits),
-      amountMaxMinorUnits: clearAmountMax ? null : (amountMaxMinorUnits ?? this.amountMaxMinorUnits),
-      includePreviousBalance: includePreviousBalance ?? this.includePreviousBalance,
+      amountMinMinorUnits:
+          clearAmountMin ? null : (amountMinMinorUnits ?? this.amountMinMinorUnits),
+      amountMaxMinorUnits:
+          clearAmountMax ? null : (amountMaxMinorUnits ?? this.amountMaxMinorUnits),
+      includePreviousBalance:
+          includePreviousBalance ?? this.includePreviousBalance,
+      viewMode: viewMode ?? this.viewMode,
     );
   }
 }
+

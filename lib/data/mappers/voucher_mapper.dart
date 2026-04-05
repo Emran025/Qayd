@@ -59,6 +59,9 @@ final class VoucherMapper {
       tripartiteRole: voucher.tripartiteMeta?.role.columnValue,
       linkedPartyId: voucher.tripartiteMeta?.linkedPartyId.value,
       isContingent: voucher.tripartiteMeta?.isContingent ?? false,
+      originVoucherId: voucher.originVoucherId?.value,
+      rejectionReason: voucher.rejectionReason,
+      withdrawnAtIso: voucher.withdrawnAt?.toIso8601String(),
     );
   }
 
@@ -107,6 +110,16 @@ final class VoucherMapper {
       agreementStatus: _parseAgreementStatus(model.signatureStatus),
       signerPhone: model.signerPhone,
       tripartiteMeta: _parseTripartiteMeta(model),
+      originVoucherId: model.originVoucherId != null
+          ? VoucherId(model.originVoucherId!)
+          : null,
+      rejectionReason: model.rejectionReason,
+      withdrawnAt: model.withdrawnAtIso != null
+          ? DateTime.parse(model.withdrawnAtIso!)
+          : null,
+      reversalCount: model.reversalCount,
+      firstChildId:
+          model.firstChildId != null ? VoucherId(model.firstChildId!) : null,
     );
   }
 

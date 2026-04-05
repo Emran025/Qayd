@@ -20,11 +20,14 @@ import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_filter_sheet.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/statement_chat_export.dart';
+import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
+
 
 /// Chat-style "Statement of Account" between two parties (accounts).
 ///
@@ -150,6 +153,123 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     }
   }
 
+  void _showVoucherActions(
+    BuildContext context,
+    AccountStatementChatMessageDto msg,
+  ) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(RadiusTokens.lg),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: SpacingTokens.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: custom.subtleBorder.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(RadiusTokens.pill),
+              ),
+            ),
+            const SizedBox(height: SpacingTokens.lg),
+
+            // Interaction buttons like "same movement of reaction buttons"
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
+              child: Row(
+                children: [
+                  _ActionButton(
+                    icon: Icons.description_outlined,
+                    label: 'تفاصيل السند',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      VoucherDetailPage.show(context, msg.voucherId);
+                    },
+                  ),
+                  _ActionButton(
+                    icon: Icons.copy_rounded,
+                    label: 'نسخ النص',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      // Add copy logic
+                    },
+                  ),
+                  _ActionButton(
+                    icon: Icons.share_rounded,
+                    label: 'مشاركة',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                  _ActionButton(
+                    icon: Icons.delete_outline_rounded,
+                    label: 'حذف',
+                    color: ColorTokens.errorDeep,
+                    onTap: () {
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  List<List<_BalanceSnapshot>> _calculateAllRollingSnapshots(
+    List<AccountStatementChatMessageDto> history,
+    int initialBalanceForPrimary,
+  ) {
+    final List<List<_BalanceSnapshot>> snapshotsList = [];
+    final Map<String, _BalanceSnapshot> currentBalances = {};
+    
+    if (history.isNotEmpty) {
+      final first = history.first;
+      currentBalances[first.currencyCode] = _BalanceSnapshot(
+        code: first.currencyCode,
+        symbol: first.currencySymbol,
+        digits: first.currencyDigits,
+        amount: initialBalanceForPrimary,
+      );
+    }
+
+    for (final m in history) {
+      final current = currentBalances[m.currencyCode] ?? _BalanceSnapshot(
+        code: m.currencyCode,
+        symbol: m.currencySymbol,
+        digits: m.currencyDigits,
+        amount: 0,
+      );
+
+      if (m.signatureStatusCode != AgreementStatus.rejected.name) {
+        int impact = m.amountMinorUnits;
+        if (m.direction == 'outgoing') impact = -impact;
+        
+        currentBalances[m.currencyCode] = current.copyWith(
+          amount: current.amount + impact,
+        );
+      }
+      snapshotsList.add(currentBalances.values.toList());
+    }
+
+    return snapshotsList;
+  }
+
   // ── Build ──
 
   @override
@@ -260,6 +380,13 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   },
                 ),
 
+              // ── View Mode Toggle ──
+              _ViewModeToggle(
+                mode: data.filter.viewMode,
+                onChanged: (m) => cubit.setViewMode(m),
+              ),
+
+
               // ── Brought Forward Balance card ──
               if (data.broughtForwardMinorUnits != 0 &&
                   data.filter.includePreviousBalance)
@@ -297,33 +424,52 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                       )
                     : RefreshIndicator(
                         onRefresh: () => cubit.reload(),
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: SpacingTokens.sm,
-                            vertical: SpacingTokens.sm,
-                          ),
-                          itemCount: data.messages.length,
-                          itemBuilder: (context, i) {
-                            final msgWidget = _MessageBubble(
-                              msg: data.messages[i],
-                              mutating: _mutating,
-                              onAccept: (id) => _acceptVoucher(context, id),
-                              onReject: (id) => _rejectVoucher(context, id),
-                              onResubmit: (id) => _resubmitVoucher(context, id),
+                        child: Builder(
+                          builder: (context) {
+                            // Pre-calculate all chronology snapshots in one go (O(N))
+                            final allSnapshots = _calculateAllRollingSnapshots(
+                              data.messages,
+                              data.broughtForwardMinorUnits,
                             );
 
-                            if (i == firstUnreadIndex) {
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const _UnreadSessionDivider(),
-                                  msgWidget,
-                                ],
-                              );
-                            }
+                            return ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: SpacingTokens.sm,
+                                vertical: SpacingTokens.sm,
+                              ),
+                              itemCount: data.messages.length,
+                              itemBuilder: (context, i) {
+                                final msg = data.messages[i];
+                                final balances = allSnapshots[i];
 
-                            return msgWidget;
+                                final msgWidget = _MessageBubble(
+                                  msg: msg,
+                                  mutating: _mutating,
+                                  onAccept: (id) => _acceptVoucher(context, id),
+                                  onReject: (id) => _rejectVoucher(context, id),
+                                  onResubmit: (id) => _resubmitVoucher(context, id),
+                                  onTap: () => _showVoucherActions(context, msg),
+                                );
+
+                                final itemWidget = Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (i == firstUnreadIndex)
+                                      const _UnreadSessionDivider(),
+
+                                    msgWidget,
+
+                                    // Centered balance summary table
+                                    _ChronologySummaryTable(balances: balances),
+
+                                    const SizedBox(height: SpacingTokens.sm),
+                                  ],
+                                );
+
+                                return itemWidget;
+                              },
+                            );
                           },
                         ),
                       ),
@@ -884,6 +1030,153 @@ class _SummaryFooter extends StatelessWidget {
   }
 }
 
+class _BalanceSnapshot {
+  const _BalanceSnapshot({
+    required this.code,
+    required this.symbol,
+    required this.digits,
+    required this.amount,
+  });
+
+  final String code;
+  final String symbol;
+  final int digits;
+  final int amount;
+
+  _BalanceSnapshot copyWith({int? amount}) {
+    return _BalanceSnapshot(
+      code: code,
+      symbol: symbol,
+      digits: digits,
+      amount: amount ?? this.amount,
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final effectColor = color ?? scheme.primary;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(RadiusTokens.md),
+      child: Container(
+        width: 80,
+        padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(SpacingTokens.sm),
+              decoration: BoxDecoration(
+                color: effectColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: effectColor, size: 24),
+            ),
+            const SizedBox(height: SpacingTokens.xs),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChronologySummaryTable extends StatelessWidget {
+  const _ChronologySummaryTable({required this.balances});
+
+  final List<_BalanceSnapshot> balances;
+
+  @override
+  Widget build(BuildContext context) {
+    if (balances.isEmpty) return const SizedBox.shrink();
+
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: SpacingTokens.xs),
+      child: Center(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: balances.map((b) {
+              final isPositive = b.amount > 0;
+              final isNegative = b.amount < 0;
+              final color = isPositive
+                  ? custom.credit
+                  : isNegative
+                  ? ColorTokens.errorDeep
+                  : custom.confirmedState;
+
+              final label = isPositive
+                  ? 'لك'
+                  : isNegative
+                  ? 'عليك'
+                  : 'متعادل';
+
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SpacingTokens.sm,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                  border: Border.all(color: color.withValues(alpha: 0.15)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    _BalanceAmountText(
+                      minorUnits: b.amount,
+                      currencySymbol: b.symbol,
+                      currencyDigits: b.digits,
+                      fontSize: 11,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // ── Message Bubble ───────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
@@ -895,6 +1188,7 @@ class _MessageBubble extends StatelessWidget {
     required this.onAccept,
     required this.onReject,
     required this.onResubmit,
+    required this.onTap,
   });
 
   final AccountStatementChatMessageDto msg;
@@ -902,6 +1196,7 @@ class _MessageBubble extends StatelessWidget {
   final Future<void> Function(String voucherId) onAccept;
   final Future<void> Function(String voucherId) onReject;
   final Future<void> Function(String voucherId) onResubmit;
+  final VoidCallback onTap;
 
   bool get _isIncoming => msg.direction == 'incoming';
   bool get _isOutgoing => msg.direction == 'outgoing';
@@ -980,253 +1275,260 @@ class _MessageBubble extends StatelessWidget {
 
     return Align(
       alignment: alignment,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.82,
-        ),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: SpacingTokens.sm + 2),
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius: BorderRadiusDirectional.only(
-              topStart: const Radius.circular(RadiusTokens.lg),
-              topEnd: const Radius.circular(RadiusTokens.lg),
-              bottomStart: _isIncoming
-                  ? const Radius.circular(RadiusTokens.xs)
-                  : const Radius.circular(RadiusTokens.lg),
-              bottomEnd: _isOutgoing
-                  ? const Radius.circular(RadiusTokens.xs)
-                  : const Radius.circular(RadiusTokens.lg),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: statusColor.withValues(alpha: 0.10),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-              BoxShadow(
-                color: scheme.shadow.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
+      child: GestureDetector(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width * 0.82,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ── Colored accent strip ──
-                Container(
-                  width: 5,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        statusColor,
-                        statusColor.withValues(alpha: 0.40),
-                      ],
+          child: Container(
+            margin: const EdgeInsets.only(bottom: SpacingTokens.xs),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadiusDirectional.only(
+                topStart: const Radius.circular(RadiusTokens.lg),
+                topEnd: const Radius.circular(RadiusTokens.lg),
+                bottomStart: _isIncoming
+                    ? const Radius.circular(RadiusTokens.xs)
+                    : const Radius.circular(RadiusTokens.lg),
+                bottomEnd: _isOutgoing
+                    ? const Radius.circular(RadiusTokens.xs)
+                    : const Radius.circular(RadiusTokens.lg),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: statusColor.withValues(alpha: 0.10),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+                BoxShadow(
+                  color: scheme.shadow.withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Colored accent strip ──
+                  Container(
+                    width: 5,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          statusColor,
+                          statusColor.withValues(alpha: 0.40),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // ── Card content ──
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ──── Header: type + badge + ticks ────
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(
-                          SpacingTokens.md,
-                          SpacingTokens.sm + 2,
-                          SpacingTokens.md,
-                          SpacingTokens.sm,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.06),
-                          border: Border(
-                            bottom: BorderSide(
-                              color: statusColor.withValues(alpha: 0.12),
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            // Type icon in circle
-                            Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                _typeIcon(),
-                                size: 14,
-                                color: statusColor,
-                              ),
-                            ),
-                            const SizedBox(width: SpacingTokens.sm),
-                            // Type label
-                            Expanded(
-                              child: Text(
-                                _typeLabel(),
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      color: statusColor,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
-                                    ),
-                              ),
-                            ),
-                            // Badge
-                            _stateWidget(context),
-                            const SizedBox(width: SpacingTokens.xs),
-                            // Ticks
-                            Icon(
-                              _ticksIcon(),
-                              size: 15,
-                              color: statusColor.withValues(alpha: 0.7),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // ──── Amount display ────
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: SpacingTokens.md,
-                          vertical: SpacingTokens.sm + 2,
-                        ),
-                        child: Row(
-                          children: [
-                            // Amount
-                            Expanded(
-                              child: QaydMoneyDisplay(
-                                money: money,
-                                size: QaydMoneyDisplaySize.large,
-                                displayNegative: false,
-                              ),
-                            ),
-                            // Currency code chip
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: SpacingTokens.sm,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.10),
-                                borderRadius: BorderRadius.circular(
-                                  RadiusTokens.xs,
-                                ),
-                              ),
-                              child: Text(
-                                msg.currencyCode,
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: statusColor,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // ──── Description ────
-                      if (msg.description.isNotEmpty)
-                        Padding(
+                  // ── Card content ──
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ──── Header: type + badge + ticks ────
+                        Container(
                           padding: const EdgeInsets.fromLTRB(
                             SpacingTokens.md,
-                            0,
+                            SpacingTokens.sm + 2,
                             SpacingTokens.md,
                             SpacingTokens.sm,
                           ),
-                          child: Text(
-                            msg.description,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: scheme.onSurfaceVariant,
-                                  height: 1.4,
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.06),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: statusColor.withValues(alpha: 0.12),
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              // Type icon in circle
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
                                 ),
+                                child: Icon(
+                                  _typeIcon(),
+                                  size: 14,
+                                  color: statusColor,
+                                ),
+                              ),
+                              const SizedBox(width: SpacingTokens.sm),
+                              // Type label
+                              Expanded(
+                                child: Text(
+                                  _typeLabel(),
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        color: statusColor,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.3,
+                                      ),
+                                ),
+                              ),
+                              // Badge
+                              _stateWidget(context),
+                              const SizedBox(width: SpacingTokens.xs),
+                              // Ticks
+                              Icon(
+                                _ticksIcon(),
+                                size: 15,
+                                color: statusColor.withValues(alpha: 0.7),
+                              ),
+                            ],
                           ),
                         ),
 
-                      // ──── Footer: date + running balance ────
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: SpacingTokens.md,
-                          vertical: SpacingTokens.xs + 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: custom.surfaceElevated.withValues(alpha: 0.5),
-                          border: Border(
-                            top: BorderSide(
-                              color: custom.subtleBorder.withValues(alpha: 0.3),
-                            ),
+                        // ──── Amount display ────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SpacingTokens.md,
+                            vertical: SpacingTokens.sm + 2,
+                          ),
+                          child: Row(
+                            children: [
+                              // Amount
+                              Expanded(
+                                child: QaydMoneyDisplay(
+                                  money: money,
+                                  size: QaydMoneyDisplaySize.large,
+                                  displayNegative: false,
+                                ),
+                              ),
+                              // Currency code chip
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: SpacingTokens.sm,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.10),
+                                  borderRadius: BorderRadius.circular(
+                                    RadiusTokens.xs,
+                                  ),
+                                ),
+                                child: Text(
+                                  msg.currencyCode,
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: statusColor,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            // Date
-                            Icon(
-                              Icons.calendar_today_rounded,
-                              size: 11,
-                              color: scheme.onSurfaceVariant.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              dateStr,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: scheme.onSurfaceVariant.withValues(
-                                      alpha: 0.6,
-                                    ),
-                                    fontSize: 10,
-                                  ),
-                            ),
-                            const Spacer(),
-                            // Running balance
-                            Icon(
-                              Icons.account_balance_wallet_outlined,
-                              size: 11,
-                              color: scheme.onSurfaceVariant.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${AppStringsAr.statementRunningBalance}: ',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: scheme.onSurfaceVariant.withValues(
-                                      alpha: 0.5,
-                                    ),
-                                    fontSize: 10,
-                                  ),
-                            ),
-                            _BalanceAmountText(
-                              minorUnits: msg.runningBalanceMinorUnits,
-                              currencySymbol: msg.currencySymbol,
-                              currencyDigits: msg.currencyDigits,
-                              fontSize: 10,
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      // ──── Action buttons ────
-                      _actionArea(context),
-                    ],
+                        // ──── Description ────
+                        if (msg.description.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              SpacingTokens.md,
+                              0,
+                              SpacingTokens.md,
+                              SpacingTokens.sm,
+                            ),
+                            child: Text(
+                              msg.description,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    height: 1.4,
+                                  ),
+                            ),
+                          ),
+
+                        // ──── Footer: date + running balance ────
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SpacingTokens.md,
+                            vertical: SpacingTokens.xs + 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: custom.surfaceElevated.withValues(
+                              alpha: 0.5,
+                            ),
+                            border: Border(
+                              top: BorderSide(
+                                color: custom.subtleBorder.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              // Date
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 11,
+                                color: scheme.onSurfaceVariant.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                dateStr,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: scheme.onSurfaceVariant.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                      fontSize: 10,
+                                    ),
+                              ),
+                              const Spacer(),
+                              // Running balance
+                              Icon(
+                                Icons.account_balance_wallet_outlined,
+                                size: 11,
+                                color: scheme.onSurfaceVariant.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${AppStringsAr.statementRunningBalance}: ',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: scheme.onSurfaceVariant.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      fontSize: 10,
+                                    ),
+                              ),
+                              _BalanceAmountText(
+                                minorUnits: msg.runningBalanceMinorUnits,
+                                currencySymbol: msg.currencySymbol,
+                                currencyDigits: msg.currencyDigits,
+                                fontSize: 10,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // ──── Action buttons ────
+                        _actionArea(context),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1386,3 +1688,60 @@ class _BalanceAmountText extends StatelessWidget {
     );
   }
 }
+
+class _ViewModeToggle extends StatelessWidget {
+  const _ViewModeToggle({required this.mode, required this.onChanged});
+
+  final StatementChatViewMode mode;
+  final ValueChanged<StatementChatViewMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.xs,
+      ),
+      child: SegmentedButton<StatementChatViewMode>(
+        segments: [
+          ButtonSegment<StatementChatViewMode>(
+            value: StatementChatViewMode.myAccounts,
+            label: Text(
+              AppStringsAr.statementViewModeMy,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            icon: const Icon(Icons.account_circle_outlined, size: 18),
+          ),
+          ButtonSegment<StatementChatViewMode>(
+            value: StatementChatViewMode.otherPartyAccounts,
+            label: Text(
+              AppStringsAr.statementViewModeOther,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            icon: const Icon(Icons.people_alt_outlined, size: 18),
+          ),
+        ],
+        selected: {mode},
+        onSelectionChanged: (set) => onChanged(set.first),
+        showSelectedIcon: false,
+        style: ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          side: WidgetStateProperty.all(
+            BorderSide(color: scheme.outline.withOpacity(0.2)),
+          ),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return scheme.primaryContainer.withOpacity(0.4);
+            }
+            return null;
+          }),
+        ),
+      ),
+    );
+  }
+}
+

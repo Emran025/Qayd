@@ -1,5 +1,6 @@
 import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
+import 'package:qayd/domain/entities/notification_message.dart';
 import 'package:qayd/core/error/failures.dart';
 
 sealed class VoucherListState {
@@ -20,12 +21,14 @@ final class VoucherListReady extends VoucherListState {
     required this.searchQuery,
     required this.advancedFilter,
     required this.accountNamesById,
+    this.mergeProposals = const [],
   });
 
   final List<VoucherSummaryDto> vouchers;
   final String searchQuery;
   final AdvancedFilterInput advancedFilter;
   final Map<String, String> accountNamesById;
+  final List<NotificationMessage> mergeProposals;
 
   bool get hasActiveQuery =>
       searchQuery.trim().isNotEmpty || advancedFilter.hasAny;
@@ -35,12 +38,14 @@ final class VoucherListReady extends VoucherListState {
     String? searchQuery,
     AdvancedFilterInput? advancedFilter,
     Map<String, String>? accountNamesById,
+    List<NotificationMessage>? mergeProposals,
   }) {
     return VoucherListReady(
       vouchers: vouchers ?? this.vouchers,
       searchQuery: searchQuery ?? this.searchQuery,
       advancedFilter: advancedFilter ?? this.advancedFilter,
       accountNamesById: accountNamesById ?? this.accountNamesById,
+      mergeProposals: mergeProposals ?? this.mergeProposals,
     );
   }
 }

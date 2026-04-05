@@ -48,4 +48,20 @@ abstract interface class VoucherRepository {
 
   /// Fetches all vouchers sharing the given [transferGroupId].
   Future<Result<List<Voucher>>> getByTransferGroupId(String transferGroupId);
+
+  // ── Threaded Financial Interactions (Protocol v1.3) ──────────────────────
+
+  /// Fetches all vouchers that reference the given [originId] as their parent.
+  /// Used for rendering thread counts and reply navigation.
+  Future<Result<List<Voucher>>> getByOriginVoucherId(VoucherId originId);
+
+  /// Searches for a reciprocal match in local drafts for inbound claim deduplication.
+  /// Criteria: matching amount, currency, inverse type, counterparty == self, ±24h window.
+  Future<Result<Voucher?>> findReciprocalMatch({
+    required int amountMinor,
+    required String currencyCode,
+    required String counterpartyAccountId,
+    required String type,
+    required DateTime referenceDate,
+  });
 }

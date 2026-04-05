@@ -34,7 +34,6 @@ class AccountDetailPage extends StatelessWidget {
             title: state is AccountDetailReady
                 ? state.data.name
                 : AppStringsAr.accountDetailTitle,
-            
             actions: [
               if (state is AccountDetailReady) ...[
                 IconButton(

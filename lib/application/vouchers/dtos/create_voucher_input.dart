@@ -17,6 +17,7 @@ class CreateVoucherInput {
     this.linkedPartyId,
     this.isContingent = false,
     this.attachments = const [],
+    this.originVoucherId,
   });
 
   final VoucherType type;
@@ -33,4 +34,5 @@ class CreateVoucherInput {
   final String? linkedPartyId;
   final bool isContingent;
   final List<XFile> attachments;
+  final String? originVoucherId;
 }

@@ -7,6 +7,9 @@ import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
+import 'package:qayd/data/repositories/outbox_dao.dart';
+import 'package:qayd/data/repositories/sync_watermark_dao.dart';
+import 'package:qayd/core/result/result.dart';
 
 /// Manages multi-tiered polling and live WS connection for Real-Time Synchronization.
 /// Uses [SyncRepository], [SyncSocketService], and [SyncPayloadProcessor]
@@ -18,6 +21,8 @@ class SyncCoordinatorService {
     required this.payloadProcessor,
     required this.nativeNotificationService,
     required this.notificationMessageRepository,
+    required this.outboxDao,
+    required this.watermarkDao,
     required this.currentUserId,
     this.collateralExpiryChecker,
     this.syncInterval = const Duration(minutes: 10),
@@ -28,6 +33,8 @@ class SyncCoordinatorService {
   final SyncPayloadProcessor payloadProcessor;
   final NativeNotificationService nativeNotificationService;
   final NotificationMessageRepository notificationMessageRepository;
+  final OutboxDao outboxDao;
+  final SyncWatermarkDao watermarkDao;
   final int currentUserId;
   final CollateralExpiryChecker? collateralExpiryChecker;
   final Duration syncInterval;
@@ -109,7 +116,18 @@ class SyncCoordinatorService {
   /// Delta fetch capturing any encrypted nodes missed while socket disconnected
   Future<void> _catchUpSync() async {
     try {
-      final nodes = await syncRepository.pullNodes();
+      // 1. Flush local outbox to server
+      await _flushOutbox();
+
+      // 2. Fetch server-side watermark or last sync time
+      // Using a generic 'server' watermark here:
+      final wmResult = await watermarkDao.getForCounterparty('server_global');
+      final lastSync = wmResult.isSuccess && wmResult.valueOrNull != null
+          ? wmResult.valueOrNull!.lastSyncedAt.toIso8601String()
+          : null;
+
+      // 3. Pull new nodes since last watermark
+      final nodes = await syncRepository.pullNodes(since: lastSync);
       if (nodes.isNotEmpty) {
         // Feed caught-up nodes firmly into local verification pipelines
         await payloadProcessor.processIncomingNodes(nodes);
@@ -128,5 +146,45 @@ class SyncCoordinatorService {
     } catch (e) {
       debugPrint('Failed to acknowledge Delivery state: $e');
     }
+  }
+
+  /// Flushes pending entries in the Local Change Queue (Outbox) to the central server.
+  Future<void> _flushOutbox() async {
+    final pendingResult = await outboxDao.listPending();
+    if (pendingResult.isFailure) return;
+
+    final entries = pendingResult.valueOrNull ?? [];
+    if (entries.isEmpty) return;
+
+    final deliveredIds = <String>[];
+    for (final entry in entries) {
+      try {
+        final node = SyncNode(
+          id: entry.id,
+          senderId: currentUserId,
+          receiverId: int.tryParse(entry.counterpartyAccountId) ?? 0, 
+          eventType: _parseEventType(entry.eventType),
+          encryptedPayload: entry.encryptedPayload,
+          syncState: 'pending',
+          clientTimestamp: entry.createdAt,
+        );
+
+        await syncRepository.pushNode(node);
+        deliveredIds.add(entry.id);
+      } catch (e) {
+        await outboxDao.incrementRetry(entry.id);
+      }
+    }
+
+    if (deliveredIds.isNotEmpty) {
+      await outboxDao.markDelivered(deliveredIds, transport: 'server');
+    }
+  }
+
+  SyncEventType _parseEventType(String type) {
+    return SyncEventType.values.firstWhere(
+      (e) => e.name == type,
+      orElse: () => SyncEventType.unknown,
+    );
   }
 }

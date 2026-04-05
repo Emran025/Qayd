@@ -128,7 +128,10 @@ final class SqliteVoucherRepository implements VoucherRepository {
       final where =
           whereParts.isEmpty ? null : whereParts.join(' AND ');
       var sql =
-          'SELECT * FROM $_vouchers${where != null ? ' WHERE $where' : ''} ORDER BY date DESC, created_at DESC';
+          'SELECT *, ' 
+          '(SELECT COUNT(*) FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id) as reversal_count, '
+          '(SELECT id FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id ORDER BY created_at ASC LIMIT 1) as first_child_id '
+          'FROM $_vouchers${where != null ? ' WHERE $where' : ''} ORDER BY date DESC, created_at DESC';
       if (limit != null) {
         sql += ' LIMIT ?';
         args.add(limit);
@@ -379,6 +382,76 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return const FailureResult(
         DatabaseFailure(
           messageAr: 'تعذر قراءة سندات مجموعة التحويل.',
+        ),
+      );
+    }
+  }
+
+  // ── Threaded Financial Interactions ──────────────────────────────────────
+
+  @override
+  Future<Result<List<Voucher>>> getByOriginVoucherId(VoucherId originId) async {
+    try {
+      final rows = await _db.query(
+        _vouchers,
+        where: 'origin_voucher_id = ?',
+        whereArgs: [originId.value],
+        orderBy: 'created_at ASC',
+      );
+      return Success(await _mapVoucherRows(rows));
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر قراءة سندات المرتجعات والتسويات.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<Voucher?>> findReciprocalMatch({
+    required int amountMinor,
+    required String currencyCode,
+    required String counterpartyAccountId,
+    required String type,
+    required DateTime referenceDate,
+  }) async {
+    try {
+      // Determine the inverse type to match against
+      final inverseType = type == 'receipt' ? 'payment' : 'receipt';
+
+      // Calculate ±24-hour window
+      final windowStart = referenceDate.subtract(const Duration(hours: 24));
+      final windowEnd = referenceDate.add(const Duration(hours: 24));
+
+      final rows = await _db.query(
+        _vouchers,
+        where:
+            'amount_minor = ? AND currency_code = ? AND counterparty_id = ? '
+            'AND type = ? AND state = ? AND date >= ? AND date <= ?',
+        whereArgs: [
+          amountMinor,
+          currencyCode,
+          counterpartyAccountId,
+          inverseType,
+          'draft',
+          windowStart.toIso8601String(),
+          windowEnd.toIso8601String(),
+        ],
+        limit: 1,
+        orderBy: 'created_at DESC',
+      );
+
+      if (rows.isEmpty) {
+        return const Success(null);
+      }
+
+      final vouchers = await _mapVoucherRows(rows);
+      return Success(vouchers.first);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر البحث عن السند المقابل.',
         ),
       );
     }

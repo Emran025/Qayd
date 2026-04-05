@@ -1,4 +1,4 @@
-/// SQLite projection for [vouchers] (v10 schema — includes tripartite transfer fields).
+/// SQLite projection for [vouchers] (v17 schema — includes threaded interaction fields).
 final class VoucherModel {
   const VoucherModel({
     required this.id,
@@ -25,6 +25,11 @@ final class VoucherModel {
     this.tripartiteRole,
     this.linkedPartyId,
     required this.isContingent,
+    this.originVoucherId,
+    this.rejectionReason,
+    this.withdrawnAtIso,
+    this.reversalCount = 0,
+    this.firstChildId,
   });
 
   final String id;
@@ -54,6 +59,13 @@ final class VoucherModel {
   final String? linkedPartyId;
   final bool isContingent;
 
+  // Threaded Financial Interactions fields (Protocol v1.3)
+  final String? originVoucherId;
+  final String? rejectionReason;
+  final String? withdrawnAtIso;
+  final int reversalCount;
+  final String? firstChildId;
+
   Map<String, Object?> toMap() => {
         'id': id,
         'type': type,
@@ -79,6 +91,9 @@ final class VoucherModel {
         'tripartite_role': tripartiteRole,
         'linked_party_id': linkedPartyId,
         'is_contingent': isContingent ? 1 : 0,
+        'origin_voucher_id': originVoucherId,
+        'rejection_reason': rejectionReason,
+        'withdrawn_at': withdrawnAtIso,
       };
 
   factory VoucherModel.fromMap(Map<String, Object?> map) {
@@ -107,6 +122,11 @@ final class VoucherModel {
       tripartiteRole: map['tripartite_role'] as String?,
       linkedPartyId: map['linked_party_id'] as String?,
       isContingent: (map['is_contingent'] as int?) == 1,
+      originVoucherId: map['origin_voucher_id'] as String?,
+      rejectionReason: map['rejection_reason'] as String?,
+      withdrawnAtIso: map['withdrawn_at'] as String?,
+      reversalCount: (map['reversal_count'] as int?) ?? 0,
+      firstChildId: map['first_child_id'] as String?,
     );
   }
 }
