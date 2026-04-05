@@ -32,7 +32,8 @@ abstract final class AppStringsAr {
   static const String voucherStateSettled = 'مسوى (نقد)';
   static const String tripartiteContingentBadge = 'ذمم مشروطة';
   static const String voucherReplyHeader = 'رد على سنده رقم #...';
-  static const String voucherJumpHeader = 'يوجد إصدار أحدث لهذا السند. اضغط للانتقال.';
+  static const String voucherJumpHeader =
+      'يوجد إصدار أحدث لهذا السند. اضغط للانتقال.';
 
   static const String voucherStateDraft = 'مسودة';
   static const String voucherStateWithdrawn = 'مسحوب';
@@ -60,7 +61,7 @@ abstract final class AppStringsAr {
   static const String natureLabel = 'الطبيعة';
   static const String accountTypeLabel = 'النوع';
   static const String accountTypeRoot = 'جذر';
-  static const String accountTypeChild = 'فرعي';
+  static const String accountTypeChild = 'فرع';
   static const String parentAccountLabel = 'الحساب الأب';
   static const String statusLabel = 'الحالة';
   static const String statusActive = 'نشط';
@@ -172,11 +173,14 @@ abstract final class AppStringsAr {
 
   // --- Identity QR Exchange (§3) ---
   static String get identityQrShowTitle => 'هويتي الرقمية (QR)';
-  static String get identityQrShowSubtitle => 'اعرض الرمز للآخرين لإضافتك كطرف مقابل آمن';
+  static String get identityQrShowSubtitle =>
+      'اعرض الرمز للآخرين لإضافتك كطرف مقابل آمن';
   static String get identityQrScanTitle => 'مسح هوية الطرف (QR)';
-  static String get identityQrScanHint => 'امسح رمز "هويتي الرقمية" الخاص بالطرف الآخر لإضافته تلقائياً';
+  static String get identityQrScanHint =>
+      'امسح رمز "هويتي الرقمية" الخاص بالطرف الآخر لإضافته تلقائياً';
   static String get identityQrScanSuccess => 'تم التعرف على هوية الطرف بنجاح.';
-  static String get identityQrScanInvalid => 'رمز الهوية غير صالح أو غير تابع لتطبيق قيد.';
+  static String get identityQrScanInvalid =>
+      'رمز الهوية غير صالح أو غير تابع لتطبيق قيد.';
 
   // Trial balance
   static const String trialBalanceTitle = 'ميزان المراجعة';
@@ -509,7 +513,8 @@ abstract final class AppStringsAr {
 
   // ── Statement of Account Chat (كشف الحساب) ─────────────────────────────
   static const String statementChatTitle = 'كشف الحساب';
-  static const String statementChatSearchHint = 'بحث بالبيان أو الرقم أو المبلغ…';
+  static const String statementChatSearchHint =
+      'بحث بالبيان أو الرقم أو المبلغ…';
   static const String statementChatEmpty = 'لا توجد سندات بين الطرفين بعد.';
   static const String statementChatEmptyFiltered =
       'لا سندات مطابقة للتصفية الحالية.';
@@ -557,7 +562,8 @@ abstract final class AppStringsAr {
   static const String profileWhatsAppLabel = 'رقم الواتساب';
   static const String profileEmailLabel = 'البريد الإلكتروني';
   static const String profileUpdateAction = 'حفظ التعديلات';
-  static const String profileUpdateSuccess = 'تم تحديث بيانات ملفك الشخصي بنجاح.';
+  static const String profileUpdateSuccess =
+      'تم تحديث بيانات ملفك الشخصي بنجاح.';
   static const String profileImageUpload = 'تغيير الصورة';
   static const String profileLogoUpload = 'تغيير الشعار';
 
@@ -578,14 +584,8 @@ abstract final class AppStringsAr {
       'تم اكتشاف سند مطابق. هل تريد دمجهما في معاملة واحدة مؤكدة؟';
   static const String voucherMergeAction = 'دمج';
   static const String p2pScanTitle = 'مزامنة شخصية (P2P)';
-  static const String p2pScanSubtitle = 'امسح رمز الطرف الآخر للمزامنة المباشرة';
+  static const String p2pScanSubtitle =
+      'امسح رمز الطرف الآخر للمزامنة المباشرة';
   static const String p2pSyncSuccess = 'تمت المزامنة المباشرة بنجاح.';
   static const String p2pSyncFailed = 'فشلت المزامنة المباشرة.';
 }
-
-     
-     
-     
-     
-     
-     

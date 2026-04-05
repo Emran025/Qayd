@@ -14,6 +14,7 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
   String? excludeAccountId,
   bool rootAllowed = true,
   bool requireNoRoot = false,
+  bool onlyRoots = false,
   String? requireParentClassification,
 }) async {
   final result = await listAccounts(const ListAccountsInput(activeOnly: true));
@@ -37,6 +38,7 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
     if (a.id == excludeAccountId) return false;
     if (requireNoRoot && a.isRoot) return false;
     if (!rootAllowed && a.isRoot) return false;
+    if (onlyRoots && !a.isRoot) return false;
     
     if (requireParentClassification != null) {
       if (a.isRoot) {
@@ -60,50 +62,123 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
     isScrollControlled: true,
     showDragHandle: true,
     builder: (ctx) {
-      final h = MediaQuery.sizeOf(ctx).height * 0.55;
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: SpacingTokens.md),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: SpacingTokens.md,
-                  vertical: SpacingTokens.sm,
-                ),
-                child: QaydText(
-                  AppStringsAr.pickAccountTitle,
-                  slot: QaydTextStyleSlot.titleMedium,
-                ),
-              ),
-              SizedBox(
-                height: h,
-                child: ListView.builder(
-                  itemCount: accounts.length,
-                  itemBuilder: (context, i) {
-                    final a = accounts[i];
-                    return ListTile(
-                      title: QaydText(
-                        a.name,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                      ),
-                      subtitle: a.isRoot
-                          ? QaydText(
-                              AppStringsAr.accountTypeRoot,
-                              slot: QaydTextStyleSlot.bodySmall,
-                            )
-                          : null,
-                      onTap: () => Navigator.of(context).pop(a),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+      return _AccountPickerContent(
+        accounts: accounts,
+        onSelected: (a) => Navigator.of(ctx).pop(a),
       );
     },
   );
+}
+
+class _AccountPickerContent extends StatefulWidget {
+  const _AccountPickerContent({
+    required this.accounts,
+    required this.onSelected,
+  });
+
+  final List<AccountSummaryDto> accounts;
+  final ValueChanged<AccountSummaryDto> onSelected;
+
+  @override
+  State<_AccountPickerContent> createState() => _AccountPickerContentState();
+}
+
+class _AccountPickerContentState extends State<_AccountPickerContent> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final h = MediaQuery.sizeOf(context).height * 0.7;
+    final filtered = widget.accounts.where((a) {
+      if (_query.isEmpty) return true;
+      return a.name.toLowerCase().contains(_query.toLowerCase());
+    }).toList();
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: SpacingTokens.md,
+                vertical: SpacingTokens.sm,
+              ),
+              child: QaydText(
+                AppStringsAr.pickAccountTitle,
+                slot: QaydTextStyleSlot.titleMedium,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                SpacingTokens.md,
+                0,
+                SpacingTokens.md,
+                SpacingTokens.sm,
+              ),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: AppStringsAr.searchAccountsHint,
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 20),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _query = '';
+                            });
+                          },
+                        )
+                      : null,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: SpacingTokens.md,
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(SpacingTokens.sm),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onChanged: (v) => setState(() => _query = v),
+              ),
+            ),
+            SizedBox(
+              height: h,
+              child: ListView.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, i) {
+                  final a = filtered[i];
+                  return ListTile(
+                    title: QaydText(
+                      a.name,
+                      slot: QaydTextStyleSlot.bodyLarge,
+                    ),
+                    subtitle: a.isRoot
+                        ? QaydText(
+                            AppStringsAr.accountTypeRoot,
+                            slot: QaydTextStyleSlot.bodySmall,
+                          )
+                        : null,
+                    onTap: () => widget.onSelected(a),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

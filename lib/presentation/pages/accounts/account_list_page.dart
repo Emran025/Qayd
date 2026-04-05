@@ -26,7 +26,6 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
-
 class AccountListPage extends StatelessWidget {
   const AccountListPage({super.key});
 
@@ -60,6 +59,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
     String? parentId,
     String? parentName,
     String? parentStandardKind,
+    bool isChild = false,
   }) async {
     final created = await Navigator.of(context).push<bool>(
       QaydPageRoute.slideFromStart<bool>(
@@ -70,6 +70,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
             parentAccountId: parentId,
             parentName: parentName,
             parentStandardKind: parentStandardKind,
+            forcedIsChild: isChild,
           ),
         ),
       ),
@@ -97,14 +98,11 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
       QaydPageRoute.slideFromStart<void>(
         builder: (ctx) => BlocProvider(
           create: (_) => StatementChatCubit(
-            listStatement:
-                InjectionContainer.listAccountStatementChatUseCase,
+            listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
             counterpartyAccountId: accountId,
           )..load(),
-          child: AccountStatementChatPage(
-            counterpartyAccountId: accountId,
-          ),
+          child: AccountStatementChatPage(counterpartyAccountId: accountId),
         ),
       ),
     );
@@ -126,7 +124,15 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_account_list',
-        onPressed: () => _openCreate(),
+        onPressed: () {
+          final state = context.read<AccountListCubit>().state;
+          if (state is AccountListReady) {
+            final isChild = state.typeFilter == AccountTypeFilter.child;
+            _openCreate(isChild: isChild);
+          } else {
+            _openCreate();
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: Text(AppStringsAr.addAccountFab),
         backgroundColor: gold,
@@ -152,39 +158,78 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
           ),
           BlocBuilder<AccountListCubit, AccountListState>(
             builder: (context, state) {
-              final filter = state is AccountListReady
+              final ready = state is AccountListReady;
+              final natureFilter = ready
                   ? state.natureFilter
                   : AccountNatureFilter.all;
+              final typeFilter = ready
+                  ? state.typeFilter
+                  : AccountTypeFilter.child;
+
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: SpacingTokens.md,
                   vertical: SpacingTokens.xs,
                 ),
-                child: Wrap(
-                  spacing: SpacingTokens.sm,
-                  children: [
-                    ChoiceChip(
-                      label: Text(AppStringsAr.filterNatureAll),
-                      selected: filter == AccountNatureFilter.all,
-                      onSelected: (_) => context
-                          .read<AccountListCubit>()
-                          .setNatureFilter(AccountNatureFilter.all),
-                    ),
-                    ChoiceChip(
-                      label: Text(AppStringsAr.filterNatureDebit),
-                      selected: filter == AccountNatureFilter.debit,
-                      onSelected: (_) => context
-                          .read<AccountListCubit>()
-                          .setNatureFilter(AccountNatureFilter.debit),
-                    ),
-                    ChoiceChip(
-                      label: Text(AppStringsAr.filterNatureCredit),
-                      selected: filter == AccountNatureFilter.credit,
-                      onSelected: (_) => context
-                          .read<AccountListCubit>()
-                          .setNatureFilter(AccountNatureFilter.credit),
-                    ),
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Wrap(
+                        spacing: SpacingTokens.sm,
+                        children: [
+                          ChoiceChip(
+                            label: Text(AppStringsAr.filterNatureAll),
+                            selected: natureFilter == AccountNatureFilter.all,
+                            onSelected: (_) => context
+                                .read<AccountListCubit>()
+                                .setNatureFilter(AccountNatureFilter.all),
+                          ),
+                          ChoiceChip(
+                            label: Text(AppStringsAr.filterNatureDebit),
+                            selected: natureFilter == AccountNatureFilter.debit,
+                            onSelected: (_) => context
+                                .read<AccountListCubit>()
+                                .setNatureFilter(AccountNatureFilter.debit),
+                          ),
+                          ChoiceChip(
+                            label: Text(AppStringsAr.filterNatureCredit),
+                            selected:
+                                natureFilter == AccountNatureFilter.credit,
+                            onSelected: (_) => context
+                                .read<AccountListCubit>()
+                                .setNatureFilter(AccountNatureFilter.credit),
+                          ),
+                        ],
+                      ),
+                      const SizedBox.shrink(),
+                      Container(
+                        width: 1,
+                        height: 24,
+                        color: Theme.of(
+                          context,
+                        ).dividerColor.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(width: SpacingTokens.sm),
+                      SegmentedButton<AccountTypeFilter>(
+                        segments: const [
+                          ButtonSegment(
+                            value: AccountTypeFilter.child,
+                            label: Text(AppStringsAr.accountTypeChild),
+                          ),
+                          ButtonSegment(
+                            value: AccountTypeFilter.root,
+                            label: Text(AppStringsAr.accountTypeRoot),
+                          ),
+                        ],
+                        selected: {typeFilter},
+                        onSelectionChanged: (s) => context
+                            .read<AccountListCubit>()
+                            .setTypeFilter(s.first),
+                        showSelectedIcon: false,
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -227,11 +272,6 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                       chartIsEmpty: allAccounts.isEmpty,
                       onTap: _openDetail,
                       onChat: _openChat,
-                      onAddChild: (dto) => _openCreate(
-                        parentId: dto.id,
-                        parentName: dto.name,
-                        parentStandardKind: dto.standardClassificationKind,
-                      ),
                     ),
                 };
               },
@@ -249,14 +289,12 @@ class _AccountListBody extends StatelessWidget {
     required this.chartIsEmpty,
     required this.onTap,
     required this.onChat,
-    required this.onAddChild,
   });
 
   final List<AccountSummaryDto> accounts;
   final bool chartIsEmpty;
   final void Function(String accountId) onTap;
   final void Function(String accountId) onChat;
-  final void Function(AccountSummaryDto dto) onAddChild;
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +339,6 @@ class _AccountListBody extends StatelessWidget {
             dto: dto,
             onTap: () => onChat(dto.id),
             onChat: () => onChat(dto.id),
-            onAddChild: () => onAddChild(dto),
           ),
         };
       },
@@ -341,13 +378,11 @@ class _AccountCard extends StatelessWidget {
     required this.dto,
     required this.onTap,
     required this.onChat,
-    required this.onAddChild,
   });
 
   final AccountSummaryDto dto;
   final VoidCallback onTap;
   final VoidCallback onChat;
-  final VoidCallback onAddChild;
 
   @override
   Widget build(BuildContext context) {
@@ -399,7 +434,9 @@ class _AccountCard extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: natureColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(RadiusTokens.xs),
+                                borderRadius: BorderRadius.circular(
+                                  RadiusTokens.xs,
+                                ),
                                 border: Border.all(
                                   color: natureColor.withValues(alpha: 0.2),
                                 ),
@@ -408,7 +445,9 @@ class _AccountCard extends StatelessWidget {
                                 natureLabel,
                                 slot: QaydTextStyleSlot.labelSmall,
                                 color: natureColor,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
@@ -427,17 +466,6 @@ class _AccountCard extends StatelessWidget {
                             onPressed: onChat,
                             visualDensity: VisualDensity.compact,
                           ),
-                          if (dto.isRoot)
-                            IconButton(
-                              tooltip: AppStringsAr.addChildAccountTooltip,
-                              icon: Icon(
-                                Icons.add_circle_outline_rounded,
-                                size: 22,
-                                color: custom.goldAccent,
-                              ),
-                              onPressed: onAddChild,
-                              visualDensity: VisualDensity.compact,
-                            ),
                         ],
                       ),
                     ],
@@ -449,24 +477,28 @@ class _AccountCard extends StatelessWidget {
                     Table(
                       columnWidths: const {
                         0: IntrinsicColumnWidth(), // Currency
-                        1: FlexColumnWidth(),      // Amount
+                        1: FlexColumnWidth(), // Amount
                         2: IntrinsicColumnWidth(), // Side
                       },
-                      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                      defaultVerticalAlignment:
+                          TableCellVerticalAlignment.middle,
                       children: dto.balancesMinorUnits.entries.map((e) {
                         final code = e.key;
                         final minor = e.value;
-                        
-                        // Side determination: 
+
+                        // Side determination:
                         // For Debit accounts: positive = Debit, negative = Credit
                         // For Credit accounts: positive = Credit, negative = Debit
-                        final isDebitSide = (dto.natureCode == 'debit' && minor >= 0) || 
-                                           (dto.natureCode == 'credit' && minor < 0);
-                        
-                        final sideLabel = isDebitSide 
-                            ? AppStringsAr.natureDebitShort 
+                        final isDebitSide =
+                            (dto.natureCode == 'debit' && minor >= 0) ||
+                            (dto.natureCode == 'credit' && minor < 0);
+
+                        final sideLabel = isDebitSide
+                            ? AppStringsAr.natureDebitShort
                             : AppStringsAr.natureCreditShort;
-                        final sideColor = isDebitSide ? custom.debit : custom.credit;
+                        final sideColor = isDebitSide
+                            ? custom.debit
+                            : custom.credit;
 
                         return TableRow(
                           children: [
@@ -476,11 +508,15 @@ class _AccountCard extends StatelessWidget {
                                 code,
                                 slot: QaydTextStyleSlot.labelMedium,
                                 color: scheme.onSurfaceVariant,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: SpacingTokens.md,
+                              ),
                               child: QaydMoneyDisplay(
                                 money: Money.nonNegative(
                                   minor.abs(),
@@ -493,17 +529,22 @@ class _AccountCard extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                displayNegative: false, // Handled by Side column
+                                displayNegative:
+                                    false, // Handled by Side column
                                 size: QaydMoneyDisplaySize.small,
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsetsDirectional.only(start: SpacingTokens.md),
+                              padding: const EdgeInsetsDirectional.only(
+                                start: SpacingTokens.md,
+                              ),
                               child: QaydText(
                                 sideLabel,
                                 slot: QaydTextStyleSlot.labelSmall,
                                 color: sideColor,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 textAlign: TextAlign.end,
                               ),
                             ),

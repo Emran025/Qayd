@@ -19,6 +19,7 @@ class AccountListCubit extends Cubit<AccountListState> {
           allAccounts: out.accounts,
           searchQuery: '',
           natureFilter: AccountNatureFilter.all,
+          typeFilter: AccountTypeFilter.child,
         ),
       ),
     );
@@ -35,6 +36,13 @@ class AccountListCubit extends Cubit<AccountListState> {
     final s = state;
     if (s is AccountListReady) {
       emit(s.copyWith(natureFilter: filter));
+    }
+  }
+
+  void setTypeFilter(AccountTypeFilter filter) {
+    final s = state;
+    if (s is AccountListReady) {
+      emit(s.copyWith(typeFilter: filter));
     }
   }
 }

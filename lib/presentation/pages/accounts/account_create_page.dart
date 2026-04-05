@@ -15,6 +15,9 @@ import 'package:qayd/presentation/components/inputs/phone_zone.dart';
 import 'package:qayd/presentation/pages/accounts/counterparty_qr_scanner_page.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
 
 class AccountCreatePage extends StatefulWidget {
   const AccountCreatePage({
@@ -22,13 +25,15 @@ class AccountCreatePage extends StatefulWidget {
     this.parentAccountId,
     this.parentName,
     this.parentStandardKind,
+    this.forcedIsChild = false,
   });
 
   final String? parentAccountId;
   final String? parentName;
   final String? parentStandardKind;
+  final bool forcedIsChild;
 
-  bool get isChild => parentAccountId != null;
+  bool get isChild => forcedIsChild || parentAccountId != null;
 
   @override
   State<AccountCreatePage> createState() => _AccountCreatePageState();
@@ -46,6 +51,18 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   final _bankInfoController = TextEditingController();
   final _partyTypeController = TextEditingController();
 
+  String? _parentId;
+  String? _parentName;
+  String? _parentStandardKind;
+
+  @override
+  void initState() {
+    super.initState();
+    _parentId = widget.parentAccountId;
+    _parentName = widget.parentName;
+    _parentStandardKind = widget.parentStandardKind;
+  }
+
   StandardAccountClassificationKind _standardKind =
       StandardAccountClassificationKind.liquidAssets;
   bool _useCustomRootClassification = false;
@@ -56,7 +73,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
 
   bool get _showPartyDetails {
     if (!widget.isChild) return false;
-    final kind = widget.parentStandardKind;
+    final kind = _parentStandardKind;
     return kind == StandardAccountClassificationKind.receivables.name ||
         kind == StandardAccountClassificationKind.payables.name;
   }
@@ -90,9 +107,19 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       }
     }
 
+    if (widget.isChild && _parentId == null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(AppStringsAr.pickAccountTitle),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final input = CreateAccountInput(
       name: _nameController.text,
-      parentAccountId: widget.parentAccountId,
+      parentAccountId: _parentId,
       rootStandardKind: !widget.isChild && !_useCustomRootClassification
           ? _standardKind
           : null,
@@ -212,17 +239,75 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
               child: ListView(
                 padding: const EdgeInsets.all(SpacingTokens.lg),
                 children: [
-                  if (widget.isChild && widget.parentName != null) ...[
-                    QaydText(
-                      widget.parentName!,
-                      slot: QaydTextStyleSlot.titleMedium,
-                      color: gold,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    QaydText(
-                      AppStringsAr.parentAccountLabel,
-                      slot: QaydTextStyleSlot.bodySmall,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  if (widget.isChild) ...[
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: submitting
+                            ? null
+                            : () async {
+                                final root = await showAccountPickerSheet(
+                                  context,
+                                  listAccounts:
+                                      InjectionContainer.listAccountsUseCase,
+                                  requireNoRoot: false,
+                                  rootAllowed: true,
+                                  onlyRoots: true,
+                                );
+                                if (root != null && mounted) {
+                                  setState(() {
+                                    _parentId = root.id;
+                                    _parentName = root.name;
+                                    _parentStandardKind =
+                                        root.standardClassificationKind;
+                                  });
+                                }
+                              },
+                        borderRadius: BorderRadius.circular(RadiusTokens.md),
+                        child: Container(
+                          padding: const EdgeInsets.all(SpacingTokens.md),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outlineVariant,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              RadiusTokens.md,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    QaydText(
+                                      _parentName ??
+                                          AppStringsAr.pickAccountTitle,
+                                      slot: QaydTextStyleSlot.titleMedium,
+                                      color: _parentId != null
+                                          ? gold
+                                          : Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(height: SpacingTokens.xs),
+                                    QaydText(
+                                      AppStringsAr.parentAccountLabel,
+                                      slot: QaydTextStyleSlot.bodySmall,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_drop_down_rounded),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: SpacingTokens.md),
                   ],
