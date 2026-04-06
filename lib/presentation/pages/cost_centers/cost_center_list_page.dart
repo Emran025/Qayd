@@ -16,7 +16,6 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_extensions.dart';
-import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class CostCenterListPage extends StatelessWidget {
   const CostCenterListPage({super.key});
@@ -78,16 +77,8 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
 
-    return QaydScaffold(
-      appBar: QaydAppBar(
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
-          ),
-        ),
-        title: AppStringsAr.costCentersTitle,
-      ),
+    return Scaffold(
+      appBar: QaydAppBar(title: AppStringsAr.costCentersTitle),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_cost_center_list',
         onPressed: _openCreate,
