@@ -215,3 +215,23 @@ Uint8List buildCombinedExportExcelBytes({
     accountRows: aRows,
   );
 }
+
+// ── Isolate Wrappers for compute() ──────────────────────────────────────────
+
+Uint8List buildCombinedExportWrapper(Map<String, dynamic> params) {
+  return buildCombinedExportExcelBytes(
+    vouchers: params['vouchers'] as List<VoucherSummaryDto>,
+    accounts: params['accounts'] as List<AccountSummaryDto>,
+  );
+}
+
+Uint8List buildVouchersExportWrapper(List<VoucherSummaryDto> vouchers) {
+  return buildVouchersExcelBytes(vouchers);
+}
+
+Uint8List buildAccountStatementWrapper(Map<String, dynamic> params) {
+  return buildAccountStatementExcelBytes(
+    accountName: params['accountName'] as String,
+    lines: params['lines'] as List<AccountStatementLineDto>,
+  );
+}

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/application/accounts/dtos/get_account_statement_input.dart';
@@ -130,25 +131,33 @@ class SettingsPage extends StatelessWidget {
     );
 
     if (!context.mounted) return;
-    Navigator.of(context, rootNavigator: true).pop();
-
     if (accountsR.isFailure) {
+      Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(accountsR.failureOrNull!.messageAr)),
       );
       return;
     }
     if (vouchersR.isFailure) {
+      Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(vouchersR.failureOrNull!.messageAr)),
       );
       return;
     }
 
-    final bytes = buildCombinedExportExcelBytes(
-      vouchers: vouchersR.valueOrNull!.vouchers,
-      accounts: accountsR.valueOrNull!.accounts,
-    );
+    final accounts = accountsR.valueOrNull!.accounts;
+    final vouchers = vouchersR.valueOrNull!.vouchers;
+
+    // Offload heavy Excel generation to a separate Isolate to prevent UI jank.
+    // 212 frame skipped error fix.
+    final bytes = await compute(buildCombinedExportWrapper, {
+      'vouchers': vouchers,
+      'accounts': accounts,
+    });
+
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // Dismiss loader AFTER processing
     final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     await shareExportBytes(
       bytes,
@@ -176,16 +185,22 @@ class SettingsPage extends StatelessWidget {
       const ListVouchersInput(),
     );
     if (!context.mounted) return;
-    Navigator.of(context, rootNavigator: true).pop();
 
     if (vouchersR.isFailure) {
+      Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(vouchersR.failureOrNull!.messageAr)),
       );
       return;
     }
 
-    final bytes = buildVouchersExcelBytes(vouchersR.valueOrNull!.vouchers);
+    final vouchers = vouchersR.valueOrNull!.vouchers;
+
+    // Isolate offload
+    final bytes = await compute(buildVouchersExportWrapper, vouchers);
+
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
     final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     await shareExportBytes(
       bytes,
@@ -268,19 +283,25 @@ class SettingsPage extends StatelessWidget {
       GetAccountStatementInput(accountId: id),
     );
     if (!context.mounted) return;
-    Navigator.of(context, rootNavigator: true).pop();
 
     if (stmtR.isFailure) {
+      Navigator.of(context, rootNavigator: true).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(stmtR.failureOrNull!.messageAr)),
       );
       return;
     }
+
     final out = stmtR.valueOrNull!;
-    final bytes = buildAccountStatementExcelBytes(
-      accountName: out.accountName,
-      lines: out.lines,
-    );
+
+    // Isolate offload
+    final bytes = await compute(buildAccountStatementWrapper, {
+      'accountName': out.accountName,
+      'lines': out.lines,
+    });
+
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
     final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     final safe = out.accountName.replaceAll(RegExp(r'[/\\?*:\[\]]'), '_');
     await shareExportBytes(
