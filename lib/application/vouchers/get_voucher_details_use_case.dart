@@ -9,7 +9,9 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 
 class GetVoucherDetailsUseCase {
   GetVoucherDetailsUseCase(
@@ -85,8 +87,41 @@ class GetVoucherDetailsUseCase {
       String? successorVoucherId;
       final successorR = await _voucherRepository.getByOriginVoucherId(v.id);
       if (successorR.isSuccess && successorR.valueOrNull!.isNotEmpty) {
-        // The first child (earliest) is typically the immediate correction/reversal.
         successorVoucherId = successorR.valueOrNull!.first.id.value;
+      }
+
+      // ── Protocol §2: Approval Permissions ────────────────────────────────
+      bool canApprove = false;
+      
+      final myLicense = await _licenseVault.readLicenseData();
+      final myPubKey = (myLicense?['user']?['public_key'] ?? myLicense?['public_key']) as String?;
+      
+      // Ownership check: If we don't have a signature yet, compare account classifications.
+      // Internal accounts (Liquid Assets) belong to the local user.
+      final affectedRes = await _accountRepository.getById(v.affectedAccountId);
+      final isAffectedInternal = affectedRes.valueOrNull?.classification.standardKind?.name == 'liquidAssets';
+      
+      // We are the sender if:
+      // 1. Our public key matches the sender signature key.
+      // 2. OR There is no signature yet, but the 'affected' account is one of our funds.
+      final isMeSender = (v.senderPublicKeyHex != null && v.senderPublicKeyHex == myPubKey) ||
+                         (v.senderPublicKeyHex == null && isAffectedInternal);
+      
+      if (!v.isWithdrawn && (v.state == VoucherState.draft || v.state == VoucherState.confirmed)) {
+        if (v.receiverStatus == AgreementStatus.underRequest) {
+          // Case A: Counterparty Signature (Approval)
+          // We can only approve if we are NOT the sender (we didn't create it).
+          if (!isMeSender) {
+            canApprove = true;
+          }
+        } else if (v.senderStatus == AgreementStatus.accepted && 
+                   v.receiverStatus == AgreementStatus.accepted &&
+                   v.state == VoucherState.draft) {
+          // Case B: Final Ledger Confirmation (تأكيد)
+          // Both have signed. Now the local user should confirm it into their accounts.
+          // This only applies if it's still in 'draft' state.
+          canApprove = true;
+        }
       }
 
       return Success(
@@ -117,9 +152,13 @@ class GetVoucherDetailsUseCase {
           linkedPartyName: linkedPartyName,
           transferGroupId: v.tripartiteMeta?.transferGroupId,
           isContingent: v.isContingent,
-          signatureHex: v.signatureHex,
-          signerPublicKeyHex: v.signerPublicKeyHex,
-          agreementStatusCode: v.agreementStatus.name,
+          senderSignatureHex: v.senderSignatureHex,
+          receiverSignatureHex: v.receiverSignatureHex,
+          senderPublicKeyHex: v.senderPublicKeyHex,
+          receiverPublicKeyHex: v.receiverPublicKeyHex,
+          senderStatusCode: v.senderStatus.name,
+          receiverStatusCode: v.receiverStatus.name,
+          canApprove: canApprove,
           originVoucherId: v.originVoucherId?.value,
           attachmentCount: attachmentCount,
           hasCollateral: hasCollateral,

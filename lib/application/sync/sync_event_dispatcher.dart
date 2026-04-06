@@ -41,8 +41,8 @@ class SyncEventDispatcher {
         'currency_code': voucher.currency.code,
         'date': voucher.date.toIso8601String(),
         'description': voucher.description,
-        'signature_hex': voucher.signatureHex,
-        'signer_public_key_hex': voucher.signerPublicKeyHex,
+        'sender_signature_hex': voucher.senderSignatureHex,
+        'sender_public_key_hex': voucher.senderPublicKeyHex,
         'signer_phone': voucher.signerPhone,
         'origin_voucher_id': voucher.originVoucherId?.value,
         'reference_number': voucher.referenceNumber,
@@ -57,8 +57,8 @@ class SyncEventDispatcher {
       eventType: 'acceptance',
       payload: {
         'voucher_id': voucher.id.value,
-        'signature_hex': voucher.signatureHex,
-        'signer_public_key_hex': voucher.signerPublicKeyHex,
+        'receiver_signature_hex': voucher.receiverSignatureHex,
+        'receiver_public_key_hex': voucher.receiverPublicKeyHex,
         'signer_phone': voucher.signerPhone,
       },
     );

@@ -492,33 +492,37 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   // ══════════════════════════════════════════════════════════════════════════
 
   pw.Widget _buildSignatureRow(pw.Font font, VoucherReportDto report) {
-    final hasSig = report.signatureHex != null &&
-        report.signatureHex!.isNotEmpty;
+    final hasSenderSig = report.senderSignatureHex != null && report.senderSignatureHex!.isNotEmpty;
+    final hasReceiverSig = report.receiverSignatureHex != null && report.receiverSignatureHex!.isNotEmpty;
     
     // For non-tripartite: only show client signature + QR
     // For tripartite: show client 1 + client 2 signatures
     final columns = <pw.Widget>[];
 
     if (report.isTripartite) {
-      // Client 1 signature (counterparty)
+      // Client 1 signature (counterparty - sender in receipt leg)
       columns.add(
         pw.Expanded(
-          child: _signatureBox(font, '(توقيع العميل الأول)', hasSig),
+          child: _signatureBox(font, '(توقيع العميل الأول)', hasSenderSig),
         ),
       );
       columns.add(pw.SizedBox(width: 8));
-      // Client 2 signature (linked party)
+      // Client 2 signature (linked party - receiver in receipt leg)
       columns.add(
         pw.Expanded(
-          child: _signatureBox(font, '(توقيع العميل الثاني)', false),
+          child: _signatureBox(font, '(توقيع العميل الثاني)', hasReceiverSig),
         ),
       );
     } else {
-      // Single-party: just client signature
+      // Single-party: show both if signed
       columns.add(
         pw.Expanded(
           flex: 2,
-          child: _signatureBox(font, '(توقيع العميل)', hasSig),
+          child: _signatureBox(
+            font, 
+            report.typeCode == 'receipt' ? '(توقيع العميل المرسل)' : '(توقيع العميل المستلم)', 
+            report.typeCode == 'receipt' ? hasSenderSig : hasReceiverSig,
+          ),
         ),
       );
       columns.add(pw.SizedBox(width: 8));
@@ -541,11 +545,11 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 ),
                 pw.SizedBox(height: 4),
                 pw.Text(
-                  _agreementAr(report.agreementStatusCode),
+                  _agreementAr(report.receiverStatusCode),
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 8,
-                    color: _agreementColor(report.agreementStatusCode),
+                    color: _agreementColor(report.receiverStatusCode),
                     fontWeight: pw.FontWeight.bold,
                   ),
                   textAlign: pw.TextAlign.center,
@@ -634,20 +638,19 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 ),
 
                 // Crypto info
-                if (report.signerPublicKeyHex != null &&
-                    report.signerPublicKeyHex!.isNotEmpty) ...[
+                if (report.senderPublicKeyHex != null &&
+                    report.senderPublicKeyHex!.isNotEmpty) ...[
                   pw.SizedBox(height: 3),
                   pw.Text(
-                    'مفتاح الموقّع: ${_truncateHex(report.signerPublicKeyHex!)}',
+                    'مفتاح المرسل: ${_truncateHex(report.senderPublicKeyHex!)}',
                     style: pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
                   ),
                 ],
-
-                if (report.signatureHex != null &&
-                    report.signatureHex!.isNotEmpty) ...[
+                if (report.receiverPublicKeyHex != null &&
+                    report.receiverPublicKeyHex!.isNotEmpty) ...[
                   pw.SizedBox(height: 2),
                   pw.Text(
-                    'التوقيع: ${_truncateHex(report.signatureHex!)}',
+                    'مفتاح المستلم: ${_truncateHex(report.receiverPublicKeyHex!)}',
                     style: pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
                   ),
                 ],

@@ -12,6 +12,7 @@ import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/domain/value_objects/voucher_lifecycle.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:uuid/uuid.dart';
@@ -51,9 +52,13 @@ final class VoucherMapper {
       createdAtIso: voucher.createdAt.toIso8601String(),
       confirmedAtIso: voucher.confirmedAt?.toIso8601String(),
       settledAtIso: voucher.settledAt?.toIso8601String(),
-      signatureHex: voucher.signatureHex,
-      signerPublicKeyHex: voucher.signerPublicKeyHex,
-      signatureStatus: voucher.agreementStatus.name,
+      senderStatus: voucher.senderStatus.name,
+      receiverStatus: voucher.receiverStatus.name,
+      senderSignatureHex: voucher.senderSignatureHex,
+      receiverSignatureHex: voucher.receiverSignatureHex,
+      senderPublicKeyHex: voucher.senderPublicKeyHex,
+      receiverPublicKeyHex: voucher.receiverPublicKeyHex,
+      lifecycleStatus: voucher.lifecycleStatus.name,
       signerPhone: voucher.signerPhone,
       transferGroupId: voucher.tripartiteMeta?.transferGroupId,
       tripartiteRole: voucher.tripartiteMeta?.role.columnValue,
@@ -105,9 +110,13 @@ final class VoucherMapper {
           : null,
       settledAt:
           model.settledAtIso != null ? DateTime.parse(model.settledAtIso!) : null,
-      signatureHex: model.signatureHex,
-      signerPublicKeyHex: model.signerPublicKeyHex,
-      agreementStatus: _parseAgreementStatus(model.signatureStatus),
+      senderStatus: _parseAgreementStatus(model.senderStatus),
+      receiverStatus: _parseAgreementStatus(model.receiverStatus),
+      senderSignatureHex: model.senderSignatureHex,
+      receiverSignatureHex: model.receiverSignatureHex,
+      senderPublicKeyHex: model.senderPublicKeyHex,
+      receiverPublicKeyHex: model.receiverPublicKeyHex,
+      lifecycleStatus: _parseLifecycleStatus(model.lifecycleStatus),
       signerPhone: model.signerPhone,
       tripartiteMeta: _parseTripartiteMeta(model),
       originVoucherId: model.originVoucherId != null
@@ -128,6 +137,13 @@ final class VoucherMapper {
       if (s.name == raw) return s;
     }
     return AgreementStatus.underRequest;
+  }
+
+  static VoucherLifecycle _parseLifecycleStatus(String raw) {
+    for (final s in VoucherLifecycle.values) {
+      if (s.name == raw) return s;
+    }
+    return VoucherLifecycle.draft;
   }
 
   /// Reconstructs [TripartiteMeta] from model fields; returns null if absent.

@@ -17,7 +17,6 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/attachment_ref.dart';
-import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
@@ -125,63 +124,78 @@ class CreateVoucherUseCase {
             : null,
       );
 
-      // ── Protocol §5: Auto-sign receipt vouchers ────────────────────────────
-      // "Receipt Vouchers (سند قبض) by the User: The user signs internally with
-      //  their own Private Key, because their Safe is the affected account."
-      if (input.type == VoucherType.receipt &&
-          _signingService != null &&
-          _getKeyPair != null) {
-        try {
+      // ── Handle Immediate User Confirmation (Signing) ──────────────────────
+      if (input.confirm) {
+        // Sign as sender. 
+        if (_signingService != null && _getKeyPair != null) {
           final keyPair = await _getKeyPair();
           if (keyPair != null) {
             final licenseData = await _licenseVault?.readLicenseData();
             final myPhone = licenseData?['phone'] as String? ?? '';
-
-            // Resolve the actual counterparty phone to populate senderPhone.
-            // The sender of funds is the counterparty; the receiver is our Safe.
-            String counterpartyPhone = '';
+            
+            // Re-resolve counterparty phone for canonical signature.
+            String cpPhone = '';
             if (_accountRepository != null) {
               final cpParty = await _accountRepository.getPartyDetails(
                 AccountId(input.counterpartyAccountId),
               );
-              counterpartyPhone = cpParty.valueOrNull?.phoneNumber ?? '';
+              cpPhone = cpParty.valueOrNull?.phoneNumber ?? '';
             }
 
             final signable = SignableReceipt(
               amountMinor: input.amountMinorUnits,
               currencyCode: input.currencyCode,
-              senderPhone: counterpartyPhone, // They sent the funds
-              receiverPhone: myPhone,         // Our Safe received them
+              senderPhone: myPhone,          // We are sending the document
+              receiverPhone: cpPhone,
               dateIso: input.date.toIso8601String().split('T').first,
               receiptUuid: voucherId.value,
             );
 
-            final signature =
-                _signingService.signReceipt(signable, keyPair);
-
+            final signature = _signingService.signReceipt(signable, keyPair);
             voucher = voucher.attachSignature(
               signatureHex: signature.signatureHex,
-              signerPublicKeyHex: signature.signerPublicKeyHex,
+              publicKeyHex: signature.signerPublicKeyHex,
+              isSender: true,
               status: AgreementStatus.accepted,
               signerPhone: myPhone,
             );
           }
-        } catch (_) {
-          // Non-fatal: voucher is still created without self-signature.
+        }
+        
+        // Finalize creator validation state to 'confirmed'.
+        voucher = voucher.confirm(DateTime.now());
+      }
+
+      // ── Protocol §6: Corrective Resubmission / Succession ─────────────────
+      if (input.originVoucherId != null) {
+        final originRes = await _voucherRepository.getById(
+          VoucherId(input.originVoucherId!),
+        );
+        if (originRes.isSuccess) {
+          final origin = originRes.valueOrNull!;
+          // If the original was draft or rejected, mark it as withdrawn to
+          // effectively "soft delete" it from main views/balances.
+          if (origin.state.isDraft ||
+              origin.receiverStatus == AgreementStatus.rejected) {
+            final superceded = origin.withdraw(DateTime.now());
+            await _voucherRepository.save(superceded);
+          }
         }
       }
 
       final saved = await _voucherRepository.save(voucher);
-      if (saved.isSuccess && _syncEventDispatcher != null) {
-        // §5.A: Enqueue claim into local outbox
+      
+      // §5.A: Enqueue claim into local outbox ONLY if confirmed.
+      if (saved.isSuccess && input.confirm && _syncEventDispatcher != null) {
         await _syncEventDispatcher.dispatchVoucherClaim(voucher);
       }
+
       return saved.fold(
         (f) => FailureResult(f),
         (_) => Success(
           CreateVoucherOutput(
             voucherId: voucher.id.value,
-            stateCode: 'draft',
+            stateCode: voucher.state.name,
           ),
         ),
       );

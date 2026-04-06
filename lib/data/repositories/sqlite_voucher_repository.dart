@@ -52,6 +52,11 @@ final class SqliteVoucherRepository implements VoucherRepository {
       whereParts.add('${p}affected_account_id = ?');
       args.add(filter.affectedAccountId!.value);
     }
+    if (filter.involvedAccountId != null) {
+      whereParts.add('(${p}affected_account_id = ? OR ${p}counterparty_id = ?)');
+      args.add(filter.involvedAccountId!.value);
+      args.add(filter.involvedAccountId!.value);
+    }
     if (filter.dateRange != null) {
       whereParts.add('${p}date >= ? AND ${p}date <= ?');
       args.add(filter.dateRange!.start.toIso8601String());

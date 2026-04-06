@@ -459,21 +459,28 @@ class VoucherImageCard extends StatelessWidget {
   // ════════════════════════════════════════════════════════════════════════════
 
   Widget _signatureRow() {
-    final hasSig = data.signatureHex != null && data.signatureHex!.isNotEmpty;
+    final hasSenderSig = data.senderSignatureHex != null && data.senderSignatureHex!.isNotEmpty;
+    final hasReceiverSig = data.receiverSignatureHex != null && data.receiverSignatureHex!.isNotEmpty;
 
     if (data.isTripartite) {
       return Row(
         children: [
-          Expanded(child: _sigBox('(توقيع العميل الأول)', hasSig)),
+          Expanded(child: _sigBox('(توقيع العميل الأول)', hasSenderSig)),
           const SizedBox(width: 8),
-          Expanded(child: _sigBox('(توقيع العميل الثاني)', false)),
+          Expanded(child: _sigBox('(توقيع العميل الثاني)', hasReceiverSig)),
         ],
       );
     }
 
     return Row(
       children: [
-        Expanded(flex: 2, child: _sigBox('(توقيع العميل)', hasSig)),
+        Expanded(
+          flex: 2, 
+          child: _sigBox(
+            data.typeCode == 'receipt' ? '(توقيع العميل المرسل)' : '(توقيع العميل المستلم)', 
+            data.typeCode == 'receipt' ? hasSenderSig : hasReceiverSig,
+          ),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Container(
@@ -489,9 +496,9 @@ class VoucherImageCard extends StatelessWidget {
                 _text('حالة التوقيع', 7, _muted),
                 const SizedBox(height: 3),
                 _text(
-                  _agreementLabel(data.agreementStatusCode),
+                  _agreementLabel(data.receiverStatusCode),
                   8,
-                  _agreementColor(data.agreementStatusCode),
+                  _agreementColor(data.receiverStatusCode),
                   bold: true,
                   align: TextAlign.center,
                 ),
@@ -549,10 +556,19 @@ class VoucherImageCard extends StatelessWidget {
                 _text('تم الإنشاء:  $createdStr', 7.5, _muted),
                 const SizedBox(height: 2),
                 _text('المصدر: تطبيق قيد للمحاسبة الشخصية', 7.5, _muted),
-                if (_notEmpty(data.signerPublicKeyHex)) ...[
+                if (_notEmpty(data.senderPublicKeyHex)) ...[
                   const SizedBox(height: 2),
                   _text(
-                    'مفتاح: ${_truncHex(data.signerPublicKeyHex!)}',
+                    'مفتاح المرسل: ${_truncHex(data.senderPublicKeyHex!)}',
+                    6.5,
+                    _muted,
+                    dir: TextDirection.ltr,
+                  ),
+                ],
+                if (_notEmpty(data.receiverPublicKeyHex)) ...[
+                  const SizedBox(height: 1),
+                  _text(
+                    'مفتاح المستلم: ${_truncHex(data.receiverPublicKeyHex!)}',
                     6.5,
                     _muted,
                     dir: TextDirection.ltr,

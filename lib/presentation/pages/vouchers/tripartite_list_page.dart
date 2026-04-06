@@ -405,9 +405,9 @@ class _TransferSummaryCard extends StatelessWidget {
 
     // Check if the transfer is still pending
     final isPending =
-        transfer.receiptVoucher?.agreementStatusCode !=
+        transfer.receiptVoucher?.receiverStatusCode !=
             AgreementStatus.accepted.name ||
-        transfer.paymentVoucher?.agreementStatusCode !=
+        transfer.paymentVoucher?.receiverStatusCode !=
             AgreementStatus.accepted.name;
 
     return Card(

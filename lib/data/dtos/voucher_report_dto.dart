@@ -24,9 +24,12 @@ class VoucherReportDto {
     this.isTripartite = false,
     this.tripartiteRole,
     this.linkedPartyName,
-    this.signatureHex,
-    this.signerPublicKeyHex,
-    required this.agreementStatusCode,
+    this.senderSignatureHex,
+    this.receiverSignatureHex,
+    this.senderPublicKeyHex,
+    this.receiverPublicKeyHex,
+    required this.senderStatusCode,
+    required this.receiverStatusCode,
   });
 
   final String voucherId;
@@ -62,8 +65,11 @@ class VoucherReportDto {
   /// The third party in the chain (B for receipt leg, A for payment leg).
   final String? linkedPartyName;
 
-  // Digital signature
-  final String? signatureHex;
-  final String? signerPublicKeyHex;
-  final String agreementStatusCode;
+  // Dual digital signatures
+  final String? senderSignatureHex;
+  final String? receiverSignatureHex;
+  final String? senderPublicKeyHex;
+  final String? receiverPublicKeyHex;
+  final String senderStatusCode;
+  final String receiverStatusCode;
 }

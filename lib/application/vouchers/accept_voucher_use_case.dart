@@ -49,7 +49,7 @@ class AcceptVoucherUseCase {
       }
       final draft = loaded.valueOrNull!;
 
-      if (draft.agreementStatus == AgreementStatus.accepted || draft.hasSignature) {
+      if (draft.receiverStatus == AgreementStatus.accepted) {
         return const FailureResult(ValidationFailure(messageAr: 'السند مقبول مسبقاً.'));
       }
 
@@ -82,7 +82,8 @@ class AcceptVoucherUseCase {
       // 2. Attach Locally.
       final signedVoucher = draft.attachSignature(
         signatureHex: signatureHex,
-        signerPublicKeyHex: pubKeyHex,
+        publicKeyHex: pubKeyHex,
+        isSender: false, // The user is accepting an inbound claim.
         status: AgreementStatus.accepted,
         signerPhone: myPhone,
       );
@@ -124,9 +125,11 @@ class AcceptVoucherUseCase {
 
       final rawPayload = {
         'voucher_id': voucherId,
-        'signature_hex': signatureHex,
-        'signer_public_key_hex': signerPublicKeyHex,
+        'receiver_signature_hex': signatureHex,
+        'receiver_public_key_hex': signerPublicKeyHex,
         'signer_phone': signerPhone,
+        'sender_status': 'accepted', 
+        'receiver_status': 'accepted', 
       };
 
       final encrypted = await e2eeEncryptionService.encryptPayload(

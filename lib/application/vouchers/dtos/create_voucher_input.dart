@@ -18,6 +18,7 @@ class CreateVoucherInput {
     this.isContingent = false,
     this.attachments = const [],
     this.originVoucherId,
+    this.confirm = false,
   });
 
   final VoucherType type;
@@ -35,4 +36,7 @@ class CreateVoucherInput {
   final bool isContingent;
   final List<XFile> attachments;
   final String? originVoucherId;
+
+  /// If true, the voucher is immediately confirmed (signed) and enqueued for sync.
+  final bool confirm;
 }

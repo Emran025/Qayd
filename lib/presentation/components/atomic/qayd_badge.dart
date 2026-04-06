@@ -33,7 +33,11 @@ class QaydBadge extends StatelessWidget {
     return QaydBadge._(label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
   }
 
-  factory QaydBadge.agreement({required AgreementStatus status, required BuildContext context}) {
+  factory QaydBadge.agreement({
+    required AgreementStatus status,
+    required BuildContext context,
+    String? label,
+  }) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
     final (bg, fg, dashed) = switch (status) {
       AgreementStatus.underRequest => (custom.draftState.withValues(alpha: 0.1), custom.draftState, true),
@@ -41,8 +45,9 @@ class QaydBadge extends StatelessWidget {
       AgreementStatus.rejected => (ColorTokens.errorSoft.withValues(alpha: 0.2), ColorTokens.errorDeep, false),
       AgreementStatus.unverified => (custom.draftState.withValues(alpha: 0.1), custom.badgeOnDraft, true),
     };
-    final label = _agreementLabel(status);
-    return QaydBadge._(label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
+    final statusLabel = _agreementLabel(status);
+    final finalLabel = label != null ? '$label: $statusLabel' : statusLabel;
+    return QaydBadge._(label: finalLabel, bgColor: bg, fgColor: fg, isDashed: dashed);
   }
 
   static String _stateLabel(VoucherState state) {

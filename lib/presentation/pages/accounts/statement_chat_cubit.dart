@@ -6,6 +6,7 @@ import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart'
 import 'package:qayd/application/accounts/list_account_statement_chat_use_case.dart';
 import 'package:qayd/application/accounts/list_accounts_use_case.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
 
 class StatementChatCubit extends Cubit<StatementChatState> {
@@ -13,18 +14,22 @@ class StatementChatCubit extends Cubit<StatementChatState> {
     required ListAccountStatementChatUseCase listStatement,
     required ListAccountsUseCase listAccounts,
     required String counterpartyAccountId,
+    String? myAccountId,
   })  : _listStatement = listStatement,
         _listAccounts = listAccounts,
         _counterpartyAccountId = counterpartyAccountId,
+        _initialMyAccountId = myAccountId,
         super(const StatementChatInitial());
 
   final ListAccountStatementChatUseCase _listStatement;
   final ListAccountsUseCase _listAccounts;
   final String _counterpartyAccountId;
+  final String? _initialMyAccountId;
 
   String _myAccountId = '';
   String _counterpartyName = '';
   String _searchQuery = '';
+  bool _isFund = false;
   StatementChatFilterInput _filter = StatementChatFilterInput.empty;
   Timer? _searchDebounce;
 
@@ -55,13 +60,19 @@ class StatementChatCubit extends Cubit<StatementChatState> {
       orElse: () => accounts.first,
     );
     _counterpartyName = cp.name;
+    _isFund = cp.standardClassificationKind ==
+        StandardAccountClassificationKind.liquidAssets.name;
 
-    // For now, pick the first account that isn't the counterparty.
-    final my = accounts.firstWhere(
-      (a) => a.id != cp.id,
-      orElse: () => accounts.first,
+    // Pick the "my" account. If provided initially, use it. Otherwise find first one.
+    if (_initialMyAccountId != null) {
+      _myAccountId = _initialMyAccountId;
+    } else {
+      final my = accounts.firstWhere(
+        (a) => a.id != cp.id,
+        orElse: () => accounts.first,
     );
-    _myAccountId = my.id;
+      _myAccountId = my.id;
+    }
 
     await _fetch();
   }
@@ -112,6 +123,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
       myAccountId: _myAccountId,
       counterpartyAccountId: _counterpartyAccountId,
       filter: activeFilter,
+      isUnified: _isFund,
     );
 
     result.fold(
@@ -134,6 +146,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
           finalBalanceMinorUnits: out.finalBalanceMinorUnits,
           filter: _filter,
           searchQuery: _searchQuery,
+          isUnified: _isFund,
           currencySymbol: currSymbol,
           currencyDigits: currDigits,
         ));

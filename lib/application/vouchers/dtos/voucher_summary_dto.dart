@@ -18,7 +18,8 @@ class VoucherSummaryDto {
     this.tripartiteRole,
     this.linkedPartyId,
     this.isContingent = false,
-    required this.agreementStatusCode,
+    required this.senderStatusCode,
+    required this.receiverStatusCode,
     this.originVoucherId,
     this.reversalCount = 0,
     this.firstChildId,
@@ -44,7 +45,8 @@ class VoucherSummaryDto {
   final String? tripartiteRole;
   final String? linkedPartyId;
   final bool isContingent;
-  final String agreementStatusCode;
+  final String senderStatusCode;
+  final String receiverStatusCode;
   final String? originVoucherId;
   final int reversalCount;
   final String? firstChildId;

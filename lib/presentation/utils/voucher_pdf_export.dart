@@ -50,9 +50,12 @@ Future<void> shareVoucherAsPdf(
     isTripartite: data.isTripartite,
     tripartiteRole: data.tripartiteRole,
     linkedPartyName: data.linkedPartyName,
-    signatureHex: data.signatureHex,
-    signerPublicKeyHex: data.signerPublicKeyHex,
-    agreementStatusCode: data.agreementStatusCode,
+    senderSignatureHex: data.senderSignatureHex,
+    receiverSignatureHex: data.receiverSignatureHex,
+    senderPublicKeyHex: data.senderPublicKeyHex,
+    receiverPublicKeyHex: data.receiverPublicKeyHex,
+    senderStatusCode: data.senderStatusCode,
+    receiverStatusCode: data.receiverStatusCode,
   );
 
   Result<Uint8List> result;

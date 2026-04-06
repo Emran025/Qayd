@@ -102,8 +102,9 @@ class VerifyIncomingVoucherUseCase {
 
       // Store the voucher with the determined status.
       final storedVoucher = voucher.attachSignature(
-        signatureHex: voucher.signatureHex ?? '',
-        signerPublicKeyHex: voucher.signerPublicKeyHex ?? '',
+        signatureHex: voucher.senderSignatureHex ?? '',
+        publicKeyHex: voucher.senderPublicKeyHex ?? '',
+        isSender: true, // The counterparty (the one who sent this) is the creator/sender.
         status: finalStatus,
         signerPhone: senderPhone,
       );

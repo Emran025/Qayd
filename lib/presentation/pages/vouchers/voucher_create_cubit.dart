@@ -19,9 +19,10 @@ final class VoucherCreateSubmitting extends VoucherCreateState {
 }
 
 final class VoucherCreateSuccess extends VoucherCreateState {
-  const VoucherCreateSuccess(this.voucherId);
+  const VoucherCreateSuccess(this.voucherId, this.stateCode);
 
   final String voucherId;
+  final String stateCode;
 }
 
 /// Success state for tripartite transfers — returns both voucher IDs.
@@ -55,7 +56,7 @@ class VoucherCreateCubit extends Cubit<VoucherCreateState> {
     final result = await _create(input);
     result.fold(
       (f) => emit(VoucherCreateFailure(f)),
-      (out) => emit(VoucherCreateSuccess(out.voucherId)),
+      (out) => emit(VoucherCreateSuccess(out.voucherId, out.stateCode)),
     );
   }
 

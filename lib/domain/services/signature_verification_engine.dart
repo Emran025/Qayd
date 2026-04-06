@@ -83,7 +83,7 @@ class SignatureVerificationEngine {
     String? senderEmail,
     required String myPhone,
   }) async {
-    if (voucher.signatureHex == null || voucher.signerPublicKeyHex == null) {
+    if (voucher.senderSignatureHex == null || voucher.senderPublicKeyHex == null) {
       return SignatureVerificationResult.unverified('NO_SIGNATURE_PRESENT');
     }
 
@@ -127,7 +127,7 @@ class SignatureVerificationEngine {
     );
 
     final payloadHash = _signing.hashPayload(signable.canonicalPayload);
-    final signatureBytes = _hexToBytes(voucher.signatureHex!);
+    final signatureBytes = _hexToBytes(voucher.senderSignatureHex!);
 
     for (final keyHex in keysToTry) {
       try {

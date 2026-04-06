@@ -149,8 +149,8 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                 
                 // --- Protocol §2: Withdrawal Action ---
                 if (state.data.stateCode == 'draft' || 
-                    state.data.agreementStatusCode == 'under_request' ||
-                    state.data.agreementStatusCode == 'rejected')
+                    state.data.receiverStatusCode == 'under_request' ||
+                    state.data.receiverStatusCode == 'rejected')
                   PopupMenuButton<String>(
                     onSelected: (val) {
                       if (val == 'withdraw') {
@@ -195,6 +195,7 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
               ),
           },
           bottomNavigationBar: state is VoucherDetailReady &&
+                  state.data.canApprove &&
                   state.data.stateCode == 'draft'
               ? SafeArea(
                   child: Padding(
@@ -377,8 +378,15 @@ class _VoucherDetailBody extends StatelessWidget {
             QaydBadge(state: voucherStateFromCode(data.stateCode), context: context),
             const SizedBox(width: SpacingTokens.xs),
             QaydBadge.agreement(
-              status: AgreementStatus.values.byName(data.agreementStatusCode),
+              status: AgreementStatus.values.byName(data.senderStatusCode),
               context: context,
+              label: 'المرسل',
+            ),
+            const SizedBox(width: SpacingTokens.xs),
+            QaydBadge.agreement(
+              status: AgreementStatus.values.byName(data.receiverStatusCode),
+              context: context,
+              label: 'المستلم',
             ),
             if (data.isContingent) ...[
               const SizedBox(width: SpacingTokens.sm),

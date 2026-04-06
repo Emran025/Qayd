@@ -24,9 +24,9 @@ class VoucherQrService {
       'r': voucher.referenceNumber,
       'id': voucher.id.value,
       if (ownerPhone != null && ownerPhone.isNotEmpty) 'p': ownerPhone,
-      // v2 signature fields.
-      if (voucher.signatureHex != null) 'sig': voucher.signatureHex,
-      if (voucher.signerPublicKeyHex != null) 'pk': voucher.signerPublicKeyHex,
+      // v2 signature fields (sender/creator's signature).
+      if (voucher.senderSignatureHex != null) 'sig': voucher.senderSignatureHex,
+      if (voucher.senderPublicKeyHex != null) 'pk': voucher.senderPublicKeyHex,
       if (voucher.signerPhone != null) 'sp': voucher.signerPhone,
       // v3 tripartite fields.
       if (voucher.tripartiteMeta != null) ...{
@@ -76,7 +76,7 @@ class VoucherQrService {
         result['signerPublicKeyHex'] = map['pk'] as String?;
         result['signerPhone'] = map['sp'] as String?;
         result['agreementStatus'] = (map['sig'] != null)
-            ? AgreementStatus.accepted.name
+            ? AgreementStatus.accepted.name // matches v.senderStatus re-hydration
             : AgreementStatus.underRequest.name;
       }
 

@@ -7,12 +7,6 @@ import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 
 /// "Reject" is represented by setting the voucher agreement status to `rejected`.
-///
-/// This matches the requested UI rule:
-/// - Red when `agreementStatus == rejected`
-///
-/// Note: We intentionally use a deterministic dummy signature/public key.
-/// This keeps the voucher in a rejected/one-sided appearance.
 final class RejectVoucherUseCase {
   const RejectVoucherUseCase(
     this._voucherRepository,
@@ -22,14 +16,9 @@ final class RejectVoucherUseCase {
   final VoucherRepository _voucherRepository;
   final GovernanceWriteGuard _writeGuard;
 
-  static final String _dummySigHex =
-      List.generate(64, (_) => '00').join(); // 64 bytes => 128 hex chars
-
-  static final String _dummyPubKeyHex =
-      List.generate(32, (_) => '00').join(); // 32 bytes => 64 hex chars
-
   Future<Result<void>> call({
     required String voucherId,
+    String? reason,
   }) async {
     try {
       final gate = await _writeGuard.assertWritesPermitted();
@@ -51,9 +40,8 @@ final class RejectVoucherUseCase {
         );
       }
 
-      final rejected = v.attachSignature(
-        signatureHex: _dummySigHex,
-        signerPublicKeyHex: _dummyPubKeyHex,
+      final rejected = v.attachRejection(
+        reason: reason ?? '',
         status: AgreementStatus.rejected,
       );
 
@@ -64,4 +52,3 @@ final class RejectVoucherUseCase {
     }
   }
 }
-

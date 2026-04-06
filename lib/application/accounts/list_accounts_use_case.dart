@@ -55,7 +55,7 @@ class ListAccountsUseCase {
           .where((v) => !v.state.isConfirmed && !v.state.isSettled)
           .where(
             (v) =>
-                v.agreementStatus != AgreementStatus.rejected &&
+                v.receiverStatus != AgreementStatus.rejected &&
                 !v.state.isWithdrawn,
           )
           .toList();
@@ -153,6 +153,14 @@ class ListAccountsUseCase {
     }
 
     if (side == null) return 0;
+
+    // §6: Signature-Gated Impact
+    // A document only affects an account's balance if the owner of that account has signed it.
+    final bool isAccountOwnerTheSender = v.affectedAccountId == a;
+    final bool isAccountOwnerTheReceiver = v.counterpartyId == a;
+
+    if (isAccountOwnerTheSender && v.senderStatus != AgreementStatus.accepted) return 0;
+    if (isAccountOwnerTheReceiver && v.receiverStatus != AgreementStatus.accepted) return 0;
 
     final isDebitAccount = nature == AccountNature.debit;
     if (isDebitAccount) {

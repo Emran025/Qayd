@@ -540,6 +540,7 @@ abstract final class AppStringsAr {
   static const String statementVoucherCount = 'سند';
   static const String statementViewModeMy = 'بناءً على حساباتي';
   static const String statementViewModeOther = 'بناءً على حسابات الطرف الآخر';
+  static const String statementChatWithdraw = 'سحب';
 
   static const String settingsGroupProfile = 'بيانات الحساب والهوية';
   static const String settingsGroupBackup = 'النسخ الاحتياطي والأرشفة';

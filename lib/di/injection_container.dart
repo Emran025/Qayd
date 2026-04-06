@@ -422,6 +422,7 @@ abstract final class InjectionContainer {
       voucherRepository: voucherRepository,
       ledgerRepository: ledgerRepository,
       accountRepository: accountRepository,
+      currencyRepository: currencyRepository,
       e2eeService: e2eeService,
       signingService: receiptSigningService,
       getCurrentUserKeyPair: () =>

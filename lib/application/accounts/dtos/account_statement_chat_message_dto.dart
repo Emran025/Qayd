@@ -12,6 +12,8 @@ class AccountStatementChatMessageDto {
     required this.currencySymbol,
     required this.currencyDigits,
     required this.description,
+    required this.otherPartyId,
+    required this.otherPartyName,
     this.runningBalanceMinorUnits = 0,
     this.referenceNumber,
   });
@@ -38,6 +40,9 @@ class AccountStatementChatMessageDto {
 
   /// Voucher "description/notes" merged for chat display.
   final String description;
+
+  final String otherPartyId;
+  final String otherPartyName;
 
   /// Cumulative running balance (minor units) up to and including this message.
   /// Positive = counterparty owes user; Negative = user owes counterparty.

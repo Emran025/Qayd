@@ -237,7 +237,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       setState(() => _collateralInput = input);
     }
   }
-
   Future<void> _submit() async {
     final messenger = ScaffoldMessenger.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) {
@@ -251,13 +250,30 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       return;
     }
 
-    await _submitStandard(messenger, minor);
+    await _submitStandard(messenger, minor, confirm: false);
+  }
+
+  Future<void> _submitConfirm() async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+    final minor = parsePositiveMinorUnits(_amountController.text);
+    if (minor == null || !isReasonableMinorAmount(minor)) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(AppStringsAr.voucherAmountRequired)),
+      );
+      return;
+    }
+
+    await _submitStandard(messenger, minor, confirm: true);
   }
 
   Future<void> _submitStandard(
     ScaffoldMessengerState messenger,
-    int minor,
-  ) async {
+    int minor, {
+    required bool confirm,
+  }) async {
     if (_affected == null || _counterparty == null) {
       messenger.showSnackBar(
         SnackBar(content: Text(AppStringsAr.voucherSelectBothAccounts)),
@@ -286,6 +302,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       linkedPartyId: _hiddenLinkedPartyId,
       isContingent: _hiddenIsContingent,
       attachments: _pickedImages,
+      confirm: confirm,
+      originVoucherId: widget.initialQrData?['receiptUuid'] as String?,
     );
 
     await context.read<VoucherCreateCubit>().submit(input);
@@ -333,9 +351,12 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
             );
           }
           if (state is VoucherCreateSuccess) {
+            final msg = state.stateCode == 'draft' 
+                ? AppStringsAr.voucherCreatedDraft 
+                : 'تم تأكيد السند وإرساله للمزامنة';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(AppStringsAr.voucherCreatedDraft),
+                content: Text(msg),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -574,22 +595,39 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                           ],
 
                           const SizedBox(height: SpacingTokens.xl),
-                          FilledButton(
-                            onPressed: submitting ? null : _submit,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: gold,
-                              foregroundColor:
-                                  Theme.of(context).colorScheme.onSurface,
-                            ),
-                            child: submitting
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Text(AppStringsAr.voucherSaveDraft),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: submitting ? null : _submit,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: gold,
+                                    side: BorderSide(color: gold),
+                                  ),
+                                  child: Text(AppStringsAr.voucherSaveDraft),
+                                ),
+                              ),
+                              const SizedBox(width: SpacingTokens.md),
+                              Expanded(
+                                child: FilledButton(
+                                  onPressed: submitting ? null : _submitConfirm,
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: gold,
+                                    foregroundColor: Colors.black,
+                                  ),
+                                  child: submitting
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.black,
+                                          ),
+                                        )
+                                      : const Text('تأكيد وإرسال'),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

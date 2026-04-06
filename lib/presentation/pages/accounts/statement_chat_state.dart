@@ -25,6 +25,7 @@ final class StatementChatReady extends StatementChatState {
     required this.finalBalanceMinorUnits,
     required this.filter,
     required this.searchQuery,
+    this.isUnified = false,
     this.currencySymbol = '',
     this.currencyDigits = 0,
   });
@@ -37,6 +38,7 @@ final class StatementChatReady extends StatementChatState {
   final int finalBalanceMinorUnits;
   final StatementChatFilterInput filter;
   final String searchQuery;
+  final bool isUnified;
   final String currencySymbol;
   final int currencyDigits;
 
@@ -48,6 +50,7 @@ final class StatementChatReady extends StatementChatState {
     int? finalBalanceMinorUnits,
     StatementChatFilterInput? filter,
     String? searchQuery,
+    bool? isUnified,
     String? currencySymbol,
     int? currencyDigits,
   }) {
@@ -62,6 +65,7 @@ final class StatementChatReady extends StatementChatState {
           finalBalanceMinorUnits ?? this.finalBalanceMinorUnits,
       filter: filter ?? this.filter,
       searchQuery: searchQuery ?? this.searchQuery,
+      isUnified: isUnified ?? this.isUnified,
       currencySymbol: currencySymbol ?? this.currencySymbol,
       currencyDigits: currencyDigits ?? this.currencyDigits,
     );

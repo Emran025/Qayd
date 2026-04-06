@@ -41,58 +41,77 @@ final class ListAccountStatementChatUseCase {
     required String myAccountId,
     required String counterpartyAccountId,
     StatementChatFilterInput filter = StatementChatFilterInput.empty,
+    bool isUnified = false,
   }) async {
     try {
       final myId = AccountId(myAccountId);
       final cpId = AccountId(counterpartyAccountId);
 
-      // Include vouchers where either side is affected.
-      final f1 = VoucherQueryFilter(
-        counterpartyId: cpId,
-        affectedAccountId: myId,
-      );
-      final f2 = VoucherQueryFilter(
-        counterpartyId: myId,
-        affectedAccountId: cpId,
-      );
+      final List<Voucher> allVouchers;
+      if (isUnified) {
+        // Fetch all vouchers involving this account.
+        final f = VoucherQueryFilter(involvedAccountId: cpId);
+        final r = await voucherRepository.getAll(filter: f);
+        if (r.isFailure) return FailureResult(r.failureOrNull!);
+        allVouchers = r.valueOrNull!;
+      } else {
+        // Include vouchers where either side is affected.
+        final f1 = VoucherQueryFilter(
+          counterpartyId: cpId,
+          affectedAccountId: myId,
+        );
+        final f2 = VoucherQueryFilter(
+          counterpartyId: myId,
+          affectedAccountId: cpId,
+        );
 
-      final aR = await voucherRepository.getAll(filter: f1);
-      if (aR.isFailure) return FailureResult(aR.failureOrNull!);
-      final bR = await voucherRepository.getAll(filter: f2);
-      if (bR.isFailure) return FailureResult(bR.failureOrNull!);
+        final aR = await voucherRepository.getAll(filter: f1);
+        if (aR.isFailure) return FailureResult(aR.failureOrNull!);
+        final bR = await voucherRepository.getAll(filter: f2);
+        if (bR.isFailure) return FailureResult(bR.failureOrNull!);
+        allVouchers = <Voucher>[...aR.valueOrNull!, ...bR.valueOrNull!];
+      }
 
-      // Validate accounts exist (better UX than empty chat).
-      final myAccR = await accountRepository.getById(myId);
-      if (myAccR.isFailure) return FailureResult(myAccR.failureOrNull!);
-      final cpAccR = await accountRepository.getById(cpId);
-      if (cpAccR.isFailure) return FailureResult(cpAccR.failureOrNull!);
-
-      final allVouchers = <Voucher>[...aR.valueOrNull!, ...bR.valueOrNull!];
       allVouchers.sort((a, b) {
         final c = a.date.compareTo(b.date);
         if (c != 0) return c;
         return a.createdAt.compareTo(b.createdAt);
       });
 
-      // ── Apply view-mode filtering and calculate brought-forward ──
-      // "My Accounts" (Default): Perspective of the user (everything they claim + everything accepted).
-      // "Other Party Accounts": Perspective of the counterparty (everything they claim + what the user accepted).
+      // Pre-fetch names for all involved accounts to avoid N+1 issues when isUnified
+      final Map<String, String> accountNamesLookup = {};
+      final involvedAccountIds = allVouchers
+          .expand((v) => [v.affectedAccountId.value, v.counterpartyId.value])
+          .toSet();
       
-      bool isIncludedInView(Voucher v, String direction) {
-        if (v.agreementStatus == AgreementStatus.rejected) return false;
-        if (filter.viewMode == StatementChatViewMode.myAccounts) return true;
+      for (final idStr in involvedAccountIds) {
+        final accR = await accountRepository.getById(AccountId(idStr));
+        if (accR.isSuccess) {
+          accountNamesLookup[idStr] = accR.valueOrNull!.name;
+        }
+      }
+
+      // ── Apply view-mode filtering and calculate brought-forward ──
+      // Perspectice of 'myId' or in unified mode, 'cpId' (the Fund).
+      final subjectId = isUnified ? cpId : myId;
+
+      bool isIncludedInView(Voucher v) {
+        if (v.state.isWithdrawn) return false;
+
+        // Perspective check: Who are we looking for?
+        final bool isMyView = filter.viewMode == StatementChatViewMode.myAccounts;
+        final targetId = isMyView ? myId : cpId;
+
+        // If the target party is the Sender, check if they accepted (signed).
+        if (v.affectedAccountId == targetId) {
+          return v.senderStatus == AgreementStatus.accepted;
+        }
         
-        // In "Other Party Accounts" mode:
-        // Include if Accepted (mutual or acknowledged).
-        if (v.agreementStatus == AgreementStatus.accepted) return true;
-        
-        // Include if "Their Claim" (they uploaded it and it's pending).
-        // A payment they sent to me is 'incoming' and 'underRequest'.
-        if (v.agreementStatus == AgreementStatus.underRequest && direction == 'incoming') {
-          return true;
+        // If the target party is the Receiver, check if they accepted (signed).
+        if (v.counterpartyId == targetId) {
+          return v.receiverStatus == AgreementStatus.accepted;
         }
 
-        // Exclude if "My Claim" that they haven't approved yet.
         return false;
       }
 
@@ -112,17 +131,24 @@ final class ListAccountStatementChatUseCase {
           
           broughtForward = 0;
           for (final v in priorVouchers) {
-            final dir = _directionFromMyPerspective(
+            final dir = _directionFromPerspective(
               vType: v.type,
               affected: v.affectedAccountId,
               counterparty: v.counterpartyId,
-              myId: myId,
+              perspectiveId: subjectId,
             );
-            if (isIncludedInView(v, dir)) {
-              if (dir == 'incoming') {
-                broughtForward += v.amount.minorUnits;
-              } else {
-                broughtForward -= v.amount.minorUnits;
+            if (isIncludedInView(v)) {
+              // Only confirmed or pending claims affect balance.
+              // Rejected/Withdrawn ones do not.
+              final isRejected = v.receiverStatus == AgreementStatus.rejected;
+              final isWithdrawn = v.state.isWithdrawn;
+
+              if (!isRejected && !isWithdrawn) {
+                if (dir == 'incoming') {
+                  broughtForward += v.amount.minorUnits;
+                } else {
+                  broughtForward -= v.amount.minorUnits;
+                }
               }
             }
           }
@@ -140,6 +166,7 @@ final class ListAccountStatementChatUseCase {
           23,
           59,
           59,
+          59,
         );
         periodVouchers =
             periodVouchers.where((v) => !v.date.isAfter(toEnd)).toList();
@@ -150,19 +177,13 @@ final class ListAccountStatementChatUseCase {
 
       // View Mode filtering
       filtered = filtered.where((v) {
-        final dir = _directionFromMyPerspective(
-          vType: v.type,
-          affected: v.affectedAccountId,
-          counterparty: v.counterpartyId,
-          myId: myId,
-        );
-        return isIncludedInView(v, dir);
+        return isIncludedInView(v);
       }).toList();
 
       // Agreement status filter
       if (filter.agreementStatus != null) {
         filtered = filtered
-            .where((v) => v.agreementStatus == filter.agreementStatus)
+            .where((v) => v.receiverStatus == filter.agreementStatus)
             .toList();
       }
 
@@ -203,21 +224,32 @@ final class ListAccountStatementChatUseCase {
       final messages = <AccountStatementChatMessageDto>[];
 
       for (final v in filtered) {
-        final direction = _directionFromMyPerspective(
+        final direction = _directionFromPerspective(
           vType: v.type,
           affected: v.affectedAccountId,
           counterparty: v.counterpartyId,
-          myId: myId,
+          perspectiveId: subjectId,
         );
 
         // All vouchers currently in 'filtered' list are already verified by isIncludedInView.
-        if (direction == 'incoming') {
-          runningBalance += v.amount.minorUnits;
-        } else {
-          runningBalance -= v.amount.minorUnits;
+        final isRejected = v.receiverStatus == AgreementStatus.rejected;
+        final isWithdrawn = v.state.isWithdrawn;
+
+        if (!isRejected && !isWithdrawn) {
+          if (direction == 'incoming') {
+            runningBalance += v.amount.minorUnits;
+          } else {
+            runningBalance -= v.amount.minorUnits;
+          }
         }
 
         final mergedDescription = (v.description ?? v.notes ?? '').trim();
+
+        // Find the "Other" party
+        final otherId = v.affectedAccountId == subjectId 
+            ? v.counterpartyId.value 
+            : v.affectedAccountId.value;
+        final otherName = accountNamesLookup[otherId] ?? 'Unknown';
 
         messages.add(AccountStatementChatMessageDto(
           voucherId: v.id.value,
@@ -225,12 +257,14 @@ final class ListAccountStatementChatUseCase {
           direction: direction,
           typeCode: v.type.name,
           voucherStateCode: v.state.name,
-          signatureStatusCode: v.agreementStatus.name,
+          signatureStatusCode: v.receiverStatus.name,
           amountMinorUnits: v.amount.minorUnits,
           currencyCode: v.currency.code,
           currencySymbol: v.currency.symbol,
           currencyDigits: v.currency.fractionalDigits,
           description: mergedDescription,
+          otherPartyId: otherId,
+          otherPartyName: otherName,
           runningBalanceMinorUnits: runningBalance,
           referenceNumber: v.referenceNumber,
         ));
@@ -247,24 +281,24 @@ final class ListAccountStatementChatUseCase {
     }
   }
 
-  String _directionFromMyPerspective({
+  String _directionFromPerspective({
     required VoucherType vType,
     required AccountId affected,
     required AccountId counterparty,
-    required AccountId myId,
+    required AccountId perspectiveId,
   }) {
-    final isMyAffected = affected == myId;
+    final isPerspAffected = affected == perspectiveId;
 
     // Receipt: money in to affected from counterparty.
     if (vType == VoucherType.receipt) {
-      return isMyAffected ? 'incoming' : 'outgoing';
+      return isPerspAffected ? 'incoming' : 'outgoing';
     }
 
     // Payment: money out from affected to counterparty.
     if (vType == VoucherType.payment) {
-      return isMyAffected ? 'outgoing' : 'incoming';
+      return isPerspAffected ? 'outgoing' : 'incoming';
     }
 
-    return isMyAffected ? 'incoming' : 'incoming';
+    return isPerspAffected ? 'incoming' : 'incoming';
   }
 }

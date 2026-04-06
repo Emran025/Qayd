@@ -10,6 +10,7 @@ final class VoucherQueryFilter {
     this.dateRange,
     this.counterpartyId,
     this.affectedAccountId,
+    this.involvedAccountId,
     this.type,
     this.excludeTripartite,
     this.onlyTripartite,
@@ -19,6 +20,10 @@ final class VoucherQueryFilter {
   final DateRange? dateRange;
   final AccountId? counterpartyId;
   final AccountId? affectedAccountId;
+
+  /// Find vouchers where this account is EITHER the affected OR the counterparty.
+  final AccountId? involvedAccountId;
+
   final VoucherType? type;
   final bool? excludeTripartite;
   final bool? onlyTripartite;
@@ -28,6 +33,7 @@ final class VoucherQueryFilter {
       dateRange == null &&
       counterpartyId == null &&
       affectedAccountId == null &&
+      involvedAccountId == null &&
       type == null &&
       excludeTripartite == null &&
       onlyTripartite == null;

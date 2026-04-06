@@ -13,6 +13,7 @@ import 'package:qayd/domain/value_objects/entry_side.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 
 class ConfirmVoucherUseCase {
@@ -43,14 +44,13 @@ class ConfirmVoucherUseCase {
       }
       final draft = loaded.valueOrNull!;
       
-      // 2. Enforce agreement (digital signature) before confirmation.
-      // Receivers (Receipts) sign themselves => usually Accepted by default.
-      // Payers (Payments) need counterparty signature => must be Accepted.
-      if (!draft.agreementStatus.isAccepted) {
+      // 2. Enforce dual-party agreement before ledger confirmation.
+      if (draft.senderStatus != AgreementStatus.accepted || 
+          draft.receiverStatus != AgreementStatus.accepted) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن تأكيد السند حتى يتم توقيعه من قبل الطرف المسؤول.',
-            code: 'voucher_not_accepted',
+            messageAr: 'لا يمكن تأكيد السند حتى يتم توقيعه من قبل الطرفين (المرسل والمستلم).',
+            code: 'voucher_not_fully_signed',
           ),
         );
       }
@@ -143,9 +143,13 @@ class ConfirmVoucherUseCase {
         createdAt: sibling.createdAt,
         confirmedAt: sibling.confirmedAt,
         settledAt: sibling.settledAt,
-        signatureHex: sibling.signatureHex,
-        signerPublicKeyHex: sibling.signerPublicKeyHex,
-        agreementStatus: sibling.agreementStatus,
+        senderStatus: sibling.senderStatus,
+        receiverStatus: sibling.receiverStatus,
+        senderSignatureHex: sibling.senderSignatureHex,
+        receiverSignatureHex: sibling.receiverSignatureHex,
+        senderPublicKeyHex: sibling.senderPublicKeyHex,
+        receiverPublicKeyHex: sibling.receiverPublicKeyHex,
+        lifecycleStatus: sibling.lifecycleStatus,
         signerPhone: sibling.signerPhone,
         tripartiteMeta: siblingMeta.release(),
       );

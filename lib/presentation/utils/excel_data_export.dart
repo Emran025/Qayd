@@ -93,7 +93,7 @@ Uint8List buildVouchersExcelBytes(List<VoucherSummaryDto> vouchers) {
       _formatDateIso(v.dateIso),
       _voucherTypeAr(v.typeCode),
       _voucherStateAr(v.stateCode),
-      _agreementStatusAr(v.agreementStatusCode),
+      _agreementStatusAr(v.receiverStatusCode),
       _moneyMinor(
         v.amountMinorUnits,
         digits: v.currencyDigits,
@@ -181,7 +181,7 @@ Uint8List buildCombinedExportExcelBytes({
       _formatDateIso(v.dateIso),
       _voucherTypeAr(v.typeCode),
       _voucherStateAr(v.stateCode),
-      _agreementStatusAr(v.agreementStatusCode),
+      _agreementStatusAr(v.receiverStatusCode),
       _moneyMinor(
         v.amountMinorUnits,
         digits: v.currencyDigits,

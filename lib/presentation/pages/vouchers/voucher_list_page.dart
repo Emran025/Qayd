@@ -549,7 +549,7 @@ class _VoucherTile extends StatelessWidget {
                             ),
                             QaydBadge.agreement(
                               status: AgreementStatus.values.byName(
-                                dto.agreementStatusCode,
+                                dto.receiverStatusCode,
                               ),
                               context: context,
                             ),

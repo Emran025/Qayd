@@ -49,10 +49,15 @@ final class ResubmitVoucherUseCase {
         );
       }
 
+      final status = v.isReceipt
+          ? AgreementStatus.accepted
+          : AgreementStatus.underRequest;
+
       final resubmitted = v.attachSignature(
-        signatureHex: _dummySigHex,
-        signerPublicKeyHex: _dummyPubKeyHex,
-        status: AgreementStatus.underRequest,
+        signatureHex: v.senderSignatureHex ?? _dummySigHex,
+        publicKeyHex: v.senderPublicKeyHex ?? _dummyPubKeyHex,
+        isSender: true,
+        status: status,
       );
 
       return _voucherRepository.save(resubmitted);

@@ -1,4 +1,4 @@
-/// SQLite projection for [vouchers] (v17 schema — includes threaded interaction fields).
+/// SQLite projection for [vouchers] (v21 schema — dual signatures protocol).
 final class VoucherModel {
   const VoucherModel({
     required this.id,
@@ -17,9 +17,6 @@ final class VoucherModel {
     required this.createdAtIso,
     this.confirmedAtIso,
     this.settledAtIso,
-    this.signatureHex,
-    this.signerPublicKeyHex,
-    required this.signatureStatus,
     this.signerPhone,
     this.transferGroupId,
     this.tripartiteRole,
@@ -30,6 +27,13 @@ final class VoucherModel {
     this.withdrawnAtIso,
     this.reversalCount = 0,
     this.firstChildId,
+    required this.senderStatus,
+    required this.receiverStatus,
+    this.senderSignatureHex,
+    this.receiverSignatureHex,
+    this.senderPublicKeyHex,
+    this.receiverPublicKeyHex,
+    required this.lifecycleStatus,
   });
 
   final String id;
@@ -48,9 +52,6 @@ final class VoucherModel {
   final String createdAtIso;
   final String? confirmedAtIso;
   final String? settledAtIso;
-  final String? signatureHex;
-  final String? signerPublicKeyHex;
-  final String signatureStatus;
   final String? signerPhone;
 
   // Tripartite transfer fields
@@ -65,6 +66,15 @@ final class VoucherModel {
   final String? withdrawnAtIso;
   final int reversalCount;
   final String? firstChildId;
+
+  // Dual signatures and lifecycle (Protocol v2.0)
+  final String senderStatus;
+  final String receiverStatus;
+  final String? senderSignatureHex;
+  final String? receiverSignatureHex;
+  final String? senderPublicKeyHex;
+  final String? receiverPublicKeyHex;
+  final String lifecycleStatus;
 
   Map<String, Object?> toMap() => {
         'id': id,
@@ -83,9 +93,6 @@ final class VoucherModel {
         'created_at': createdAtIso,
         'confirmed_at': confirmedAtIso,
         'settled_at': settledAtIso,
-        'signature_hex': signatureHex,
-        'signer_public_key_hex': signerPublicKeyHex,
-        'signature_status': signatureStatus,
         'signer_phone': signerPhone,
         'transfer_group_id': transferGroupId,
         'tripartite_role': tripartiteRole,
@@ -94,6 +101,13 @@ final class VoucherModel {
         'origin_voucher_id': originVoucherId,
         'rejection_reason': rejectionReason,
         'withdrawn_at': withdrawnAtIso,
+        'sender_status': senderStatus,
+        'receiver_status': receiverStatus,
+        'sender_signature_hex': senderSignatureHex,
+        'receiver_signature_hex': receiverSignatureHex,
+        'sender_public_key_hex': senderPublicKeyHex,
+        'receiver_public_key_hex': receiverPublicKeyHex,
+        'lifecycle_status': lifecycleStatus,
       };
 
   factory VoucherModel.fromMap(Map<String, Object?> map) {
@@ -114,9 +128,6 @@ final class VoucherModel {
       createdAtIso: map['created_at']! as String,
       confirmedAtIso: map['confirmed_at'] as String?,
       settledAtIso: map['settled_at'] as String?,
-      signatureHex: map['signature_hex'] as String?,
-      signerPublicKeyHex: map['signer_public_key_hex'] as String?,
-      signatureStatus: (map['signature_status'] as String?) ?? 'unsigned',
       signerPhone: map['signer_phone'] as String?,
       transferGroupId: map['transfer_group_id'] as String?,
       tripartiteRole: map['tripartite_role'] as String?,
@@ -127,6 +138,13 @@ final class VoucherModel {
       withdrawnAtIso: map['withdrawn_at'] as String?,
       reversalCount: (map['reversal_count'] as int?) ?? 0,
       firstChildId: map['first_child_id'] as String?,
+      senderStatus: (map['sender_status'] as String?) ?? 'accepted',
+      receiverStatus: (map['receiver_status'] as String?) ?? 'under_request',
+      senderSignatureHex: map['sender_signature_hex'] as String?,
+      receiverSignatureHex: map['receiver_signature_hex'] as String?,
+      senderPublicKeyHex: map['sender_public_key_hex'] as String?,
+      receiverPublicKeyHex: map['receiver_public_key_hex'] as String?,
+      lifecycleStatus: (map['lifecycle_status'] as String?) ?? 'draft',
     );
   }
 }

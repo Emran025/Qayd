@@ -9,6 +9,7 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/domain/value_objects/voucher_lifecycle.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
@@ -40,9 +41,13 @@ final class Voucher {
     required this.createdAt,
     required this.confirmedAt,
     required this.settledAt,
-    required this.signatureHex,
-    required this.signerPublicKeyHex,
-    required this.agreementStatus,
+    required this.senderStatus,
+    required this.receiverStatus,
+    this.senderSignatureHex,
+    this.receiverSignatureHex,
+    this.senderPublicKeyHex,
+    this.receiverPublicKeyHex,
+    required this.lifecycleStatus,
     required this.signerPhone,
     required this.tripartiteMeta,
     required this.originVoucherId,
@@ -71,18 +76,30 @@ final class Voucher {
   final DateTime? confirmedAt;
   final DateTime? settledAt;
 
-  // ── Digital signature fields ──────────────────────────────────────────────
+  // ── Digital signature fields (Dual Party Protocol v2.0) ─────────────────
+  
+  /// Status of the sending party (usually Accepted upon creation).
+  final AgreementStatus senderStatus;
 
-  /// Ed25519 signature hex (128 chars) or null if unsigned.
-  final String? signatureHex;
+  /// Status of the receiving party (UnderRequest, Accepted, or Rejected).
+  final AgreementStatus receiverStatus;
 
-  /// Public key of the signer (64 hex chars) or null.
-  final String? signerPublicKeyHex;
+  /// Ed25519 signature hex of the sender.
+  final String? senderSignatureHex;
 
-  /// Digital confirmation state (Accepted, Rejected, Under Request).
-  final AgreementStatus agreementStatus;
+  /// Ed25519 signature hex of the receiver.
+  final String? receiverSignatureHex;
 
-  /// Phone number of the signing party (for matching and discovery).
+  /// Public key of the sender.
+  final String? senderPublicKeyHex;
+
+  /// Public key of the receiver.
+  final String? receiverPublicKeyHex;
+
+  /// High-level lifecycle representing the document's journey.
+  final VoucherLifecycle lifecycleStatus;
+
+  /// Phone number of the counterparty (for discovery/matching).
   final String? signerPhone;
 
   // ── Tripartite transfer fields ──────────────────────────────────────────
@@ -117,7 +134,7 @@ final class Voucher {
   
   // ── Computed helpers ───────────────────────────────────────────────────
   
-  bool get hasSignature => signatureHex != null && signatureHex!.isNotEmpty;
+  bool get hasSignature => senderSignatureHex != null || receiverSignatureHex != null;
 
   /// Whether this voucher is part of a tripartite intermediary transfer.
   bool get isTripartite => tripartiteMeta != null;
@@ -148,9 +165,13 @@ final class Voucher {
     required DateTime createdAt,
     DateTime? confirmedAt,
     DateTime? settledAt,
-    String? signatureHex,
-    String? signerPublicKeyHex,
-    AgreementStatus agreementStatus = AgreementStatus.underRequest,
+    AgreementStatus senderStatus = AgreementStatus.accepted,
+    AgreementStatus receiverStatus = AgreementStatus.underRequest,
+    String? senderSignatureHex,
+    String? receiverSignatureHex,
+    String? senderPublicKeyHex,
+    String? receiverPublicKeyHex,
+    VoucherLifecycle lifecycleStatus = VoucherLifecycle.draft,
     String? signerPhone,
     TripartiteMeta? tripartiteMeta,
     VoucherId? originVoucherId,
@@ -176,9 +197,13 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       settledAt: settledAt,
-      signatureHex: signatureHex,
-      signerPublicKeyHex: signerPublicKeyHex,
-      agreementStatus: agreementStatus,
+      senderStatus: senderStatus,
+      receiverStatus: receiverStatus,
+      senderSignatureHex: senderSignatureHex,
+      receiverSignatureHex: receiverSignatureHex,
+      senderPublicKeyHex: senderPublicKeyHex,
+      receiverPublicKeyHex: receiverPublicKeyHex,
+      lifecycleStatus: lifecycleStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
       originVoucherId: originVoucherId,
@@ -208,9 +233,8 @@ final class Voucher {
     List<AttachmentRef> attachmentRefs = const [],
     String? notes,
     List<String> tags = const [],
-    String? signatureHex,
-    String? signerPublicKeyHex,
-    AgreementStatus? agreementStatus,
+    String? senderSignatureHex,
+    String? senderPublicKeyHex,
     String? signerPhone,
     TripartiteMeta? tripartiteMeta,
     VoucherId? originVoucherId,
@@ -228,13 +252,12 @@ final class Voucher {
       );
     }
     
-    // Default agreement status based on type:
-    // القبض (Receipt): Accepted (approved by user)
-    // الصرف (Payment): Under Request (waits for counterparty signature)
-    final finalAgreementStatus = agreementStatus ??
-        (type == VoucherType.receipt
-            ? AgreementStatus.accepted
-            : AgreementStatus.underRequest);
+    // Policy v2.0: 
+    // Creating the voucher constitutes implicit approval by the sender.
+    // Documentation completion requires the receiver's signature.
+    const senderStatus = AgreementStatus.accepted;
+    const receiverStatus = AgreementStatus.underRequest;
+    const lifecycleStatus = VoucherLifecycle.draft;
 
     return Voucher._(
       id: id,
@@ -253,9 +276,13 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: null,
       settledAt: null,
-      signatureHex: signatureHex,
-      signerPublicKeyHex: signerPublicKeyHex,
-      agreementStatus: finalAgreementStatus,
+      senderStatus: senderStatus,
+      receiverStatus: receiverStatus,
+      senderSignatureHex: senderSignatureHex,
+      receiverSignatureHex: null,
+      senderPublicKeyHex: senderPublicKeyHex,
+      receiverPublicKeyHex: null,
+      lifecycleStatus: lifecycleStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
       originVoucherId: originVoucherId,
@@ -309,17 +336,21 @@ final class Voucher {
     );
   }
 
-  /// Attaches a cryptographic signature to a voucher.
+  /// Attaches a cryptographic signature to a voucher from either party.
   Voucher attachSignature({
     required String signatureHex,
-    required String signerPublicKeyHex,
+    required String publicKeyHex,
+    required bool isSender,
     required AgreementStatus status,
     String? signerPhone,
   }) {
     return _copyWith(
-      signatureHex: signatureHex,
-      signerPublicKeyHex: signerPublicKeyHex,
-      agreementStatus: status,
+      senderSignatureHex: isSender ? signatureHex : senderSignatureHex,
+      receiverSignatureHex: !isSender ? signatureHex : receiverSignatureHex,
+      senderPublicKeyHex: isSender ? publicKeyHex : senderPublicKeyHex,
+      receiverPublicKeyHex: !isSender ? publicKeyHex : receiverPublicKeyHex,
+      senderStatus: isSender ? status : senderStatus,
+      receiverStatus: !isSender ? status : receiverStatus,
       signerPhone: signerPhone ?? this.signerPhone,
     );
   }
@@ -330,8 +361,9 @@ final class Voucher {
     required AgreementStatus status,
   }) {
     return _copyWith(
-      agreementStatus: status,
+      receiverStatus: status,
       rejectionReason: reason,
+      lifecycleStatus: VoucherLifecycle.rejected,
     );
   }
 
@@ -396,9 +428,13 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt,
       settledAt: settledAt,
-      signatureHex: signatureHex,
-      signerPublicKeyHex: signerPublicKeyHex,
-      agreementStatus: agreementStatus,
+      senderStatus: senderStatus,
+      receiverStatus: receiverStatus,
+      senderSignatureHex: senderSignatureHex,
+      receiverSignatureHex: receiverSignatureHex,
+      senderPublicKeyHex: senderPublicKeyHex,
+      receiverPublicKeyHex: receiverPublicKeyHex,
+      lifecycleStatus: lifecycleStatus,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
       originVoucherId: originVoucherId,
@@ -431,9 +467,13 @@ final class Voucher {
     DateTime? confirmedAt,
     DateTime? settledAt,
     DateTime? withdrawnAt,
-    String? signatureHex,
-    String? signerPublicKeyHex,
-    AgreementStatus? agreementStatus,
+    AgreementStatus? senderStatus,
+    AgreementStatus? receiverStatus,
+    String? senderSignatureHex,
+    String? receiverSignatureHex,
+    String? senderPublicKeyHex,
+    String? receiverPublicKeyHex,
+    VoucherLifecycle? lifecycleStatus,
     String? signerPhone,
     String? rejectionReason,
   }) {
@@ -454,9 +494,13 @@ final class Voucher {
       createdAt: createdAt,
       confirmedAt: confirmedAt ?? this.confirmedAt,
       settledAt: settledAt ?? this.settledAt,
-      signatureHex: signatureHex ?? this.signatureHex,
-      signerPublicKeyHex: signerPublicKeyHex ?? this.signerPublicKeyHex,
-      agreementStatus: agreementStatus ?? this.agreementStatus,
+      senderStatus: senderStatus ?? this.senderStatus,
+      receiverStatus: receiverStatus ?? this.receiverStatus,
+      senderSignatureHex: senderSignatureHex ?? this.senderSignatureHex,
+      receiverSignatureHex: receiverSignatureHex ?? this.receiverSignatureHex,
+      senderPublicKeyHex: senderPublicKeyHex ?? this.senderPublicKeyHex,
+      receiverPublicKeyHex: receiverPublicKeyHex ?? this.receiverPublicKeyHex,
+      lifecycleStatus: lifecycleStatus ?? this.lifecycleStatus,
       signerPhone: signerPhone ?? this.signerPhone,
       tripartiteMeta: tripartiteMeta,
       originVoucherId: originVoucherId,

@@ -9,10 +9,14 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/services/e2ee_encryption_service.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
+import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/domain/repositories/attachment_repository.dart';
@@ -37,6 +41,7 @@ class SyncPayloadProcessor {
     required this.voucherRepository,
     required this.ledgerRepository,
     required this.accountRepository,
+    required this.currencyRepository,
     required this.e2eeService,
     required this.signingService,
     required this.getCurrentUserKeyPair,
@@ -51,6 +56,7 @@ class SyncPayloadProcessor {
   final VoucherRepository voucherRepository;
   final LedgerRepository ledgerRepository;
   final AccountRepository accountRepository;
+  final CurrencyRepository currencyRepository;
   final NotificationMessageRepository notificationMessageRepository;
   final E2EEEncryptionService e2eeService;
   final ReceiptSigningService signingService;
@@ -78,13 +84,15 @@ class SyncPayloadProcessor {
         PublicKeyLookupResult? counterpartIdentityResult;
 
         if (senderPhone.isNotEmpty) {
-          counterpartIdentityResult = await identityRepository
-              .lookupByPhone(phone: senderPhone);
+          counterpartIdentityResult = await identityRepository.lookupByPhone(
+            phone: senderPhone,
+          );
         }
-        
+
         if (counterpartIdentityResult == null && senderEmail.isNotEmpty) {
-          counterpartIdentityResult = await identityRepository
-              .lookupByEmail(email: senderEmail);
+          counterpartIdentityResult = await identityRepository.lookupByEmail(
+            email: senderEmail,
+          );
         }
 
         if (counterpartIdentityResult == null) {
@@ -146,7 +154,9 @@ class SyncPayloadProcessor {
             break;
           case SyncEventType.p2pHandshake:
             // P2P handshake is handled at the transport layer, not here.
-            debugPrint('P2P Handshake event received — delegating to P2P service.');
+            debugPrint(
+              'P2P Handshake event received — delegating to P2P service.',
+            );
             break;
           case SyncEventType.unknown:
             debugPrint('Warning: Unknown event type in SyncNode [${node.id}]');
@@ -160,78 +170,81 @@ class SyncPayloadProcessor {
 
   Future<void> _inboundVoucherClaim(Map<String, dynamic> payload) async {
     // Protocol §5 — Inbound Voucher Claim Processing.
-    //
-    // When a counterparty sends a new voucher claim (receipt/payment),
-    // we reconstruct the Voucher entity from the decrypted payload
-    // and apply signature verification if a signature is present.
     final String? voucherIdStr = payload['voucher_id'] as String?;
-    if (voucherIdStr == null) {
-      debugPrint('VoucherClaim: missing voucher_id');
-      return;
-    }
+    if (voucherIdStr == null) return;
 
-    // Check for duplicate — idempotency guard.
-    final existingResult = await voucherRepository.getById(
-      VoucherId(voucherIdStr),
-    );
-    if (existingResult.isSuccess && existingResult.valueOrNull != null) {
-      debugPrint('VoucherClaim [$voucherIdStr]: already exists — skipping.');
-      return;
-    }
+    // 1. Idempotency Guard
+    final existingResult = await voucherRepository.getById(VoucherId(voucherIdStr));
+    if (existingResult.isSuccess && existingResult.valueOrNull != null) return;
 
-    // Extract core fields from the decrypted payload.
-    // These are parsed now for protocol completeness and will be used
-    // when full entity reconstruction is implemented.
+    // 2. Flip Logic: From their perspective to ours.
     final typeStr = payload['type'] as String? ?? 'receipt';
+    // If they sent a Receipt (they got money), for us it is a Payment (we gave money).
+    final myType = typeStr == 'receipt' ? VoucherType.payment : VoucherType.receipt;
+
     final amountMinor = payload['amount_minor'] as int? ?? 0;
     final currencyCode = payload['currency_code'] as String? ?? 'YER';
+    final date = DateTime.tryParse(payload['date'] as String? ?? '') ?? DateTime.now();
 
-    // Signature fields (optional — not all claims arrive signed).
-    final signatureHex = payload['signature_hex'] as String?;
-    final signerPublicKeyHex = payload['signer_public_key_hex'] as String?;
+    // 3. Counterparty mapping: The one who sent the sync node is our counterparty.
+    // (Sender ID is handled in the caller processIncomingNodes, but we need the AccountId here)
+    // For now, we rely on the payload's counterparty mapping if available, 
+    // but better to resolve from the Node's sender.
+    // In our system, the sender of the claim IS the counterparty.
+    final senderParty = await accountRepository.findAccountByPhone(payload['signer_phone'] ?? '');
+    final counterpartyId = senderParty.valueOrNull ?? AccountId(payload['counterparty_id'] ?? '');
 
-    debugPrint(
-      'VoucherClaim: ingesting voucher $voucherIdStr '
-      '(type=$typeStr, amount=$amountMinor $currencyCode)',
+    // 4. Affected Account mapping: For inbound claims, our default fund is usually affected.
+    final allAccounts = await accountRepository.getAll();
+    final myFund = allAccounts.valueOrNull?.firstWhere(
+      (a) => a.classification.standardKind?.name == 'liquidAssets',
+      orElse: () => allAccounts.valueOrNull!.first,
+    );
+    final affectedAccountId = myFund?.id ?? AccountId('default-fund');
+
+    // 5. Currency Lookup
+    final currencyResult = await currencyRepository.getByCode(currencyCode);
+    final currency = currencyResult.valueOrNull!;
+
+    // 6. Entity Reconstruction
+    final voucher = Voucher.restore(
+      id: VoucherId(voucherIdStr),
+      type: myType,
+      date: date,
+      amount: Money.positiveAmount(amountMinor, currency),
+      currency: currency,
+      counterpartyId: counterpartyId,
+      affectedAccountId: affectedAccountId,
+      state: VoucherState.draft, // Inbound claims are always drafts until WE accept them.
+      createdAt: DateTime.now(),
+      description: payload['description'],
+      referenceNumber: payload['reference_number'],
+      senderStatus: AgreementStatus.accepted, // They signed it.
+      receiverStatus: AgreementStatus.underRequest, // We haven't.
+      senderSignatureHex: payload['sender_signature_hex'],
+      senderPublicKeyHex: payload['sender_public_key_hex'],
+      signerPhone: payload['signer_phone'],
+      originVoucherId: payload['origin_voucher_id'] != null ? VoucherId(payload['origin_voucher_id']) : null,
     );
 
-    // NOTE: Full entity reconstruction depends on required currency lookup.
-    // In the sync pipeline, the voucher is stored with minimal fields.
-    // The full entity will be hydrated on next read from repository.
+    // 7. Persist
+    await voucherRepository.save(voucher);
+    debugPrint('VoucherClaim [$voucherIdStr]: Ingested and stored as $myType.');
 
-    // If signature verification is needed, flag for async verification.
-    if (signatureHex != null && signerPublicKeyHex != null) {
-      debugPrint(
-        'VoucherClaim [$voucherIdStr]: signed claim received, '
-        'signature verification pending on next read.',
-      );
-    }
-
-    // ── Protocol §1: Reciprocal Matching ─────────────────────────────────
-    // Before persisting, check for a matching local draft (inverse type,
-    // same amount/currency/counterparty, within ±24h window).
+    // 8. Reciprocal Matching (Conflict Detection)
     final reciprocalResult = await voucherRepository.findReciprocalMatch(
       amountMinor: amountMinor,
       currencyCode: currencyCode,
-      counterpartyAccountId: payload['counterparty_id'] as String? ?? '',
-      type: typeStr,
-      referenceDate: DateTime.tryParse(
-        payload['date'] as String? ?? '',
-      ) ?? DateTime.now(),
+      counterpartyAccountId: counterpartyId.value,
+      type: myType.name,
+      referenceDate: date,
     );
     if (reciprocalResult.isSuccess && reciprocalResult.valueOrNull != null) {
       final localMatch = reciprocalResult.valueOrNull!;
-      debugPrint(
-        'VoucherClaim [$voucherIdStr]: RECIPROCAL MATCH found with '
-        'local draft [${localMatch.id.value}]. Inserting merge proposal.',
-      );
-
-      // Flag for UI intervention via a specialized notification entry.
-      // ContextKind 'merge_proposal' triggers the Conflict UI in the Inbox/List.
       await notificationMessageRepository.insert(
         id: 'merge_${voucherIdStr}_${localMatch.id.value}',
-        bodyText: 'سند مطابق — هل ترغب في دمج هذا السند مع المسودة المحلية؟', 
-        counterpartyAccountId: payload['counterparty_id'] as String? ?? '',
+        bodyText: 'سند مطابق — هل ترغب في دمج هذا السند مع المسودة المحلية؟',
+        counterpartyAccountId: counterpartyId.value,
         createdAtIso: DateTime.now().toIso8601String(),
         channel: 'conflict',
         rawPayloadJson: json.encode({
@@ -250,7 +263,7 @@ class SyncPayloadProcessor {
     String senderEmail,
   ) async {
     final String voucherIdStr = payload['voucher_id'];
-    final String signatureHex = payload['signature_hex'];
+    final String receiverSignatureHex = payload['receiver_signature_hex'];
 
     final voucherResult = await voucherRepository.getById(
       VoucherId(voucherIdStr),
@@ -275,7 +288,7 @@ class SyncPayloadProcessor {
     );
 
     final payloadHash = signingService.hashPayload(signable.canonicalPayload);
-    final Uint8List signatureBytes = _hexToBytes(signatureHex);
+    final Uint8List signatureBytes = _hexToBytes(receiverSignatureHex);
 
     // ── Protocol §5: Cross-Vector Key-List Verification ──────────────────
     // Build the full list of keys to try: claimed key first, then
@@ -283,16 +296,20 @@ class SyncPayloadProcessor {
     final keysToTry = <String>[senderPublicKey];
 
     // Fetch local party details for the sender to get historical keys.
-    var senderAccountResult =
-        await accountRepository.findAccountByPhone(senderPhone);
+    var senderAccountResult = await accountRepository.findAccountByPhone(
+      senderPhone,
+    );
     if (senderAccountResult.valueOrNull == null && senderEmail.isNotEmpty) {
-      senderAccountResult = await accountRepository.findAccountByEmail(senderEmail);
+      senderAccountResult = await accountRepository.findAccountByEmail(
+        senderEmail,
+      );
     }
-    
+
     final senderAccountId = senderAccountResult.valueOrNull;
     if (senderAccountId != null) {
-      final senderParty =
-          await accountRepository.getPartyDetails(senderAccountId);
+      final senderParty = await accountRepository.getPartyDetails(
+        senderAccountId,
+      );
       final party = senderParty.valueOrNull;
       if (party != null) {
         for (final histKey in party.allAuthorizedKeys) {
@@ -307,10 +324,14 @@ class SyncPayloadProcessor {
     if (keysToTry.length == 1) {
       PublicKeyLookupResult? serverResult;
       if (senderPhone.isNotEmpty) {
-        serverResult = await identityRepository.lookupByPhone(phone: senderPhone);
+        serverResult = await identityRepository.lookupByPhone(
+          phone: senderPhone,
+        );
       }
       if (serverResult == null && senderEmail.isNotEmpty) {
-        serverResult = await identityRepository.lookupByEmail(email: senderEmail);
+        serverResult = await identityRepository.lookupByEmail(
+          email: senderEmail,
+        );
       }
       if (serverResult != null) {
         for (final key in serverResult.allAuthorizedKeys) {
@@ -346,8 +367,9 @@ class SyncPayloadProcessor {
     if (verified) {
       // §5.5 Success: Mutual digital signature achieved.
       final signedVoucher = draft.attachSignature(
-        signatureHex: signatureHex,
-        signerPublicKeyHex: matchedKey!,
+        signatureHex: receiverSignatureHex,
+        publicKeyHex: matchedKey!,
+        isSender: false, // The counterparty (receiver) signed.
         status: AgreementStatus.accepted,
         signerPhone: senderPhone,
       );
@@ -358,8 +380,9 @@ class SyncPayloadProcessor {
     } else {
       // §5.6 Failure: Suspended as unapproved claim.
       final suspendedVoucher = draft.attachSignature(
-        signatureHex: signatureHex,
-        signerPublicKeyHex: senderPublicKey,
+        signatureHex: receiverSignatureHex,
+        publicKeyHex: senderPublicKey,
+        isSender: false, // The counterparty (receiver) signed poorly.
         status: AgreementStatus.unverified,
         signerPhone: senderPhone,
       );
@@ -391,9 +414,7 @@ class SyncPayloadProcessor {
     // Secure generation of isolated dual-entry mirror ...
   }
 
-  Future<void> _inboundAttachmentSync(
-    Map<String, dynamic> payload,
-  ) async {
+  Future<void> _inboundAttachmentSync(Map<String, dynamic> payload) async {
     final voucherIdStr = payload['voucher_id'] as String?;
     if (voucherIdStr == null) {
       debugPrint('AttachmentSync: missing voucher_id');
@@ -401,7 +422,9 @@ class SyncPayloadProcessor {
     }
 
     final attachments = payload['attachments'] as List<dynamic>? ?? [];
-    debugPrint('AttachmentSync: received ${attachments.length} attachment(s) for voucher $voucherIdStr');
+    debugPrint(
+      'AttachmentSync: received ${attachments.length} attachment(s) for voucher $voucherIdStr',
+    );
 
     final voucherId = VoucherId(voucherIdStr);
 
@@ -423,13 +446,11 @@ class SyncPayloadProcessor {
     if (mappedAttachments.isNotEmpty) {
       await attachmentRepository.saveAll(mappedAttachments);
     }
-    
+
     // Blob downloading would happen here via a background queue.
   }
 
-  Future<void> _inboundCollateralSync(
-    Map<String, dynamic> payload,
-  ) async {
+  Future<void> _inboundCollateralSync(Map<String, dynamic> payload) async {
     final voucherIdStr = payload['voucher_id'] as String?;
     final collateralData = payload['collateral'] as Map<String, dynamic>?;
     if (voucherIdStr == null || collateralData == null) {
@@ -438,23 +459,35 @@ class SyncPayloadProcessor {
     }
     debugPrint('CollateralSync: received collateral for voucher $voucherIdStr');
 
-    final collateralIdStr = collateralData['id'] as String? ?? const Uuid().v4();
+    final collateralIdStr =
+        collateralData['id'] as String? ?? const Uuid().v4();
     final valueMinor = collateralData['value_minor'] as int? ?? 0;
     final currencyCode = collateralData['currency_code'] as String? ?? 'USD';
     final statusStr = collateralData['status'] as String? ?? 'active';
     final expiryIso = collateralData['expiry_date'] as String?;
     // Note: description normally comes decrypted here from processing pipeline
-    final description = collateralData['description'] as String? ?? 'Collateral item';
+    final description =
+        collateralData['description'] as String? ?? 'Collateral item';
 
-    final currencyObj = CurrencyCode(code: currencyCode, nameAr: currencyCode, symbol: currencyCode, fractionalDigits: 2);
+    final currencyObj = CurrencyCode(
+      code: currencyCode,
+      nameAr: currencyCode,
+      symbol: currencyCode,
+      fractionalDigits: 2,
+    );
 
     final collateral = Collateral(
       id: CollateralId(collateralIdStr),
       voucherId: VoucherId(voucherIdStr),
       description: description,
-      estimatedValue: valueMinor > 0 ? Money.positiveAmount(valueMinor, currencyObj) : Money.zero(currencyObj),
+      estimatedValue: valueMinor > 0
+          ? Money.positiveAmount(valueMinor, currencyObj)
+          : Money.zero(currencyObj),
       currency: currencyObj,
-      status: CollateralStatus.values.firstWhere((e) => e.name == statusStr, orElse: () => CollateralStatus.active),
+      status: CollateralStatus.values.firstWhere(
+        (e) => e.name == statusStr,
+        orElse: () => CollateralStatus.active,
+      ),
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       expiryDate: expiryIso != null ? DateTime.tryParse(expiryIso) : null,
@@ -477,14 +510,16 @@ class SyncPayloadProcessor {
       debugPrint('CollateralRevaluation: missing collateral_id');
       return;
     }
-    debugPrint('CollateralRevaluation: received update for collateral $collateralIdStr');
+    debugPrint(
+      'CollateralRevaluation: received update for collateral $collateralIdStr',
+    );
 
     final collateralId = CollateralId(collateralIdStr);
     final existingR = await collateralRepository.getById(collateralId);
     if (existingR.isFailure) return;
 
     final existing = existingR.valueOrNull!;
-    
+
     final newMinor = payload['new_value_minor'] as int?;
     final newExpiryStr = payload['new_expiry'] as String?;
     final reason = payload['reason'] as String? ?? 'Remote update';
@@ -495,16 +530,22 @@ class SyncPayloadProcessor {
       oldValueMinor: existing.estimatedValue.minorUnits,
       newValueMinor: newMinor ?? existing.estimatedValue.minorUnits,
       oldExpiryDate: existing.expiryDate,
-      newExpiryDate: newExpiryStr != null ? DateTime.tryParse(newExpiryStr) : existing.expiryDate,
+      newExpiryDate: newExpiryStr != null
+          ? DateTime.tryParse(newExpiryStr)
+          : existing.expiryDate,
       reason: reason,
       evaluatedAt: DateTime.now(),
     );
 
     final updated = existing.revaluate(
-      newValue: newMinor != null 
-          ? (newMinor > 0 ? Money.positiveAmount(newMinor, existing.currency) : Money.zero(existing.currency))
+      newValue: newMinor != null
+          ? (newMinor > 0
+                ? Money.positiveAmount(newMinor, existing.currency)
+                : Money.zero(existing.currency))
           : null,
-      newExpiryDate: newExpiryStr != null ? DateTime.tryParse(newExpiryStr) : null,
+      newExpiryDate: newExpiryStr != null
+          ? DateTime.tryParse(newExpiryStr)
+          : null,
     );
 
     await collateralRepository.update(updated);
@@ -513,9 +554,7 @@ class SyncPayloadProcessor {
 
   // ── Threaded Financial Interactions handlers ──────────────────────────
 
-  Future<void> _inboundVoucherWithdrawal(
-    Map<String, dynamic> payload,
-  ) async {
+  Future<void> _inboundVoucherWithdrawal(Map<String, dynamic> payload) async {
     final String? voucherIdStr = payload['voucher_id'] as String?;
     if (voucherIdStr == null) {
       debugPrint('VoucherWithdrawal: missing voucher_id');
@@ -526,7 +565,9 @@ class SyncPayloadProcessor {
       VoucherId(voucherIdStr),
     );
     if (voucherResult.isFailure || voucherResult.valueOrNull == null) {
-      debugPrint('VoucherWithdrawal [$voucherIdStr]: voucher not found locally.');
+      debugPrint(
+        'VoucherWithdrawal [$voucherIdStr]: voucher not found locally.',
+      );
       return;
     }
 
@@ -544,9 +585,7 @@ class SyncPayloadProcessor {
     }
   }
 
-  Future<void> _inboundVoucherSettlement(
-    Map<String, dynamic> payload,
-  ) async {
+  Future<void> _inboundVoucherSettlement(Map<String, dynamic> payload) async {
     final String? voucherIdStr = payload['voucher_id'] as String?;
     if (voucherIdStr == null) {
       debugPrint('VoucherSettlement: missing voucher_id');
@@ -557,7 +596,9 @@ class SyncPayloadProcessor {
       VoucherId(voucherIdStr),
     );
     if (voucherResult.isFailure || voucherResult.valueOrNull == null) {
-      debugPrint('VoucherSettlement [$voucherIdStr]: voucher not found locally.');
+      debugPrint(
+        'VoucherSettlement [$voucherIdStr]: voucher not found locally.',
+      );
       return;
     }
 

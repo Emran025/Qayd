@@ -20,6 +20,7 @@ import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_filter_sheet.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -27,7 +28,6 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/statement_chat_export.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
-
 
 /// Chat-style "Statement of Account" between two parties (accounts).
 ///
@@ -43,9 +43,11 @@ final class AccountStatementChatPage extends StatefulWidget {
   const AccountStatementChatPage({
     super.key,
     required this.counterpartyAccountId,
+    this.myAccountId,
   });
 
   final String counterpartyAccountId;
+  final String? myAccountId;
 
   @override
   State<AccountStatementChatPage> createState() =>
@@ -110,23 +112,98 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
   }
 
   Future<void> _resubmitVoucher(BuildContext context, String voucherId) async {
-    if (_mutating) return;
-    setState(() => _mutating = true);
-    try {
-      final r = await InjectionContainer.resubmitVoucherUseCase.call(
+    // Instead of resubmit usecase, we now navigate to create page to allow edits
+    // as per Protocol v1.4 (Corrective Resubmission).
+    final cubit = context.read<StatementChatCubit>();
+    final state = cubit.state;
+    if (state is! StatementChatReady) return;
+
+    final msg = state.messages.firstWhere((m) => m.voucherId == voucherId);
+
+    Navigator.of(context)
+        .push(
+          QaydPageRoute.slideFromStart(
+            builder: (ctx) => VoucherCreatePage(
+              initialQrData: {
+                'type': msg.typeCode == 'payment'
+                    ? VoucherType.payment
+                    : VoucherType.receipt,
+                'date': DateTime.parse(msg.dateIso),
+                'amountMinorUnits': msg.amountMinorUnits,
+                'description': msg.description,
+                'counterpartyAccountId': msg.otherPartyId,
+                'originVoucherId': msg.voucherId,
+              },
+            ),
+          ),
+        )
+        .then((_) => cubit.reload());
+  }
+
+  Future<void> _withdrawVoucher(BuildContext context, String voucherId) async {
+    final cubit = context.read<StatementChatCubit>();
+    final state = cubit.state;
+    if (state is! StatementChatReady) return;
+    final msg = state.messages.firstWhere((m) => m.voucherId == voucherId);
+
+    final action = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStringsAr.voucherWithdrawConfirmTitle),
+        content: Text(AppStringsAr.voucherWithdrawConfirmBody),
+        actions: [
+          // 1. Cancel
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'cancel'),
+            child: Text(AppStringsAr.templateEditCancel),
+          ),
+          // 2. Withdraw/Delete
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'withdraw'),
+            child: const Text('حذف أو سحب السند'),
+          ),
+          // 3. Redirect
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, 'edit_others'),
+            child: const Text('تحويله لطرف آخر'),
+          ),
+        ],
+      ),
+    );
+
+    if (action == 'withdraw') {
+      setState(() => _mutating = true);
+      final result = await InjectionContainer.withdrawVoucherUseCase.call(
         voucherId: voucherId,
       );
-      if (r.isFailure && mounted) {
-        ScaffoldMessenger.of(
+      setState(() => _mutating = false);
+
+      result.fold(
+        (f) => ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
-        return;
-      }
-      if (mounted) {
-        context.read<StatementChatCubit>().reload();
-      }
-    } finally {
-      if (mounted) setState(() => _mutating = false);
+        ).showSnackBar(SnackBar(content: Text(f.messageAr))),
+        (_) => cubit.reload(),
+      );
+    } else if (action == 'edit_others') {
+      // Navigate to create page with account selection cleared
+      Navigator.of(context)
+          .push(
+            QaydPageRoute.slideFromStart(
+              builder: (ctx) => VoucherCreatePage(
+                initialQrData: {
+                  'type': msg.typeCode == 'payment'
+                      ? VoucherType.payment
+                      : VoucherType.receipt,
+                  'date': DateTime.parse(msg.dateIso),
+                  'amountMinorUnits': msg.amountMinorUnits,
+                  'description': msg.description,
+                  // 'counterpartyAccountId' is intentionally null to pick someone else
+                  'originVoucherId': msg.voucherId,
+                },
+              ),
+            ),
+          )
+          .then((_) => cubit.reload());
     }
   }
 
@@ -138,6 +215,30 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
               AccountDetailCubit(InjectionContainer.getAccountDetailsUseCase)
                 ..load(accountId),
           child: const AccountDetailPage(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navigateToCounterpartyChat(
+    BuildContext context,
+    String cpAccountId,
+    String myAccountId,
+  ) async {
+    // Navigate to the individual chat with that specific party
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (ctx) => BlocProvider(
+          create: (_) => StatementChatCubit(
+            listStatement: InjectionContainer.listAccountStatementChatUseCase,
+            listAccounts: InjectionContainer.listAccountsUseCase,
+            counterpartyAccountId: cpAccountId,
+            myAccountId: myAccountId,
+          )..load(),
+          child: AccountStatementChatPage(
+            counterpartyAccountId: cpAccountId,
+            myAccountId: myAccountId,
+          ),
         ),
       ),
     );
@@ -229,15 +330,13 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     );
   }
 
-
-
   List<List<_BalanceSnapshot>> _calculateAllRollingSnapshots(
     List<AccountStatementChatMessageDto> history,
     int initialBalanceForPrimary,
   ) {
     final List<List<_BalanceSnapshot>> snapshotsList = [];
     final Map<String, _BalanceSnapshot> currentBalances = {};
-    
+
     if (history.isNotEmpty) {
       final first = history.first;
       currentBalances[first.currencyCode] = _BalanceSnapshot(
@@ -249,17 +348,19 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     }
 
     for (final m in history) {
-      final current = currentBalances[m.currencyCode] ?? _BalanceSnapshot(
-        code: m.currencyCode,
-        symbol: m.currencySymbol,
-        digits: m.currencyDigits,
-        amount: 0,
-      );
+      final current =
+          currentBalances[m.currencyCode] ??
+          _BalanceSnapshot(
+            code: m.currencyCode,
+            symbol: m.currencySymbol,
+            digits: m.currencyDigits,
+            amount: 0,
+          );
 
       if (m.signatureStatusCode != AgreementStatus.rejected.name) {
         int impact = m.amountMinorUnits;
         if (m.direction == 'outgoing') impact = -impact;
-        
+
         currentBalances[m.currencyCode] = current.copyWith(
           amount: current.amount + impact,
         );
@@ -328,6 +429,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                 messageCount: data.messages.length,
                 hasFilters: data.hasActiveFilters,
                 showSearch: _showSearch,
+                isUnified: data.isUnified,
                 onProfileTap: () =>
                     _openAccountProfile(data.counterpartyAccountId),
                 onSearchToggle: () {
@@ -385,7 +487,6 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                 mode: data.filter.viewMode,
                 onChanged: (m) => cubit.setViewMode(m),
               ),
-
 
               // ── Brought Forward Balance card ──
               if (data.broughtForwardMinorUnits != 0 &&
@@ -446,10 +547,20 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                 final msgWidget = _MessageBubble(
                                   msg: msg,
                                   mutating: _mutating,
+                                  isUnified: data.isUnified,
                                   onAccept: (id) => _acceptVoucher(context, id),
                                   onReject: (id) => _rejectVoucher(context, id),
-                                  onResubmit: (id) => _resubmitVoucher(context, id),
-                                  onTap: () => _showVoucherActions(context, msg),
+                                  onWithdraw: (id) =>
+                                      _withdrawVoucher(context, id),
+                                  onResubmit: (id) =>
+                                      _resubmitVoucher(context, id),
+                                  onTap: () => data.isUnified
+                                      ? _navigateToCounterpartyChat(
+                                          context,
+                                          msg.otherPartyId,
+                                          data.counterpartyAccountId,
+                                        )
+                                      : _showVoucherActions(context, msg),
                                 );
 
                                 final itemWidget = Column(
@@ -502,6 +613,7 @@ class _ChatHeader extends StatelessWidget {
     required this.messageCount,
     required this.hasFilters,
     required this.showSearch,
+    required this.isUnified,
     required this.onProfileTap,
     required this.onSearchToggle,
     required this.onFilterTap,
@@ -514,6 +626,7 @@ class _ChatHeader extends StatelessWidget {
   final int messageCount;
   final bool hasFilters;
   final bool showSearch;
+  final bool isUnified;
   final VoidCallback onProfileTap;
   final VoidCallback onSearchToggle;
   final VoidCallback onFilterTap;
@@ -579,7 +692,9 @@ class _ChatHeader extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              '$messageCount ${AppStringsAr.statementVoucherCount}',
+                              isUnified
+                                  ? 'سجل السندات (موحد)'
+                                  : '$messageCount ${AppStringsAr.statementVoucherCount}',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
@@ -1185,16 +1300,20 @@ class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
     required this.msg,
     required this.mutating,
+    required this.isUnified,
     required this.onAccept,
     required this.onReject,
+    required this.onWithdraw,
     required this.onResubmit,
     required this.onTap,
   });
 
   final AccountStatementChatMessageDto msg;
   final bool mutating;
+  final bool isUnified;
   final Future<void> Function(String voucherId) onAccept;
   final Future<void> Function(String voucherId) onReject;
+  final Future<void> Function(String voucherId) onWithdraw;
   final Future<void> Function(String voucherId) onResubmit;
   final VoidCallback onTap;
 
@@ -1366,16 +1485,36 @@ class _MessageBubble extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: SpacingTokens.sm),
-                              // Type label
+                              // Type label & Other Party
                               Expanded(
-                                child: Text(
-                                  _typeLabel(),
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(
-                                        color: statusColor,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 0.3,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _typeLabel(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.3,
+                                          ),
+                                    ),
+                                    if (isUnified)
+                                      Text(
+                                        msg.otherPartyName,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall
+                                            ?.copyWith(
+                                              color: statusColor.withValues(
+                                                alpha: 0.7,
+                                              ),
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                       ),
+                                  ],
                                 ),
                               ),
                               // Badge
@@ -1541,10 +1680,17 @@ class _MessageBubble extends StatelessWidget {
       msg.signatureStatusCode == AgreementStatus.rejected.name;
 
   Widget _actionArea(BuildContext context) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
     final showAcceptReject = _isIncoming && _isDraft && !_isRejected;
+    // Protocol Update: Show buttons ONLY when Rejected (Corrective flow).
+    // If voucher is pending (at the counterparty), the user requested no buttons.
+    final showWithdraw = _isOutgoing && _isDraft && _isRejected;
     final showResubmit = _isOutgoing && _isDraft && _isRejected;
 
-    if (!showAcceptReject && !showResubmit) return const SizedBox.shrink();
+    if (isUnified) return const SizedBox.shrink();
+    if (!showAcceptReject && !showWithdraw && !showResubmit) {
+      return const SizedBox.shrink();
+    }
 
     final statusColor = _statusColor(context);
 
@@ -1614,23 +1760,60 @@ class _MessageBubble extends StatelessWidget {
         vertical: SpacingTokens.sm,
       ),
       decoration: BoxDecoration(
-        color: ColorTokens.errorDeep.withValues(alpha: 0.04),
+        color: custom.draftState.withValues(alpha: 0.04),
         border: Border(
-          top: BorderSide(color: ColorTokens.errorDeep.withValues(alpha: 0.15)),
+          top: BorderSide(color: custom.draftState.withValues(alpha: 0.15)),
         ),
       ),
-      child: OutlinedButton.icon(
-        onPressed: mutating ? null : () async => onResubmit(msg.voucherId),
-        icon: const Icon(Icons.refresh_rounded, size: 16),
-        label: Text(AppStringsAr.statementChatResubmit),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: ColorTokens.errorDeep,
-          padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
-          side: BorderSide(color: ColorTokens.errorDeep.withValues(alpha: 0.5)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(RadiusTokens.sm),
-          ),
-        ),
+      child: Row(
+        children: [
+          if (showResubmit)
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: mutating
+                    ? null
+                    : () async => onResubmit(msg.voucherId),
+                icon: const Icon(Icons.refresh_rounded, size: 16),
+                label: Text(AppStringsAr.statementChatResubmit),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: custom.confirmedState,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: SpacingTokens.sm,
+                  ),
+                  side: BorderSide(
+                    color: custom.confirmedState.withValues(alpha: 0.5),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                  ),
+                ),
+              ),
+            ),
+          if (showResubmit && showWithdraw)
+            const SizedBox(width: SpacingTokens.sm),
+          if (showWithdraw)
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: mutating
+                    ? null
+                    : () async => onWithdraw(msg.voucherId),
+                icon: const Icon(Icons.undo_rounded, size: 16),
+                label: Text(AppStringsAr.statementChatWithdraw),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColorTokens.errorDeep,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: SpacingTokens.sm,
+                  ),
+                  side: BorderSide(
+                    color: ColorTokens.errorDeep.withValues(alpha: 0.5),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -1698,7 +1881,7 @@ class _ViewModeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(
@@ -1744,4 +1927,3 @@ class _ViewModeToggle extends StatelessWidget {
     );
   }
 }
-

@@ -100,7 +100,8 @@ class MatchSignatureToVoucherUseCase {
       final matchedVoucher = matchingDrafts.first;
       final updatedVoucher = matchedVoucher.attachSignature(
         signatureHex: signatureHex,
-        signerPublicKeyHex: finalSignerKey,
+        publicKeyHex: finalSignerKey,
+        isSender: false, // The counterparty (receiver) signed.
         status: agreementStatus,
         signerPhone: incomingReceipt.senderPhone,
       );

@@ -26,9 +26,13 @@ class GetVoucherDetailsOutput {
     this.linkedPartyName,
     this.transferGroupId,
     this.isContingent = false,
-    this.signatureHex,
-    this.signerPublicKeyHex,
-    required this.agreementStatusCode,
+    this.senderSignatureHex,
+    this.receiverSignatureHex,
+    this.senderPublicKeyHex,
+    this.receiverPublicKeyHex,
+    required this.senderStatusCode,
+    required this.receiverStatusCode,
+    this.canApprove = false,
     this.originVoucherId,
     this.attachmentCount = 0,
     this.hasCollateral = false,
@@ -68,10 +72,14 @@ class GetVoucherDetailsOutput {
   final String? transferGroupId;
   final bool isContingent;
 
-  // Digital signature
-  final String? signatureHex;
-  final String? signerPublicKeyHex;
-  final String agreementStatusCode;
+  // Dual digital signatures
+  final String? senderSignatureHex;
+  final String? receiverSignatureHex;
+  final String? senderPublicKeyHex;
+  final String? receiverPublicKeyHex;
+  final String senderStatusCode;
+  final String receiverStatusCode;
+  final bool canApprove;
   final String? originVoucherId;
 
   // Attachments
