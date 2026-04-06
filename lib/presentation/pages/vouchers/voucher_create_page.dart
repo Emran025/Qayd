@@ -27,6 +27,7 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/amount_parser.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
+import 'package:qayd/presentation/pages/vouchers/widgets/cost_center_tag_selector.dart';
 
 class VoucherCreatePage extends StatefulWidget {
   const VoucherCreatePage({super.key, this.initialQrData});
@@ -58,6 +59,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   // Attachment & collateral state
   final List<XFile> _pickedImages = [];
   CollateralInput? _collateralInput;
+  List<CostCenterTagInput> _costCenterTags = [];
 
   late final AnimationController _slideController;
   late final Animation<Offset> _slideOffset;
@@ -304,6 +306,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       attachments: _pickedImages,
       confirm: confirm,
       originVoucherId: widget.initialQrData?['receiptUuid'] as String?,
+      costCenterTags: _costCenterTags,
     );
 
     await context.read<VoucherCreateCubit>().submit(input);
@@ -438,6 +441,12 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                             maxLines: 2,
                             textInputAction: TextInputAction.done,
                           ),
+                          const SizedBox(height: SpacingTokens.md),
+                          
+                          CostCenterTagSelector(
+                            onChanged: (tags) => setState(() => _costCenterTags = tags),
+                          ),
+                          
                           const SizedBox(height: SpacingTokens.md),
 
                           // ── Attachment & Collateral Actions ──────

@@ -17,17 +17,14 @@ final class Migration010TripartiteTransfer implements SchemaMigration {
 
   @override
   Future<void> up(Database db) async {
-    await db.execute(
-        'ALTER TABLE vouchers ADD COLUMN transfer_group_id TEXT');
-    await db.execute(
-        'ALTER TABLE vouchers ADD COLUMN tripartite_role TEXT');
-    await db.execute(
-        'ALTER TABLE vouchers ADD COLUMN linked_party_id TEXT');
-    await db.execute(
-        'ALTER TABLE vouchers ADD COLUMN is_contingent INTEGER NOT NULL DEFAULT 0');
+    await db.addColumnIfNotExists('vouchers', 'transfer_group_id', 'TEXT');
+    await db.addColumnIfNotExists('vouchers', 'tripartite_role', 'TEXT');
+    await db.addColumnIfNotExists('vouchers', 'linked_party_id', 'TEXT');
+    await db.addColumnIfNotExists('vouchers', 'is_contingent', 'INTEGER NOT NULL',
+        defaultValue: '0');
 
     // Index for fast lookup of paired vouchers within a transfer group.
     await db.execute(
-        'CREATE INDEX idx_vouchers_transfer_group ON vouchers (transfer_group_id)');
+        'CREATE INDEX IF NOT EXISTS idx_vouchers_transfer_group ON vouchers (transfer_group_id)');
   }
 }

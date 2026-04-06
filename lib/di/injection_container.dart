@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
+import 'package:qayd/application/cost_centers/update_cost_center_use_case.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
@@ -126,6 +127,14 @@ import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
+import 'package:qayd/application/cost_centers/activate_cost_center_use_case.dart';
+import 'package:qayd/application/cost_centers/create_cost_center_use_case.dart';
+import 'package:qayd/application/cost_centers/get_cost_center_details_use_case.dart';
+import 'package:qayd/application/cost_centers/list_cost_centers_use_case.dart';
+import 'package:qayd/application/cost_centers/manage_dimensions_use_case.dart';
+import 'package:qayd/application/cost_centers/suspend_cost_center_use_case.dart';
+import 'package:qayd/data/repositories/sqlite_cost_center_repository.dart';
+import 'package:qayd/domain/repositories/cost_center_repository.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -266,6 +275,16 @@ abstract final class InjectionContainer {
   static late SyncWatermarkDao syncWatermarkDao;
   static late P2PSyncService p2pSyncService;
   static late final SyncEventDispatcher syncEventDispatcher;
+
+  // ── Cost and Profit Centers ─────────────────────────────────────────────
+  static late CostCenterRepository costCenterRepository;
+  static late CreateCostCenterUseCase createCostCenterUseCase;
+  static late ListCostCentersUseCase listCostCentersUseCase;
+  static late SuspendCostCenterUseCase suspendCostCenterUseCase;
+  static late ActivateCostCenterUseCase activateCostCenterUseCase;
+  static late GetCostCenterDetailsUseCase getCostCenterDetailsUseCase;
+  static late ManageDimensionsUseCase manageDimensionsUseCase;
+  static late UpdateCostCenterUseCase updateCostCenterUseCase;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -479,8 +498,9 @@ abstract final class InjectionContainer {
     syncEventDispatcher = SyncEventDispatcher(
       outboxDao: outboxDao,
       e2eeEncryptionService: e2eeService,
-      accountRepository:
-          SqliteAccountRepository(database), // Use fresh instances or shared
+      accountRepository: SqliteAccountRepository(
+        database,
+      ), // Use fresh instances or shared
       identityRepository: identityRepository,
       getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair(),
     );
@@ -497,6 +517,9 @@ abstract final class InjectionContainer {
     const entryGenerator = EntryGenerator();
     const trialBalanceGenerator = TrialBalanceGenerator();
     const voucherQrService = VoucherQrService();
+
+    // ── Cost and Profit Centers ───────────────────────────────────────────
+    costCenterRepository = SqliteCostCenterRepository(database);
 
     transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(
       database,
@@ -569,6 +592,7 @@ abstract final class InjectionContainer {
       getKeyPair: () => setupIdentityUseCase.getKeyPair(),
       licenseVault: licenseVault,
       syncEventDispatcher: syncEventDispatcher,
+      costCenterRepository: costCenterRepository,
     );
     createTripartiteTransferUseCase = CreateTripartiteTransferUseCase(
       voucherRepository,
@@ -715,6 +739,23 @@ abstract final class InjectionContainer {
     resolveConflictUseCase = ResolveConflictUseCase(
       notificationMessageRepository,
       confirmVoucherUseCase,
+    );
+
+    // ── Cost and Profit Centers ───────────────────────────────────────────
+    createCostCenterUseCase = CreateCostCenterUseCase(
+      costCenterRepository,
+      _idGenerator,
+    );
+    listCostCentersUseCase = ListCostCentersUseCase(costCenterRepository);
+    suspendCostCenterUseCase = SuspendCostCenterUseCase(costCenterRepository);
+    activateCostCenterUseCase = ActivateCostCenterUseCase(costCenterRepository);
+    getCostCenterDetailsUseCase = GetCostCenterDetailsUseCase(
+      costCenterRepository,
+    );
+    updateCostCenterUseCase = UpdateCostCenterUseCase(costCenterRepository);
+    manageDimensionsUseCase = ManageDimensionsUseCase(
+      costCenterRepository,
+      _idGenerator,
     );
   }
 }

@@ -1,0 +1,4 @@
+enum CostCenterType {
+  cost,
+  profit;
+}

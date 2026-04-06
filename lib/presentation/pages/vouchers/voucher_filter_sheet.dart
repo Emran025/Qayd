@@ -10,6 +10,9 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/entities/cost_center.dart';
+import 'package:qayd/core/result/result.dart';
 
 /// Premium filter sheet; returns new [AdvancedFilterInput] on apply, or null if dismissed.
 Future<AdvancedFilterInput?> showVoucherAdvancedFilterSheet(
@@ -55,6 +58,8 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
   String? _cpName;
   String? _affId;
   String? _affName;
+  String? _ccId;
+  String? _ccName;
 
   @override
   void initState() {
@@ -74,6 +79,19 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
     _affName = _affId != null
         ? (widget.accountNamesById[_affId!] ?? _affId)
         : null;
+    _ccId = i.costCenterId;
+    _loadCostCenterName();
+  }
+
+  Future<void> _loadCostCenterName() async {
+    if (_ccId == null) return;
+    final res = await InjectionContainer.getCostCenterDetailsUseCase.call(_ccId!);
+    res.fold(
+      (_) {},
+      (dto) {
+        if (mounted) setState(() => _ccName = dto.center.name);
+      },
+    );
   }
 
   AdvancedFilterInput _buildResult() {
@@ -84,6 +102,7 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
       toDate: _to,
       counterpartyAccountId: _cpId,
       affectedAccountId: _affId,
+      costCenterId: _ccId,
     );
   }
 
@@ -308,6 +327,56 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 }
               },
             ),
+            _sectionTitle('مركز التكلفة'),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const QaydText(
+                'تصفية حسب مركز التكلفة',
+                slot: QaydTextStyleSlot.bodyMedium,
+              ),
+              subtitle: QaydText(
+                _ccName ?? AppStringsAr.voucherFilterNotSelected,
+                slot: QaydTextStyleSlot.bodySmall,
+              ),
+              trailing: Icon(
+                _ccId != null ? Icons.check_circle_rounded : Icons.chevron_left_rounded,
+                color: _ccId != null ? ColorTokens.emerald600 : null,
+              ),
+              onTap: () async {
+                final res = await InjectionContainer.listCostCentersUseCase.call();
+                res.fold(
+                  (_) {},
+                  (centers) async {
+                    if (!mounted) return;
+                    final picked = await showModalBottomSheet<CostCenter>(
+                      context: context,
+                      builder: (ctx) => Container(
+                        padding: const EdgeInsets.all(SpacingTokens.lg),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const QaydText('اختر مركز التكلفة', slot: QaydTextStyleSlot.titleMedium),
+                            const SizedBox(height: SpacingTokens.md),
+                            ...centers.map((c) => ListTile(
+                                  title: Text(c.name),
+                                  leading: const Icon(Icons.pie_chart_outline_rounded),
+                                  onTap: () => Navigator.pop(ctx, c),
+                                )),
+                            const SizedBox(height: SpacingTokens.xl),
+                          ],
+                        ),
+                      ),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _ccId = picked.id;
+                        _ccName = picked.name;
+                      });
+                    }
+                  },
+                );
+              },
+            ),
             const SizedBox(height: SpacingTokens.lg),
             Row(
               children: [
@@ -323,6 +392,8 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                         _cpName = null;
                         _affId = null;
                         _affName = null;
+                        _ccId = null;
+                        _ccName = null;
                       });
                     },
                     child: Text(AppStringsAr.voucherFilterClearFields),

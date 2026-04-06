@@ -11,6 +11,7 @@ import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
@@ -36,6 +37,7 @@ class CreateVoucherUseCase {
   final Future<CryptoKeyPair?> Function()? _getKeyPair;
   final LicenseVault? _licenseVault;
   final SyncEventDispatcher? _syncEventDispatcher;
+  final CostCenterRepository? _costCenterRepository;
 
   CreateVoucherUseCase(
     this._voucherRepository,
@@ -49,11 +51,13 @@ class CreateVoucherUseCase {
     Future<CryptoKeyPair?> Function()? getKeyPair,
     LicenseVault? licenseVault,
     SyncEventDispatcher? syncEventDispatcher,
+    CostCenterRepository? costCenterRepository,
   })  : _accountRepository = accountRepository,
         _signingService = signingService,
         _getKeyPair = getKeyPair,
         _licenseVault = licenseVault,
-        _syncEventDispatcher = syncEventDispatcher;
+        _syncEventDispatcher = syncEventDispatcher,
+        _costCenterRepository = costCenterRepository;
 
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
@@ -184,6 +188,17 @@ class CreateVoucherUseCase {
       }
 
       final saved = await _voucherRepository.save(voucher);
+      
+      // ── Process Cost Center Attachments ───────────────────────────────
+      if (saved.isSuccess && input.costCenterTags.isNotEmpty && _costCenterRepository != null) {
+        for (final tag in input.costCenterTags) {
+          await _costCenterRepository.attachVoucher(
+            voucherId: voucher.id.value,
+            costCenterId: tag.costCenterId,
+            dimensionIds: tag.dimensionIds,
+          );
+        }
+      }
       
       // §5.A: Enqueue claim into local outbox ONLY if confirmed.
       if (saved.isSuccess && input.confirm && _syncEventDispatcher != null) {

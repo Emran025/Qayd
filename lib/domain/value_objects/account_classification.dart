@@ -36,6 +36,18 @@ final class AccountClassification {
     defaultNature: AccountNature.credit,
   );
 
+  /// Standard: مصروفات شخصية (Personal Expenses)
+  static const AccountClassification personalExpenses = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.personalExpenses,
+    defaultNature: AccountNature.debit,
+  );
+
+  /// Standard: إيرادات شخصية (Personal Revenues)
+  static const AccountClassification personalRevenues = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.personalRevenues,
+    defaultNature: AccountNature.credit,
+  );
+
   final StandardAccountClassificationKind? standardKind;
   final String? customName;
 

@@ -14,12 +14,14 @@ final class VoucherQueryFilter {
     this.type,
     this.excludeTripartite,
     this.onlyTripartite,
+    this.costCenterId,
   });
 
   final VoucherState? state;
   final DateRange? dateRange;
   final AccountId? counterpartyId;
   final AccountId? affectedAccountId;
+  final String? costCenterId;
 
   /// Find vouchers where this account is EITHER the affected OR the counterparty.
   final AccountId? involvedAccountId;

@@ -47,21 +47,21 @@ CREATE TABLE app_settings (
 
     // 4. Add currency_code column to vouchers
     // Note: SQLite doesn't support NOT NULL column additions easily; we'll add it and then update.
-    await db.execute('ALTER TABLE vouchers ADD COLUMN currency_code TEXT');
+    await db.addColumnIfNotExists('vouchers', 'currency_code', 'TEXT');
     await db.execute(
       "UPDATE vouchers SET currency_code = 'YER' WHERE currency_code IS NULL"
     );
-    // Note: To make it NOT NULL we usually need to recreate the table, but with sqflite,
-    // subsequent INSERTs will be guided by the model which includes it.
 
     // 5. Add currency_code column to ledger_entries
-    await db.execute('ALTER TABLE ledger_entries ADD COLUMN currency_code TEXT');
+    await db.addColumnIfNotExists('ledger_entries', 'currency_code', 'TEXT');
     await db.execute(
       "UPDATE ledger_entries SET currency_code = 'YER' WHERE currency_code IS NULL"
     );
 
     // 6. Create indexes for new columns
-    await db.execute('CREATE INDEX idx_vouchers_currency ON vouchers (currency_code)');
-    await db.execute('CREATE INDEX idx_ledger_currency ON ledger_entries (currency_code)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_vouchers_currency ON vouchers (currency_code)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_ledger_currency ON ledger_entries (currency_code)');
   }
 }

@@ -4,4 +4,6 @@ enum StandardAccountClassificationKind {
   receivables,
   payables,
   settlements,
+  personalExpenses,
+  personalRevenues,
 }

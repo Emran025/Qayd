@@ -148,6 +148,10 @@ class CreateAccountUseCase {
           return AccountClassification.receivables;
         case StandardAccountClassificationKind.liquidAssets:
           return AccountClassification.liquidAssets;
+        case StandardAccountClassificationKind.personalExpenses:
+          return AccountClassification.personalExpenses;
+        case StandardAccountClassificationKind.personalRevenues:
+          return AccountClassification.personalRevenues;
       }
     }
     return AccountClassification.custom(

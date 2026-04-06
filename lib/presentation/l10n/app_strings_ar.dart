@@ -589,4 +589,62 @@ abstract final class AppStringsAr {
       'امسح رمز الطرف الآخر للمزامنة المباشرة';
   static const String p2pSyncSuccess = 'تمت المزامنة المباشرة بنجاح.';
   static const String p2pSyncFailed = 'فشلت المزامنة المباشرة.';
+
+  // ── Cost and Profit Centers ──────────────────────────────────────────────
+  static const String costCentersTitle = 'مراكز التكلفة والربح';
+  static const String addCostCenterFab = 'مركز جديد';
+  static const String newCostCenterTitle = 'مركز تكلفة/ربح جديد';
+  static const String searchCostCentersHint = 'بحث باسم المركز…';
+  static const String costCentersEmpty = 'لا توجد مراكز تكلفة بعد. أضف مركزاً جديداً.';
+  static const String costCentersEmptyFiltered = 'لا نتائج مطابقة للبحث أو التصفية.';
+
+  static const String costCenterTypeCostGroup = 'مراكز التكلفة';
+  static const String costCenterTypeProfitGroup = 'مراكز الربح';
+  static const String showSuspendedLabel = 'عرض الموقوف';
+  static const String allLabel = 'الكل';
+  static const String errorTitle = 'خطأ';
+  static const String costCenterDetailTitle = 'تفاصيل المركز';
+  static const String costCenterNameLabel = 'اسم المركز';
+  static const String costCenterDescriptionLabel = 'الوصف (اختياري)';
+  static const String costCenterBudgetLabel = 'الميزانية (اختياري — ريال)';
+  static const String costCenterTypeLabel = 'نوع المركز';
+  static const String costCenterTypeCost = 'مركز تكلفة';
+  static const String costCenterTypeProfit = 'مركز ربح';
+  static const String costCenterCreatedSuccess = 'تم إنشاء المركز بنجاح.';
+  static const String costCenterSuspendAction = 'إيقاف المركز';
+  static const String costCenterActivateAction = 'تفعيل المركز';
+  static const String costCenterSuspendedBadge = 'موقوف';
+  static const String costCenterBudgetPrefix = 'الميزانية:';
+  static const String costCenterViewVouchers = 'عرض السندات والنشاط';
+  static const String costCenterVoucherCountLabel = 'عدد السندات';
+  static const String costCenterTotalLabel = 'إجمالي مؤكد';
+  static const String costCenterOpenLedger = 'عرض سجل السندات كمحادثة';
+  static const String costCenterDimensionsTitle = 'التصنيفات والأبعاد';
+  static const String costCenterLedgerTitle = 'سجل السندات';
+  static const String costCenterLedgerSubtitle =
+      'يعرض جميع سندات القبض والصرف المرتبطة بهذا المركز في واجهة محادثة.';
+  // Create page
+  static const String costCenterTypeSelectorLabel = 'نوع المركز';
+  static const String costCenterNameHint = 'اسم المركز *';
+  static const String costCenterNameValidator = 'يرجى إدخال الاسم.';
+  static const String costCenterDescHint = 'الوصف (اختياري)';
+  static const String costCenterBudgetHint = 'الميزانية (اختياري — ريال)';
+  static const String costCenterBudgetNoneHint = '0 = بلا حد';
+  static const String costCenterSaveAction = 'إنشاء المركز';
+  static const String costCenterCreatedSnackbar = 'تم إنشاء مركز التكلفة بنجاح.';
+  // Detail page actions
+  static const String costCenterSuspendConfirmTitle = 'تأكيد الإيقاف';
+  static const String costCenterActivateConfirmTitle = 'تأكيد التفعيل';
+  static const String costCenterEditAction = 'تعديل المركز';
+  static const String costCenterDeleteAction = 'حذف المركز';
+  static const String costCenterSuspendSnackbar = 'تم إيقاف عمل مركز التكلفة.';
+  static const String costCenterActivateSnackbar = 'تم إعادة تفعيل مركز التكلفة.';
+  // Categories
+  static const String dimCategorySpatial = 'بُعد مكاني';
+  static const String dimCategoryIndividual = 'بُعد الأفراد';
+  static const String dimCategoryProject = 'بُعد المشاريع';
+
+  // ── Navigation ──────────────────────────────────────────────────────────
+  static const String navCostCentersTab = 'المراكز';
 }
+

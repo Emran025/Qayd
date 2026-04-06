@@ -68,6 +68,10 @@ final class SqliteVoucherRepository implements VoucherRepository {
     if (filter.onlyTripartite == true) {
       whereParts.add('${p}transfer_group_id IS NOT NULL');
     }
+    if (filter.costCenterId != null) {
+      whereParts.add('${p}id IN (SELECT voucher_id FROM voucher_cost_centers WHERE cost_center_id = ?)');
+      args.add(filter.costCenterId!);
+    }
   }
 
   Future<List<Voucher>> _mapVoucherRows(List<Map<String, Object?>> rows) async {

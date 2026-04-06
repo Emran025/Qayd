@@ -42,11 +42,18 @@ final class AccountMapper {
     final std = model.standardClassification;
     if (std != null) {
       return switch (StandardAccountClassificationKind.values.byName(std)) {
-        StandardAccountClassificationKind.settlements => AccountClassification.settlements,
+        StandardAccountClassificationKind.liquidAssets =>
+          AccountClassification.liquidAssets,
+        StandardAccountClassificationKind.receivables =>
+          AccountClassification.receivables,
         StandardAccountClassificationKind.payables =>
           AccountClassification.payables,
-        StandardAccountClassificationKind.receivables => AccountClassification.receivables,
-        StandardAccountClassificationKind.liquidAssets => AccountClassification.liquidAssets,
+        StandardAccountClassificationKind.settlements =>
+          AccountClassification.settlements,
+        StandardAccountClassificationKind.personalExpenses =>
+          AccountClassification.personalExpenses,
+        StandardAccountClassificationKind.personalRevenues =>
+          AccountClassification.personalRevenues,
       };
     }
     return AccountClassification.custom(

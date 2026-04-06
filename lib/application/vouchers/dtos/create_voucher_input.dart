@@ -1,6 +1,16 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
+class CostCenterTagInput {
+  const CostCenterTagInput({
+    required this.costCenterId,
+    this.dimensionIds = const [],
+  });
+
+  final String costCenterId;
+  final List<String> dimensionIds;
+}
+
 class CreateVoucherInput {
   const CreateVoucherInput({
     required this.type,
@@ -19,6 +29,7 @@ class CreateVoucherInput {
     this.attachments = const [],
     this.originVoucherId,
     this.confirm = false,
+    this.costCenterTags = const [],
   });
 
   final VoucherType type;
@@ -39,4 +50,7 @@ class CreateVoucherInput {
 
   /// If true, the voucher is immediately confirmed (signed) and enqueued for sync.
   final bool confirm;
+
+  /// Optional cost center and dimension tags for analytical tracking.
+  final List<CostCenterTagInput> costCenterTags;
 }

@@ -10,23 +10,17 @@ final class Migration017ThreadedInteractions implements SchemaMigration {
   @override
   Future<void> up(Database db) async {
     // Add origin_voucher_id for the "Reply" mechanism (reversals, corrections, settlements)
-    await db.execute(
-      'ALTER TABLE vouchers ADD COLUMN origin_voucher_id TEXT',
-    );
+    await db.addColumnIfNotExists('vouchers', 'origin_voucher_id', 'TEXT');
 
     // Add rejection_reason for corrective resubmission flow
-    await db.execute(
-      'ALTER TABLE vouchers ADD COLUMN rejection_reason TEXT',
-    );
+    await db.addColumnIfNotExists('vouchers', 'rejection_reason', 'TEXT');
 
     // Add withdrawn_at timestamp for non-destructive withdrawal state
-    await db.execute(
-      'ALTER TABLE vouchers ADD COLUMN withdrawn_at TEXT',
-    );
+    await db.addColumnIfNotExists('vouchers', 'withdrawn_at', 'TEXT');
 
     // Index origin_voucher_id for efficient thread queries
     await db.execute(
-      'CREATE INDEX idx_vouchers_origin ON vouchers (origin_voucher_id)',
+      'CREATE INDEX IF NOT EXISTS idx_vouchers_origin ON vouchers (origin_voucher_id)',
     );
   }
 }

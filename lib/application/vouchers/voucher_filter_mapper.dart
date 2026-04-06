@@ -23,6 +23,7 @@ abstract final class VoucherFilterMapper {
       dateRange: dateRange,
       counterpartyId: _idOrNull(input.counterpartyAccountId),
       affectedAccountId: _idOrNull(input.affectedAccountId),
+      costCenterId: input.costCenterId,
     );
   }
 

@@ -14,16 +14,15 @@ final class Migration016CounterpartyKeys implements SchemaMigration {
 
   @override
   Future<void> up(Database db) async {
-    await db.execute(
-        'ALTER TABLE party_details ADD COLUMN email TEXT');
-    await db.execute(
-        'ALTER TABLE party_details ADD COLUMN whatsapp_number TEXT');
-    await db.execute(
-        'ALTER TABLE party_details ADD COLUMN current_public_key_hex TEXT');
-    await db.execute(
-        "ALTER TABLE party_details ADD COLUMN public_key_history_json TEXT NOT NULL DEFAULT '[]'");
-    await db.execute(
-        'ALTER TABLE party_details ADD COLUMN server_account_id INTEGER');
+    await db.addColumnIfNotExists('party_details', 'email', 'TEXT');
+    await db.addColumnIfNotExists('party_details', 'whatsapp_number', 'TEXT');
+    await db.addColumnIfNotExists(
+        'party_details', 'current_public_key_hex', 'TEXT');
+    await db.addColumnIfNotExists(
+        'party_details', 'public_key_history_json', 'TEXT NOT NULL',
+        defaultValue: "'[]'");
+    await db.addColumnIfNotExists(
+        'party_details', 'server_account_id', 'INTEGER');
 
     // Enforce strict unicity at the database level for reverse-sync discovery.
     // We use partial indexes (WHERE ... IS NOT NULL) to allow accounts that

@@ -12,5 +12,9 @@ String standardClassificationKindLabelAr(
       return 'ذمم دائنة - علي';
     case StandardAccountClassificationKind.settlements:
       return 'تسوية وشخصي';
+    case StandardAccountClassificationKind.personalExpenses:
+      return 'مصروفات شخصية';
+    case StandardAccountClassificationKind.personalRevenues:
+      return 'إيرادات شخصية';
   }
 }

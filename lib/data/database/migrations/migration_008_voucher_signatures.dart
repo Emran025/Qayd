@@ -12,20 +12,27 @@ final class Migration008VoucherSignatures implements SchemaMigration {
   @override
   Future<void> up(Database db) async {
     // 1. Digital identity mapping
-    await db.execute('ALTER TABLE vouchers ADD COLUMN signer_phone TEXT');
+    await db.addColumnIfNotExists('vouchers', 'signer_phone', 'TEXT');
 
     // 2. Dual agreement statuses
-    await db.execute('ALTER TABLE vouchers ADD COLUMN sender_status TEXT DEFAULT \'accepted\'');
-    await db.execute('ALTER TABLE vouchers ADD COLUMN receiver_status TEXT DEFAULT \'under_request\'');
+    await db.addColumnIfNotExists('vouchers', 'sender_status', 'TEXT',
+        defaultValue: "'accepted'");
+    await db.addColumnIfNotExists('vouchers', 'receiver_status', 'TEXT',
+        defaultValue: "'under_request'");
 
     // 3. Dual signatures and public keys
-    await db.execute('ALTER TABLE vouchers ADD COLUMN sender_signature_hex TEXT');
-    await db.execute('ALTER TABLE vouchers ADD COLUMN receiver_signature_hex TEXT');
-    await db.execute('ALTER TABLE vouchers ADD COLUMN sender_public_key_hex TEXT');
-    await db.execute('ALTER TABLE vouchers ADD COLUMN receiver_public_key_hex TEXT');
+    await db.addColumnIfNotExists(
+        'vouchers', 'sender_signature_hex', 'TEXT');
+    await db.addColumnIfNotExists(
+        'vouchers', 'receiver_signature_hex', 'TEXT');
+    await db.addColumnIfNotExists(
+        'vouchers', 'sender_public_key_hex', 'TEXT');
+    await db.addColumnIfNotExists(
+        'vouchers', 'receiver_public_key_hex', 'TEXT');
 
     // 4. High-level lifecycle status (for aggregate balance tracking)
-    await db.execute('ALTER TABLE vouchers ADD COLUMN lifecycle_status TEXT DEFAULT \'draft\'');
+    await db.addColumnIfNotExists('vouchers', 'lifecycle_status', 'TEXT',
+        defaultValue: "'draft'");
 
     // Historical sync for existing vouchers (if any)
     await db.execute('''
