@@ -158,6 +158,9 @@ class SyncPayloadProcessor {
               'P2P Handshake event received — delegating to P2P service.',
             );
             break;
+          case SyncEventType.tripartiteRequest:
+            await _inboundTripartiteRequest(decryptedRawPayload, node.senderId.toString());
+            break;
           case SyncEventType.unknown:
             debugPrint('Warning: Unknown event type in SyncNode [${node.id}]');
             break;
@@ -613,6 +616,28 @@ class SyncPayloadProcessor {
         'current state is ${voucher.state.name}.',
       );
     }
+  }
+
+  Future<void> _inboundTripartiteRequest(Map<String, dynamic> payload, String senderId) async {
+    // Protocol §5 — Inbound Tripartite Request from Sender (A).
+    // The mediator (B) saves this as a notification to allow deep-linking to the creation page.
+    final now = DateTime.now();
+    final id = const Uuid().v4();
+    
+    // Resolve sender name for the notification UI
+    final accountResult = await accountRepository.getById(AccountId(senderId));
+    final senderName = accountResult.valueOrNull?.name ?? 'المُرسل';
+
+    await notificationMessageRepository.insert(
+      id: id,
+      counterpartyAccountId: senderId,
+      bodyText: 'طلب حوالة جديدة من $senderName',
+      channel: 'in_app',
+      createdAtIso: now.toIso8601String(),
+      rawPayloadJson: jsonEncode(payload),
+    );
+    
+    debugPrint('TripartiteRequest [$senderName -> B]: Ingested and stored.');
   }
 
   Uint8List _hexToBytes(String hex) {

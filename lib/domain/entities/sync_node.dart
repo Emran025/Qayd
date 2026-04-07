@@ -11,6 +11,7 @@ enum SyncEventType {
   withdrawal,        // Voucher withdrawn by creator
   settlement,        // Settlement linked via originVoucherId
   p2pHandshake,      // P2P bidirectional sync handshake
+  tripartiteRequest, // Sender -> Mediator Request (A -> B)
   unknown;
 
   static SyncEventType fromString(String val) {

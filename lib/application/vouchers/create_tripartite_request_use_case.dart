@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/failure_mapping.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:uuid/uuid.dart';
 
 class CreateTripartiteRequestInput {
@@ -24,37 +25,48 @@ class CreateTripartiteRequestInput {
 
 /// Allows Sender (A) to request Mediator (B) to initiate a tripartite transfer to Recipient (C).
 class CreateTripartiteRequestUseCase {
-  const CreateTripartiteRequestUseCase(this.notificationRepo);
+  const CreateTripartiteRequestUseCase({
+    required this.notificationRepo,
+    required this.syncEventDispatcher,
+  });
 
   final NotificationMessageRepository notificationRepo;
+  final SyncEventDispatcher syncEventDispatcher;
 
   Future<Result<void>> call(CreateTripartiteRequestInput input) async {
     try {
       final id = const Uuid().v4();
       final now = DateTime.now();
 
-      // Encode the specific request data in the payload to drive UI deep linking
-      final payloadJson = jsonEncode({
+      final payloadMap = {
         'type': 'tripartite_request',
         'destAccountId': input.destinationAccountId,
         'amountMinorUnits': input.amountMinorUnits,
         'currencyCode': input.currencyCode,
-      });
+      };
 
-      final r = await notificationRepo.insert(
+      // 1. Local logging (Optional visibility for sender)
+      await notificationRepo.insert(
         id: id,
         counterpartyAccountId: input.mediatorAccountId,
         bodyText: 'طلب إجراء حوالة ثنائية الأطراف',
-        channel: 'in_app', // Local simulation indicator
+        channel: 'outbound',
         createdAtIso: now.toIso8601String(),
-        rawPayloadJson: payloadJson,
+        rawPayloadJson: jsonEncode(payloadMap),
       );
 
-      if (r.isFailure) return FailureResult(r.failureOrNull!);
+      // 2. Protocol §5: E2EE Dispatch to Mediator (B)
+      // This ensures the server is "blind" as the payload is encrypted for B's public key.
+      final dispatchRes = await syncEventDispatcher.dispatchGenericEvent(
+        counterpartyAccountId: input.mediatorAccountId,
+        eventType: 'tripartite_request',
+        payload: payloadMap,
+      );
 
-      return const Success(null);
+      return dispatchRes;
     } catch (e) {
       return FailureResult(failureFromDomainException(e));
     }
   }
 }
+

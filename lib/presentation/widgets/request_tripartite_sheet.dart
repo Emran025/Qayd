@@ -67,7 +67,8 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
 
     try {
       final useCase = CreateTripartiteRequestUseCase(
-        InjectionContainer.notificationMessageRepository,
+        notificationRepo: InjectionContainer.notificationMessageRepository,
+        syncEventDispatcher: InjectionContainer.syncEventDispatcher,
       );
 
       final r = await useCase.call(

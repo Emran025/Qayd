@@ -1,9 +1,11 @@
+import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/repositories/outbox_dao.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/identity_repository.dart';
 import 'package:qayd/domain/services/e2ee_encryption_service.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:uuid/uuid.dart';
 
@@ -87,39 +89,58 @@ class SyncEventDispatcher {
     );
   }
 
-  /// Internal helper to resolve counterparty identity, encrypt, and enqueue.
-  Future<void> _enqueueMutation({
-    required Voucher voucher,
+  /// Enqueues a generic E2EE-encrypted event for a counterparty.
+  /// 
+  /// Protocol §5.A: Ensures encryption for the correct party (Mediator B in tripartite).
+  /// If public key is missing, performs active discovery via server lookup.
+  Future<Result<void>> dispatchGenericEvent({
+    required String counterpartyAccountId,
     required String eventType,
     required Map<String, dynamic> payload,
+    String? voucherId,
   }) async {
     final senderKeyPair = await getCurrentUserKeyPair();
-    if (senderKeyPair == null) return;
+    if (senderKeyPair == null) return const Success(null);
 
     // 1. Resolve counterparty public key.
-    final partyResult = await accountRepository.getPartyDetails(voucher.counterpartyId);
+    final partyResult = await accountRepository.getPartyDetails(AccountId(counterpartyAccountId));
     final party = partyResult.valueOrNull;
-    if (party == null) return;
+    if (party == null) {
+      return const FailureResult(ValidationFailure(messageAr: 'لم يتم العثور على بيانات الطرف المقابل.'));
+    }
 
     String? receiverPubKey = party.currentPublicKeyHex;
     
-    // If we don't have it locally, attempt a network lookup (or skip until next sync).
+    // §5.B: Active Public Key Discovery
+    // If not local, recursively seek via Phone/Email on server.
     if (receiverPubKey == null || receiverPubKey.isEmpty) {
-      if (party.phoneNumber != null) {
-        final serverIdentity = await identityRepository.lookupByPhone(phone: party.phoneNumber!);
-        receiverPubKey = serverIdentity?.publicKeyHex;
-      } else if (party.email != null) {
-        final serverIdentity = await identityRepository.lookupByEmail(email: party.email!);
-        receiverPubKey = serverIdentity?.publicKeyHex;
+      PublicKeyLookupResult? serverIdentity;
+      if (party.phoneNumber != null && party.phoneNumber!.isNotEmpty) {
+        serverIdentity = await identityRepository.lookupByPhone(phone: party.phoneNumber!);
+      } else if (party.email != null && party.email!.isNotEmpty) {
+        serverIdentity = await identityRepository.lookupByEmail(email: party.email!);
+      }
+
+      if (serverIdentity != null) {
+        receiverPubKey = serverIdentity.publicKeyHex;
+        // Optionally update local cache immediately
+        await accountRepository.savePartyDetails(party.copyWith(
+          currentPublicKeyHex: receiverPubKey,
+          publicKeyHistoryHex: serverIdentity.allAuthorizedKeys,
+        ));
       }
     }
 
     if (receiverPubKey == null || receiverPubKey.isEmpty) {
-      // Cannot E2EE for this counterparty yet - defer until identity discovery handshake occurs.
-      return; 
+      // ── Queue Suspension ──────────────────────────────────────────────────
+      // If we cannot find a public key, we cannot encrypt. 
+      // Synchronous flows must stop here to prevent "Plaintext Leakage".
+      return const FailureResult(ValidationFailure(
+        messageAr: 'تعذر الحصول على المفتاح العام للطرف المقابل. تم تعليق المزامنة.',
+      ));
     }
 
-    // 2. Encrypt Payload strictly for receiver's public key.
+    // 2. Encrypt Payload strictly for receiver's public key (e.g. Mediator B).
     final encrypted = await e2eeEncryptionService.encryptPayload(
       rawPayload: payload,
       senderKeyPair: senderKeyPair,
@@ -127,15 +148,33 @@ class SyncEventDispatcher {
     );
 
     // 3. Enqueue to Outbox table.
-    await outboxDao.enqueue(OutboxEntry(
+    final enqueueRes = await outboxDao.enqueue(OutboxEntry(
       id: const Uuid().v4(),
       eventType: eventType,
-      voucherId: voucher.id.value,
-      counterpartyAccountId: voucher.counterpartyId.value,
+      voucherId: voucherId,
+      counterpartyAccountId: counterpartyAccountId,
       encryptedPayload: encrypted,
       state: 'pending',
       retryCount: 0,
       createdAt: DateTime.now(),
     ));
+
+    return enqueueRes;
+  }
+
+  /// Internal helper to resolve counterparty identity, encrypt, and enqueue.
+  Future<void> _enqueueMutation({
+    required Voucher voucher,
+    required String eventType,
+    required Map<String, dynamic> payload,
+  }) async {
+    await dispatchGenericEvent(
+      counterpartyAccountId: voucher.counterpartyId.value,
+      eventType: eventType,
+      payload: payload,
+      voucherId: voucher.id.value,
+    );
   }
 }
+
+
