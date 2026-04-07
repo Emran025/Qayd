@@ -634,6 +634,7 @@ abstract final class InjectionContainer {
       licenseVault,
       attachmentRepository,
       collateralRepository,
+      costCenterRepository,
     );
     generateTrialBalanceUseCase = GenerateTrialBalanceUseCase(
       accountRepository,

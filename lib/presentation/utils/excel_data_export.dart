@@ -138,27 +138,41 @@ Uint8List buildAccountStatementExcelBytes({
 }) {
   final headers = [
     'التاريخ',
+    'رقم السند',
     'البيان',
+    'الحالة',
     'مدين',
     'دائن',
     'الرصيد',
-    'سند',
   ];
   final rows = <List<Object?>>[];
+  int totalDebit = 0;
+  int totalCredit = 0;
   for (final line in lines) {
+    totalDebit += line.debitMinorUnits;
+    totalCredit += line.creditMinorUnits;
     rows.add([
       _formatDateIso(line.dateIso),
+      line.voucherId.length > 10
+          ? '${line.voucherId.substring(0, 8)}…'
+          : line.voucherId,
       line.description,
-      _moneyMinor(line.debitMinorUnits),
-      _moneyMinor(line.creditMinorUnits),
+      '—',
+      line.debitMinorUnits > 0 ? _moneyMinor(line.debitMinorUnits) : '',
+      line.creditMinorUnits > 0 ? _moneyMinor(line.creditMinorUnits) : '',
       _moneyMinor(line.balanceMinorUnits),
-      line.voucherId,
     ]);
   }
+  final netBalance = lines.isNotEmpty ? lines.last.balanceMinorUnits : 0;
   return QaydExcelWorkbook.buildAccountStatement(
     accountName: accountName,
     headers: headers,
     rows: rows,
+    statementDate: _formatDateIso(DateTime.now().toIso8601String()),
+    totalDebit: _moneyMinor(totalDebit),
+    totalCredit: _moneyMinor(totalCredit),
+    netBalance: _moneyMinor(netBalance),
+    notesText: 'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
   );
 }
 

@@ -646,5 +646,27 @@ abstract final class AppStringsAr {
 
   // ── Navigation ──────────────────────────────────────────────────────────
   static const String navCostCentersTab = 'المراكز';
+
+  // ── Enhanced Voucher Detail Page ────────────────────────────────────────
+  static const String voucherPreviewCardTitle = 'معاينة السند';
+  static const String voucherCreatedAtLabel = 'تاريخ الإنشاء';
+  static const String voucherConfirmedAtLabel = 'تاريخ التأكيد';
+  static const String voucherSettledAtLabel = 'تاريخ التسوية';
+  static const String voucherAttachmentsSection = 'المرفقات';
+  static String voucherAttachmentCountLabel(int count) => '$count مرفق';
+  static const String voucherAttachmentSizeLabel = 'الحجم';
+  static const String voucherCollateralSection = 'رهن / ضمان';
+  static const String voucherCollateralValueLabel = 'قيمة الرهن';
+  static const String voucherCollateralExpiryLabel = 'تاريخ الاستحقاق';
+  static const String voucherCollateralStatusLabel = 'حالة الرهن';
+  static const String voucherCollateralSettlementsTitle = 'تسويات الرهن';
+  static String voucherCollateralSettlementLink(int index) => 'سند تسوية #$index';
+  static const String voucherCostCentersSection = 'مراكز التكلفة / الربح';
+  static const String voucherCostCenterTypeCost = 'تكلفة';
+  static const String voucherCostCenterTypeProfit = 'ربح';
+  static const String voucherOriginDocumentButton = 'عرض السند الأصلي';
+  static const String voucherSignatureStatusLabel = 'حالة التوقيعات';
+  static const String voucherSenderLabel = 'المرسل';
+  static const String voucherReceiverLabel = 'المستلم';
 }
 

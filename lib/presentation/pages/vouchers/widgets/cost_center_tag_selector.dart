@@ -35,17 +35,29 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
   void _notify() => widget.onChanged(List.unmodifiable(_selectedTags));
 
   Future<void> _addCostCenter() async {
-    final res = await InjectionContainer.listCostCentersUseCase.call(activeOnly: true);
+    final res = await InjectionContainer.listCostCentersUseCase.call(
+      activeOnly: true,
+    );
     if (!res.isSuccess || !mounted) return;
 
     final centers = res.valueOrNull!;
     // Exclude already selected
-    final available = centers.where((c) => !_selectedTags.any((t) => t.costCenterId == c.id)).toList();
+    if (centers.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('لا يوجد مراكز تكلفة .')));
+      return;
+    }
+    final available = centers
+        .where((c) => !_selectedTags.any((t) => t.costCenterId == c.id))
+        .toList();
 
     if (available.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تمت إضافة جميع مراكز التكلفة المتاحة.')),
+          const SnackBar(
+            content: Text('تمت إضافة جميع مراكز التكلفة المتاحة.'),
+          ),
         );
       }
       return;
@@ -59,10 +71,9 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
 
     if (selectedCenter != null && mounted) {
       // Pick dimensions for this center
-      final dimRes = await InjectionContainer.manageDimensionsUseCase.listDimensions(
-        costCenterId: selectedCenter.id,
-      );
-      
+      final dimRes = await InjectionContainer.manageDimensionsUseCase
+          .listDimensions(costCenterId: selectedCenter.id);
+
       List<String> selectedDims = [];
       if (dimRes.isSuccess && dimRes.valueOrNull!.isNotEmpty) {
         final picked = await showModalBottomSheet<List<String>>(
@@ -77,10 +88,12 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
       }
 
       setState(() {
-        _selectedTags.add(CostCenterTagInput(
-          costCenterId: selectedCenter.id,
-          dimensionIds: selectedDims,
-        ));
+        _selectedTags.add(
+          CostCenterTagInput(
+            costCenterId: selectedCenter.id,
+            dimensionIds: selectedDims,
+          ),
+        );
       });
       _notify();
     }
@@ -113,7 +126,9 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
             child: Text(
               'لا توجد مراكز تكلفة مرتبطة.',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.6,
+                ),
               ),
             ),
           )
@@ -123,7 +138,9 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
             runSpacing: SpacingTokens.sm,
             children: _selectedTags.map((tag) {
               return FutureBuilder<Result<CostCenterDetailsDto>>(
-                future: InjectionContainer.getCostCenterDetailsUseCase.call(tag.costCenterId),
+                future: InjectionContainer.getCostCenterDetailsUseCase.call(
+                  tag.costCenterId,
+                ),
                 builder: (context, snapshot) {
                   final name = snapshot.data?.valueOrNull?.center.name ?? '...';
                   return Chip(
@@ -161,11 +178,13 @@ class _CostCenterPickerSheet extends StatelessWidget {
         children: [
           QaydText('اختر مركز التكلفة', slot: QaydTextStyleSlot.titleMedium),
           const SizedBox(height: SpacingTokens.md),
-          ...centers.map((c) => ListTile(
-                title: Text(c.name),
-                leading: const Icon(Icons.pie_chart_outline_rounded),
-                onTap: () => Navigator.pop(context, c),
-              )),
+          ...centers.map(
+            (c) => ListTile(
+              title: Text(c.name),
+              leading: const Icon(Icons.pie_chart_outline_rounded),
+              onTap: () => Navigator.pop(context, c),
+            ),
+          ),
           const SizedBox(height: SpacingTokens.xl),
         ],
       ),
@@ -229,7 +248,8 @@ class _DimensionPickerSheetState extends State<_DimensionPickerSheet> {
               children: [
                 Expanded(
                   child: FilledButton(
-                    onPressed: () => Navigator.pop(context, _selectedIds.toList()),
+                    onPressed: () =>
+                        Navigator.pop(context, _selectedIds.toList()),
                     child: const Text('تطبيق'),
                   ),
                 ),

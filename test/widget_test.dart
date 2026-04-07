@@ -3,8 +3,8 @@ import 'package:qayd/main.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 
 void main() {
-  testWidgets('Qayd boots with Arabic title', (WidgetTester tester) async {
+  testWidgets('Qayd boots to Login page', (WidgetTester tester) async {
     await tester.pumpWidget(const QaydApp());
-    expect(find.text(AppStringsAr.appTitle), findsWidgets);
+    expect(find.text(AppStringsAr.loginTitle), findsOneWidget);
   });
 }

@@ -101,6 +101,9 @@ Future<void> shareStatementChatAsPdf(
 }
 
 /// Exports the Statement of Account Chat as Excel using applied filters.
+///
+/// The generated Excel file matches the professional branded template with
+/// header bar, info section, styled transaction table, and totals.
 Future<void> shareStatementChatAsExcel(
   BuildContext context, {
   required String accountId,
@@ -120,7 +123,6 @@ Future<void> shareStatementChatAsExcel(
       'مدين',
       'دائن',
       'الرصيد',
-      'البيان',
     ];
 
     num divisor = 1;
@@ -129,35 +131,47 @@ Future<void> shareStatementChatAsExcel(
     }
 
     final rows = <List<Object?>>[];
+    final dateFmtAr = DateFormat.yMMMd('ar');
+
+    int totalDebitMinor = 0;
+    int totalCreditMinor = 0;
 
     // Brought Forward
     if (filter.includePreviousBalance && broughtForwardMinorUnits != 0 && filter.fromDate != null) {
-      final df = DateFormat.yMMMd('ar');
       final isPositive = broughtForwardMinorUnits >= 0;
       final bfMinorAbs = broughtForwardMinorUnits.abs() / divisor;
       final balance = broughtForwardMinorUnits / divisor;
+      final debitVal = isPositive ? 0 : bfMinorAbs;
+      final creditVal = isPositive ? bfMinorAbs : 0;
+
       rows.add([
-        df.format(filter.fromDate!),
+        dateFmtAr.format(filter.fromDate!),
         '-',
         '-',
         '-',
-        isPositive ? 0 : bfMinorAbs,
-        isPositive ? bfMinorAbs : 0,
-        balance,
-        AppStringsAr.statementBroughtForward,
+        debitVal == 0 ? '' : _fmtNum(debitVal, currencyDigits),
+        creditVal == 0 ? '' : _fmtNum(creditVal, currencyDigits),
+        _fmtNum(balance, currencyDigits),
       ]);
+
+      if (!isPositive) {
+        totalDebitMinor += broughtForwardMinorUnits.abs();
+      } else {
+        totalCreditMinor += broughtForwardMinorUnits;
+      }
     }
 
     rows.addAll(messages.map((m) {
-      final df = DateFormat.yMMMd('ar');
-      final dateStr = df.format(DateTime.parse(m.dateIso));
+      final dateStr = dateFmtAr.format(DateTime.parse(m.dateIso));
       final isIncoming = m.direction == 'incoming';
 
       final amount = m.amountMinorUnits / divisor;
       final balance = m.runningBalanceMinorUnits / divisor;
-      
-      final typeLabel = m.typeCode == 'receipt' ? AppStringsAr.voucherTypeReceipt : AppStringsAr.voucherTypePayment;
-      
+
+      final typeLabel = m.typeCode == 'receipt'
+          ? AppStringsAr.voucherTypeReceipt
+          : AppStringsAr.voucherTypePayment;
+
       final statusLabel = switch (m.signatureStatusCode) {
         'accepted' => AppStringsAr.statementStatusConfirmed,
         'underRequest' => AppStringsAr.statementStatusPending,
@@ -166,22 +180,61 @@ Future<void> shareStatementChatAsExcel(
         _ => m.signatureStatusCode,
       };
 
+      // Track totals
+      if (isIncoming) {
+        totalCreditMinor += m.amountMinorUnits;
+      } else {
+        totalDebitMinor += m.amountMinorUnits;
+      }
+
       return [
         dateStr,
-        m.voucherId,
+        m.voucherId.length > 10
+            ? '${m.voucherId.substring(0, 8)}…'
+            : m.voucherId,
         typeLabel,
         statusLabel,
-        isIncoming ? 0 : amount,
-        isIncoming ? amount : 0,
-        balance,
-        m.description,
+        isIncoming ? '' : _fmtNum(amount, currencyDigits),
+        isIncoming ? _fmtNum(amount, currencyDigits) : '',
+        _fmtNum(balance, currencyDigits),
       ];
     }));
+
+    // Format totals
+    final totalDebitStr = _fmtNum(totalDebitMinor / divisor, currencyDigits);
+    final totalCreditStr = _fmtNum(totalCreditMinor / divisor, currencyDigits);
+    final netBalanceMinor = totalCreditMinor - totalDebitMinor;
+    final netBalanceStr = _fmtNum(netBalanceMinor / divisor, currencyDigits);
+
+    // Format dates for meta
+    final stmtDate = dateFmtAr.format(DateTime.now());
+    String? periodFromStr;
+    String? periodToStr;
+    if (filter.fromDate != null) {
+      periodFromStr = dateFmtAr.format(filter.fromDate!);
+    }
+    if (filter.toDate != null) {
+      periodToStr = dateFmtAr.format(filter.toDate!);
+    }
 
     final bytes = QaydExcelWorkbook.buildAccountStatement(
       accountName: accountName,
       headers: headers,
       rows: rows,
+      counterpartyName: accountName,
+      statementDate: stmtDate,
+      referenceNumber: accountId.length > 12
+          ? accountId.substring(0, 12)
+          : accountId,
+      openingBalance: broughtForwardMinorUnits != 0
+          ? _fmtNum(broughtForwardMinorUnits / divisor, currencyDigits)
+          : null,
+      periodFrom: periodFromStr,
+      periodTo: periodToStr,
+      totalDebit: totalDebitStr,
+      totalCredit: totalCreditStr,
+      netBalance: netBalanceStr,
+      notesText: 'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
     );
 
     final dir = await getTemporaryDirectory();
@@ -198,4 +251,9 @@ Future<void> shareStatementChatAsExcel(
       const SnackBar(content: Text('حدث خطأ أثناء تصدير Excel')),
     );
   }
+}
+
+/// Formats a number with the correct number of decimal places.
+String _fmtNum(num value, int digits) {
+  return NumberFormat('#,##0.${'0' * digits}', 'ar').format(value);
 }

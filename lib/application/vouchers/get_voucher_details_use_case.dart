@@ -5,6 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/attachment_repository.dart';
 import 'package:qayd/domain/repositories/collateral_repository.dart';
+import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
@@ -21,6 +22,7 @@ class GetVoucherDetailsUseCase {
     this._licenseVault,
     this._attachmentRepository,
     this._collateralRepository,
+    this._costCenterRepository,
   );
 
   final VoucherRepository _voucherRepository;
@@ -29,6 +31,7 @@ class GetVoucherDetailsUseCase {
   final LicenseVault _licenseVault;
   final AttachmentRepository _attachmentRepository;
   final CollateralRepository _collateralRepository;
+  final CostCenterRepository _costCenterRepository;
 
   Future<Result<GetVoucherDetailsOutput>> call(
     GetVoucherDetailsInput input,
@@ -59,11 +62,22 @@ class GetVoucherDetailsUseCase {
         linkedPartyName = await nameFor(v.tripartiteMeta!.linkedPartyId);
       }
 
-      // ── Attachment count ────────────────────────────────────────────────
+      // ── Attachments ─────────────────────────────────────────────────────
       int attachmentCount = 0;
+      final List<VoucherAttachmentSummary> attachmentSummaries = [];
       final attachR = await _attachmentRepository.getByVoucherId(v.id);
       if (attachR.isSuccess) {
-        attachmentCount = attachR.valueOrNull!.length;
+        final attachments = attachR.valueOrNull!;
+        attachmentCount = attachments.length;
+        for (final a in attachments) {
+          attachmentSummaries.add(VoucherAttachmentSummary(
+            id: a.id.value,
+            fileName: a.fileName,
+            mimeType: a.mimeType,
+            byteSize: a.byteSize,
+            createdAtIso: a.createdAt.toIso8601String(),
+          ));
+        }
       }
 
       // ── Collateral info ─────────────────────────────────────────────────
@@ -72,6 +86,7 @@ class GetVoucherDetailsUseCase {
       String? collateralStatusCode;
       int? collateralValueMinor;
       String? collateralExpiryIso;
+      List<String> collateralSettlementVoucherIds = [];
 
       final collR = await _collateralRepository.getByVoucherId(v.id);
       if (collR.isSuccess && collR.valueOrNull != null) {
@@ -81,6 +96,32 @@ class GetVoucherDetailsUseCase {
         collateralStatusCode = coll.status.name;
         collateralValueMinor = coll.estimatedValue.minorUnits;
         collateralExpiryIso = coll.expiryDate?.toIso8601String();
+
+        // Look up settlement vouchers linked to this voucher
+        final settleR = await _voucherRepository.getByOriginVoucherId(v.id);
+        if (settleR.isSuccess) {
+          collateralSettlementVoucherIds = settleR.valueOrNull!
+              .where((sv) => sv.state == VoucherState.settled || sv.state == VoucherState.confirmed)
+              .map((sv) => sv.id.value)
+              .toList();
+        }
+      }
+
+      // ── Cost / Profit Centers ────────────────────────────────────────────
+      final List<CostCenterSummary> costCenters = [];
+      final ccIdsR = await _costCenterRepository.getCostCenterIdsForVoucher(v.id.value);
+      if (ccIdsR.isSuccess) {
+        for (final ccId in ccIdsR.valueOrNull!) {
+          final ccR = await _costCenterRepository.getById(ccId);
+          if (ccR.isSuccess && ccR.valueOrNull != null) {
+            final cc = ccR.valueOrNull!;
+            costCenters.add(CostCenterSummary(
+              id: cc.id,
+              name: cc.name,
+              typeCode: cc.type.name,
+            ));
+          }
+        }
       }
 
       // ── Successor lookup (Threading v1.3) ────────────────────────────────
@@ -161,12 +202,15 @@ class GetVoucherDetailsUseCase {
           canApprove: canApprove,
           originVoucherId: v.originVoucherId?.value,
           attachmentCount: attachmentCount,
+          attachments: attachmentSummaries,
           hasCollateral: hasCollateral,
           collateralDescription: collateralDescription,
           collateralStatusCode: collateralStatusCode,
           collateralValueMinor: collateralValueMinor,
           collateralExpiryIso: collateralExpiryIso,
+          collateralSettlementVoucherIds: collateralSettlementVoucherIds,
           successorVoucherId: successorVoucherId,
+          costCenters: costCenters,
         ),
       );
     } catch (e, _) {

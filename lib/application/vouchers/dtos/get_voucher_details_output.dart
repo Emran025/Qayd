@@ -35,12 +35,15 @@ class GetVoucherDetailsOutput {
     this.canApprove = false,
     this.originVoucherId,
     this.attachmentCount = 0,
+    this.attachments = const [],
     this.hasCollateral = false,
     this.collateralDescription,
     this.collateralStatusCode,
     this.collateralValueMinor,
     this.collateralExpiryIso,
+    this.collateralSettlementVoucherIds = const [],
     this.successorVoucherId,
+    this.costCenters = const [],
   });
 
   final String id;
@@ -84,6 +87,7 @@ class GetVoucherDetailsOutput {
 
   // Attachments
   final int attachmentCount;
+  final List<VoucherAttachmentSummary> attachments;
 
   // Collateral
   final bool hasCollateral;
@@ -91,7 +95,43 @@ class GetVoucherDetailsOutput {
   final String? collateralStatusCode;
   final int? collateralValueMinor;
   final String? collateralExpiryIso;
+  /// Voucher IDs of settlement vouchers linked to this collateral.
+  final List<String> collateralSettlementVoucherIds;
 
   // Threading (Protocol v1.3)
   final String? successorVoucherId;
+
+  // Cost / Profit Centers
+  final List<CostCenterSummary> costCenters;
+}
+
+/// Lightweight summary of an attachment for display in the detail view.
+class VoucherAttachmentSummary {
+  const VoucherAttachmentSummary({
+    required this.id,
+    required this.fileName,
+    required this.mimeType,
+    required this.byteSize,
+    required this.createdAtIso,
+  });
+
+  final String id;
+  final String fileName;
+  final String mimeType;
+  final int byteSize;
+  final String createdAtIso;
+}
+
+/// Lightweight summary of a cost/profit center association.
+class CostCenterSummary {
+  const CostCenterSummary({
+    required this.id,
+    required this.name,
+    required this.typeCode,
+  });
+
+  final String id;
+  final String name;
+  /// 'cost' or 'profit'
+  final String typeCode;
 }
