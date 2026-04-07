@@ -89,41 +89,64 @@ final class CairoAccountStatementPdfGenerator
           header: (context) => _buildHeader(font, report, genAt, logoImage),
           footer: (context) => _buildFooter(font, report, context),
           build: (context) => [
-            pw.SizedBox(height: 12),
+            pw.Stack(
+              children: [
+                if (logoImage != null)
+                  pw.Positioned.fill(
+                    child: pw.Center(
+                      child: pw.Opacity(
+                        opacity: 0.05,
+                        child: pw.Image(
+                          logoImage,
+                          width: 450,
+                          height: 450,
+                          fit: pw.BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                  children: [
+                    pw.SizedBox(height: 12),
 
-            // ── Info Section (إلى / من) ──────────────────────────────────
-            _buildInfoSection(font, report, genAt, natureAr, periodLabel),
+                    // ── Info Section (إلى / من) ──────────────────────────────────
+                    _buildInfoSection(font, report, genAt, natureAr, periodLabel),
 
-            pw.SizedBox(height: 14),
+                    pw.SizedBox(height: 14),
 
-            // ── Main Transaction Table ───────────────────────────────────
-            _buildTransactionTable(font, report, dateFmt),
+                    // ── Main Transaction Table ───────────────────────────────────
+                    _buildTransactionTable(font, report, dateFmt),
 
-            pw.SizedBox(height: 14),
+                    pw.SizedBox(height: 14),
 
-            // ── Bottom Section: Notes + Totals ───────────────────────────
-            _buildBottomSection(
-              font,
-              totalDebit: totalDebit,
-              totalCredit: totalCredit,
-              netBalance: netBalance,
-            ),
+                    // ── Bottom Section: Notes + Totals ───────────────────────────
+                    _buildBottomSection(
+                      font,
+                      totalDebit: totalDebit,
+                      totalCredit: totalCredit,
+                      netBalance: netBalance,
+                    ),
 
-            pw.SizedBox(height: 12),
+                    pw.SizedBox(height: 12),
 
-            // ── Currency Note ────────────────────────────────────────────
-            pw.Align(
-              alignment: pw.Alignment.centerLeft,
-              child: pw.Text(
-                '* في حال وجود عملات متعددة، يتم عرض الإجماليات بشكل منفصل لكل عملة.',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 7,
-                  color: _errorRed,
-                  fontWeight: pw.FontWeight.bold,
+                    // ── Currency Note ────────────────────────────────────────────
+                    pw.Align(
+                      alignment: pw.Alignment.centerLeft,
+                      child: pw.Text(
+                        '* في حال وجود عملات متعددة، يتم عرض الإجماليات بشكل منفصل لكل عملة.',
+                        style: pw.TextStyle(
+                          font: font,
+                          fontSize: 7,
+                          color: _errorRed,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                        textAlign: pw.TextAlign.left,
+                      ),
+                    ),
+                  ],
                 ),
-                textAlign: pw.TextAlign.left,
-              ),
+              ],
             ),
           ],
         ),

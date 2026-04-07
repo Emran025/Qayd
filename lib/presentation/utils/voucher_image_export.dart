@@ -156,38 +156,56 @@ class VoucherImageCard extends StatelessWidget {
           border: Border.all(color: _border),
         ),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            _headerBar(),
-            _titleRow(titleAr, dateStr),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  _entrySection(
-                    sectionType: 'debit',
-                    amountStr: amountStr,
-                    accent: accent,
+            // Watermark logo in the center
+            Positioned.fill(
+              child: Center(
+                child: Opacity(
+                  opacity: 0.05,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 250,
+                    height: 250,
+                    fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 8),
-                  if (data.isTripartite)
-                    _entrySection(
-                      sectionType: 'credit',
-                      amountStr: amountStr,
-                      accent: accent,
-                    ),
-                ],
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _signatureRow(),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _headerBar(),
+                _titleRow(titleAr, dateStr),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      _entrySection(
+                        sectionType: 'debit',
+                        amountStr: amountStr,
+                        accent: accent,
+                      ),
+                      const SizedBox(height: 8),
+                      if (data.isTripartite)
+                        _entrySection(
+                          sectionType: 'credit',
+                          amountStr: amountStr,
+                          accent: accent,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _signatureRow(),
+                ),
+                const SizedBox(height: 10),
+                _footer(createdStr, qrPayload),
+              ],
             ),
-            const SizedBox(height: 10),
-            _footer(createdStr, qrPayload),
           ],
         ),
       ),
@@ -218,14 +236,17 @@ class VoucherImageCard extends StatelessWidget {
           const SizedBox(width: 12),
           // Logo
           Container(
-            width: 44,
-            height: 44,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: _navy,
+              color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: _gold, width: 2),
+              border: Border.all(color: _gold, width: 1.5),
+              image: const DecorationImage(
+                image: AssetImage('assets/images/logo.png'),
+                fit: BoxFit.contain,
+              ),
             ),
-            child: Center(child: _text('قيد', 15, _gold, bold: true)),
           ),
           const SizedBox(width: 12),
           // English info

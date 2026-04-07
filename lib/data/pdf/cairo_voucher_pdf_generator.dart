@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:barcode/barcode.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:qayd/core/error/failures.dart' show UnexpectedFailure;
 import 'package:qayd/core/result/result.dart';
@@ -54,6 +55,15 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
       final qrPayload = report.qrData ?? report.voucherId;
 
+      // Load logo image from assets
+      pw.ImageProvider? logoImage;
+      try {
+        final logoData = await rootBundle.load('assets/images/logo.png');
+        logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+      } catch (_) {
+        // Logo not available, fallback to text
+      }
+
       // Title logic
       final titleAr = _buildTitle(report, typeAr);
 
@@ -64,55 +74,76 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           pageFormat: PdfPageFormat.a4,
           textDirection: pw.TextDirection.rtl,
           margin: pw.EdgeInsets.zero,
-          build: (ctx) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          build: (ctx) => pw.Stack(
             children: [
-              // ── HEADER BAR ──────────────────────────────────────────
-              _buildHeaderBar(font),
-
-              // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
-              _buildTitleRow(font, report, titleAr, dateStr, accent),
-
-              pw.SizedBox(height: 6),
-
-              // ── ENTRY SECTIONS ──────────────────────────────────────
-              pw.Padding(
-                padding: const pw.EdgeInsets.symmetric(horizontal: 24),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                  children: [
-                    // Debit entry (from account)
-                    _buildEntrySection(
-                      font: font,
-                      amountStr: amountStr,
-                      sectionType: 'debit',
-                      report: report,
-                      accent: accent,
-                    ),
-
-                    pw.SizedBox(height: 8),
-
-                    // Credit entry (to account) — only for tripartite
-                    if (report.isTripartite)
-                      _buildEntrySection(
-                        font: font,
-                        amountStr: amountStr,
-                        sectionType: 'credit',
-                        report: report,
-                        accent: accent,
+              // ── WATERMARK (Back layer) ─────────────────────────────
+              if (logoImage != null)
+                pw.Positioned.fill(
+                  child: pw.Center(
+                    child: pw.Opacity(
+                      opacity: 0.05,
+                      child: pw.Image(
+                        logoImage,
+                        width: 400,
+                        height: 400,
+                        fit: pw.BoxFit.contain,
                       ),
-
-                    pw.SizedBox(height: 14),
-
-                    // ── SIGNATURE ROW ──────────────────────────────────
-                    _buildSignatureRow(font, report),
-
-                    pw.SizedBox(height: 14),
-
-                    // ── FOOTER ─────────────────────────────────────────
-                    _buildFooter(font, report, createdStr, qrPayload),
-                  ],
+                    ),
+                  ),
                 ),
+
+              // ── CONTENT (Front layer) ──────────────────────────────
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                children: [
+                  // ── HEADER BAR ──────────────────────────────────────────
+                  _buildHeaderBar(font, logoImage),
+
+                  // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
+                  _buildTitleRow(font, report, titleAr, dateStr, accent),
+
+                  pw.SizedBox(height: 6),
+
+                  // ── ENTRY SECTIONS ──────────────────────────────────────
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 24),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                      children: [
+                        // Debit entry (from account)
+                        _buildEntrySection(
+                          font: font,
+                          amountStr: amountStr,
+                          sectionType: 'debit',
+                          report: report,
+                          accent: accent,
+                        ),
+
+                        pw.SizedBox(height: 8),
+
+                        // Credit entry (to account) — only for tripartite
+                        if (report.isTripartite)
+                          _buildEntrySection(
+                            font: font,
+                            amountStr: amountStr,
+                            sectionType: 'credit',
+                            report: report,
+                            accent: accent,
+                          ),
+
+                        pw.SizedBox(height: 14),
+
+                        // ── SIGNATURE ROW ──────────────────────────────────
+                        _buildSignatureRow(font, report),
+
+                        pw.SizedBox(height: 14),
+
+                        // ── FOOTER ─────────────────────────────────────────
+                        _buildFooter(font, report, createdStr, qrPayload),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -131,7 +162,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   // ── HEADER BAR (Company-style) ─────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildHeaderBar(pw.Font font) {
+  pw.Widget _buildHeaderBar(pw.Font font, pw.ImageProvider? logoImage) {
     return pw.Container(
       color: _headerBg,
       padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -170,26 +201,40 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           pw.SizedBox(width: 16),
 
           // ── Center: Logo badge
-          pw.Container(
-            width: 52,
-            height: 52,
-            decoration: pw.BoxDecoration(
-              color: _navy,
-              borderRadius: pw.BorderRadius.circular(26),
-              border: pw.Border.all(color: _gold, width: 2),
-            ),
-            child: pw.Center(
-              child: pw.Text(
-                'قيد',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 18,
-                  color: _gold,
-                  fontWeight: pw.FontWeight.bold,
+          if (logoImage != null)
+            pw.Container(
+              width: 56,
+              height: 56,
+              decoration: pw.BoxDecoration(
+                color: PdfColors.white,
+                shape: pw.BoxShape.circle,
+                border: pw.Border.all(color: _gold, width: 2),
+              ),
+              child: pw.ClipOval(
+                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+              ),
+            )
+          else
+            pw.Container(
+              width: 52,
+              height: 52,
+              decoration: pw.BoxDecoration(
+                color: _navy,
+                borderRadius: pw.BorderRadius.circular(26),
+                border: pw.Border.all(color: _gold, width: 2),
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  'قيد',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 18,
+                    color: _gold,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-          ),
 
           pw.SizedBox(width: 16),
 
