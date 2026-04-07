@@ -21,6 +21,7 @@ import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_filter_sheet.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
+import 'package:qayd/presentation/widgets/request_tripartite_sheet.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -436,6 +437,19 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         );
 
         return Scaffold(
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              RequestTripartiteSheet.show(
+                context,
+                destinationAccountId: data.counterpartyAccountId,
+                destinationName: data.counterpartyName,
+              );
+            },
+            icon: const Icon(Icons.send_rounded),
+            label: const Text('طلب حوالة'),
+            backgroundColor: custom.goldAccent,
+            foregroundColor: ColorTokens.navy950,
+          ),
           body: Column(
             children: [
               // ── Header ──

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/inbox_notification.dart';
@@ -28,7 +29,20 @@ final class ListInboxNotificationsUseCase {
         
         // Determine title based on content or channel (heuristic for now)
         String title = 'إشعار جديد';
-        if (msg.bodyText.contains('طلب')) {
+        String actionRoute = '/chat/${msg.counterpartyAccountId}';
+
+        if (msg.rawPayloadJson != null && msg.rawPayloadJson!.contains('tripartite_request')) {
+          title = 'طلب إنشاء حوالة';
+          // Decode to build parameterized route
+          try {
+            final Map<String, dynamic> payload = jsonDecode(msg.rawPayloadJson!);
+            final destId = payload['destAccountId'];
+            final amount = payload['amountMinorUnits'];
+            final cur = payload['currencyCode'];
+            // Pass the requester (Counterparty) as the source, destination, and amount
+            actionRoute = '/tripartite/create?sourceAccountId=${msg.counterpartyAccountId}&destAccountId=$destId&amount=$amount&currency=$cur';
+          } catch (_) {}
+        } else if (msg.bodyText.contains('طلب')) {
           title = 'طلب اعتماد سند';
         } else if (msg.bodyText.contains('اعتماد')) {
           title = 'تم اعتماد السند';
@@ -42,7 +56,7 @@ final class ListInboxNotificationsUseCase {
             body: msg.bodyText,
             isRead: msg.processed,
             receivedAt: msg.createdAt,
-            actionRoute: '/chat/${msg.counterpartyAccountId}',
+            actionRoute: actionRoute,
           ),
         );
       }

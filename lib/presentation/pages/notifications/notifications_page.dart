@@ -6,6 +6,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
+import 'package:qayd/presentation/pages/vouchers/tripartite_create_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -98,6 +99,24 @@ class _NotificationsView extends StatelessWidget {
                     if (notif.actionRoute.startsWith('/chat/')) {
                       final accountId = notif.actionRoute.substring(6);
                       _openChat(context, accountId);
+                    } else if (notif.actionRoute
+                        .startsWith('/tripartite/create')) {
+                      final uri = Uri.parse(notif.actionRoute);
+
+                      // Using existing router mechanism for Tripartite page
+                      Navigator.of(context).push(
+                        QaydPageRoute.slideFromStart(
+                          builder: (ctx) => TripartiteCreatePage(
+                            initialQrData: {
+                              'amountMinorUnits': int.tryParse(
+                                  uri.queryParameters['amount'] ?? '0'),
+                              'currencyCode': uri.queryParameters['currency'],
+                              'sourceAccountId': uri.queryParameters['sourceAccountId'],
+                              'destAccountId': uri.queryParameters['destAccountId'],
+                            },
+                          ),
+                        ),
+                      );
                     }
                   },
                 );
@@ -181,7 +200,8 @@ class _NotificationTile extends StatelessWidget {
                     Text(
                       notification.title,
                       style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
+                        fontWeight:
+                            isUnread ? FontWeight.bold : FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: SpacingTokens.xs),

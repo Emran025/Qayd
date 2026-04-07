@@ -66,8 +66,27 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     if (data['description'] != null) {
       _descriptionController.text = data['description'] as String;
     }
-    // QR might contain counterpartyAccountId, in tripartite we usually map it to Source or Dest
-    // depending on the role. For now, let's leave it as manual pick unless it's specific.
+    
+    _loadAccountsFromIds(data['sourceAccountId'], data['destAccountId']);
+  }
+
+  Future<void> _loadAccountsFromIds(String? sourceId, String? destId) async {
+    if (sourceId != null) {
+      final res = await InjectionContainer.listAccountsUseCase.call(const ListAccountsInput());
+      if (res.isSuccess) {
+        final accounts = res.valueOrNull as List<AccountSummaryDto>?;
+        final match = accounts?.where((a) => a.id == sourceId).firstOrNull;
+        if (match != null) setState(() => _source = match);
+      }
+    }
+    if (destId != null) {
+      final res = await InjectionContainer.listAccountsUseCase.call(const ListAccountsInput());
+      if (res.isSuccess) {
+        final accounts = res.valueOrNull as List<AccountSummaryDto>?;
+        final match = accounts?.where((a) => a.id == destId).firstOrNull;
+        if (match != null) setState(() => _dest = match);
+      }
+    }
   }
 
   Future<void> _loadBaseCurrency() async {
