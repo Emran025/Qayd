@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// An analytical classification/category for dimensions (e.g. "Spatial", "Individual").
 /// Formerly a static enum, now a dynamic entity to allow user customization.
-final class CostCenterDimensionCategory extends Equatable {
+class CostCenterDimensionCategory extends Equatable {
   const CostCenterDimensionCategory({
     required this.id,
     required this.name,

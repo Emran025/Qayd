@@ -9,7 +9,7 @@ import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 ///
 /// The mnemonic is the single source of truth. The key pair is cached for
 /// performance but can always be re-derived from the mnemonic.
-final class MnemonicVault {
+class MnemonicVault {
   MnemonicVault({FlutterSecureStorage? storage})
       : _storage = storage ?? const FlutterSecureStorage();
 

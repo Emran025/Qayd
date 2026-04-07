@@ -20,7 +20,7 @@ import 'package:share_plus/share_plus.dart';
 ///   and a copy of the DB encryption key so that restoration is possible.
 /// - The user can disable automatic backups at any time.
 /// - All settings are stored in encrypted platform storage.
-final class AutoBackupService {
+class AutoBackupService {
   AutoBackupService({FlutterSecureStorage? storage})
       : _storage = storage ?? const FlutterSecureStorage();
 

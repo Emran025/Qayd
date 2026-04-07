@@ -14,7 +14,7 @@ import 'package:share_plus/share_plus.dart';
 ///
 /// When sharing or saving, also includes the identity file alongside the DB
 /// so the user has a complete backup including signing keys.
-final class BackupService {
+class BackupService {
   BackupService({
     required DatabaseEncryptionKeyProvider keyProvider,
   }) : _keyProvider = keyProvider;

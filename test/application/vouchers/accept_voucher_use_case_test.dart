@@ -30,11 +30,7 @@ class MockSyncRepository extends Mock implements SyncRepository {}
 class MockReceiptSigningService extends Mock implements ReceiptSigningService {}
 class MockE2EEEncryptionService extends Mock implements E2EEEncryptionService {}
 class FakeVoucher extends Fake implements Voucher {}
-class MockLicenseVault extends Mock implements LicenseVault {
-  @override
-  // ignore: must_call_super
-  noSuchMethod(Invocation invocation) => {super.noSuchMethod(invocation)};
-}
+class MockLicenseVault extends Mock implements LicenseVault {}
 
 void main() {
   late AcceptVoucherUseCase useCase;

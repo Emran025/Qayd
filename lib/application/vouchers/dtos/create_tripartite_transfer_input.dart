@@ -34,4 +34,26 @@ class CreateTripartiteTransferInput {
 
   /// Optional notes.
   final String? notes;
+
+  CreateTripartiteTransferInput copyWith({
+    String? sourceAccountId,
+    String? destinationAccountId,
+    String? affectedAccountId,
+    int? amountMinorUnits,
+    String? currencyCode,
+    DateTime? date,
+    String? description,
+    String? notes,
+  }) {
+    return CreateTripartiteTransferInput(
+      sourceAccountId: sourceAccountId ?? this.sourceAccountId,
+      destinationAccountId: destinationAccountId ?? this.destinationAccountId,
+      affectedAccountId: affectedAccountId ?? this.affectedAccountId,
+      amountMinorUnits: amountMinorUnits ?? this.amountMinorUnits,
+      currencyCode: currencyCode ?? this.currencyCode,
+      date: date ?? this.date,
+      description: description ?? this.description,
+      notes: notes ?? this.notes,
+    );
+  }
 }

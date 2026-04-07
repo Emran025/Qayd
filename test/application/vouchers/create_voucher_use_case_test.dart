@@ -30,11 +30,7 @@ class MockAttachmentStorageService extends Mock implements AttachmentStorageServ
   noSuchMethod(Invocation invocation) => {super.noSuchMethod(invocation)};
 }
 
-class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {
-  @override
-  // ignore: must_call_super
-  noSuchMethod(Invocation invocation) => {super.noSuchMethod(invocation)};
-}
+class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
 
 void main() {
   late CreateVoucherUseCase useCase;

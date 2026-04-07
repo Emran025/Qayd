@@ -31,7 +31,7 @@ enum ClockStatus {
   tampered,
 }
 
-sealed class SecurityState {
+class SecurityState {
   const SecurityState({
     this.licenseStatus = LicenseStatus.active,
     this.clockStatus = ClockStatus.clean,

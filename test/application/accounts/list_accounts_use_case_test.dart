@@ -23,11 +23,7 @@ class MockAccountRepository extends Mock implements AccountRepository {}
 class MockLedgerRepository extends Mock implements LedgerRepository {}
 class MockVoucherRepository extends Mock implements VoucherRepository {}
 
-class MockBalanceCalculator extends Mock implements BalanceCalculator {
-  @override
-  // ignore: must_call_super
-  noSuchMethod(Invocation invocation) => {super.noSuchMethod(invocation)};
-}
+class MockBalanceCalculator extends Mock implements BalanceCalculator {}
 
 void main() {
   setUpAll(() {

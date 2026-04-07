@@ -6,7 +6,7 @@ import 'package:qayd/domain/value_objects/cost_center_type.dart';
 /// Each center can track its own budget and is identified by a unique [id].
 /// Centers are never deleted — they can be suspended (deactivated) only when
 /// their balance is zero (enforcement is in the application layer).
-final class CostCenter {
+class CostCenter {
   const CostCenter._({
     required this.id,
     required this.name,
@@ -130,7 +130,7 @@ final class CostCenter {
 
   CostCenter activate() {
     if (isActive) return this;
-    return copyWith(isActive: true, suspendedAt: null);
+    return copyWith(isActive: true, clearSuspendedAt: true);
   }
 
   CostCenter copyWith({
@@ -142,6 +142,7 @@ final class CostCenter {
     bool? isActive,
     bool? isDefault,
     DateTime? suspendedAt,
+    bool clearSuspendedAt = false,
   }) {
     return CostCenter._(
       id: id,
@@ -153,7 +154,7 @@ final class CostCenter {
       isActive: isActive ?? this.isActive,
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt,
-      suspendedAt: suspendedAt ?? this.suspendedAt,
+      suspendedAt: clearSuspendedAt ? null : (suspendedAt ?? this.suspendedAt),
     );
   }
 }

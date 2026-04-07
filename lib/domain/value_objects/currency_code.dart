@@ -2,7 +2,7 @@
 ///
 /// Real, virtual, and custom currencies are structurally identical.
 /// There is no hierarchy or special status among currency types.
-final class CurrencyCode {
+class CurrencyCode {
   const CurrencyCode({
     required this.code,
     required this.nameAr,

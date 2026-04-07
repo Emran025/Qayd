@@ -12,7 +12,7 @@ import 'package:pointycastle/export.dart' as pc;
 /// ensuring the server never has access to the cleartext key.
 ///
 /// Reuses the same AES-256-CBC algorithm as [FileEncryptor] for consistency.
-final class VoucherKeyService {
+class VoucherKeyService {
   const VoucherKeyService();
 
   static final _secureRandom = pc.SecureRandom('Fortuna')

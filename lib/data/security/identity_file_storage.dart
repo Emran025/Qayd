@@ -23,7 +23,7 @@ import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 /// The identity is persisted to TWO locations:
 /// 1. App documents directory — primary location (may be deleted on uninstall).
 /// 2. External app storage — secondary location (survives uninstall on Android).
-final class IdentityFileStorage {
+class IdentityFileStorage {
   IdentityFileStorage({required String hardwareId})
       : _hardwareId = hardwareId;
 

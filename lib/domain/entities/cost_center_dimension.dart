@@ -4,7 +4,7 @@ import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 ///
 /// Dimensions are multi-axis classifiers attached to vouchers so cost/profit
 /// centers can be sliced by Space, Individual, or Project perspectives.
-final class CostCenterDimension {
+class CostCenterDimension {
   const CostCenterDimension({
     required this.id,
     required this.name,

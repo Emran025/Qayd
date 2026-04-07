@@ -10,21 +10,22 @@ import 'package:qayd/domain/value_objects/standard_account_classification_kind.d
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/domain/entities/account.dart';
+import 'package:qayd/domain/entities/party_details.dart';
 
 class MockAccountRepository extends Mock implements AccountRepository {}
 
 class FakeAccount extends Fake implements Account {}
 
+class FakePartyDetails extends Fake implements PartyDetails {}
+
 class MockIdGenerator extends Mock implements IdGenerator {}
 
-class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {
-  @override
-  noSuchMethod(Invocation invocation) => {super.noSuchMethod(invocation)};
-}
+class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
 
 void main() {
   setUpAll(() {
     registerFallbackValue(FakeAccount());
+    registerFallbackValue(FakePartyDetails());
   });
 
   late CreateAccountUseCase useCase;
@@ -80,7 +81,6 @@ void main() {
       rootStandardKind: StandardAccountClassificationKind.payables,
     );
 
-    // Mock an Account result to satisfy AccountId type
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
     when(() => mockAccountRepo.findAccountByPhone('1234567890'))
