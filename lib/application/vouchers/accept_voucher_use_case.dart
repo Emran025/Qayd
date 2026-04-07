@@ -13,6 +13,10 @@ import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/domain/services/entry_generator.dart';
+import 'package:qayd/domain/value_objects/transaction_id.dart';
+import 'package:qayd/domain/value_objects/entry_id.dart';
+import 'package:qayd/core/utils/id_generator.dart';
 import 'package:uuid/uuid.dart';
 
 /// Executed when the user taps "Accept" on an incoming pending claim.
@@ -31,6 +35,8 @@ class AcceptVoucherUseCase {
     required this.e2eeEncryptionService,
     required this.getCurrentUserKeyPair,
     required this.licenseVault,
+    required this.entryGenerator,
+    required this.idGenerator,
   });
 
   final VoucherRepository voucherRepository;
@@ -40,6 +46,8 @@ class AcceptVoucherUseCase {
   final E2EEEncryptionService e2eeEncryptionService;
   final Future<CryptoKeyPair> Function() getCurrentUserKeyPair;
   final LicenseVault licenseVault;
+  final EntryGenerator entryGenerator;
+  final IdGenerator idGenerator;
 
   Future<Result<void>> call(String voucherId) async {
     try {
@@ -79,8 +87,8 @@ class AcceptVoucherUseCase {
       final signatureHex = signature.signatureHex;
       final pubKeyHex = signature.signerPublicKeyHex;
 
-      // 2. Attach Locally.
-      final signedVoucher = draft.attachSignature(
+      // 2. Attach Locally and Confirm.
+      var signedVoucher = draft.attachSignature(
         signatureHex: signatureHex,
         publicKeyHex: pubKeyHex,
         isSender: false, // The user is accepting an inbound claim.
@@ -88,11 +96,31 @@ class AcceptVoucherUseCase {
         signerPhone: myPhone,
       );
 
-      final saveResult = await voucherRepository.save(signedVoucher);
+      // Auto-confirm state to record in local ledger.
+      signedVoucher = signedVoucher.confirm(DateTime.now());
+
+      // Generate Ledger Entries.
+      final now = DateTime.now();
+      final transactionId = TransactionId(idGenerator.next());
+      final debitId = EntryId(idGenerator.next());
+      final creditId = EntryId(idGenerator.next());
+
+      final entries = entryGenerator.generateForConfirmedVoucher(
+        voucher: signedVoucher,
+        transactionId: transactionId,
+        debitEntryId: debitId,
+        creditEntryId: creditId,
+        ledgerCreatedAt: now,
+      );
+
+      final saveResult = await voucherRepository.saveWithLedgerEntries(
+        voucher: signedVoucher,
+        ledgerEntries: entries,
+      );
       if (saveResult.isFailure) return saveResult;
 
       // 3. E2EE Dispatch — push acceptance SyncNode back to counterparty.
-      // Fire-and-forget to avoid blocking the UI.
+      // Fire-and-forget to avoid blocking the UI; the accounting transaction is already complete locally.
       _dispatchAcceptanceSyncNode(
         voucherId: voucherId,
         signatureHex: signatureHex,
@@ -101,7 +129,7 @@ class AcceptVoucherUseCase {
         counterpartyId: draft.counterpartyId,
         myKeyPair: keyPair,
         counterpartyParty: counterpartyParty.valueOrNull,
-      );
+      ).ignore();
 
       return const Success(null);
     } catch (e, _) {

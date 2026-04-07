@@ -24,6 +24,9 @@ import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
+import 'package:qayd/domain/services/entry_generator.dart';
+import 'package:qayd/domain/value_objects/transaction_id.dart';
+import 'package:qayd/domain/value_objects/entry_id.dart';
 
 class CreateVoucherUseCase {
   final VoucherRepository _voucherRepository;
@@ -38,6 +41,7 @@ class CreateVoucherUseCase {
   final LicenseVault? _licenseVault;
   final SyncEventDispatcher? _syncEventDispatcher;
   final CostCenterRepository? _costCenterRepository;
+  final EntryGenerator? _entryGenerator;
 
   CreateVoucherUseCase(
     this._voucherRepository,
@@ -52,12 +56,14 @@ class CreateVoucherUseCase {
     LicenseVault? licenseVault,
     SyncEventDispatcher? syncEventDispatcher,
     CostCenterRepository? costCenterRepository,
+    EntryGenerator? entryGenerator,
   })  : _accountRepository = accountRepository,
         _signingService = signingService,
         _getKeyPair = getKeyPair,
         _licenseVault = licenseVault,
         _syncEventDispatcher = syncEventDispatcher,
-        _costCenterRepository = costCenterRepository;
+        _costCenterRepository = costCenterRepository,
+        _entryGenerator = entryGenerator;
 
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
@@ -187,7 +193,29 @@ class CreateVoucherUseCase {
         }
       }
 
-      final saved = await _voucherRepository.save(voucher);
+      // ── Accounting Integration: Persistence ──────────────────────────
+      final Result<void> saved;
+      if (input.confirm && _entryGenerator != null) {
+        final now = DateTime.now();
+        final transactionId = TransactionId(_idGenerator.next());
+        final debitId = EntryId(_idGenerator.next());
+        final creditId = EntryId(_idGenerator.next());
+
+        final entries = _entryGenerator!.generateForConfirmedVoucher(
+          voucher: voucher,
+          transactionId: transactionId,
+          debitEntryId: debitId,
+          creditEntryId: creditId,
+          ledgerCreatedAt: now,
+        );
+
+        saved = await _voucherRepository.saveWithLedgerEntries(
+          voucher: voucher,
+          ledgerEntries: entries,
+        );
+      } else {
+        saved = await _voucherRepository.save(voucher);
+      }
       
       // ── Process Cost Center Attachments ───────────────────────────────
       if (saved.isSuccess && input.costCenterTags.isNotEmpty && _costCenterRepository != null) {
@@ -201,8 +229,9 @@ class CreateVoucherUseCase {
       }
       
       // §5.A: Enqueue claim into local outbox ONLY if confirmed.
+      // We do NOT await this to ensure a "silent" background sync and better UX.
       if (saved.isSuccess && input.confirm && _syncEventDispatcher != null) {
-        await _syncEventDispatcher!.dispatchVoucherClaim(voucher);
+        _syncEventDispatcher!.dispatchVoucherClaim(voucher).ignore();
       }
 
       return saved.fold(

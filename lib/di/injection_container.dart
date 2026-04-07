@@ -593,6 +593,7 @@ abstract final class InjectionContainer {
       licenseVault: licenseVault,
       syncEventDispatcher: syncEventDispatcher,
       costCenterRepository: costCenterRepository,
+      entryGenerator: entryGenerator,
     );
     createTripartiteTransferUseCase = CreateTripartiteTransferUseCase(
       voucherRepository,
@@ -715,6 +716,8 @@ abstract final class InjectionContainer {
       getCurrentUserKeyPair: () =>
           setupIdentityUseCase.getKeyPair().then((v) => v!),
       licenseVault: licenseVault,
+      entryGenerator: entryGenerator,
+      idGenerator: _idGenerator,
     );
 
     // ── Threaded Financial Interactions ──────────────────────────────────
