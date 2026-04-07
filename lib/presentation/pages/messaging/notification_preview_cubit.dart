@@ -65,10 +65,21 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     }
     final templates = tR.valueOrNull!;
     final bindings = TemplateBindingMaps.forVoucher(v);
+
+    GetAccountDetailsOutput? counterpartyAccount;
+    if (v.counterpartyAccountId.isNotEmpty) {
+      final aR = await _getAccountDetails(
+        GetAccountDetailsInput(accountId: v.counterpartyAccountId),
+      );
+      if (aR.isSuccess) {
+        counterpartyAccount = aR.valueOrNull;
+      }
+    }
+
     _emitReady(
       templates: templates,
       voucher: v,
-      account: null,
+      account: counterpartyAccount,
       bindings: bindings,
     );
   }
@@ -172,7 +183,11 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     if (s is! NotificationPreviewReady) {
       return const Success(null);
     }
-    final ok = await MessagingIntentLauncher.openSmsWithBody(s.bodyText);
+    final phoneNumber = s.account?.phoneNumber;
+    final ok = await MessagingIntentLauncher.openSmsWithBody(
+      s.bodyText,
+      phoneNumber: phoneNumber,
+    );
     if (!ok) {
       return const FailureResult(
         UnexpectedFailure(messageAr: 'تعذر فتح تطبيق الرسائل.'),
@@ -194,7 +209,11 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     if (s is! NotificationPreviewReady) {
       return const Success(null);
     }
-    final ok = await MessagingIntentLauncher.openWhatsAppWithText(s.bodyText);
+    final targetNumber = s.account?.whatsappNumber ?? s.account?.phoneNumber;
+    final ok = await MessagingIntentLauncher.openWhatsAppWithText(
+      s.bodyText,
+      phoneNumber: targetNumber,
+    );
     if (!ok) {
       return const FailureResult(
         UnexpectedFailure(messageAr: 'تعذر فتح واتساب.'),
