@@ -5,7 +5,7 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/entry_side.dart';
 
 /// Computes per-currency signed balances from ledger lines using account normal balance rules.
-final class BalanceCalculator {
+class BalanceCalculator {
   const BalanceCalculator();
 
   /// Returns a per-currency map of signed balance in minor units.

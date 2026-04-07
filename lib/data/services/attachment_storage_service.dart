@@ -20,7 +20,7 @@ import 'package:uuid/uuid.dart';
 /// - Encrypts raw images using the database encryption key.
 /// - Stores encrypted blobs in the persistent media directory.
 /// - Generates unique hashes for content-blind deduplication.
-final class AttachmentStorageService {
+class AttachmentStorageService {
   AttachmentStorageService({
     required DatabaseEncryptionKeyProvider keyProvider,
     BackupFileManager fileManager = const BackupFileManager(),

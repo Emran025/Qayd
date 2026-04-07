@@ -8,7 +8,7 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 ///
 /// For non-draft vouchers, use [WithdrawVoucherUseCase] instead
 /// (non-destructive retraction preserving audit trail).
-final class DeleteDraftVoucherUseCase {
+class DeleteDraftVoucherUseCase {
   const DeleteDraftVoucherUseCase(
     this._voucherRepository,
     this._writeGuard,

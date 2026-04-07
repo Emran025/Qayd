@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Encrypted storage for license credentials and trial clock.
 ///
 /// All entries live in [FlutterSecureStorage] (Keystore/Keychain-backed).
-final class LicenseVault {
+class LicenseVault {
   LicenseVault({FlutterSecureStorage? storage})
       : _storage = storage ?? const FlutterSecureStorage();
 

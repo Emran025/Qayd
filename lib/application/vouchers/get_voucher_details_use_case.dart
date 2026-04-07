@@ -213,7 +213,9 @@ class GetVoucherDetailsUseCase {
           costCenters: costCenters,
         ),
       );
-    } catch (e, _) {
+    } catch (e, st) {
+      print('USE CASE ERROR: $e');
+      print(st);
       return FailureResult(failureFromDomainException(e));
     }
   }

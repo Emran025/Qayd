@@ -4,6 +4,8 @@ enum StandardAccountClassificationKind {
   receivables,
   payables,
   settlements,
+  clearingRemittances, // System glass account for remittances
+  remittanceFees,      // System profit center for remittance fees
   personalExpenses,
   personalRevenues,
 }

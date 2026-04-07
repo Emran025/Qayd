@@ -54,6 +54,10 @@ final class AccountMapper {
           AccountClassification.personalExpenses,
         StandardAccountClassificationKind.personalRevenues =>
           AccountClassification.personalRevenues,
+        StandardAccountClassificationKind.clearingRemittances =>
+          AccountClassification.clearingRemittances,
+        StandardAccountClassificationKind.remittanceFees =>
+          AccountClassification.remittanceFees,
       };
     }
     return AccountClassification.custom(

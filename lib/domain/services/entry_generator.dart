@@ -7,7 +7,7 @@ import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
 /// Builds the two ledger lines for a confirmed receipt or payment voucher (shared [TransactionId]).
-final class EntryGenerator {
+class EntryGenerator {
   const EntryGenerator();
 
   /// Produces a balanced debit/credit pair per `vouchers_and_ledgers.md` §5.

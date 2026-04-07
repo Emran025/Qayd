@@ -65,7 +65,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
 
     // Pick the "my" account. If provided initially, use it. Otherwise find first one.
     if (_initialMyAccountId != null) {
-      _myAccountId = _initialMyAccountId;
+      _myAccountId = _initialMyAccountId!;
     } else {
       final my = accounts.firstWhere(
         (a) => a.id != cp.id,

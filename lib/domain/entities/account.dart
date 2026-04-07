@@ -6,7 +6,7 @@ import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 
 /// Node in the chart of accounts. Nature and classification are fixed after creation.
-final class Account {
+class Account {
   const Account._({
     required this.id,
     required this.name,

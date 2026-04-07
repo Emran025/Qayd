@@ -16,5 +16,9 @@ String standardClassificationKindLabelAr(
       return 'مصروفات شخصية';
     case StandardAccountClassificationKind.personalRevenues:
       return 'إيرادات شخصية';
+    case StandardAccountClassificationKind.clearingRemittances:
+      return 'مقاصة الحوالات';
+    case StandardAccountClassificationKind.remittanceFees:
+      return 'رسوم الحوالات';
   }
 }

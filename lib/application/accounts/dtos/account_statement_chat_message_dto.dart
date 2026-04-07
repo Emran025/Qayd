@@ -16,6 +16,9 @@ class AccountStatementChatMessageDto {
     required this.otherPartyName,
     this.runningBalanceMinorUnits = 0,
     this.referenceNumber,
+    this.mediatorAccountId,
+    this.mediatorName,
+    this.feeAmountMinorUnits,
   });
 
   final String voucherId;
@@ -50,4 +53,13 @@ class AccountStatementChatMessageDto {
 
   /// Voucher reference number if present.
   final String? referenceNumber;
+
+  /// (Remittance) The third-party mediator if this voucher was created via remittance clearing.
+  final String? mediatorAccountId;
+  
+  /// (Remittance) The name of the mediator.
+  final String? mediatorName;
+
+  /// (Remittance) Minor units of the fee amount if any.
+  final int? feeAmountMinorUnits;
 }

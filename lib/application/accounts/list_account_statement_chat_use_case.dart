@@ -81,7 +81,12 @@ final class ListAccountStatementChatUseCase {
       // Pre-fetch names for all involved accounts to avoid N+1 issues when isUnified
       final Map<String, String> accountNamesLookup = {};
       final involvedAccountIds = allVouchers
-          .expand((v) => [v.affectedAccountId.value, v.counterpartyId.value])
+          .expand((v) => [
+                v.affectedAccountId.value, 
+                v.counterpartyId.value,
+                if (v.tripartiteMeta?.mediatorAccountId != null)
+                  v.tripartiteMeta!.mediatorAccountId!.value,
+              ])
           .toSet();
       
       for (final idStr in involvedAccountIds) {
@@ -267,9 +272,13 @@ final class ListAccountStatementChatUseCase {
           otherPartyName: otherName,
           runningBalanceMinorUnits: runningBalance,
           referenceNumber: v.referenceNumber,
+          mediatorAccountId: v.tripartiteMeta?.mediatorAccountId?.value,
+          mediatorName: v.tripartiteMeta?.mediatorAccountId != null 
+              ? accountNamesLookup[v.tripartiteMeta!.mediatorAccountId!.value]
+              : null,
+          feeAmountMinorUnits: v.tripartiteMeta?.feeAmount?.minorUnits,
         ));
       }
-
 
       return Success(StatementChatOutput(
         messages: messages,

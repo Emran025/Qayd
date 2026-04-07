@@ -47,7 +47,7 @@ final class WithdrawVoucherUseCase {
       final saved = await _voucherRepository.save(withdrawn);
       if (saved.isSuccess && _syncEventDispatcher != null) {
         // §5.A: Enqueue withdrawal into local outbox
-        await _syncEventDispatcher.dispatchVoucherWithdrawal(withdrawn);
+        await _syncEventDispatcher!.dispatchVoucherWithdrawal(withdrawn);
       }
       return saved;
     } catch (e, _) {

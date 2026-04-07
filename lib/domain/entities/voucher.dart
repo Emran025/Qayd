@@ -23,7 +23,7 @@ import 'package:qayd/domain/value_objects/voucher_type.dart';
 /// - [originVoucherId]: Links reversals, corrections, and settlements back to the source voucher.
 /// - [rejectionReason]: Stores the reason when a voucher is rejected by the counterparty.
 /// - [withdrawnAt]: Timestamp when a voucher was withdrawn (non-destructive retraction).
-final class Voucher {
+class Voucher {
   const Voucher._({
     required this.id,
     required this.type,

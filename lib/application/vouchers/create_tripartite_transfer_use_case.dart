@@ -97,6 +97,9 @@ class CreateTripartiteTransferUseCase {
       final now = DateTime.now();
       final amount = Money.positiveAmount(input.amountMinorUnits, currency);
 
+      // Handle fee calculation up-front
+      final feeRes = await _getActiveFee();
+
       // 5. Create Receipt Voucher (A → C)
       // counterparty = Source (A), affectedAccount = MyAccount (C)
       // type = receipt (money coming IN from A)
@@ -114,11 +117,12 @@ class CreateTripartiteTransferUseCase {
         tripartiteMeta: TripartiteMeta(
           transferGroupId: transferGroupId,
           role: TripartiteRole.intermediaryReceipt,
-          linkedPartyId: destId, // B is the linked party on the receipt
-          isContingent: false, // receipt is immediately actionable
+          linkedPartyId: sourceId, // A is the linked party on the payment
+          isContingent: true, // locked until receipt is confirmed
+          mediatorAccountId: affectedId,
+          feeAmount: null, // Fee belongs to the fee voucher
         ),
       );
-
       // 6. Create Payment Voucher (C → B) — contingent
       // counterparty = Destination (B), affectedAccount = MyAccount (C)
       // type = payment (money going OUT to B)
@@ -138,12 +142,13 @@ class CreateTripartiteTransferUseCase {
           role: TripartiteRole.intermediaryPayment,
           linkedPartyId: sourceId, // A is the linked party on the payment
           isContingent: true, // locked until receipt is confirmed
+          mediatorAccountId: affectedId,
+          feeAmount: feeRes.valueOrNull != null ? Money.positiveAmount(feeRes.valueOrNull!.amountMinorUnits, currency) : null,
         ),
       );
 
       // 7. Handle Transaction Fee (Scenario 2)
       Voucher? feeVoucher;
-      final feeRes = await _getActiveFee();
       if (feeRes.isSuccess && feeRes.valueOrNull != null) {
         final feeSetting = feeRes.valueOrNull!;
 

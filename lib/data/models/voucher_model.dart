@@ -21,6 +21,8 @@ final class VoucherModel {
     this.transferGroupId,
     this.tripartiteRole,
     this.linkedPartyId,
+    this.mediatorAccountId,
+    this.feeAmountMinor,
     required this.isContingent,
     this.originVoucherId,
     this.rejectionReason,
@@ -58,6 +60,8 @@ final class VoucherModel {
   final String? transferGroupId;
   final String? tripartiteRole;
   final String? linkedPartyId;
+  final String? mediatorAccountId;
+  final int? feeAmountMinor;
   final bool isContingent;
 
   // Threaded Financial Interactions fields (Protocol v1.3)
@@ -97,6 +101,8 @@ final class VoucherModel {
         'transfer_group_id': transferGroupId,
         'tripartite_role': tripartiteRole,
         'linked_party_id': linkedPartyId,
+        'mediator_account_id': mediatorAccountId,
+        'fee_amount_minor': feeAmountMinor,
         'is_contingent': isContingent ? 1 : 0,
         'origin_voucher_id': originVoucherId,
         'rejection_reason': rejectionReason,
@@ -132,6 +138,8 @@ final class VoucherModel {
       transferGroupId: map['transfer_group_id'] as String?,
       tripartiteRole: map['tripartite_role'] as String?,
       linkedPartyId: map['linked_party_id'] as String?,
+      mediatorAccountId: map['mediator_account_id'] as String?,
+      feeAmountMinor: map['fee_amount_minor'] as int?,
       isContingent: (map['is_contingent'] as int?) == 1,
       originVoucherId: map['origin_voucher_id'] as String?,
       rejectionReason: map['rejection_reason'] as String?,

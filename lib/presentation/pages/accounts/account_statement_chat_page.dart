@@ -298,6 +298,22 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                       VoucherDetailPage.show(context, msg.voucherId);
                     },
                   ),
+                  if (msg.mediatorAccountId != null)
+                    _ActionButton(
+                      icon: Icons.support_agent_rounded,
+                      label: 'محادثة الوسيط',
+                      color: custom.goldAccent,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _navigateToCounterpartyChat(
+                          context,
+                          msg.mediatorAccountId!,
+                          // In AccountStatementChatPage, myAccountId is available from the widget.
+                          // But we are in _AccountStatementChatPageState here, so we can access widget.
+                          widget.myAccountId ?? widget.counterpartyAccountId,
+                        );
+                      },
+                    ),
                   _ActionButton(
                     icon: Icons.copy_rounded,
                     label: 'نسخ النص',
@@ -1589,6 +1605,68 @@ class _MessageBubble extends StatelessWidget {
                                     color: scheme.onSurfaceVariant,
                                     height: 1.4,
                                   ),
+                            ),
+                          ),
+
+                        // ──── Remittance Meta ────
+                        if (msg.mediatorName != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              SpacingTokens.md,
+                              0,
+                              SpacingTokens.md,
+                              SpacingTokens.sm,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: SpacingTokens.sm,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: scheme.tertiaryContainer.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                                border: Border.all(
+                                  color: scheme.tertiary.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.handshake_rounded,
+                                    size: 14,
+                                    color: scheme.tertiary,
+                                  ),
+                                  const SizedBox(width: SpacingTokens.xs),
+                                  Expanded(
+                                    child: Text(
+                                      'حوالة عبر الوسيط: ${msg.mediatorName}',
+                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                            color: scheme.onTertiaryContainer,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ),
+                                  if (msg.feeAmountMinorUnits != null && msg.feeAmountMinorUnits! > 0) ...[
+                                    Container(
+                                      width: 1,
+                                      height: 12,
+                                      color: scheme.tertiary.withValues(alpha: 0.3),
+                                      margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.xs),
+                                    ),
+                                    Text(
+                                      'الرسوم: ',
+                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                            color: scheme.tertiary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                    QaydMoneyDisplay(
+                                      money: Money.nonNegative(msg.feeAmountMinorUnits!, currency),
+                                      size: QaydMoneyDisplaySize.small,
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
                           ),
 

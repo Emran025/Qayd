@@ -152,6 +152,10 @@ class CreateAccountUseCase {
           return AccountClassification.personalExpenses;
         case StandardAccountClassificationKind.personalRevenues:
           return AccountClassification.personalRevenues;
+        case StandardAccountClassificationKind.clearingRemittances:
+          return AccountClassification.clearingRemittances;
+        case StandardAccountClassificationKind.remittanceFees:
+          return AccountClassification.remittanceFees;
       }
     }
     return AccountClassification.custom(

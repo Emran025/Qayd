@@ -63,6 +63,8 @@ final class VoucherMapper {
       transferGroupId: voucher.tripartiteMeta?.transferGroupId,
       tripartiteRole: voucher.tripartiteMeta?.role.columnValue,
       linkedPartyId: voucher.tripartiteMeta?.linkedPartyId.value,
+      mediatorAccountId: voucher.tripartiteMeta?.mediatorAccountId?.value,
+      feeAmountMinor: voucher.tripartiteMeta?.feeAmount?.minorUnits,
       isContingent: voucher.tripartiteMeta?.isContingent ?? false,
       originVoucherId: voucher.originVoucherId?.value,
       rejectionReason: voucher.rejectionReason,
@@ -118,7 +120,7 @@ final class VoucherMapper {
       receiverPublicKeyHex: model.receiverPublicKeyHex,
       lifecycleStatus: _parseLifecycleStatus(model.lifecycleStatus),
       signerPhone: model.signerPhone,
-      tripartiteMeta: _parseTripartiteMeta(model),
+      tripartiteMeta: _parseTripartiteMeta(model, currency),
       originVoucherId: model.originVoucherId != null
           ? VoucherId(model.originVoucherId!)
           : null,
@@ -147,7 +149,7 @@ final class VoucherMapper {
   }
 
   /// Reconstructs [TripartiteMeta] from model fields; returns null if absent.
-  static TripartiteMeta? _parseTripartiteMeta(VoucherModel model) {
+  static TripartiteMeta? _parseTripartiteMeta(VoucherModel model, CurrencyCode currency) {
     if (model.transferGroupId == null || model.tripartiteRole == null) {
       return null;
     }
@@ -157,6 +159,12 @@ final class VoucherMapper {
       transferGroupId: model.transferGroupId!,
       role: role,
       linkedPartyId: AccountId(model.linkedPartyId ?? ''),
+      mediatorAccountId: model.mediatorAccountId != null 
+          ? AccountId(model.mediatorAccountId!) 
+          : null,
+      feeAmount: model.feeAmountMinor != null 
+          ? Money.positiveAmount(model.feeAmountMinor!, currency)
+          : null,
       isContingent: model.isContingent,
     );
   }

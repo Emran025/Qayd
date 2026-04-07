@@ -5,7 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
 
 /// Policy gate for mutating use cases: blocks writes when governance is not [GovernanceStatus.activated].
-final class GovernanceWriteGuard {
+class GovernanceWriteGuard {
   GovernanceWriteGuard(this._checkGovernance);
 
   final CheckGovernanceStatusUseCase _checkGovernance;

@@ -132,7 +132,7 @@ class CreateVoucherUseCase {
       if (input.confirm) {
         // Sign as sender. 
         if (_signingService != null && _getKeyPair != null) {
-          final keyPair = await _getKeyPair();
+            final keyPair = await _getKeyPair?.call();
           if (keyPair != null) {
             final licenseData = await _licenseVault?.readLicenseData();
             final myPhone = licenseData?['phone'] as String? ?? '';
@@ -140,7 +140,7 @@ class CreateVoucherUseCase {
             // Re-resolve counterparty phone for canonical signature.
             String cpPhone = '';
             if (_accountRepository != null) {
-              final cpParty = await _accountRepository.getPartyDetails(
+              final cpParty = await _accountRepository!.getPartyDetails(
                 AccountId(input.counterpartyAccountId),
               );
               cpPhone = cpParty.valueOrNull?.phoneNumber ?? '';
@@ -155,7 +155,7 @@ class CreateVoucherUseCase {
               receiptUuid: voucherId.value,
             );
 
-            final signature = _signingService.signReceipt(signable, keyPair);
+            final signature = _signingService!.signReceipt(signable, keyPair);
             voucher = voucher.attachSignature(
               signatureHex: signature.signatureHex,
               publicKeyHex: signature.signerPublicKeyHex,
@@ -192,7 +192,7 @@ class CreateVoucherUseCase {
       // ── Process Cost Center Attachments ───────────────────────────────
       if (saved.isSuccess && input.costCenterTags.isNotEmpty && _costCenterRepository != null) {
         for (final tag in input.costCenterTags) {
-          await _costCenterRepository.attachVoucher(
+          await _costCenterRepository!.attachVoucher(
             voucherId: voucher.id.value,
             costCenterId: tag.costCenterId,
             dimensionIds: tag.dimensionIds,
@@ -202,7 +202,7 @@ class CreateVoucherUseCase {
       
       // §5.A: Enqueue claim into local outbox ONLY if confirmed.
       if (saved.isSuccess && input.confirm && _syncEventDispatcher != null) {
-        await _syncEventDispatcher.dispatchVoucherClaim(voucher);
+        await _syncEventDispatcher!.dispatchVoucherClaim(voucher);
       }
 
       return saved.fold(

@@ -48,6 +48,18 @@ final class AccountClassification {
     defaultNature: AccountNature.credit,
   );
 
+  /// System: مقاصة الحوالات (Remittance Clearing Glass Account)
+  static const AccountClassification clearingRemittances = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.clearingRemittances,
+    defaultNature: AccountNature.debit, // Transient, typically clears to 0
+  );
+
+  /// System: رسوم الحوالات (Remittance Fees - Profit Center)
+  static const AccountClassification remittanceFees = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.remittanceFees,
+    defaultNature: AccountNature.credit, // Revenue
+  );
+
   final StandardAccountClassificationKind? standardKind;
   final String? customName;
 

@@ -84,7 +84,7 @@ class ConfirmVoucherUseCase {
 
       // §5.A: Enqueue acceptance into local outbox
       if (_syncEventDispatcher != null) {
-        await _syncEventDispatcher.dispatchVoucherAcceptance(confirmed);
+        await _syncEventDispatcher!.dispatchVoucherAcceptance(confirmed);
       }
 
       // ── Cascading release for tripartite transfers ─────────────────────

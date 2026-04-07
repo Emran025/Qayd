@@ -10,7 +10,7 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 /// Protocol §4: Upon settlement acceptance, the original voucher state is
 /// updated to `settled`, and the settlement voucher acts as the closing
 /// record linked via `originVoucherId`.
-final class SettleVoucherUseCase {
+class SettleVoucherUseCase {
   const SettleVoucherUseCase(
     this._voucherRepository,
     this._writeGuard,

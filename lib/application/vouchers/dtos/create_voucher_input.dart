@@ -25,6 +25,8 @@ class CreateVoucherInput {
     this.transferGroupId,
     this.tripartiteRole,
     this.linkedPartyId,
+    this.mediatorAccountId,
+    this.feeAmountMinorUnits,
     this.isContingent = false,
     this.attachments = const [],
     this.originVoucherId,
@@ -44,6 +46,8 @@ class CreateVoucherInput {
   final String? transferGroupId;
   final String? tripartiteRole;
   final String? linkedPartyId;
+  final String? mediatorAccountId;
+  final int? feeAmountMinorUnits;
   final bool isContingent;
   final List<XFile> attachments;
   final String? originVoucherId;

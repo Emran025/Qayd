@@ -7,7 +7,7 @@ import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 
 /// "Reject" is represented by setting the voucher agreement status to `rejected`.
-final class RejectVoucherUseCase {
+class RejectVoucherUseCase {
   const RejectVoucherUseCase(
     this._voucherRepository,
     this._writeGuard,

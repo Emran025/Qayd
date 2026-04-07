@@ -1,4 +1,5 @@
 import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
 
 /// Immutable metadata linking a voucher to its tripartite transfer group.
@@ -10,6 +11,8 @@ final class TripartiteMeta {
     required this.transferGroupId,
     required this.role,
     required this.linkedPartyId,
+    this.mediatorAccountId,
+    this.feeAmount,
     this.isContingent = false,
   });
 
@@ -24,6 +27,12 @@ final class TripartiteMeta {
   /// - On the payment (C→B): stores A's account ID (original source).
   final AccountId linkedPartyId;
 
+  /// The mediator (A) account ID who is facilitating this transfer.
+  final AccountId? mediatorAccountId;
+
+  /// The fee amount (if any) taken by the mediator for this transfer.
+  final Money? feeAmount;
+
   /// When `true`, this voucher is locked (cannot be shared/signed) until
   /// its parent voucher in the group transitions to confirmed/verified.
   final bool isContingent;
@@ -33,6 +42,8 @@ final class TripartiteMeta {
         transferGroupId: transferGroupId,
         role: role,
         linkedPartyId: linkedPartyId,
+        mediatorAccountId: mediatorAccountId,
+        feeAmount: feeAmount,
         isContingent: false,
       );
 
@@ -43,12 +54,21 @@ final class TripartiteMeta {
           transferGroupId == other.transferGroupId &&
           role == other.role &&
           linkedPartyId == other.linkedPartyId &&
+          mediatorAccountId == other.mediatorAccountId &&
+          feeAmount == other.feeAmount &&
           isContingent == other.isContingent;
 
   @override
-  int get hashCode => Object.hash(transferGroupId, role, linkedPartyId, isContingent);
+  int get hashCode => Object.hash(
+        transferGroupId,
+        role,
+        linkedPartyId,
+        mediatorAccountId,
+        feeAmount,
+        isContingent,
+      );
 
   @override
   String toString() =>
-      'TripartiteMeta(group=$transferGroupId, role=${role.name}, linked=${linkedPartyId.value}, contingent=$isContingent)';
+      'TripartiteMeta(group=$transferGroupId, role=${role.name}, linked=${linkedPartyId.value}, mediator=${mediatorAccountId?.value}, fee=$feeAmount, contingent=$isContingent)';
 }
