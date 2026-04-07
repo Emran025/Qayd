@@ -104,6 +104,82 @@ class _ActivationPageState extends State<ActivationPage> {
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: SpacingTokens.xl),
+                            BlocBuilder<GovernanceCubit, GovernanceUiState>(
+                              builder: (context, state) {
+                                final msg = state.statusMessage;
+                                final account = state.ownerAccountNumber;
+                                if (msg == null && account == null) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: SpacingTokens.xl),
+                                  padding: const EdgeInsets.all(SpacingTokens.md),
+                                  decoration: BoxDecoration(
+                                    color: ColorTokens.warningAmber.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: ColorTokens.warningAmber.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      if (msg != null) ...[
+                                        QaydText(
+                                          msg,
+                                          slot: QaydTextStyleSlot.bodyMedium,
+                                          color: scheme.onSurface,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: SpacingTokens.md),
+                                      ],
+                                      if (account != null) ...[
+                                        QaydText(
+                                          AppStringsAr.governancePaymentInstruction,
+                                          slot: QaydTextStyleSlot.labelSmall,
+                                          color: scheme.onSurfaceVariant,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: SpacingTokens.xs),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: SpacingTokens.sm,
+                                            horizontal: SpacingTokens.md,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: scheme.surfaceContainerHigh,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.account_balance_wallet_outlined, 
+                                                   size: 16, color: gold),
+                                              const SizedBox(width: SpacingTokens.sm),
+                                              SelectableText(
+                                                account,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: gold,
+                                                  letterSpacing: 1.2,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: SpacingTokens.md),
+                                        QaydText(
+                                          AppStringsAr.governanceContactAdmin,
+                                          slot: QaydTextStyleSlot.labelSmall,
+                                          color: scheme.onSurfaceVariant,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                             QaydTextField(
                               controller: _orgController,
                               label: AppStringsAr.activationOrgIdLabel,

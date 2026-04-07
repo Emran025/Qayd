@@ -11,9 +11,15 @@ class GovernanceUiState {
   final bool refreshInFlight;
   final String? lastErrorAr;
 
-  bool get requiresActivationScreen => status == GovernanceStatus.revoked;
+  bool get requiresActivationScreen => status.kind == GovernanceStatusKind.revoked;
 
-  bool get showSuspendedBanner => status == GovernanceStatus.suspended;
+  bool get isLocked => status.kind == GovernanceStatusKind.expired;
+
+  bool get showSuspendedBanner => status.kind == GovernanceStatusKind.suspended;
+
+  String? get ownerAccountNumber => status.ownerAccountNumber;
+  String? get statusMessage => status.messageAr;
+  DateTime? get expiryDate => status.expiryDate;
 
   GovernanceUiState copyWith({
     GovernanceStatus? status,

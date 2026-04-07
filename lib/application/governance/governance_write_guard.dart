@@ -4,7 +4,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
 
-/// Policy gate for mutating use cases: blocks writes when governance is not [GovernanceStatus.activated].
+/// Policy gate for mutating use cases: blocks writes when governance is not [GovernanceStatusKind.activated].
 class GovernanceWriteGuard {
   GovernanceWriteGuard(this._checkGovernance);
 
@@ -19,23 +19,31 @@ class GovernanceWriteGuard {
   }
 
   Result<void> _mapStatusToWriteGate(GovernanceStatus status) {
-    switch (status) {
-      case GovernanceStatus.activated:
+    switch (status.kind) {
+      case GovernanceStatusKind.activated:
         return const Success(null);
-      case GovernanceStatus.suspended:
+      case GovernanceStatusKind.suspended:
         return FailureResult(
           ValidationFailure(
-            messageAr:
+            messageAr: status.messageAr ??
                 'التطبيق في وضع التعليق: لا يمكن حفظ التعديلات حتى يتم استئناف الخدمة.',
             code: 'governance_suspended',
           ),
         );
-      case GovernanceStatus.revoked:
+      case GovernanceStatusKind.revoked:
         return FailureResult(
           ValidationFailure(
-            messageAr:
+            messageAr: status.messageAr ??
                 'انتهت صلاحية التفعيل. يرجى إدخال بيانات التفعيل من جديد.',
             code: 'governance_revoked',
+          ),
+        );
+      case GovernanceStatusKind.expired:
+        return FailureResult(
+          ValidationFailure(
+            messageAr: status.messageAr ??
+                'انتهت صلاحية الاشتراك. يرجى سداد الرسوم لتفعيل التطبيق.',
+            code: 'governance_expired',
           ),
         );
     }

@@ -6,6 +6,7 @@ import 'package:qayd/presentation/governance/governance_ui_state.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/app_shell_page.dart';
 import 'package:qayd/presentation/pages/governance/activation_page.dart';
+import 'package:qayd/presentation/pages/governance/trial_expired_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -17,6 +18,9 @@ class GovernanceHostPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<GovernanceCubit, GovernanceUiState>(
       builder: (context, state) {
+        if (state.isLocked) {
+          return const TrialExpiredPage();
+        }
         if (state.requiresActivationScreen) {
           return const ActivationPage();
         }

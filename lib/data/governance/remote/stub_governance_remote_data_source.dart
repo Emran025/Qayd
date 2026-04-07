@@ -28,6 +28,6 @@ final class StubGovernanceRemoteDataSource implements GovernanceRemoteDataSource
         request.licenseKey.trim().isEmpty) {
       throw ArgumentError('activation_fields_required');
     }
-    _controller.remoteStatus = GovernanceStatus.activated;
+    _controller.remoteStatus = const GovernanceStatus(kind: GovernanceStatusKind.activated);
   }
 }

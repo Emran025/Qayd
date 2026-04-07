@@ -113,6 +113,9 @@ abstract final class AppStringsAr {
   static const String governanceSuspendedBanner =
       'وضع التعليق نشط: يمكنك الاطلاع فقط. عمليات الحفظ والتأكيد معطّلة مؤقتاً.';
   static const String governanceRecheckAction = 'تحقق';
+  static const String governancePaymentInstruction = 'للمتابعة وتفعيل اشتراكك، يرجى سداد الرسوم المطلوبة إلى الحساب التالي:';
+  static const String governanceOwnerAccountLabel = 'حساب مدير التطبيق (سداد)';
+  static const String governanceContactAdmin = 'بعد السداد، يرجى مشاركة صورة الإيصال مع الدعم الفني لتفعيل حسابك.';
 
   // Vouchers
   static const String pickAccountTitle = 'اختر حساباً';
