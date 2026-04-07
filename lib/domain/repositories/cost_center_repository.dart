@@ -61,4 +61,27 @@ abstract interface class CostCenterRepository {
 
   /// Total amount (in minor units) of confirmed vouchers attached to a center.
   Future<Result<Map<String, int>>> getTotalsByCenter(String costCenterId);
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+
+  /// Last [months] calendar months of confirmed totals for this center.
+  /// Each map contains 'month_key' (String 'YYYY-MM') and 'total_minor' (int).
+  Future<Result<List<Map<String, dynamic>>>> getMonthlyTrendForCenter(
+    String costCenterId, {
+    int months = 6,
+  });
+
+  /// Last [limit] voucher summaries attached to this center.
+  /// Each map contains: id, type, amount_minor, currency_code, description?,
+  /// date, counterparty_name?, dimension_ids (List<String>).
+  Future<Result<List<Map<String, dynamic>>>> getRecentVouchersForCenter(
+    String costCenterId, {
+    int limit = 10,
+  });
+
+  /// Per-dimension voucher counts for the donut chart.
+  /// Each map contains: dimension_id, dimension_name, category_id, voucher_count.
+  Future<Result<List<Map<String, dynamic>>>> getDimensionBreakdown(
+    String costCenterId,
+  );
 }

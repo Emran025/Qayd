@@ -320,7 +320,6 @@ ORDER BY d.category, d.name COLLATE NOCASE
     String costCenterId,
   ) async {
     try {
-      // Sum confirmed voucher amounts per currency for this center
       final rows = await _db.rawQuery(
         '''
 SELECT v.currency_code, SUM(v.amount_minor) AS total
@@ -340,6 +339,123 @@ GROUP BY v.currency_code
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(messageAr: 'تعذر حساب مؤشرات مركز التكلفة.'),
+      );
+    }
+  }
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> getMonthlyTrendForCenter(
+    String costCenterId, {
+    int months = 6,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final from = DateTime(now.year, now.month - (months - 1), 1);
+      final fromStr = '${from.year}-${from.month.toString().padLeft(2, '0')}-01';
+      final rows = await _db.rawQuery(
+        '''
+SELECT strftime('%Y-%m', v.date) AS month_key,
+       SUM(v.amount_minor) AS total_minor
+FROM vouchers v
+INNER JOIN voucher_cost_centers vcc ON vcc.voucher_id = v.id
+WHERE vcc.cost_center_id = ?
+  AND v.state = 'confirmed'
+  AND v.date >= ?
+GROUP BY month_key
+ORDER BY month_key ASC
+''',
+        [costCenterId, fromStr],
+      );
+      return Success(rows.map((r) => Map<String, dynamic>.from(r)).toList());
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر قراءة البيانات الشهرية.'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> getRecentVouchersForCenter(
+    String costCenterId, {
+    int limit = 10,
+  }) async {
+    try {
+      final rows = await _db.rawQuery(
+        '''
+SELECT v.id, v.type, v.amount_minor, v.currency_code,
+       v.description, v.date, a.name AS counterparty_name
+FROM vouchers v
+INNER JOIN voucher_cost_centers vcc ON vcc.voucher_id = v.id
+LEFT JOIN accounts a ON a.id = v.counterparty_id
+WHERE vcc.cost_center_id = ?
+ORDER BY v.date DESC, v.created_at DESC
+LIMIT ?
+''',
+        [costCenterId, limit],
+      );
+
+      if (rows.isEmpty) return const Success([]);
+
+      // Fetch dimension tags for these vouchers in a single query
+      final placeholders = rows.map((_) => '?').join(', ');
+      final voucherIds = rows.map((r) => r['id'] as String).toList();
+      final tagRows = await _db.rawQuery(
+        '''
+SELECT voucher_id, dimension_id
+FROM voucher_dimension_tags
+WHERE cost_center_id = ? AND voucher_id IN ($placeholders)
+''',
+        [costCenterId, ...voucherIds],
+      );
+
+      // Build voucherId → List<dimensionId> map
+      final tagMap = <String, List<String>>{};
+      for (final tag in tagRows) {
+        final vid = tag['voucher_id'] as String;
+        final did = tag['dimension_id'] as String;
+        tagMap.putIfAbsent(vid, () => []).add(did);
+      }
+
+      return Success(rows.map((r) {
+        final id = r['id'] as String;
+        return <String, dynamic>{
+          ...Map<String, dynamic>.from(r),
+          'dimension_ids': tagMap[id] ?? <String>[],
+        };
+      }).toList());
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر قراءة السندات الأخيرة.'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> getDimensionBreakdown(
+    String costCenterId,
+  ) async {
+    try {
+      final rows = await _db.rawQuery(
+        '''
+SELECT d.id AS dimension_id,
+       d.name AS dimension_name,
+       d.category AS category_id,
+       COUNT(DISTINCT vdt.voucher_id) AS voucher_count
+FROM cost_center_dimensions d
+INNER JOIN voucher_dimension_tags vdt ON vdt.dimension_id = d.id
+WHERE vdt.cost_center_id = ?
+GROUP BY d.id
+ORDER BY voucher_count DESC
+LIMIT 8
+''',
+        [costCenterId],
+      );
+      return Success(rows.map((r) => Map<String, dynamic>.from(r)).toList());
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر قراءة توزيع الأبعاد.'),
       );
     }
   }

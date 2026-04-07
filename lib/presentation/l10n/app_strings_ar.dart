@@ -647,6 +647,26 @@ abstract final class AppStringsAr {
   static const String dimCategoryIndividual = 'بُعد الأفراد';
   static const String dimCategoryProject = 'بُعد المشاريع';
 
+  // ── Cost Center Dashboard (Redesign) ─────────────────────────────────────
+  static const String costCenterKpiSection = 'مؤشرات الأداء';
+  static const String costCenterActivitySection = 'النشاط الأخير';
+  static const String costCenterTrendSection = 'الاتجاه الشهري (6 أشهر)';
+  static const String costCenterDimensionBreakdownTitle = 'توزيع الأبعاد';
+  static const String costCenterBudgetGaugeTitle = 'استخدام الميزانية';
+  static const String costCenterAvgVoucherSize = 'متوسط السند';
+  static const String costCenterCurrentMonthLabel = 'هذا الشهر';
+  static const String costCenterGrowthLabel = 'النمو';
+  static const String costCenterAllDimensionsFilter = 'الكل';
+  static const String costCenterViewMoreVouchers = 'عرض السجل كاملاً';
+  static const String costCenterQuickPayAction = 'سند صرف';
+  static const String costCenterQuickReceiveAction = 'سند قبض';
+  static const String costCenterNoRecentVouchers = 'لا توجد معاملات حديثة.';
+  static const String costCenterNoBudget = 'بلا حد';
+  static const String costCenterOverBudgetWarning = 'تجاوز الميزانية!';
+  static const String costCenterActiveBadge = 'نشط';
+  static const String costCenterNoTrendData = 'لا توجد حركة مالية مؤكدة خلال الفترة.';
+  static const String costCenterNoDimensionData = 'لا توجد سندات مصنفة بالأبعاد.';
+
   // ── Navigation ──────────────────────────────────────────────────────────
   static const String navCostCentersTab = 'المراكز';
 
