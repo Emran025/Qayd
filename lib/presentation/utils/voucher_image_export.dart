@@ -241,7 +241,6 @@ class VoucherImageCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: _gold, width: 1.5),
               image: const DecorationImage(
                 image: AssetImage('assets/images/logo.png'),
                 fit: BoxFit.contain,

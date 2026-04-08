@@ -55,21 +55,30 @@ final class ListAccountStatementChatUseCase {
         if (r.isFailure) return FailureResult(r.failureOrNull!);
         allVouchers = r.valueOrNull!;
       } else {
-        // Include vouchers where either side is affected.
-        final f1 = VoucherQueryFilter(
-          counterpartyId: cpId,
-          affectedAccountId: myId,
-        );
-        final f2 = VoucherQueryFilter(
-          counterpartyId: myId,
-          affectedAccountId: cpId,
-        );
+        // Fetch all vouchers involving myId, then filter by cpId in-memory to handle Tripartite
+        final f = VoucherQueryFilter(involvedAccountId: myId);
+        final r = await voucherRepository.getAll(filter: f);
+        if (r.isFailure) return FailureResult(r.failureOrNull!);
+        
+        final myVouchers = r.valueOrNull!;
+        
+        allVouchers = myVouchers.where((v) {
+          final involvesCp = v.affectedAccountId == cpId || 
+                             v.counterpartyId == cpId || 
+                             v.tripartiteMeta?.linkedPartyId == cpId;
+          
+          if (!involvesCp) return false;
 
-        final aR = await voucherRepository.getAll(filter: f1);
-        if (aR.isFailure) return FailureResult(aR.failureOrNull!);
-        final bR = await voucherRepository.getAll(filter: f2);
-        if (bR.isFailure) return FailureResult(bR.failureOrNull!);
-        allVouchers = <Voucher>[...aR.valueOrNull!, ...bR.valueOrNull!];
+          // Rule 3: Exclude any voucher where the Mediator is the Counterparty unless it is a pure direct voucher.
+          if (v.isTripartite) {
+            final mediatorId = v.tripartiteMeta?.mediatorAccountId ?? v.affectedAccountId;
+            if (myId == mediatorId || cpId == mediatorId) {
+              return false; // Exclude from Mediator's chat with parties
+            }
+          }
+
+          return true;
+        }).toList();
       }
 
       allVouchers.sort((a, b) {
@@ -117,6 +126,17 @@ final class ListAccountStatementChatUseCase {
           return v.receiverStatus == AgreementStatus.accepted;
         }
 
+        // Handle Tripartite case where the targetId is the linked party.
+        if (v.isTripartite && v.tripartiteMeta?.linkedPartyId == targetId) {
+          if (v.type == VoucherType.receipt) {
+            // Receipt (Source -> M): Linked party is the Destination. Treat as checking receiver's acceptance.
+            return v.receiverStatus == AgreementStatus.accepted;
+          } else if (v.type == VoucherType.payment) {
+            // Payment (M -> Dest): Linked party is the Source. Treat as checking sender's acceptance.
+            return v.senderStatus == AgreementStatus.accepted;
+          }
+        }
+
         return false;
       }
 
@@ -137,9 +157,7 @@ final class ListAccountStatementChatUseCase {
           broughtForward = 0;
           for (final v in priorVouchers) {
             final dir = _directionFromPerspective(
-              vType: v.type,
-              affected: v.affectedAccountId,
-              counterparty: v.counterpartyId,
+              v: v,
               perspectiveId: subjectId,
             );
             if (isIncludedInView(v)) {
@@ -230,9 +248,7 @@ final class ListAccountStatementChatUseCase {
 
       for (final v in filtered) {
         final direction = _directionFromPerspective(
-          vType: v.type,
-          affected: v.affectedAccountId,
-          counterparty: v.counterpartyId,
+          v: v,
           perspectiveId: subjectId,
         );
 
@@ -291,20 +307,33 @@ final class ListAccountStatementChatUseCase {
   }
 
   String _directionFromPerspective({
-    required VoucherType vType,
-    required AccountId affected,
-    required AccountId counterparty,
+    required Voucher v,
     required AccountId perspectiveId,
   }) {
-    final isPerspAffected = affected == perspectiveId;
+    if (v.isTripartite) {
+      final isReceipt = v.type == VoucherType.receipt;
+      final sourceId = isReceipt ? v.counterpartyId : v.tripartiteMeta!.linkedPartyId;
+      final destId = isReceipt ? v.tripartiteMeta!.linkedPartyId : v.counterpartyId;
+
+      if (perspectiveId == sourceId) return 'outgoing';
+      if (perspectiveId == destId) return 'incoming';
+      
+      // If perspectiveId is Mediator
+      if (perspectiveId == v.affectedAccountId) {
+         return isReceipt ? 'incoming' : 'outgoing';
+      }
+      return 'incoming';
+    }
+
+    final isPerspAffected = v.affectedAccountId == perspectiveId;
 
     // Receipt: money in to affected from counterparty.
-    if (vType == VoucherType.receipt) {
+    if (v.type == VoucherType.receipt) {
       return isPerspAffected ? 'incoming' : 'outgoing';
     }
 
     // Payment: money out from affected to counterparty.
-    if (vType == VoucherType.payment) {
+    if (v.type == VoucherType.payment) {
       return isPerspAffected ? 'outgoing' : 'incoming';
     }
 

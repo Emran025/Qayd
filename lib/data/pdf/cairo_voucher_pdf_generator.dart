@@ -25,33 +25,33 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   const CairoVoucherPdfGenerator();
 
   // ── Brand palette ─────────────────────────────────────────────────────────
-  static final _navy       = PdfColor.fromInt(0xFF0F2741);
-  static final _gold       = PdfColor.fromInt(0xFFC9A227);
-  static final _emerald    = PdfColor.fromInt(0xFF047857);
-  static final _muted      = PdfColor.fromInt(0xFF64748B);
-  static final _border     = PdfColor.fromInt(0xFFCBD5E1);
-  static final _headerBg   = PdfColor.fromInt(0xFFE8EDF3);
-  static final _error      = PdfColor.fromInt(0xFFDC2626);
+  static final _navy = PdfColor.fromInt(0xFF0F2741);
+  static final _gold = PdfColor.fromInt(0xFFC9A227);
+  static final _emerald = PdfColor.fromInt(0xFF047857);
+  static final _muted = PdfColor.fromInt(0xFF64748B);
+  static final _border = PdfColor.fromInt(0xFFCBD5E1);
+  static final _headerBg = PdfColor.fromInt(0xFFE8EDF3);
+  static final _error = PdfColor.fromInt(0xFFDC2626);
 
   @override
   Future<Result<Uint8List>> buildVoucherPdf(VoucherReportDto report) async {
     try {
-      final font  = await CairoPdfFonts.font;
+      final font = await CairoPdfFonts.font;
       final theme = pw.ThemeData.withFont(base: font, bold: font);
 
       final isReceipt = report.typeCode == 'receipt';
-      final accent    = isReceipt ? _emerald : _gold;
-      final typeAr    = isReceipt ? 'سند قبض' : 'سند صرف';
+      final accent = isReceipt ? _emerald : _gold;
+      final typeAr = isReceipt ? 'سند قبض' : 'سند صرف';
 
       final dateFmt = DateFormat('dd/MM/yyyy');
       final dateStr = dateFmt.format(DateTime.parse(report.dateIso));
       final createdFmt = DateFormat('hh:mm:ss a  dd/MM/yyyy');
       final createdStr = createdFmt.format(DateTime.parse(report.createdAtIso));
 
-      final divisor  = math.pow(10, report.currencyDigits).toDouble();
-      final amount   = report.amountMinorUnits / divisor;
+      final divisor = math.pow(10, report.currencyDigits).toDouble();
+      final amount = report.amountMinorUnits / divisor;
       final fmt = NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en');
-      final amountStr  = '#${fmt.format(amount)} ${report.currencyCode}#';
+      final amountStr = '#${fmt.format(amount)} ${report.currencyCode}#';
 
       final qrPayload = report.qrData ?? report.voucherId;
 
@@ -61,7 +61,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
         final logoData = await rootBundle.load('assets/images/logo.png');
         logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
       } catch (_) {
-        // Logo not available, fallback to text
+        logoImage = null;
       }
 
       // Title logic
@@ -208,31 +208,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               decoration: pw.BoxDecoration(
                 color: PdfColors.white,
                 shape: pw.BoxShape.circle,
-                border: pw.Border.all(color: _gold, width: 2),
               ),
               child: pw.ClipOval(
                 child: pw.Image(logoImage, fit: pw.BoxFit.contain),
-              ),
-            )
-          else
-            pw.Container(
-              width: 52,
-              height: 52,
-              decoration: pw.BoxDecoration(
-                color: _navy,
-                borderRadius: pw.BorderRadius.circular(26),
-                border: pw.Border.all(color: _gold, width: 2),
-              ),
-              child: pw.Center(
-                child: pw.Text(
-                  'قيد',
-                  style: pw.TextStyle(
-                    font: font,
-                    fontSize: 18,
-                    color: _gold,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
               ),
             ),
 
@@ -376,17 +354,15 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
         sectionLabel = isReceiptLeg
             ? 'بيانات القيد (المدين) - من حساب العميل:'
             : 'بيانات القيد (المدين) - من حساب الوسيط:';
-        accountName = isReceiptLeg
-            ? report.counterpartyName
-            : report.affectedName;
+        accountName =
+            isReceiptLeg ? report.counterpartyName : report.affectedName;
       } else {
         // Credit section = "to" account
         sectionLabel = isReceiptLeg
             ? 'بيانات القيد (الدائن) - إلى حساب الوسيط:'
             : 'بيانات القيد (الدائن) - إلى حساب العميل المستلم:';
-        accountName = isReceiptLeg
-            ? report.affectedName
-            : report.counterpartyName;
+        accountName =
+            isReceiptLeg ? report.affectedName : report.counterpartyName;
       }
 
       descriptionText = _buildTripartiteDescription(report, isDebit);
@@ -537,9 +513,11 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   // ══════════════════════════════════════════════════════════════════════════
 
   pw.Widget _buildSignatureRow(pw.Font font, VoucherReportDto report) {
-    final hasSenderSig = report.senderSignatureHex != null && report.senderSignatureHex!.isNotEmpty;
-    final hasReceiverSig = report.receiverSignatureHex != null && report.receiverSignatureHex!.isNotEmpty;
-    
+    final hasSenderSig = report.senderSignatureHex != null &&
+        report.senderSignatureHex!.isNotEmpty;
+    final hasReceiverSig = report.receiverSignatureHex != null &&
+        report.receiverSignatureHex!.isNotEmpty;
+
     // For non-tripartite: only show client signature + QR
     // For tripartite: show client 1 + client 2 signatures
     final columns = <pw.Widget>[];
@@ -564,8 +542,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
         pw.Expanded(
           flex: 2,
           child: _signatureBox(
-            font, 
-            report.typeCode == 'receipt' ? '(توقيع العميل المرسل)' : '(توقيع العميل المستلم)', 
+            font,
+            report.typeCode == 'receipt'
+                ? '(توقيع العميل المرسل)'
+                : '(توقيع العميل المستلم)',
             report.typeCode == 'receipt' ? hasSenderSig : hasReceiverSig,
           ),
         ),
@@ -688,7 +668,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   pw.SizedBox(height: 3),
                   pw.Text(
                     'مفتاح المرسل: ${_truncateHex(report.senderPublicKeyHex!)}',
-                    style: pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
+                    style:
+                        pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
                   ),
                 ],
                 if (report.receiverPublicKeyHex != null &&
@@ -696,7 +677,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   pw.SizedBox(height: 2),
                   pw.Text(
                     'مفتاح المستلم: ${_truncateHex(report.receiverPublicKeyHex!)}',
-                    style: pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
+                    style:
+                        pw.TextStyle(font: font, fontSize: 6.5, color: _muted),
                   ),
                 ],
               ],
@@ -734,7 +716,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     if (!report.isTripartite) return typeAr;
 
     final isReceiptLeg = report.tripartiteRole == 'receipt';
-    final legLabel = isReceiptLeg ? 'إشعار للطرفين' : 'إشعار قيد العميل المحوّل';
+    final legLabel =
+        isReceiptLeg ? 'إشعار للطرفين' : 'إشعار قيد العميل المحوّل';
     return 'سند قيد مزدوج وإشعار قيد ($legLabel)\n- $legLabel';
   }
 
@@ -779,19 +762,19 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   String _agreementAr(String code) {
     return switch (code) {
       'underRequest' => 'بانتظار الموافقة',
-      'accepted'     => 'مقبول وموقّع',
-      'rejected'     => 'مرفوض',
-      'unverified'   => 'غير مؤكد',
-      _              => code,
+      'accepted' => 'مقبول وموقّع',
+      'rejected' => 'مرفوض',
+      'unverified' => 'غير مؤكد',
+      _ => code,
     };
   }
 
   PdfColor _agreementColor(String code) {
     return switch (code) {
-      'accepted'   => _emerald,
-      'rejected'   => _error,
+      'accepted' => _emerald,
+      'rejected' => _error,
       'underRequest' => _gold,
-      _            => _muted,
+      _ => _muted,
     };
   }
 }

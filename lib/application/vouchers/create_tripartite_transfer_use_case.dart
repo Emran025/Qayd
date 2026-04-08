@@ -117,7 +117,7 @@ class CreateTripartiteTransferUseCase {
         tripartiteMeta: TripartiteMeta(
           transferGroupId: transferGroupId,
           role: TripartiteRole.intermediaryReceipt,
-          linkedPartyId: sourceId, // A is the linked party on the payment
+          linkedPartyId: destId, // The destination B is the linked party on the receipt
           isContingent: true, // locked until receipt is confirmed
           mediatorAccountId: affectedId,
           feeAmount: null, // Fee belongs to the fee voucher
