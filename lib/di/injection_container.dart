@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:qayd/application/accruals/process_accrual_use_case.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
 import 'package:qayd/application/cost_centers/update_cost_center_use_case.dart';
 import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
@@ -128,6 +129,10 @@ import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
+import 'package:qayd/application/accruals/list_accruals_use_case.dart';
+import 'package:qayd/application/accruals/save_accrual_use_case.dart';
+import 'package:qayd/data/repositories/sqlite_accrual_repository.dart';
+import 'package:qayd/domain/repositories/accrual_repository.dart';
 import 'package:qayd/application/cost_centers/activate_cost_center_use_case.dart';
 import 'package:qayd/application/cost_centers/create_cost_center_use_case.dart';
 import 'package:qayd/application/cost_centers/get_cost_center_details_use_case.dart';
@@ -287,6 +292,11 @@ abstract final class InjectionContainer {
   static late GetCostCenterDetailsUseCase getCostCenterDetailsUseCase;
   static late ManageDimensionsUseCase manageDimensionsUseCase;
   static late UpdateCostCenterUseCase updateCostCenterUseCase;
+
+  static late AccrualRepository accrualRepository;
+  static late ListAccrualsUseCase listAccrualsUseCase;
+  static late SaveAccrualUseCase saveAccrualUseCase;
+  static late ProcessAccrualUseCase processAccrualUseCase;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -770,5 +780,10 @@ abstract final class InjectionContainer {
       costCenterRepository,
       _idGenerator,
     );
+
+    accrualRepository = SqliteAccrualRepository(database);
+    listAccrualsUseCase = ListAccrualsUseCase(accrualRepository);
+    saveAccrualUseCase = SaveAccrualUseCase(accrualRepository, _idGenerator);
+    processAccrualUseCase = ProcessAccrualUseCase(accrualRepository, createVoucherUseCase);
   }
 }

@@ -21,18 +21,22 @@ extension CostCenterTypeLabel on CostCenterType {
 
 extension CostCenterDimensionCategoryLabel on CostCenterDimensionCategory {
   String get labelAr {
-    // If it's a default category ID, we can still use the centralized localized strings.
-    if (id == 'spatial') return AppStringsAr.dimCategorySpatial;
-    if (id == 'individual') return AppStringsAr.dimCategoryIndividual;
-    if (id == 'project') return AppStringsAr.dimCategoryProject;
     return name;
   }
 
   IconData get icon {
     return switch (id) {
-      'spatial' => Icons.location_on_outlined,
-      'individual' => Icons.people_outline_rounded,
-      'project' => Icons.work_outline_rounded,
+      'income_work' => Icons.payments_outlined,
+      'housing_living' => Icons.home_outlined,
+      'nutrition_consumption' => Icons.restaurant_outlined,
+      'transportation' => Icons.directions_car_outlined,
+      'health_care' => Icons.medical_services_outlined,
+      'education_development' => Icons.school_outlined,
+      'family_dependents' => Icons.family_restroom_outlined,
+      'obligations_debts' => Icons.account_balance_outlined,
+      'investments_projects' => Icons.trending_up_rounded,
+      'savings_reserves' => Icons.savings_outlined,
+      'entertainment_lifestyle' => Icons.sports_esports_outlined,
       _ => Icons.category_outlined,
     };
   }

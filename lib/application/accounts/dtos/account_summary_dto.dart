@@ -10,6 +10,7 @@ class AccountSummaryDto {
     this.standardClassificationKind,
     this.customClassificationName,
     required this.balancesMinorUnits,
+    this.metadata,
   });
 
   final String id;
@@ -27,4 +28,7 @@ class AccountSummaryDto {
 
   /// Map of currency code to signed balance in minor units.
   final Map<String, int> balancesMinorUnits;
+
+  /// Additional extensible data for the account.
+  final Map<String, dynamic>? metadata;
 }

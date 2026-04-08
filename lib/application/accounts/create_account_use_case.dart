@@ -63,6 +63,7 @@ class CreateAccountUseCase {
           classification: classification,
           createdAt: now,
           isDefault: input.isDefault,
+          metadata: input.metadata,
         );
       } else {
         final parentR = await _accountRepository.getById(
@@ -78,6 +79,7 @@ class CreateAccountUseCase {
           parent: parent,
           createdAt: now,
           isDefault: input.isDefault,
+          metadata: input.metadata,
         );
       }
 
@@ -156,6 +158,10 @@ class CreateAccountUseCase {
           return AccountClassification.clearingRemittances;
         case StandardAccountClassificationKind.remittanceFees:
           return AccountClassification.remittanceFees;
+        case StandardAccountClassificationKind.fixedDepreciableAssets:
+          return AccountClassification.fixedDepreciableAssets;
+        case StandardAccountClassificationKind.fixedProfitableAssets:
+          return AccountClassification.fixedProfitableAssets;
       }
     }
     return AccountClassification.custom(

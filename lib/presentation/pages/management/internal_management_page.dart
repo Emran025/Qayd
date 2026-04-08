@@ -11,11 +11,15 @@ import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/management/internal_voucher_create_page.dart';
 import 'package:qayd/presentation/pages/management/widgets/internal_voucher_tile.dart';
+import 'package:qayd/presentation/pages/management/widgets/personal_accounts_list_view.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
+import 'package:qayd/presentation/pages/accruals/accrual_list_page.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -32,6 +36,8 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
   String? _fundRootId;
   String? _expensesRootId;
   String? _revenuesRootId;
+  String? _depreciableAssetsRootId;
+  String? _profitableAssetsRootId;
   bool _isLoadingRoots = true;
 
   @override
@@ -55,6 +61,10 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
               _expensesRootId = a.id;
             } else if (a.standardClassificationKind == 'personalRevenues') {
               _revenuesRootId = a.id;
+            } else if (a.standardClassificationKind == 'fixedDepreciableAssets') {
+              _depreciableAssetsRootId = a.id;
+            } else if (a.standardClassificationKind == 'fixedProfitableAssets') {
+              _profitableAssetsRootId = a.id;
             }
           }
         }
@@ -85,6 +95,8 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
         fundRootId: _fundRootId,
         expensesRootId: _expensesRootId,
         revenuesRootId: _revenuesRootId,
+        depreciableAssetsRootId: _depreciableAssetsRootId,
+        profitableAssetsRootId: _profitableAssetsRootId,
       ),
     );
   }
@@ -95,44 +107,90 @@ class _InternalManagementView extends StatefulWidget {
     required this.fundRootId,
     required this.expensesRootId,
     required this.revenuesRootId,
+    this.depreciableAssetsRootId,
+    this.profitableAssetsRootId,
   });
 
   final String? fundRootId;
   final String? expensesRootId;
   final String? revenuesRootId;
+  final String? depreciableAssetsRootId;
+  final String? profitableAssetsRootId;
 
   @override
   State<_InternalManagementView> createState() =>
       _InternalManagementViewState();
 }
 
-class _InternalManagementViewState extends State<_InternalManagementView> {
+class _InternalManagementViewState extends State<_InternalManagementView> with TickerProviderStateMixin {
   final _searchController = TextEditingController();
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() => setState(() {}));
+  }
 
   Future<void> _openCreate(BuildContext context) async {
     final listCubit = context.read<VoucherListCubit>();
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (_) => VoucherCreateCubit(
-                InjectionContainer.createVoucherUseCase,
-                InjectionContainer.createTripartiteTransferUseCase,
+    if (_tabController.index == 0) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => VoucherCreateCubit(
+                  InjectionContainer.createVoucherUseCase,
+                  InjectionContainer.createTripartiteTransferUseCase,
+                ),
               ),
-            ),
-            BlocProvider(
-              create: (_) => VoucherSuggestionsCubit(
-                InjectionContainer.getAutoSuggestionsUseCase,
-                InjectionContainer.markNotificationMessageProcessedUseCase,
+              BlocProvider(
+                create: (_) => VoucherSuggestionsCubit(
+                  InjectionContainer.getAutoSuggestionsUseCase,
+                  InjectionContainer.markNotificationMessageProcessedUseCase,
+                ),
               ),
-            ),
-          ],
-          child: const InternalVoucherCreatePage(),
+            ],
+            child: const InternalVoucherCreatePage(),
+          ),
         ),
-      ),
-    );
-    listCubit.load();
+      );
+    } else {
+      String? parentId;
+      String? parentKind;
+      
+      if (_tabController.index == 1) {
+        // Assets are typically added under depreciable assets by default here
+        parentId = widget.depreciableAssetsRootId;
+        parentKind = 'fixedDepreciableAssets';
+      } else if (_tabController.index == 2) {
+        parentId = widget.revenuesRootId;
+        parentKind = 'personalRevenues';
+      } else if (_tabController.index == 3) {
+        parentId = widget.expensesRootId;
+        parentKind = 'personalExpenses';
+      }
+
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (_) => ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: AccountCreatePage(
+              forcedIsChild: true,
+              parentAccountId: parentId,
+              parentStandardKind: parentKind,
+            ),
+          ),
+        ),
+      );
+    }
+    if (mounted) listCubit.load();
   }
 
   Future<void> _openDetail(BuildContext context, String voucherId) async {
@@ -144,6 +202,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -162,6 +221,16 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
           ),
         ),
         title: AppStringsAr.managementTitle,
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: const [
+            Tab(text: 'السجل المالي'),
+            Tab(text: 'الأصول والممتلكات'),
+            Tab(text: 'مصادر الدخل'),
+            Tab(text: 'أبواب المصاريف'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
@@ -171,39 +240,65 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreate(context),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(AppStringsAr.addInternalVoucherFab),
+        icon: Icon(_tabController.index == 0 ? Icons.add_rounded : Icons.plus_one_rounded),
+        label: Text(_getFabLabel()),
         backgroundColor: gold,
         foregroundColor: Colors.black,
       ),
-      body: BlocBuilder<VoucherListCubit, VoucherListState>(
-        builder: (context, state) {
-          return Column(
-            children: [
-              // ── Search & Stats Section ───────────────────────────────────
-              _buildControlPanel(context, state, scheme, gold),
-
-              const Divider(height: 1),
-
-              // ── Filter Chips ─────────────────────────────────────────────
-              _buildFilterChips(context, state, gold),
-
-              // ── List Section ─────────────────────────────────────────────
-              Expanded(
-                child: state is VoucherListLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildList(context, state),
-              ),
-            ],
-          );
-        },
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // ── Tab 1: Financial Records
+          BlocBuilder<VoucherListCubit, VoucherListState>(
+            builder: (context, state) {
+              return Column(
+                children: [
+                   _buildControlPanel(context, state, scheme, gold),
+                  const Divider(height: 1),
+                  _buildFilterChips(context, state, gold),
+                  Expanded(
+                    child: state is VoucherListLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildList(context, state),
+                  ),
+                ],
+              );
+            },
+          ),
+          // ── Tab 2: Assets
+          const PersonalAccountsListView(
+            kinds: ['fixedDepreciableAssets', 'fixedProfitableAssets'],
+            emptyText: 'لا تملك أي أصول مسجلة حالياً.',
+            showAssetDetails: true,
+          ),
+          // ── Tab 3: Revenues
+          const PersonalAccountsListView(
+            kinds: ['personalRevenues'],
+            emptyText: 'لا تملك مصادر دخل (إيرادات) مسجلة حالياً.',
+          ),
+          // ── Tab 4: Expenses
+          const PersonalAccountsListView(
+            kinds: ['personalExpenses'],
+            emptyText: 'لا تملك أبواب مصاريف مسجلة حالياً.',
+          ),
+        ],
       ),
     );
   }
 
+  String _getFabLabel() {
+    switch (_tabController.index) {
+      case 0: return AppStringsAr.addInternalVoucherFab;
+      case 1: return 'إضافة أصل جديد';
+      case 2: return 'إضافة مصدر دخل';
+      case 3: return 'إضافة مصروف جديد';
+      default: return AppStringsAr.addInternalVoucherFab;
+    }
+  }
+
   Widget _buildControlPanel(BuildContext context, VoucherListState state,
       ColorScheme scheme, Color gold) {
-    final custom = theme.extension<QaydCustomColors>()!;
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
     double totalExpenses = 0;
     double totalRevenues = 0;
 
@@ -221,7 +316,6 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
       ),
       child: Column(
         children: [
-          // Search Field
           QaydTextField(
             controller: _searchController,
             hint: 'ابحث في السندات الداخلية...',
@@ -238,7 +332,6 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
             onChanged: (v) => context.read<VoucherListCubit>().setSearchText(v),
           ),
           const SizedBox(height: SpacingTokens.md),
-          // KPI Summary
           Row(
             children: [
               _StatCard(
@@ -256,6 +349,38 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
               ),
             ],
           ),
+          const SizedBox(height: SpacingTokens.md),
+          InkWell(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AccrualListPage()),
+            ),
+            borderRadius: BorderRadius.circular(RadiusTokens.lg),
+            child: Container(
+              padding: const EdgeInsets.all(SpacingTokens.md),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    ColorTokens.navy800,
+                    ColorTokens.navy700,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(RadiusTokens.lg),
+              ),
+              child: Row(
+                children: [
+                   const Icon(Icons.event_repeat_rounded, color: ColorTokens.warningAmber),
+                   const SizedBox(width: SpacingTokens.md),
+                   const Expanded(
+                     child: Text(
+                       'إدارة الالتزامات الدورية',
+                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                     ),
+                   ),
+                   const Icon(Icons.chevron_left_rounded, color: Colors.white54),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -264,9 +389,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
   Widget _buildFilterChips(
       BuildContext context, VoucherListState state, Color gold) {
     if (state is! VoucherListReady) return const SizedBox.shrink();
-
     final currentType = state.advancedFilter.type;
-
     return SizedBox(
       height: 54,
       child: ListView(
@@ -307,19 +430,15 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
   Widget _buildList(BuildContext context, VoucherListState state) {
     if (state is! VoucherListReady) return const SizedBox.shrink();
     final list = state.vouchers;
-
     if (list.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_rounded,
-                size: 48, color: Theme.of(context).colorScheme.outline),
+            Icon(Icons.inbox_rounded, size: 48, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: SpacingTokens.md),
             QaydText(
-              state.searchQuery.isNotEmpty
-                  ? 'لا توجد نتائج لبحثك'
-                  : AppStringsAr.vouchersEmpty,
+              state.searchQuery.isNotEmpty ? 'لا توجد نتائج لبحثك' : AppStringsAr.vouchersEmpty,
               slot: QaydTextStyleSlot.bodyLarge,
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -327,10 +446,8 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
         ),
       );
     }
-
     return ListView.builder(
-      padding:
-          const EdgeInsets.fromLTRB(SpacingTokens.md, 0, SpacingTokens.md, 80),
+      padding: const EdgeInsets.fromLTRB(SpacingTokens.md, 0, SpacingTokens.md, 80),
       itemCount: list.length,
       itemBuilder: (context, i) {
         final v = list[i];
@@ -341,8 +458,6 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
       },
     );
   }
-
-  ThemeData get theme => Theme.of(context);
 }
 
 class _StatCard extends StatelessWidget {
@@ -364,10 +479,7 @@ class _StatCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SpacingTokens.md,
-          vertical: SpacingTokens.sm + 4,
-        ),
+        padding: const EdgeInsets.all(SpacingTokens.md),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(RadiusTokens.lg),
@@ -376,22 +488,13 @@ class _StatCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, size: 14, color: color),
-                const SizedBox(width: 4),
-                QaydText(
-                  label,
-                  slot: QaydTextStyleSlot.labelSmall,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ],
-            ),
+            Row(children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 4),
+              QaydText(label, slot: QaydTextStyleSlot.labelSmall, color: scheme.onSurfaceVariant),
+            ]),
             const SizedBox(height: 4),
-            QaydText(
-              amount.toStringAsFixed(2),
-              slot: QaydTextStyleSlot.titleMedium,
-            ),
+            QaydText(amount.toStringAsFixed(2), slot: QaydTextStyleSlot.titleMedium),
           ],
         ),
       ),

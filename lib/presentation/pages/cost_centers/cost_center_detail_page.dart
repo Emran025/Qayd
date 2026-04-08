@@ -131,15 +131,30 @@ class _DashboardState extends State<_Dashboard> {
   Color get _typeColor =>
       _isProfit ? ColorTokens.emerald600 : ColorTokens.debitBlue;
 
-  List<CostCenterDimension> get _spatialDims => dto.dimensions
-      .where((d) => d.category == CostCenterDimensionCategory.spatial)
-      .toList();
-  List<CostCenterDimension> get _individualDims => dto.dimensions
-      .where((d) => d.category == CostCenterDimensionCategory.individual)
-      .toList();
-  List<CostCenterDimension> get _projectDims => dto.dimensions
-      .where((d) => d.category == CostCenterDimensionCategory.project)
-      .toList();
+  Map<CostCenterDimensionCategory, List<CostCenterDimension>> get _groupedDims {
+    final map = <CostCenterDimensionCategory, List<CostCenterDimension>>{};
+    for (final dim in dto.dimensions) {
+      map.putIfAbsent(dim.category, () => []).add(dim);
+    }
+    return map;
+  }
+
+  Color _getCategoryColor(CostCenterDimensionCategory category) {
+    return switch (category) {
+      CostCenterDimensionCategory.incomeAndWork => ColorTokens.emerald600,
+      CostCenterDimensionCategory.housingAndLiving => ColorTokens.debitBlue,
+      CostCenterDimensionCategory.nutritionAndConsumption => Colors.orange,
+      CostCenterDimensionCategory.transportation => Colors.blueGrey,
+      CostCenterDimensionCategory.healthAndPersonalCare => Colors.redAccent,
+      CostCenterDimensionCategory.educationAndDevelopment => Colors.indigo,
+      CostCenterDimensionCategory.familyAndDependents => Colors.teal,
+      CostCenterDimensionCategory.obligationsAndDebts => Colors.deepOrange,
+      CostCenterDimensionCategory.investmentsAndProjects => ColorTokens.warningAmber,
+      CostCenterDimensionCategory.savingsAndReserves => Colors.purple,
+      CostCenterDimensionCategory.entertainmentAndLifestyle => Colors.pink,
+      _ => _typeColor,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,16 +206,14 @@ class _DashboardState extends State<_Dashboard> {
                   // Suspended banner
                   if (!center.isActive)
                     Container(
-                      margin:
-                          const EdgeInsets.only(bottom: SpacingTokens.sm),
+                      margin: const EdgeInsets.only(bottom: SpacingTokens.sm),
                       padding: const EdgeInsets.symmetric(
                         horizontal: SpacingTokens.md,
                         vertical: SpacingTokens.sm,
                       ),
                       decoration: BoxDecoration(
                         color: ColorTokens.warningAmber.withValues(alpha: 0.12),
-                        borderRadius:
-                            BorderRadius.circular(RadiusTokens.md),
+                        borderRadius: BorderRadius.circular(RadiusTokens.md),
                         border: Border.all(
                           color:
                               ColorTokens.warningAmber.withValues(alpha: 0.4),
@@ -242,21 +255,11 @@ class _DashboardState extends State<_Dashboard> {
                     _sectionHeader(
                         AppStringsAr.costCenterDimensionsTitle, custom),
                     const SizedBox(height: SpacingTokens.xs),
-                    if (_spatialDims.isNotEmpty)
-                      _DimensionGroup(
-                          category: CostCenterDimensionCategory.spatial,
-                          dims: _spatialDims,
-                          color: _typeColor),
-                    if (_individualDims.isNotEmpty)
-                      _DimensionGroup(
-                          category: CostCenterDimensionCategory.individual,
-                          dims: _individualDims,
-                          color: ColorTokens.emerald600),
-                    if (_projectDims.isNotEmpty)
-                      _DimensionGroup(
-                          category: CostCenterDimensionCategory.project,
-                          dims: _projectDims,
-                          color: ColorTokens.warningAmber),
+                    ..._groupedDims.entries.map((entry) => _DimensionGroup(
+                          category: entry.key,
+                          dims: entry.value,
+                          color: _getCategoryColor(entry.key),
+                        )),
                     const SizedBox(height: SpacingTokens.md),
                   ],
 
@@ -357,16 +360,14 @@ class _DashboardState extends State<_Dashboard> {
           else
             SizedBox(
               height: 130,
-              child: TrendLineChart(
-                  trend: dto.monthlyTrend, color: _typeColor),
+              child: TrendLineChart(trend: dto.monthlyTrend, color: _typeColor),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildAnalyticsRow(
-      BuildContext context, QaydCustomColors custom) {
+  Widget _buildAnalyticsRow(BuildContext context, QaydCustomColors custom) {
     final hasDonut = dto.dimensionBreakdown.isNotEmpty;
     final hasBudget = dto.center.hasBudget;
     return Row(
@@ -387,8 +388,8 @@ class _DashboardState extends State<_Dashboard> {
                     child: DonutChart(
                       items: dto.dimensionBreakdown,
                       activeDimId: _activeDimId,
-                      onTap: (id) =>
-                          setState(() => _activeDimId = _activeDimId == id ? null : id),
+                      onTap: (id) => setState(
+                          () => _activeDimId = _activeDimId == id ? null : id),
                     ),
                   ),
                 ],
@@ -409,7 +410,8 @@ class _DashboardState extends State<_Dashboard> {
                   BudgetGauge(
                     utilization: dto.budgetUtilization,
                     primaryCurrency: dto.center.currencyCode,
-                    totalMinor: dto.totalsByCurrency[dto.center.currencyCode] ?? 0,
+                    totalMinor:
+                        dto.totalsByCurrency[dto.center.currencyCode] ?? 0,
                     budgetMinor: dto.center.budgetMinorUnits,
                     typeColor: _typeColor,
                   ),
@@ -514,7 +516,8 @@ class _DashboardState extends State<_Dashboard> {
   // ── Helpers ───────────────────────────────────────────────────────────
 
   static String _fmt(int major, String currency) {
-    if (major >= 1000000) return '${(major / 1000000).toStringAsFixed(1)}م $currency';
+    if (major >= 1000000)
+      return '${(major / 1000000).toStringAsFixed(1)}م $currency';
     if (major >= 1000) return '${(major / 1000).toStringAsFixed(1)}ك $currency';
     return '$major $currency';
   }
@@ -530,8 +533,7 @@ class _DashboardState extends State<_Dashboard> {
             listAccounts: InjectionContainer.listAccountsUseCase,
             counterpartyAccountId: dto.center.id,
           )..load(),
-          child: AccountStatementChatPage(
-              counterpartyAccountId: dto.center.id),
+          child: AccountStatementChatPage(counterpartyAccountId: dto.center.id),
         ),
       ),
     );

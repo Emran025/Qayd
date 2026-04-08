@@ -60,6 +60,18 @@ final class AccountClassification {
     defaultNature: AccountNature.credit, // Revenue
   );
 
+  /// Standard: أصول ثابتة (مهلكة)
+  static const AccountClassification fixedDepreciableAssets = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.fixedDepreciableAssets,
+    defaultNature: AccountNature.debit,
+  );
+
+  /// Standard: أصول ثابتة (ربحية)
+  static const AccountClassification fixedProfitableAssets = AccountClassification._(
+    standardKind: StandardAccountClassificationKind.fixedProfitableAssets,
+    defaultNature: AccountNature.debit,
+  );
+
   final StandardAccountClassificationKind? standardKind;
   final String? customName;
 

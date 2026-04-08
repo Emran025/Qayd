@@ -16,6 +16,7 @@ class Account {
     required this.isDefault,
     required this.createdAt,
     required this.isActive,
+    this.metadata = const {},
   });
 
   final AccountId id;
@@ -27,6 +28,9 @@ class Account {
   final DateTime createdAt;
   final bool isActive;
 
+  /// Additional extensible data (e.g., asset serials, purchase dates).
+  final Map<String, dynamic> metadata;
+
   bool get isRoot => parentId == null;
 
   /// Primary account under the implicit root: carries classification and implied nature.
@@ -37,6 +41,7 @@ class Account {
     required DateTime createdAt,
     bool isDefault = false,
     bool isActive = true,
+    Map<String, dynamic> metadata = const {},
   }) {
     return Account._(
       id: id,
@@ -47,6 +52,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      metadata: metadata,
     );
   }
 
@@ -60,6 +66,7 @@ class Account {
     required bool isDefault,
     required DateTime createdAt,
     required bool isActive,
+    Map<String, dynamic> metadata = const {},
   }) {
     return Account._(
       id: id,
@@ -70,6 +77,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      metadata: metadata,
     );
   }
 
@@ -81,6 +89,7 @@ class Account {
     required DateTime createdAt,
     bool isDefault = false,
     bool isActive = true,
+    Map<String, dynamic> metadata = const {},
   }) {
     return Account._(
       id: id,
@@ -91,6 +100,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      metadata: metadata,
     );
   }
 
@@ -112,6 +122,21 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      metadata: metadata,
+    );
+  }
+
+  Account updateMetadata(Map<String, dynamic> newMetadata) {
+    return Account._(
+      id: id,
+      name: name,
+      nature: nature,
+      classification: classification,
+      parentId: parentId,
+      isDefault: isDefault,
+      createdAt: createdAt,
+      isActive: isActive,
+      metadata: {...metadata, ...newMetadata},
     );
   }
 
@@ -126,6 +151,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: true,
+      metadata: metadata,
     );
   }
 
@@ -153,6 +179,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: false,
+      metadata: metadata,
     );
   }
 
@@ -174,6 +201,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      metadata: metadata,
     );
   }
 

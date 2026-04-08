@@ -8,6 +8,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_extensions.dart';
 import 'package:qayd/domain/entities/cost_center.dart';
 
@@ -34,9 +35,13 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
   CostCenterType _type = CostCenterType.cost;
   bool _saving = false;
 
+  List<CostCenterDimensionCategory> _categories = [];
+  final Set<String> _selectedCategoryIds = {};
+
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     final c = widget.initialCostCenter;
     if (c != null) {
       _nameController.text = c.name;
@@ -46,6 +51,11 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
       }
       _type = c.type;
     }
+  }
+
+  Future<void> _loadCategories() async {
+    final res = await InjectionContainer.manageDimensionsUseCase.listCategories();
+    res.fold((_) {}, (cats) => setState(() => _categories = cats));
   }
 
   @override
@@ -87,6 +97,7 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
             ? null
             : _descController.text.trim(),
         budgetMinorUnits: budgetMinor,
+        categoryIds: _selectedCategoryIds.toList(),
       );
     }
 
@@ -195,6 +206,38 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.done,
             ),
+
+            // ── Categories (Dimensions) ──────────────────────────────────
+            const SizedBox(height: SpacingTokens.md),
+            QaydText(
+              AppStringsAr.costCenterDimensionSelectorLabel,
+              slot: QaydTextStyleSlot.labelLarge,
+              color: scheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: SpacingTokens.sm),
+            if (_categories.isEmpty)
+              const Center(child: Padding(
+                padding: EdgeInsets.all(SpacingTokens.md),
+                child: CircularProgressIndicator(),
+              ))
+            else
+              Wrap(
+                spacing: SpacingTokens.xs,
+                runSpacing: SpacingTokens.xs,
+                children: _categories.map((cat) {
+                  final isSelected = _selectedCategoryIds.contains(cat.id);
+                  return FilterChip(
+                    label: Text(cat.labelAr),
+                    selected: isSelected,
+                    onSelected: (val) => setState(() => val
+                        ? _selectedCategoryIds.add(cat.id)
+                        : _selectedCategoryIds.remove(cat.id)),
+                    selectedColor: gold.withValues(alpha: 0.2),
+                    checkmarkColor: gold,
+                  );
+                }).toList(),
+              ),
+
             const SizedBox(height: SpacingTokens.xl),
 
             // ── Save ──────────────────────────────────────────────────────

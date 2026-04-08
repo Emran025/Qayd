@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:qayd/data/models/account_model.dart';
 import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
@@ -20,12 +21,19 @@ final class AccountMapper {
       customClassificationName: account.classification.customName,
       customClassificationNature:
           std == null ? account.classification.defaultNature.name : null,
+      metadataJson:
+          account.metadata.isEmpty ? null : jsonEncode(account.metadata),
     );
   }
 
   static Account toEntity(AccountModel model) {
     final classification = _classificationFromModel(model);
     final nature = _parseNature(model.nature);
+    final metadata = model.metadataJson != null
+        ? Map<String, dynamic>.from(
+            jsonDecode(model.metadataJson!) as Map<dynamic, dynamic>)
+        : <String, dynamic>{};
+
     return Account.restore(
       id: AccountId(model.id),
       name: model.name,
@@ -35,6 +43,7 @@ final class AccountMapper {
       isDefault: model.isDefault,
       createdAt: DateTime.parse(model.createdAtIso),
       isActive: model.isActive,
+      metadata: metadata,
     );
   }
 
@@ -58,6 +67,10 @@ final class AccountMapper {
           AccountClassification.clearingRemittances,
         StandardAccountClassificationKind.remittanceFees =>
           AccountClassification.remittanceFees,
+        StandardAccountClassificationKind.fixedDepreciableAssets =>
+          AccountClassification.fixedDepreciableAssets,
+        StandardAccountClassificationKind.fixedProfitableAssets =>
+          AccountClassification.fixedProfitableAssets,
       };
     }
     return AccountClassification.custom(

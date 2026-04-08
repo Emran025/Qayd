@@ -2,7 +2,9 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/cost_center.dart';
+import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
+import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
 
 final class CreateCostCenterUseCase {
@@ -17,6 +19,7 @@ final class CreateCostCenterUseCase {
     required String currencyCode,
     String? description,
     int budgetMinorUnits = 0,
+    List<String> categoryIds = const [],
   }) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
@@ -39,6 +42,23 @@ final class CreateCostCenterUseCase {
     );
 
     final result = await _repository.save(center);
-    return result.fold((f) => FailureResult(f), (_) => Success(center));
+    if (result is FailureResult<void>) return FailureResult(result.failure);
+
+    // Create a dimension for each selected category, linked to this center
+    for (final catId in categoryIds) {
+      final dim = CostCenterDimension(
+        id: _idGenerator.next(),
+        name: trimmed,
+        category: CostCenterDimensionCategory(
+            id: catId, name: ''), // Name will be filled by repo join
+        costCenterId: center.id,
+        isActive: true,
+        isDefault: false,
+        createdAt: DateTime.now(),
+      );
+      await _repository.saveDimension(dim);
+    }
+
+    return Success(center);
   }
 }

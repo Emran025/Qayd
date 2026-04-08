@@ -11,6 +11,7 @@ final class AccountModel {
     this.standardClassification,
     this.customClassificationName,
     this.customClassificationNature,
+    this.metadataJson,
   });
 
   final String id;
@@ -23,6 +24,7 @@ final class AccountModel {
   final String? standardClassification;
   final String? customClassificationName;
   final String? customClassificationNature;
+  final String? metadataJson;
 
   Map<String, Object?> toMap() => {
         'id': id,
@@ -35,6 +37,7 @@ final class AccountModel {
         'standard_classification': standardClassification,
         'custom_classification_name': customClassificationName,
         'custom_classification_nature': customClassificationNature,
+        'metadata': metadataJson,
       };
 
   factory AccountModel.fromMap(Map<String, Object?> map) {
@@ -50,6 +53,7 @@ final class AccountModel {
       customClassificationName: map['custom_classification_name'] as String?,
       customClassificationNature:
           map['custom_classification_nature'] as String?,
+      metadataJson: map['metadata'] as String?,
     );
   }
 }

@@ -19,6 +19,7 @@ import 'package:qayd/data/database/migrations/migration_018_outbox.dart';
 import 'package:qayd/data/database/migrations/migration_019_sync_watermarks.dart';
 import 'package:qayd/data/database/migrations/migration_020_cost_centers.dart';
 import 'package:qayd/data/database/migrations/migration_021_remittance.dart';
+import 'package:qayd/data/database/migrations/migration_022_personal_economy_upgrade.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -48,6 +49,7 @@ final class MigrationRegistry {
     Migration019SyncWatermarks(),
     Migration020CostCenters(),
     Migration021Remittance(),
+    Migration022PersonalEconomyUpgrade(),
   ];
 
   static List<SchemaMigration> get ordered {

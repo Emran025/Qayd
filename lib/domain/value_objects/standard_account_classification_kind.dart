@@ -8,4 +8,6 @@ enum StandardAccountClassificationKind {
   remittanceFees,      // System profit center for remittance fees
   personalExpenses,
   personalRevenues,
+  fixedDepreciableAssets, // أصول ثابتة (مهلكة)
+  fixedProfitableAssets,  // أصول ثابتة (ربحية)
 }

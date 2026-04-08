@@ -128,6 +128,7 @@ class ListAccountsUseCase {
             standardClassificationKind: a.classification.standardKind?.name,
             customClassificationName: a.classification.customName,
             balancesMinorUnits: balancesMinorUnits,
+            metadata: a.metadata,
           ),
         );
       }

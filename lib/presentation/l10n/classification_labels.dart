@@ -5,20 +5,24 @@ String standardClassificationKindLabelAr(
 ) {
   switch (kind) {
     case StandardAccountClassificationKind.liquidAssets:
-      return 'نقدية';
+      return 'نقدية وسيولة';
     case StandardAccountClassificationKind.receivables:
-      return 'ذمم مدينة - لي';
+      return 'حقوق ومستحقات';
     case StandardAccountClassificationKind.payables:
-      return 'ذمم دائنة - علي';
+      return 'التزامات وديون';
     case StandardAccountClassificationKind.settlements:
-      return 'تسوية وشخصي';
+      return 'تسويات مالية وشخصية';
     case StandardAccountClassificationKind.personalExpenses:
-      return 'مصروفات شخصية';
+      return 'مصروفات واستهلاك';
     case StandardAccountClassificationKind.personalRevenues:
-      return 'إيرادات شخصية';
+      return 'إيرادات ومكاسب';
     case StandardAccountClassificationKind.clearingRemittances:
       return 'مقاصة الحوالات';
     case StandardAccountClassificationKind.remittanceFees:
       return 'رسوم الحوالات';
+    case StandardAccountClassificationKind.fixedDepreciableAssets:
+      return 'أصول ثابتة (مهلكة)';
+    case StandardAccountClassificationKind.fixedProfitableAssets:
+      return 'أصول ثابتة (ربحية)';
   }
 }

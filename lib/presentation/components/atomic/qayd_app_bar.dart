@@ -12,6 +12,7 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.centerTitle = true,
     this.showNotifications = true,
+    this.bottom,
   });
 
   final String title;
@@ -19,6 +20,7 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;
   final bool centerTitle;
   final bool showNotifications;
+  final PreferredSizeWidget? bottom;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,38 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
       effectiveActions.add(const NotificationIconButton());
     }
 
+    // Gold decorative underline used in both cases
+    final goldUnderline = Container(
+      height: 3,
+      margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(2),
+        gradient: LinearGradient(
+          colors: [
+            gold.withValues(alpha: 0.85),
+            gold.withValues(alpha: 0.12),
+            Colors.transparent,
+          ],
+        ),
+      ),
+    );
+
+    final PreferredSizeWidget effectiveBottom;
+    if (bottom != null) {
+      effectiveBottom = _CombinedPreferredSize(
+        top: bottom!,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(3),
+          child: goldUnderline,
+        ),
+      );
+    } else {
+      effectiveBottom = PreferredSize(
+        preferredSize: const Size.fromHeight(3),
+        child: goldUnderline,
+      );
+    }
+
     return AppBar(
       leading: leading,
       title: QaydText(
@@ -37,26 +71,32 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: centerTitle,
       actions: effectiveActions,
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(3),
-        child: Container(
-          height: 3,
-          margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2),
-            gradient: LinearGradient(
-              colors: [
-                gold.withValues(alpha: 0.85),
-                gold.withValues(alpha: 0.12),
-                Colors.transparent,
-              ],
-            ),
-          ),
-        ),
-      ),
+      bottom: effectiveBottom,
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 3);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 3));
+}
+
+/// Helper widget to combine two PreferredSizeWidgets (like TabBar + Underline)
+class _CombinedPreferredSize extends StatelessWidget implements PreferredSizeWidget {
+  const _CombinedPreferredSize({required this.top, required this.bottom});
+
+  final PreferredSizeWidget top;
+  final PreferredSizeWidget bottom;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        top,
+        bottom,
+      ],
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(top.preferredSize.height + bottom.preferredSize.height);
 }

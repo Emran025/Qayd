@@ -17,6 +17,7 @@ class CreateAccountInput {
     this.currentPublicKeyHex,
     this.publicKeyHistoryHex,
     this.serverAccountId,
+    this.metadata = const {},
   });
 
   final String name;
@@ -39,4 +40,6 @@ class CreateAccountInput {
   final String? currentPublicKeyHex;
   final List<String>? publicKeyHistoryHex;
   final int? serverAccountId;
+
+  final Map<String, dynamic> metadata;
 }

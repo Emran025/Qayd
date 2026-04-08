@@ -387,21 +387,25 @@ abstract final class AppStringsAr {
   static String standardClassificationLabel(String kind) {
     switch (kind) {
       case 'liquidAssets':
-        return 'نقدية';
+        return 'نقدية وسيولة';
       case 'receivables':
-        return 'ذمم مدينة - لي';
+        return 'حقوق ومستحقات';
       case 'payables':
-        return 'ذمم دائنة - علي';
+        return 'التزامات وديون';
       case 'settlements':
-        return 'تسوية وشخصي';
+        return 'تسويات مالية وشخصية';
       case 'personalExpenses':
-        return 'مصروفات شخصية';
+        return 'مصروفات واستهلاك';
       case 'personalRevenues':
-        return 'إيرادات شخصية';
+        return 'إيرادات ومكاسب';
       case 'clearingRemittances':
         return 'مقاصة الحوالات';
       case 'remittanceFees':
         return 'رسوم الحوالات';
+      case 'fixedDepreciableAssets':
+        return 'أصول ثابتة (مهلكة)';
+      case 'fixedProfitableAssets':
+        return 'أصول ثابتة (ربحية)';
       default:
         return kind;
     }
@@ -649,6 +653,7 @@ abstract final class AppStringsAr {
       'يعرض جميع سندات القبض والصرف المرتبطة بهذا المركز في واجهة محادثة.';
   // Create page
   static const String costCenterTypeSelectorLabel = 'نوع المركز';
+  static const String costCenterDimensionSelectorLabel = 'الأبعاد الحياتية المرتبطة';
   static const String costCenterNameHint = 'اسم المركز *';
   static const String costCenterNameValidator = 'يرجى إدخال الاسم.';
   static const String costCenterDescHint = 'الوصف (اختياري)';
