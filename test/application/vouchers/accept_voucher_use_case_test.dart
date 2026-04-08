@@ -18,6 +18,8 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/domain/value_objects/transaction_id.dart';
+import 'package:qayd/domain/value_objects/entry_id.dart';
 import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/domain/value_objects/digital_signature.dart';
@@ -85,6 +87,8 @@ void main() {
     registerFallbackValue(FakeSyncNode());
     registerFallbackValue(VoucherId('dummy'));
     registerFallbackValue(AccountId('dummy'));
+    registerFallbackValue(TransactionId('dummy'));
+    registerFallbackValue(EntryId('dummy'));
     registerFallbackValue(SignableReceipt(
         amountMinor: 100,
         currencyCode: 'USD',
@@ -190,8 +194,20 @@ void main() {
             signerPublicKey: Uint8List(32),
             payloadHash: Uint8List(32)));
 
-    when(() => mockVoucherRepo.save(any()))
+    when(() => mockVoucherRepo.saveWithLedgerEntries(
+            voucher: any(named: 'voucher'),
+            ledgerEntries: any(named: 'ledgerEntries')))
         .thenAnswer((_) async => const Success(null));
+
+    when(() => mockEntryGenerator.generateForConfirmedVoucher(
+            voucher: any(named: 'voucher'),
+            transactionId: any(named: 'transactionId'),
+            debitEntryId: any(named: 'debitEntryId'),
+            creditEntryId: any(named: 'creditEntryId'),
+            ledgerCreatedAt: any(named: 'ledgerCreatedAt')))
+        .thenReturn([]);
+
+    when(() => mockIdGenerator.next()).thenReturn('id-123');
 
     when(() => mockE2EEService.encryptPayload(
             rawPayload: any(named: 'rawPayload'),
@@ -217,7 +233,15 @@ void main() {
 
     final result = await useCase('v-123');
 
+    // Debugging output for failure
+    if (result.isFailure) {
+      print('Failure: ${result.failureOrNull}');
+    }
+
     expect(result.isSuccess, isTrue);
-    verify(() => mockVoucherRepo.save(any())).called(1);
+    verify(() => mockVoucherRepo.saveWithLedgerEntries(
+      voucher: any(named: 'voucher'),
+      ledgerEntries: any(named: 'ledgerEntries'),
+    )).called(1);
   });
 }

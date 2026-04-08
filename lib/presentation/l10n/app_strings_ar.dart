@@ -113,9 +113,11 @@ abstract final class AppStringsAr {
   static const String governanceSuspendedBanner =
       'وضع التعليق نشط: يمكنك الاطلاع فقط. عمليات الحفظ والتأكيد معطّلة مؤقتاً.';
   static const String governanceRecheckAction = 'تحقق';
-  static const String governancePaymentInstruction = 'للمتابعة وتفعيل اشتراكك، يرجى سداد الرسوم المطلوبة إلى الحساب التالي:';
+  static const String governancePaymentInstruction =
+      'للمتابعة وتفعيل اشتراكك، يرجى سداد الرسوم المطلوبة إلى الحساب التالي:';
   static const String governanceOwnerAccountLabel = 'حساب مدير التطبيق (سداد)';
-  static const String governanceContactAdmin = 'بعد السداد، يرجى مشاركة صورة الإيصال مع الدعم الفني لتفعيل حسابك.';
+  static const String governanceContactAdmin =
+      'بعد السداد، يرجى مشاركة صورة الإيصال مع الدعم الفني لتفعيل حسابك.';
 
   // Vouchers
   static const String pickAccountTitle = 'اختر حساباً';
@@ -383,6 +385,14 @@ abstract final class AppStringsAr {
         return 'ذمم دائنة - علي';
       case 'settlements':
         return 'تسوية وشخصي';
+      case 'personalExpenses':
+        return 'مصروفات شخصية';
+      case 'personalRevenues':
+        return 'إيرادات شخصية';
+      case 'clearingRemittances':
+        return 'مقاصة الحوالات';
+      case 'remittanceFees':
+        return 'رسوم الحوالات';
       default:
         return kind;
     }
@@ -598,8 +608,10 @@ abstract final class AppStringsAr {
   static const String addCostCenterFab = 'مركز جديد';
   static const String newCostCenterTitle = 'مركز تكلفة/ربح جديد';
   static const String searchCostCentersHint = 'بحث باسم المركز…';
-  static const String costCentersEmpty = 'لا توجد مراكز تكلفة بعد. أضف مركزاً جديداً.';
-  static const String costCentersEmptyFiltered = 'لا نتائج مطابقة للبحث أو التصفية.';
+  static const String costCentersEmpty =
+      'لا توجد مراكز تكلفة بعد. أضف مركزاً جديداً.';
+  static const String costCentersEmptyFiltered =
+      'لا نتائج مطابقة للبحث أو التصفية.';
 
   static const String costCenterTypeCostGroup = 'مراكز التكلفة';
   static const String costCenterTypeProfitGroup = 'مراكز الربح';
@@ -634,14 +646,16 @@ abstract final class AppStringsAr {
   static const String costCenterBudgetHint = 'الميزانية (اختياري — ريال)';
   static const String costCenterBudgetNoneHint = '0 = بلا حد';
   static const String costCenterSaveAction = 'إنشاء المركز';
-  static const String costCenterCreatedSnackbar = 'تم إنشاء مركز التكلفة بنجاح.';
+  static const String costCenterCreatedSnackbar =
+      'تم إنشاء مركز التكلفة بنجاح.';
   // Detail page actions
   static const String costCenterSuspendConfirmTitle = 'تأكيد الإيقاف';
   static const String costCenterActivateConfirmTitle = 'تأكيد التفعيل';
   static const String costCenterEditAction = 'تعديل المركز';
   static const String costCenterDeleteAction = 'حذف المركز';
   static const String costCenterSuspendSnackbar = 'تم إيقاف عمل مركز التكلفة.';
-  static const String costCenterActivateSnackbar = 'تم إعادة تفعيل مركز التكلفة.';
+  static const String costCenterActivateSnackbar =
+      'تم إعادة تفعيل مركز التكلفة.';
   // Categories
   static const String dimCategorySpatial = 'بُعد مكاني';
   static const String dimCategoryIndividual = 'بُعد الأفراد';
@@ -664,8 +678,10 @@ abstract final class AppStringsAr {
   static const String costCenterNoBudget = 'بلا حد';
   static const String costCenterOverBudgetWarning = 'تجاوز الميزانية!';
   static const String costCenterActiveBadge = 'نشط';
-  static const String costCenterNoTrendData = 'لا توجد حركة مالية مؤكدة خلال الفترة.';
-  static const String costCenterNoDimensionData = 'لا توجد سندات مصنفة بالأبعاد.';
+  static const String costCenterNoTrendData =
+      'لا توجد حركة مالية مؤكدة خلال الفترة.';
+  static const String costCenterNoDimensionData =
+      'لا توجد سندات مصنفة بالأبعاد.';
 
   // ── Navigation ──────────────────────────────────────────────────────────
   static const String navCostCentersTab = 'المراكز';
@@ -683,7 +699,8 @@ abstract final class AppStringsAr {
   static const String voucherCollateralExpiryLabel = 'تاريخ الاستحقاق';
   static const String voucherCollateralStatusLabel = 'حالة الرهن';
   static const String voucherCollateralSettlementsTitle = 'تسويات الرهن';
-  static String voucherCollateralSettlementLink(int index) => 'سند تسوية #$index';
+  static String voucherCollateralSettlementLink(int index) =>
+      'سند تسوية #$index';
   static const String voucherCostCentersSection = 'مراكز التكلفة / الربح';
   static const String voucherCostCenterTypeCost = 'تكلفة';
   static const String voucherCostCenterTypeProfit = 'ربح';
@@ -692,4 +709,3 @@ abstract final class AppStringsAr {
   static const String voucherSenderLabel = 'المرسل';
   static const String voucherReceiverLabel = 'المستلم';
 }
-

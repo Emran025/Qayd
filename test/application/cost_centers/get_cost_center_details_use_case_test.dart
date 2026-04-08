@@ -37,6 +37,12 @@ void main() {
           .thenAnswer((_) async => const Success({'USD': 1500}));
       when(() => mockRepo.getVoucherIdsForCostCenter('cc-1'))
           .thenAnswer((_) async => const Success(['v1', 'v2']));
+      when(() => mockRepo.getMonthlyTrendForCenter('cc-1', months: 6))
+          .thenAnswer((_) async => const Success([]));
+      when(() => mockRepo.getRecentVouchersForCenter('cc-1', limit: 10))
+          .thenAnswer((_) async => const Success([]));
+      when(() => mockRepo.getDimensionBreakdown('cc-1'))
+          .thenAnswer((_) async => const Success([]));
 
       final result = await useCase('cc-1');
 

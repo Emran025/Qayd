@@ -11,6 +11,7 @@ import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/entities/ledger_entry.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
@@ -59,12 +60,12 @@ void main() {
     );
   });
 
-  test('should return failure if not dual signed', () async {
+  test('should return failure if not signed by anyone', () async {
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
 
     final currency = CurrencyCode(code: 'USD', nameAr: 'USD', symbol: '\$', fractionalDigits: 2);
-    final voucher = Voucher.draft(
+    final voucher = Voucher.restore(
       id: VoucherId('v-1'),
       type: VoucherType.receipt,
       date: DateTime.now(),
@@ -73,6 +74,9 @@ void main() {
       counterpartyId: AccountId('cp-1'),
       affectedAccountId: AccountId('aff-1'),
       createdAt: DateTime.now(),
+      state: VoucherState.draft,
+      senderStatus: AgreementStatus.underRequest,
+      receiverStatus: AgreementStatus.underRequest,
     );
 
     when(() => mockVoucherRepo.getById(any()))
@@ -81,7 +85,8 @@ void main() {
     final result = await useCase(ConfirmVoucherInput(voucherId: 'v-1'));
 
     expect(result.isFailure, isTrue);
-    expect((result.failureOrNull as ValidationFailure).code, 'voucher_not_fully_signed');
+    expect(result.failureOrNull, isA<ValidationFailure>());
+    expect((result.failureOrNull as ValidationFailure).code, 'voucher_not_signed');
   });
 
   test('should confirm voucher successfully', () async {

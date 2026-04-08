@@ -118,22 +118,22 @@ final class ListAccountStatementChatUseCase {
 
         // If the target party is the Sender, check if they accepted (signed).
         if (v.affectedAccountId == targetId) {
-          return v.senderStatus == AgreementStatus.accepted;
+          return v.senderStatus != AgreementStatus.rejected;
         }
         
         // If the target party is the Receiver, check if they accepted (signed).
         if (v.counterpartyId == targetId) {
-          return v.receiverStatus == AgreementStatus.accepted;
+          return v.receiverStatus != AgreementStatus.rejected;
         }
 
         // Handle Tripartite case where the targetId is the linked party.
         if (v.isTripartite && v.tripartiteMeta?.linkedPartyId == targetId) {
           if (v.type == VoucherType.receipt) {
             // Receipt (Source -> M): Linked party is the Destination. Treat as checking receiver's acceptance.
-            return v.receiverStatus == AgreementStatus.accepted;
+            return v.receiverStatus != AgreementStatus.rejected;
           } else if (v.type == VoucherType.payment) {
             // Payment (M -> Dest): Linked party is the Source. Treat as checking sender's acceptance.
-            return v.senderStatus == AgreementStatus.accepted;
+            return v.senderStatus != AgreementStatus.rejected;
           }
         }
 

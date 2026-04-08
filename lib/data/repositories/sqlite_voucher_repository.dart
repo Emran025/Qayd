@@ -53,7 +53,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       args.add(filter.affectedAccountId!.value);
     }
     if (filter.involvedAccountId != null) {
-      whereParts.add('(${p}affected_account_id = ? OR ${p}counterparty_id = ? OR ${p}linked_party_id = ?)');
+      whereParts.add('(${p}affected_account_id = ? OR ${p}counterparty_id = ? OR ${p}linked_party_id = ? OR ${p}mediator_account_id = ?)');
+      args.add(filter.involvedAccountId!.value);
       args.add(filter.involvedAccountId!.value);
       args.add(filter.involvedAccountId!.value);
       args.add(filter.involvedAccountId!.value);
