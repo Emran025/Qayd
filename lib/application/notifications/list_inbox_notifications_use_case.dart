@@ -27,21 +27,46 @@ final class ListInboxNotificationsUseCase {
       for (final msg in messages) {
         final senderName = await _getAccountName(AccountId(msg.counterpartyAccountId));
         
-        // Determine title based on content or channel (heuristic for now)
         String title = 'إشعار جديد';
         String actionRoute = '/chat/${msg.counterpartyAccountId}';
 
-        if (msg.rawPayloadJson != null && msg.rawPayloadJson!.contains('tripartite_request')) {
+        if (msg.channel == 'tripartite_event') {
           title = 'طلب إنشاء حوالة';
-          // Decode to build parameterized route
           try {
             final Map<String, dynamic> payload = jsonDecode(msg.rawPayloadJson!);
             final destId = payload['destAccountId'];
             final amount = payload['amountMinorUnits'];
             final cur = payload['currencyCode'];
-            // Pass the requester (Counterparty) as the source, destination, and amount
             actionRoute = '/tripartite/create?sourceAccountId=${msg.counterpartyAccountId}&destAccountId=$destId&amount=$amount&currency=$cur';
           } catch (_) {}
+        } else if (msg.channel == 'voucher_event' || msg.channel == 'conflict') {
+          final Map<String, dynamic> payload = jsonDecode(msg.rawPayloadJson ?? '{}');
+          final eventType = payload['event_type'] as String?;
+          final hasTripartite = payload['has_tripartite_meta'] == true;
+          
+          switch (eventType) {
+            case 'claim':
+              if (hasTripartite) {
+                title = 'حوالة وساطة جديدة';
+              } else {
+                title = msg.channel == 'conflict' ? 'تعارض في السندات' : 'سند جديد';
+              }
+              break;
+            case 'acceptance':
+              title = hasTripartite ? 'تم اعتماد الحوالة' : 'تم اعتماد السند';
+              break;
+            case 'rejection':
+              title = hasTripartite ? 'تم رفض الحوالة' : 'تم رفض السند';
+              break;
+            case 'withdrawal':
+              title = hasTripartite ? 'تم سحب الحوالة' : 'تم سحب السند';
+              break;
+            case 'settlement':
+              title = hasTripartite ? 'تم سداد الحوالة' : 'تم سداد السند';
+              break;
+            default:
+              title = hasTripartite ? 'تحديث على الحوالة' : 'تحديث على السند';
+          }
         } else if (msg.bodyText.contains('طلب')) {
           title = 'طلب اعتماد سند';
         } else if (msg.bodyText.contains('اعتماد')) {

@@ -31,6 +31,8 @@ import 'package:qayd/domain/value_objects/collateral_status.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/entities/collateral_revaluation.dart';
+import 'package:qayd/domain/value_objects/tripartite_meta.dart';
+import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:uuid/uuid.dart';
 
 /// Intercepts inbound [SyncNode] streams, enforces E2EE Cryptographic rules,
@@ -121,7 +123,7 @@ class SyncPayloadProcessor {
         // 3. Process Domain Actions Structurally with Signatures
         switch (node.eventType) {
           case SyncEventType.claim:
-            await _inboundVoucherClaim(decryptedRawPayload);
+            await _inboundVoucherClaim(decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.acceptance:
             await _inboundVoucherAcceptance(
@@ -129,10 +131,12 @@ class SyncPayloadProcessor {
               counterpartPublicKey,
               senderPhone,
               senderEmail,
+              node.id,
+              node.senderId.toString(),
             );
             break;
           case SyncEventType.rejection:
-            await _inboundVoucherRejection(decryptedRawPayload);
+            await _inboundVoucherRejection(decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.journalEntry:
             await _inboundJournalEntryMirrored(decryptedRawPayload);
@@ -147,10 +151,10 @@ class SyncPayloadProcessor {
             await _inboundCollateralRevaluation(decryptedRawPayload);
             break;
           case SyncEventType.withdrawal:
-            await _inboundVoucherWithdrawal(decryptedRawPayload);
+            await _inboundVoucherWithdrawal(decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.settlement:
-            await _inboundVoucherSettlement(decryptedRawPayload);
+            await _inboundVoucherSettlement(decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.p2pHandshake:
             // P2P handshake is handled at the transport layer, not here.
@@ -159,7 +163,7 @@ class SyncPayloadProcessor {
             );
             break;
           case SyncEventType.tripartiteRequest:
-            await _inboundTripartiteRequest(decryptedRawPayload, node.senderId.toString());
+            await _inboundTripartiteRequest(decryptedRawPayload, node.senderId.toString(), node.id);
             break;
           case SyncEventType.unknown:
             debugPrint('Warning: Unknown event type in SyncNode [${node.id}]');
@@ -171,7 +175,11 @@ class SyncPayloadProcessor {
     }
   }
 
-  Future<void> _inboundVoucherClaim(Map<String, dynamic> payload) async {
+  Future<void> _inboundVoucherClaim(
+    Map<String, dynamic> payload,
+    String nodeId,
+    String senderId,
+  ) async {
     // Protocol §5 — Inbound Voucher Claim Processing.
     final String? voucherIdStr = payload['voucher_id'] as String?;
     if (voucherIdStr == null) return;
@@ -210,6 +218,18 @@ class SyncPayloadProcessor {
     final currency = currencyResult.valueOrNull!;
 
     // 6. Entity Reconstruction
+    final tripartiteData = payload['tripartite_meta'] as Map<String, dynamic>?;
+    TripartiteMeta? tripartiteMeta;
+    if (tripartiteData != null) {
+      tripartiteMeta = TripartiteMeta(
+        transferGroupId: tripartiteData['transfer_group_id'] as String? ?? '',
+        role: TripartiteRole.fromColumnValue(tripartiteData['role'] as String?) ?? TripartiteRole.intermediaryReceipt,
+        linkedPartyId: AccountId(tripartiteData['linked_party_id'] as String? ?? ''),
+        mediatorAccountId: tripartiteData['mediator_account_id'] != null ? AccountId(tripartiteData['mediator_account_id'] as String) : null,
+        isContingent: tripartiteData['is_contingent'] as bool? ?? false,
+      );
+    }
+
     final voucher = Voucher.restore(
       id: VoucherId(voucherIdStr),
       type: myType,
@@ -228,6 +248,7 @@ class SyncPayloadProcessor {
       senderPublicKeyHex: payload['sender_public_key_hex'],
       signerPhone: payload['signer_phone'],
       originVoucherId: payload['origin_voucher_id'] != null ? VoucherId(payload['origin_voucher_id']) : null,
+      tripartiteMeta: tripartiteMeta,
     );
 
     // 7. Persist
@@ -235,6 +256,7 @@ class SyncPayloadProcessor {
     debugPrint('VoucherClaim [$voucherIdStr]: Ingested and stored as $myType.');
 
     // 8. Reciprocal Matching (Conflict Detection)
+    // We always create a notification for a new claim, but customize it if it's a conflict.
     final reciprocalResult = await voucherRepository.findReciprocalMatch(
       amountMinor: amountMinor,
       currencyCode: currencyCode,
@@ -242,18 +264,42 @@ class SyncPayloadProcessor {
       type: myType.name,
       referenceDate: date,
     );
+
+    String bodyText = 'سند جديد بقيمة ${amountMinor / 100} $currencyCode';
+    String channel = 'voucher_event';
+
     if (reciprocalResult.isSuccess && reciprocalResult.valueOrNull != null) {
       final localMatch = reciprocalResult.valueOrNull!;
+      bodyText = 'سند مطابق — هل ترغب في دمج هذا السند مع المسودة المحلية؟';
+      channel = 'conflict';
+      
+      // We still use voucher_event as base but keep the conflict logic
       await notificationMessageRepository.insert(
-        id: 'merge_${voucherIdStr}_${localMatch.id.value}',
-        bodyText: 'سند مطابق — هل ترغب في دمج هذا السند مع المسودة المحلية؟',
+        id: nodeId, // Use the sync node ID to prevent duplicates
+        bodyText: bodyText,
         counterpartyAccountId: counterpartyId.value,
         createdAtIso: DateTime.now().toIso8601String(),
-        channel: 'conflict',
+        channel: channel,
         rawPayloadJson: json.encode({
-          'inbound_voucher_id': voucherIdStr,
+          'event_type': 'claim',
+          'voucher_id': voucherIdStr,
           'local_voucher_id': localMatch.id.value,
           'inbound_payload': payload,
+          'has_tripartite_meta': tripartiteMeta != null,
+        }),
+      );
+    } else {
+      await notificationMessageRepository.insert(
+        id: nodeId,
+        bodyText: bodyText,
+        counterpartyAccountId: counterpartyId.value,
+        createdAtIso: DateTime.now().toIso8601String(),
+        channel: channel,
+        rawPayloadJson: json.encode({
+          'event_type': 'claim',
+          'voucher_id': voucherIdStr,
+          'inbound_payload': payload,
+          'has_tripartite_meta': tripartiteMeta != null,
         }),
       );
     }
@@ -264,6 +310,8 @@ class SyncPayloadProcessor {
     String senderPublicKey,
     String senderPhone,
     String senderEmail,
+    String nodeId,
+    String senderId,
   ) async {
     final String voucherIdStr = payload['voucher_id'];
     final String receiverSignatureHex = payload['receiver_signature_hex'];
@@ -380,6 +428,19 @@ class SyncPayloadProcessor {
       debugPrint(
         'Voucher [$voucherIdStr] accepted — verified with key ${matchedKey.substring(0, 8)}…',
       );
+
+      // Create notification for acceptance
+      await notificationMessageRepository.insert(
+        id: nodeId,
+        bodyText: 'تم اعتماد السند من قبل الطرف الآخر',
+        counterpartyAccountId: senderId,
+        createdAtIso: DateTime.now().toIso8601String(),
+        channel: 'voucher_event',
+        rawPayloadJson: json.encode({
+          'event_type': 'acceptance',
+          'voucher_id': voucherIdStr,
+        }),
+      );
     } else {
       // §5.6 Failure: Suspended as unapproved claim.
       final suspendedVoucher = draft.attachSignature(
@@ -397,7 +458,11 @@ class SyncPayloadProcessor {
     }
   }
 
-  Future<void> _inboundVoucherRejection(Map<String, dynamic> payload) async {
+  Future<void> _inboundVoucherRejection(
+    Map<String, dynamic> payload,
+    String nodeId,
+    String senderId,
+  ) async {
     final String voucherIdStr = payload['voucher_id'];
     final voucherResult = await voucherRepository.getById(
       VoucherId(voucherIdStr),
@@ -409,6 +474,20 @@ class SyncPayloadProcessor {
       status: AgreementStatus.rejected,
     );
     await voucherRepository.save(rejectedVoucher);
+
+    // Create notification for rejection
+    await notificationMessageRepository.insert(
+      id: nodeId,
+      bodyText: 'تم رفض السند: ${payload['rejection_reason'] ?? ''}',
+      counterpartyAccountId: senderId,
+      createdAtIso: DateTime.now().toIso8601String(),
+      channel: 'voucher_event',
+      rawPayloadJson: json.encode({
+        'event_type': 'rejection',
+        'voucher_id': voucherIdStr,
+        'reason': payload['rejection_reason'],
+      }),
+    );
   }
 
   Future<void> _inboundJournalEntryMirrored(
@@ -557,7 +636,11 @@ class SyncPayloadProcessor {
 
   // ── Threaded Financial Interactions handlers ──────────────────────────
 
-  Future<void> _inboundVoucherWithdrawal(Map<String, dynamic> payload) async {
+  Future<void> _inboundVoucherWithdrawal(
+    Map<String, dynamic> payload,
+    String nodeId,
+    String senderId,
+  ) async {
     final String? voucherIdStr = payload['voucher_id'] as String?;
     if (voucherIdStr == null) {
       debugPrint('VoucherWithdrawal: missing voucher_id');
@@ -580,6 +663,19 @@ class SyncPayloadProcessor {
       final withdrawn = voucher.withdraw(DateTime.now());
       await voucherRepository.save(withdrawn);
       debugPrint('VoucherWithdrawal [$voucherIdStr]: local copy withdrawn.');
+
+      // Create notification for withdrawal
+      await notificationMessageRepository.insert(
+        id: nodeId,
+        bodyText: 'تم سحب السند من قبل صاحب السند',
+        counterpartyAccountId: senderId,
+        createdAtIso: DateTime.now().toIso8601String(),
+        channel: 'voucher_event',
+        rawPayloadJson: json.encode({
+          'event_type': 'withdrawal',
+          'voucher_id': voucherIdStr,
+        }),
+      );
     } else {
       debugPrint(
         'VoucherWithdrawal [$voucherIdStr]: cannot withdraw — '
@@ -588,7 +684,11 @@ class SyncPayloadProcessor {
     }
   }
 
-  Future<void> _inboundVoucherSettlement(Map<String, dynamic> payload) async {
+  Future<void> _inboundVoucherSettlement(
+    Map<String, dynamic> payload,
+    String nodeId,
+    String senderId,
+  ) async {
     final String? voucherIdStr = payload['voucher_id'] as String?;
     if (voucherIdStr == null) {
       debugPrint('VoucherSettlement: missing voucher_id');
@@ -610,6 +710,19 @@ class SyncPayloadProcessor {
       final settled = voucher.settle(DateTime.now());
       await voucherRepository.save(settled);
       debugPrint('VoucherSettlement [$voucherIdStr]: marked as settled.');
+
+      // Create notification for settlement
+      await notificationMessageRepository.insert(
+        id: nodeId,
+        bodyText: 'تم سداد السند بالكامل',
+        counterpartyAccountId: senderId,
+        createdAtIso: DateTime.now().toIso8601String(),
+        channel: 'voucher_event',
+        rawPayloadJson: json.encode({
+          'event_type': 'settlement',
+          'voucher_id': voucherIdStr,
+        }),
+      );
     } else {
       debugPrint(
         'VoucherSettlement [$voucherIdStr]: cannot settle — '
@@ -618,21 +731,24 @@ class SyncPayloadProcessor {
     }
   }
 
-  Future<void> _inboundTripartiteRequest(Map<String, dynamic> payload, String senderId) async {
+  Future<void> _inboundTripartiteRequest(
+    Map<String, dynamic> payload,
+    String senderId,
+    String nodeId,
+  ) async {
     // Protocol §5 — Inbound Tripartite Request from Sender (A).
     // The mediator (B) saves this as a notification to allow deep-linking to the creation page.
     final now = DateTime.now();
-    final id = const Uuid().v4();
     
     // Resolve sender name for the notification UI
     final accountResult = await accountRepository.getById(AccountId(senderId));
     final senderName = accountResult.valueOrNull?.name ?? 'المُرسل';
 
     await notificationMessageRepository.insert(
-      id: id,
+      id: nodeId, // Consistent use of sync node ID
       counterpartyAccountId: senderId,
       bodyText: 'طلب حوالة جديدة من $senderName',
-      channel: 'in_app',
+      channel: 'tripartite_event',
       createdAtIso: now.toIso8601String(),
       rawPayloadJson: jsonEncode(payload),
     );
