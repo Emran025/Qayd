@@ -253,6 +253,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                                   requireNoRoot: false,
                                   rootAllowed: true,
                                   onlyRoots: true,
+                                  hideSterileRoots: true,
                                 );
                                 if (root != null && mounted) {
                                   setState(() {

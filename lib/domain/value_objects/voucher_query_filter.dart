@@ -11,6 +11,9 @@ final class VoucherQueryFilter {
     this.counterpartyId,
     this.affectedAccountId,
     this.involvedAccountId,
+    this.involvedRootAccountId,
+    this.involvedCounterRootAccountId,
+    this.isInternalOnly,
     this.type,
     this.excludeTripartite,
     this.onlyTripartite,
@@ -26,6 +29,15 @@ final class VoucherQueryFilter {
   /// Find vouchers where this account is EITHER the affected OR the counterparty.
   final AccountId? involvedAccountId;
 
+  /// Find vouchers where any side belongs to this root hierarchy.
+  final AccountId? involvedRootAccountId;
+
+  /// Optional second root for pair-based filtering (e.g., Fund Root -> Expenses Root).
+  final AccountId? involvedCounterRootAccountId;
+
+  /// If true, only show vouchers that don't have external counterparty interactions (optional hint).
+  final bool? isInternalOnly;
+
   final VoucherType? type;
   final bool? excludeTripartite;
   final bool? onlyTripartite;
@@ -36,6 +48,9 @@ final class VoucherQueryFilter {
       counterpartyId == null &&
       affectedAccountId == null &&
       involvedAccountId == null &&
+      involvedRootAccountId == null &&
+      involvedCounterRootAccountId == null &&
+      isInternalOnly == null &&
       type == null &&
       excludeTripartite == null &&
       onlyTripartite == null;

@@ -16,7 +16,17 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
   bool requireNoRoot = false,
   bool onlyRoots = false,
   String? requireParentClassification,
+  List<String>? allowedClassifications,
+  bool hideSterileRoots = false,
 }) async {
+  // Define sterile roots that should not have branches/children (per product requirements)
+  const sterileClassifications = [
+    'personalExpenses',
+    'personalRevenues',
+    'clearingRemittances',
+    'liquidAssets',
+  ];
+
   final result = await listAccounts(const ListAccountsInput(activeOnly: true));
   if (!context.mounted) {
     return null;
@@ -40,6 +50,13 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
     if (!rootAllowed && a.isRoot) return false;
     if (onlyRoots && !a.isRoot) return false;
     
+    // Sterile roots filtering logic
+    if (hideSterileRoots && a.isRoot) {
+      if (sterileClassifications.contains(a.standardClassificationKind)) {
+        return false;
+      }
+    }
+
     if (requireParentClassification != null) {
       if (a.isRoot) {
          if (a.standardClassificationKind != requireParentClassification) return false;
@@ -52,6 +69,19 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
          }
       }
     }
+
+    if (allowedClassifications != null) {
+      String? currentClass;
+      if (a.isRoot) {
+        currentClass = a.standardClassificationKind;
+      } else if (a.parentId != null) {
+        currentClass = classMap[a.parentId!];
+      }
+      if (currentClass == null || !allowedClassifications.contains(currentClass)) {
+        return false;
+      }
+    }
+
     return true;
   }).toList(growable: false);
   if (!context.mounted) {

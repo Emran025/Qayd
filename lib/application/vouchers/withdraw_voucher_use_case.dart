@@ -43,12 +43,29 @@ final class WithdrawVoucherUseCase {
         );
       }
 
-      final withdrawn = v.withdraw(DateTime.now());
+      final now = DateTime.now();
+      final withdrawn = v.withdraw(now);
       final saved = await _voucherRepository.save(withdrawn);
       if (saved.isSuccess && _syncEventDispatcher != null) {
-        // §5.A: Enqueue withdrawal into local outbox
         await _syncEventDispatcher!.dispatchVoucherWithdrawal(withdrawn);
       }
+
+      // ── Cascade Withdrawal to Automated Internal Vouchers ──────────────
+      if (saved.isSuccess) {
+        final childrenRes = await _voucherRepository.getByOriginVoucherId(v.id);
+        if (childrenRes.isSuccess) {
+          for (final child in childrenRes.valueOrNull!) {
+             // If it's an automated internal posting, withdraw it too
+             if (child.state.isConfirmed && child.originVoucherId == v.id) {
+                // Internal vouchers can be withdrawn even if confirmed 
+                // because they have no counterparty agreement constraints.
+                final withdrawnChild = child.withdraw(now);
+                await _voucherRepository.save(withdrawnChild);
+             }
+          }
+        }
+      }
+
       return saved;
     } catch (e, _) {
       return FailureResult(failureFromDomainException(e));

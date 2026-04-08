@@ -102,6 +102,15 @@ abstract final class AppStringsAr {
   static const String navAccountsTab = 'الحسابات';
   static const String navReportsTab = 'التقارير';
   static const String navMessagesTab = 'الرسائل';
+  static const String navManagementTab = 'الإدارة';
+
+  // Management Unit
+  static const String managementTitle = 'الإدارة المالية الشخصية';
+  static const String internalVouchersTitle = 'سندات المصروفات والإيرادات';
+  static const String addInternalVoucherFab = 'سند جديد';
+  static const String internalVoucherTypeReceipt = 'إيراد شخصي';
+  static const String internalVoucherTypePayment = 'مصروف شخصي';
+  static const String internalVoucherFundAccount = 'الصندوق';
 
   // Governance / activation (Phase 2)
   static const String activationSubtitle =
@@ -121,7 +130,7 @@ abstract final class AppStringsAr {
 
   // Vouchers
   static const String pickAccountTitle = 'اختر حساباً';
-  static const String voucherListTitle = 'سندات القبض والصرف';
+  static const String voucherListTitle = 'سندات القيد';
   static const String voucherSearchHint = 'بحث بالبيان أو الرقم أو المرجع…';
   static const String voucherFilterSheetTitle = 'تصفية السندات';
   static const String voucherFilterApply = 'تطبيق';

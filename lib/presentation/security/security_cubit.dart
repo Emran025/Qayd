@@ -8,6 +8,7 @@ import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/data/security/monotonic_clock_guard.dart';
 import 'package:qayd/data/security/panic_wipe_service.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
+import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
 import 'package:qayd/presentation/security/security_state.dart';
 
 /// Unified security cubit.
@@ -25,6 +26,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     required MonotonicClockGuard clockGuard,
     required PanicWipeService panicWipeService,
     required AuthRepository authRepository,
+    required SyncIdentityToInternalAccountsUseCase syncIdentityUseCase,
     LocalAuthentication? localAuth,
     Duration lockAfterBackground = const Duration(minutes: 5),
   }) : _pinStorage = pinStorage,
@@ -33,6 +35,7 @@ class SecurityCubit extends Cubit<SecurityState> {
        _clockGuard = clockGuard,
        _panicWipeService = panicWipeService,
        _authRepository = authRepository,
+       _syncIdentityUseCase = syncIdentityUseCase,
        _localAuth = localAuth ?? LocalAuthentication(),
        _lockAfterBackground = lockAfterBackground,
        super(
@@ -48,6 +51,7 @@ class SecurityCubit extends Cubit<SecurityState> {
   final MonotonicClockGuard _clockGuard;
   final PanicWipeService _panicWipeService;
   final AuthRepository _authRepository;
+  final SyncIdentityToInternalAccountsUseCase _syncIdentityUseCase;
   final LocalAuthentication _localAuth;
   final Duration _lockAfterBackground;
 
@@ -86,6 +90,9 @@ class SecurityCubit extends Cubit<SecurityState> {
     final lockEnabled = await _pinStorage.isLockEnabled();
     final hasPin = await _pinStorage.hasPinConfigured();
     final shouldPinLock = lockEnabled && hasPin;
+
+    // 5. Sync identity to internal accounts (Owner link)
+    _syncIdentityUseCase.call().ignore();
 
     emit(
       shouldPinLock
@@ -275,6 +282,9 @@ class SecurityCubit extends Cubit<SecurityState> {
           trialDaysRemaining: trialDays,
         ),
       );
+      // Sync identity to internal accounts after successful provision
+      _syncIdentityUseCase.call().ignore();
+
       return ProvisioningResult.success();
     } on AuthException catch (e) {
       return ProvisioningResult.failure(e.messageAr);

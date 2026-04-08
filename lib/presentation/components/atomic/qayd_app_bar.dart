@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/pages/notifications/widgets/notification_icon_button.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -10,16 +11,23 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.leading,
     this.centerTitle = true,
+    this.showNotifications = true,
   });
 
   final String title;
   final List<Widget>? actions;
   final Widget? leading;
   final bool centerTitle;
+  final bool showNotifications;
 
   @override
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
+
+    final List<Widget> effectiveActions = [...(actions ?? [])];
+    if (showNotifications) {
+      effectiveActions.add(const NotificationIconButton());
+    }
 
     return AppBar(
       leading: leading,
@@ -28,7 +36,7 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
         slot: QaydTextStyleSlot.titleLarge,
       ),
       centerTitle: centerTitle,
-      actions: actions,
+      actions: effectiveActions,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(3),
         child: Container(

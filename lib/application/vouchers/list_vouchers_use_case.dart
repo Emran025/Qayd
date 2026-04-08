@@ -35,6 +35,10 @@ class ListVouchersUseCase {
         dateRange: mappedFilter?.dateRange,
         counterpartyId: mappedFilter?.counterpartyId,
         affectedAccountId: mappedFilter?.affectedAccountId,
+        costCenterId: mappedFilter?.costCenterId,
+        involvedRootAccountId: mappedFilter?.involvedRootAccountId,
+        involvedCounterRootAccountId: mappedFilter?.involvedCounterRootAccountId,
+        isInternalOnly: mappedFilter?.isInternalOnly,
         excludeTripartite: input.excludeTripartite,
         onlyTripartite: input.onlyTripartite,
       );
@@ -85,6 +89,7 @@ class ListVouchersUseCase {
                   originVoucherId: v.originVoucherId?.value,
                   reversalCount: v.reversalCount,
                   firstChildId: v.firstChildId?.value,
+                  description: v.description,
                 ),
               )
               .toList(growable: false),

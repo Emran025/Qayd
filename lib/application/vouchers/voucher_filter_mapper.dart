@@ -24,6 +24,9 @@ abstract final class VoucherFilterMapper {
       counterpartyId: _idOrNull(input.counterpartyAccountId),
       affectedAccountId: _idOrNull(input.affectedAccountId),
       costCenterId: input.costCenterId,
+      involvedRootAccountId: _idOrNull(input.involvedRootAccountId),
+      involvedCounterRootAccountId: _idOrNull(input.involvedCounterRootAccountId),
+      isInternalOnly: input.isInternalOnly,
     );
   }
 

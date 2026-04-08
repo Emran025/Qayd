@@ -11,6 +11,9 @@ class AdvancedFilterInput {
     this.counterpartyAccountId,
     this.affectedAccountId,
     this.costCenterId,
+    this.involvedRootAccountId,
+    this.involvedCounterRootAccountId,
+    this.isInternalOnly,
   });
 
   final VoucherType? type;
@@ -20,6 +23,9 @@ class AdvancedFilterInput {
   final String? counterpartyAccountId;
   final String? affectedAccountId;
   final String? costCenterId;
+  final String? involvedRootAccountId;
+  final String? involvedCounterRootAccountId;
+  final bool? isInternalOnly;
 
   static const AdvancedFilterInput empty = AdvancedFilterInput();
 
@@ -30,7 +36,9 @@ class AdvancedFilterInput {
       toDate != null ||
       (counterpartyAccountId != null && counterpartyAccountId!.isNotEmpty) ||
       (affectedAccountId != null && affectedAccountId!.isNotEmpty) ||
-      (costCenterId != null && costCenterId!.isNotEmpty);
+      (costCenterId != null && costCenterId!.isNotEmpty) ||
+      (involvedRootAccountId != null && involvedRootAccountId!.isNotEmpty) ||
+      isInternalOnly == true;
 
   AdvancedFilterInput clearType() => AdvancedFilterInput(
         state: state,
@@ -84,4 +92,30 @@ class AdvancedFilterInput {
         counterpartyAccountId: counterpartyAccountId,
         affectedAccountId: affectedAccountId,
       );
+
+  AdvancedFilterInput copyWith({
+    VoucherType? type,
+    VoucherState? state,
+    DateTime? fromDate,
+    DateTime? toDate,
+    String? counterpartyAccountId,
+    String? affectedAccountId,
+    String? costCenterId,
+    String? involvedRootAccountId,
+    String? involvedCounterRootAccountId,
+    bool? isInternalOnly,
+  }) {
+    return AdvancedFilterInput(
+      type: type ?? this.type,
+      state: state ?? this.state,
+      fromDate: fromDate ?? this.fromDate,
+      toDate: toDate ?? this.toDate,
+      counterpartyAccountId: counterpartyAccountId ?? this.counterpartyAccountId,
+      affectedAccountId: affectedAccountId ?? this.affectedAccountId,
+      costCenterId: costCenterId ?? this.costCenterId,
+      involvedRootAccountId: involvedRootAccountId ?? this.involvedRootAccountId,
+      involvedCounterRootAccountId: involvedCounterRootAccountId ?? this.involvedCounterRootAccountId,
+      isInternalOnly: isInternalOnly ?? this.isInternalOnly,
+    );
+  }
 }

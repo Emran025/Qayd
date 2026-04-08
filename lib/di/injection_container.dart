@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
 import 'package:qayd/application/cost_centers/update_cost_center_use_case.dart';
+import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
@@ -172,6 +173,7 @@ abstract final class InjectionContainer {
   static late final IdentityRepository identityRepository;
   static late final SetupIdentityUseCase setupIdentityUseCase;
   static late final UpdateProfileUseCase updateProfileUseCase;
+  static late final SyncIdentityToInternalAccountsUseCase syncIdentityToInternalAccountsUseCase;
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
 
@@ -321,14 +323,24 @@ abstract final class InjectionContainer {
 
     authRepository = RemoteAuthRepository(apiClient: apiClient);
 
-    securityCubit = SecurityCubit(
-      pinStorage: appPinStorage,
-      licenseVault: licenseVault,
-      hardwareIdService: hardwareIdService,
-      clockGuard: clockGuard,
-      panicWipeService: panicWipeService,
-      authRepository: authRepository,
+    // ── Governance ──────────────────────────────────────────────────────────
+    governanceStubController = GovernanceStubController();
+    final governanceRemote = StubGovernanceRemoteDataSource(
+      controller: governanceStubController,
     );
+    final governanceRepository = GovernanceRepositoryImpl(governanceRemote);
+    checkGovernanceStatusUseCase = CheckGovernanceStatusUseCase(
+      governanceRepository,
+    );
+    submitActivationUseCase = SubmitActivationUseCase(governanceRepository);
+    governanceWriteGuard = GovernanceWriteGuard(checkGovernanceStatusUseCase);
+
+    // ── Native Notifications & E2EE Service ──────────────────────────────────
+    nativeNotificationService = LocalNotificationServiceImpl();
+    await nativeNotificationService.initialize();
+    e2eeService = const E2EEEncryptionServiceImpl();
+    counterpartyQrService = const CounterpartyQrService();
+    syncRepository = ApiSyncRepository(apiClient);
 
     // ── Cryptographic identity ─────────────────────────────────────────────
 
@@ -389,31 +401,21 @@ abstract final class InjectionContainer {
     );
 
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
+    _registerSqliteStack();
+
+    // ── Phase 7: Security bootstrap ─────────────────────────────────────────
+    securityCubit = SecurityCubit(
+      pinStorage: appPinStorage,
+      licenseVault: licenseVault,
+      hardwareIdService: hardwareIdService,
+      clockGuard: clockGuard,
+      panicWipeService: panicWipeService,
+      authRepository: authRepository,
+      syncIdentityUseCase: syncIdentityToInternalAccountsUseCase,
+    );
 
     autoBackupService.performIfDue().ignore();
     driveBackupService.performIfDue().ignore();
-
-    // ── Governance ──────────────────────────────────────────────────────────
-
-    governanceStubController = GovernanceStubController();
-    final governanceRemote = StubGovernanceRemoteDataSource(
-      controller: governanceStubController,
-    );
-    final governanceRepository = GovernanceRepositoryImpl(governanceRemote);
-    checkGovernanceStatusUseCase = CheckGovernanceStatusUseCase(
-      governanceRepository,
-    );
-    submitActivationUseCase = SubmitActivationUseCase(governanceRepository);
-    governanceWriteGuard = GovernanceWriteGuard(checkGovernanceStatusUseCase);
-
-    // ── Native Notifications & E2EE Service ──────────────────────────────────
-    nativeNotificationService = LocalNotificationServiceImpl();
-    await nativeNotificationService.initialize();
-    e2eeService = const E2EEEncryptionServiceImpl();
-    counterpartyQrService = const CounterpartyQrService();
-    syncRepository = ApiSyncRepository(apiClient);
-
-    _registerSqliteStack();
 
     // ── Real-Time Sync Engine ────────────────────────────────────────────────
 
@@ -637,6 +639,13 @@ abstract final class InjectionContainer {
       collateralRepository,
       costCenterRepository,
     );
+
+    syncIdentityToInternalAccountsUseCase =
+        SyncIdentityToInternalAccountsUseCase(
+      accountRepository: accountRepository,
+      licenseVault: licenseVault,
+    );
+
     generateTrialBalanceUseCase = GenerateTrialBalanceUseCase(
       accountRepository,
       ledgerRepository,

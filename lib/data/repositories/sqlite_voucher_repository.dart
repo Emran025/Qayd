@@ -59,6 +59,56 @@ final class SqliteVoucherRepository implements VoucherRepository {
       args.add(filter.involvedAccountId!.value);
       args.add(filter.involvedAccountId!.value);
     }
+    if (filter.involvedRootAccountId != null) {
+      final rootId = filter.involvedRootAccountId!.value;
+      // Simplified: Just use the recursive CTE directly in the IN clause
+      final recursivePart = '''
+        SELECT id FROM (
+          WITH RECURSIVE descendants AS (
+            SELECT id FROM accounts WHERE id = ?
+            UNION ALL
+            SELECT a.id FROM accounts a
+            INNER JOIN descendants d ON a.parent_id = d.id
+          ) SELECT id FROM descendants
+        )
+      ''';
+
+      if (filter.involvedCounterRootAccountId != null) {
+        final counterRootId = filter.involvedCounterRootAccountId!.value;
+        whereParts.add('''
+          (
+            (${p}affected_account_id IN ($recursivePart) AND ${p}counterparty_id IN ($recursivePart))
+            OR
+            (${p}counterparty_id IN ($recursivePart) AND ${p}affected_account_id IN ($recursivePart))
+          )
+        ''');
+        args.add(rootId);
+        args.add(counterRootId);
+        args.add(rootId);
+        args.add(counterRootId);
+      } else {
+        whereParts.add('(${p}affected_account_id IN ($recursivePart) OR ${p}counterparty_id IN ($recursivePart))');
+        args.add(rootId);
+        args.add(rootId);
+      }
+    }
+
+    if (filter.isInternalOnly == true) {
+      final internalPart = '''
+        SELECT id FROM (
+          WITH RECURSIVE internal_accounts AS (
+            SELECT id FROM accounts 
+            WHERE standard_classification_kind IN ('liquidAssets', 'personalExpenses', 'personalRevenues', 'settlements')
+            AND parent_id IS NULL
+            UNION ALL
+            SELECT a.id FROM accounts a
+            INNER JOIN internal_accounts i ON a.parent_id = i.id
+          ) SELECT id FROM internal_accounts
+        )
+      ''';
+      whereParts.add('${p}affected_account_id IN ($internalPart) AND ${p}counterparty_id IN ($internalPart)');
+    }
+
     if (filter.dateRange != null) {
       whereParts.add('${p}date >= ? AND ${p}date <= ?');
       args.add(filter.dateRange!.start.toIso8601String());

@@ -23,6 +23,7 @@ class VoucherSummaryDto {
     this.originVoucherId,
     this.reversalCount = 0,
     this.firstChildId,
+    this.description,
   });
 
   final String id;
@@ -38,6 +39,7 @@ class VoucherSummaryDto {
   final String counterpartyName;
   final String affectedAccountId;
   final String affectedName;
+  final String? description;
   
   // Tripartite Transfer
   final bool isTripartite;

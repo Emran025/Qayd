@@ -214,6 +214,23 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     }
   }
 
+  Future<void> _pickAffectedAccount() async {
+    final allowedClasses = _type == VoucherType.payment
+        ? ['liquidAssets', 'personalExpenses']
+        : ['liquidAssets', 'personalRevenues'];
+
+    final a = await showAccountPickerSheet(
+      context,
+      listAccounts: InjectionContainer.listAccountsUseCase,
+      excludeAccountId: _counterparty?.id,
+      requireNoRoot: true,
+      allowedClassifications: allowedClasses,
+    );
+    if (a != null) {
+      setState(() => _affected = a);
+    }
+  }
+
 
 
   Future<void> _pickCurrency() async {
@@ -420,6 +437,25 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                         ),
                         trailing: Icon(Icons.chevron_left_rounded, color: gold),
                         onTap: _pickCounterparty,
+                      ),
+                      const Divider(),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: QaydText(
+                          _type == VoucherType.payment
+                              ? 'صرف من حساب'
+                              : 'قبض إلى حساب',
+                          slot: QaydTextStyleSlot.labelLarge,
+                        ),
+                        subtitle: QaydText(
+                          _affected?.name ?? 'اختر الحساب (الصندوق/المصروفات)',
+                          slot: QaydTextStyleSlot.bodyLarge,
+                          color: _affected == null
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : null,
+                        ),
+                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
+                        onTap: _pickAffectedAccount,
                       ),
                       if (_counterparty != null)
                         _buildSuggestionsStrip(context),

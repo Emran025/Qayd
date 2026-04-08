@@ -14,6 +14,7 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
@@ -81,6 +82,36 @@ class CreateVoucherUseCase {
       }
       final currency = currencyRes.valueOrNull!;
       final amount = Money.positiveAmount(input.amountMinorUnits, currency);
+
+      // ── Automated Bridge Logic Detection ──────────────
+      String actualAffectedAccountId = input.affectedAccountId;
+      bool isAutomatedExpensePosting = false;
+
+      if (_accountRepository != null) {
+        final accountsRes = await _accountRepository!.getAll(activeOnly: false);
+        if (accountsRes.isSuccess) {
+          final accounts = accountsRes.valueOrNull!;
+          final affected = accounts.firstWhere(
+            (a) => a.id.value == input.affectedAccountId,
+          );
+
+          final isPersonal = affected.classification.standardKind == StandardAccountClassificationKind.personalExpenses ||
+                            affected.classification.standardKind == StandardAccountClassificationKind.personalRevenues;
+
+          if (isPersonal) {
+            final fund = accounts.firstWhere(
+              (a) => a.classification.standardKind == StandardAccountClassificationKind.liquidAssets && a.isRoot,
+              orElse: () => affected, 
+            );
+            
+            if (fund.id.value != affected.id.value) {
+              actualAffectedAccountId = fund.id.value;
+              isAutomatedExpensePosting = true;
+            }
+          }
+        }
+      }
+
       TripartiteMeta? tripartiteMeta;
       if (input.transferGroupId != null &&
           input.tripartiteRole != null &&
@@ -96,7 +127,6 @@ class CreateVoucherUseCase {
         );
       }
 
-      // ── Process Attachments ───────────────────────────────────────────
       final List<AttachmentRef> attachmentRefs = [];
       if (input.attachments.isNotEmpty) {
         final stored = await Future.wait(
@@ -104,15 +134,14 @@ class CreateVoucherUseCase {
         );
         await _attachmentRepository.saveAll(stored);
         
-        // Populate refs for the JSON column in vouchers table
         attachmentRefs.addAll(stored.map((s) => AttachmentRef(
-          id: s.id,
-          storagePath: s.storagePath,
-          mimeType: s.mimeType,
-          byteSize: s.byteSize,
-          encryptedBlobHash: s.encryptedBlobHash,
-          sourceType: s.sourceType,
-        )));
+              id: s.id,
+              storagePath: s.storagePath,
+              mimeType: s.mimeType,
+              byteSize: s.byteSize,
+              encryptedBlobHash: s.encryptedBlobHash,
+              sourceType: s.sourceType,
+            )));
       }
 
       var voucher = Voucher.draft(
@@ -122,28 +151,25 @@ class CreateVoucherUseCase {
         amount: amount,
         currency: currency,
         counterpartyId: AccountId(input.counterpartyAccountId),
-        affectedAccountId: AccountId(input.affectedAccountId),
+        affectedAccountId: AccountId(actualAffectedAccountId),
         createdAt: DateTime.now(),
         referenceNumber: input.referenceNumber,
         description: input.description,
         notes: input.notes,
         tripartiteMeta: tripartiteMeta,
         attachmentRefs: attachmentRefs,
-        originVoucherId: input.originVoucherId != null 
-            ? VoucherId(input.originVoucherId!) 
+        originVoucherId: input.originVoucherId != null
+            ? VoucherId(input.originVoucherId!)
             : null,
       );
 
-      // ── Handle Immediate User Confirmation (Signing) ──────────────────────
       if (input.confirm) {
-        // Sign as sender. 
         if (_signingService != null && _getKeyPair != null) {
-            final keyPair = await _getKeyPair?.call();
+          final keyPair = await _getKeyPair?.call();
           if (keyPair != null) {
             final licenseData = await _licenseVault?.readLicenseData();
             final myPhone = licenseData?['phone'] as String? ?? '';
             
-            // Re-resolve counterparty phone for canonical signature.
             String cpPhone = '';
             if (_accountRepository != null) {
               final cpParty = await _accountRepository!.getPartyDetails(
@@ -155,7 +181,7 @@ class CreateVoucherUseCase {
             final signable = SignableReceipt(
               amountMinor: input.amountMinorUnits,
               currencyCode: input.currencyCode,
-              senderPhone: myPhone,          // We are sending the document
+              senderPhone: myPhone,
               receiverPhone: cpPhone,
               dateIso: input.date.toIso8601String().split('T').first,
               receiptUuid: voucherId.value,
@@ -171,29 +197,21 @@ class CreateVoucherUseCase {
             );
           }
         }
-        
-        // Finalize creator validation state to 'confirmed'.
         voucher = voucher.confirm(DateTime.now());
       }
 
-      // ── Protocol §6: Corrective Resubmission / Succession ─────────────────
+      // §6: Corrective Resubmission Logic
       if (input.originVoucherId != null) {
-        final originRes = await _voucherRepository.getById(
-          VoucherId(input.originVoucherId!),
-        );
+        final originRes = await _voucherRepository.getById(VoucherId(input.originVoucherId!));
         if (originRes.isSuccess) {
-          final origin = originRes.valueOrNull!;
-          // If the original was draft or rejected, mark it as withdrawn to
-          // effectively "soft delete" it from main views/balances.
-          if (origin.state.isDraft ||
-              origin.receiverStatus == AgreementStatus.rejected) {
-            final superceded = origin.withdraw(DateTime.now());
-            await _voucherRepository.save(superceded);
-          }
+           final origin = originRes.valueOrNull!;
+           if (origin.state.isDraft || origin.receiverStatus == AgreementStatus.rejected) {
+              final supercoded = origin.withdraw(DateTime.now());
+              await _voucherRepository.save(supercoded);
+           }
         }
       }
 
-      // ── Accounting Integration: Persistence ──────────────────────────
       final Result<void> saved;
       if (input.confirm && _entryGenerator != null) {
         final now = DateTime.now();
@@ -216,8 +234,44 @@ class CreateVoucherUseCase {
       } else {
         saved = await _voucherRepository.save(voucher);
       }
-      
-      // ── Process Cost Center Attachments ───────────────────────────────
+
+      // ── Handle Automted Internal Bridge ──────────────
+      if (saved.isSuccess && isAutomatedExpensePosting) {
+        final internalVoucherId = VoucherId(_idGenerator.next());
+        final internalVoucher = Voucher.draft(
+          id: internalVoucherId,
+          type: input.type,
+          date: input.date,
+          amount: amount,
+          currency: currency,
+          counterpartyId: AccountId(actualAffectedAccountId),
+          affectedAccountId: AccountId(input.affectedAccountId),
+          createdAt: DateTime.now(),
+          description: input.description,
+          notes: 'Automated expense posting linked to party transaction.',
+          originVoucherId: voucher.id,
+        ).confirm(DateTime.now());
+
+        if (_entryGenerator != null) {
+          final tId = TransactionId(_idGenerator.next());
+          final dId = EntryId(_idGenerator.next());
+          final cId = EntryId(_idGenerator.next());
+          final iEntries = _entryGenerator!.generateForConfirmedVoucher(
+            voucher: internalVoucher,
+            transactionId: tId,
+            debitEntryId: dId,
+            creditEntryId: cId,
+            ledgerCreatedAt: DateTime.now(),
+          );
+          await _voucherRepository.saveWithLedgerEntries(
+            voucher: internalVoucher,
+            ledgerEntries: iEntries,
+          );
+        } else {
+          await _voucherRepository.save(internalVoucher);
+        }
+      }
+
       if (saved.isSuccess && input.costCenterTags.isNotEmpty && _costCenterRepository != null) {
         for (final tag in input.costCenterTags) {
           await _costCenterRepository!.attachVoucher(
@@ -227,9 +281,7 @@ class CreateVoucherUseCase {
           );
         }
       }
-      
-      // §5.A: Enqueue claim into local outbox ONLY if confirmed.
-      // We do NOT await this to ensure a "silent" background sync and better UX.
+
       if (saved.isSuccess && input.confirm && _syncEventDispatcher != null) {
         _syncEventDispatcher!.dispatchVoucherClaim(voucher).ignore();
       }

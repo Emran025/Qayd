@@ -6,9 +6,9 @@ import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
 import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
-import 'package:qayd/presentation/pages/notifications/notifications_page.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_page.dart';
+import 'package:qayd/presentation/pages/management/internal_management_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_page.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -79,7 +79,7 @@ class _AppShellPageState extends State<AppShellPage> {
               TripartiteListPage(),
               AccountListPage(),
               TrialBalancePage(),
-              NotificationsPage(),
+              InternalManagementPage(),
             ],
           ),
           Positioned(
@@ -132,9 +132,9 @@ class _AppShellPageState extends State<AppShellPage> {
             label: AppStringsAr.navReportsTab,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.forum_outlined),
-            selectedIcon: Icon(Icons.forum_rounded, color: gold),
-            label: AppStringsAr.navMessagesTab,
+            icon: const Icon(Icons.business_center_outlined),
+            selectedIcon: Icon(Icons.business_center_rounded, color: gold),
+            label: AppStringsAr.navManagementTab,
           ),
         ],
       ),
