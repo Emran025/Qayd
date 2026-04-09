@@ -7,9 +7,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 
-Future<void> shareVoucherAsText(GetVoucherDetailsOutput data) async {
+Future<void> shareVoucherAsText(BuildContext context, GetVoucherDetailsOutput data) async {
   final isReceipt = data.typeCode == 'receipt';
   final type = isReceipt
       ? AppStringsAr.voucherTypeReceipt
@@ -21,22 +23,40 @@ Future<void> shareVoucherAsText(GetVoucherDetailsOutput data) async {
     fractionalDigits: data.currencyDigits,
   );
 
-  final buffer = StringBuffer();
-  buffer.writeln('إشعار $type');
-  buffer.writeln('التاريخ: $date');
-  buffer.writeln('المبلغ: $amount');
-  buffer.writeln('الحساب: ${data.affectedName}');
-  buffer.writeln('الطرف الآخر: ${data.counterpartyName}');
-  if (data.description != null && data.description!.isNotEmpty) {
-    buffer.writeln('البيان: ${data.description}');
+  var shareText = await resolveVoucherShareText(data);
+
+  // Fallback if no template is found
+  if (shareText == null || shareText.isEmpty) {
+    final buffer = StringBuffer();
+    buffer.writeln('إشعار $type');
+    buffer.writeln('التاريخ: $date');
+    buffer.writeln('المبلغ: $amount');
+    buffer.writeln('الحساب: ${data.affectedName}');
+    buffer.writeln('الطرف الآخر: ${data.counterpartyName}');
+    if (data.description != null && data.description!.isNotEmpty) {
+      buffer.writeln('البيان: ${data.description}');
+    }
+    buffer.writeln('\n--');
+    buffer.writeln('مُصدّر آلياً وموثق رقمياً عبر نظام قيد');
+    if (data.senderSignatureHex != null || data.receiverSignatureHex != null) {
+      buffer.writeln('بصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}');
+    }
+    shareText = buffer.toString();
   }
 
-  await Share.share(buffer.toString());
+  // Preview and edit Step
+  final editedText = await VoucherSharePreviewSheet.show(context, shareText);
+  if (editedText == null) return; // Cancelled
+  shareText = editedText;
+
+  await Share.share(shareText);
 }
 
-Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey) async {
+Future<void> shareVoucherAsImage(
+    BuildContext context, GlobalKey boundaryKey, GetVoucherDetailsOutput data) async {
   try {
-    final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    final boundary = boundaryKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
     if (boundary == null) return;
 
     final image = await boundary.toImage(pixelRatio: 2.0);
@@ -49,7 +69,18 @@ Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey) as
     final file = File(imagePath);
     await file.writeAsBytes(pngBytes);
 
-    await Share.shareXFiles([XFile(file.path, mimeType: 'image/png')], text: 'إيصال القيد');
+    var shareText = await resolveVoucherShareText(data);
+    if (shareText == null || shareText.isEmpty) {
+      shareText = 'مرفق لكم إيصال قيد مالي رقم ${data.referenceNumber ?? data.id.substring(0, 8)}.\n\nموثق رقمياً عبر نظام قيد.';
+    }
+    
+    // Preview and edit Step
+    final editedText = await VoucherSharePreviewSheet.show(context, shareText);
+    if (editedText == null) return; // Cancelled
+    shareText = editedText;
+
+    await Share.shareXFiles([XFile(file.path, mimeType: 'image/png')],
+        text: shareText);
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('تعذر مشاركة الإيصال كصورة: $e')),

@@ -6,9 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:path_provider/path_provider.dart';
+import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Shows a professional voucher overlay, captures it as a high-res PNG,
@@ -58,9 +62,8 @@ Future<void> shareVoucherAsFormattedImage(
     // Wait for layout + paint (increased slightly for safety with complex UI)
     await Future<void>.delayed(const Duration(milliseconds: 400));
 
-    final boundary =
-        boundaryKey.currentContext?.findRenderObject()
-            as RenderRepaintBoundary?;
+    final boundary = boundaryKey.currentContext?.findRenderObject()
+        as RenderRepaintBoundary?;
 
     if (boundary == null) {
       throw Exception('تعذر الوصول إلى كائن الرسم');
@@ -86,9 +89,40 @@ Future<void> shareVoucherAsFormattedImage(
     final file = File('${dir.path}/$fileName');
     await file.writeAsBytes(pngBytes);
 
+    var shareText = await resolveVoucherShareText(data);
+
+    // Fallback if no template is found
+    if (shareText == null || shareText.isEmpty) {
+      final amountTextFormatter = MoneyFormatter.formatWithSymbol(
+        data.amountMinorUnits /
+            (data.currencyDigits == 0
+                ? 1
+                : (data.currencyDigits == 2 ? 100 : 100)),
+        data.currencySymbol,
+        fractionalDigits: data.currencyDigits,
+      );
+      final voucherType =
+          data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
+      shareText = 'مرفق لكم $voucherType من حساب ${data.affectedName}.\n'
+          'المبلغ: $amountTextFormatter\n'
+          'الطرف الآخر: ${data.counterpartyName}\n'
+          'المرجع: ${data.referenceNumber ?? data.id.substring(0, 8)}\n'
+          '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+      if (data.senderSignatureHex != null ||
+          data.receiverSignatureHex != null) {
+        shareText +=
+            '\nبصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}';
+      }
+    }
+
+    // Preview and edit Step
+    final editedText = await VoucherSharePreviewSheet.show(context, shareText);
+    if (editedText == null) return; // Cancelled
+    shareText = editedText;
+
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'image/png')],
-      text: 'إيصال قيد — ${data.typeCode == 'receipt' ? 'سند قبض' : 'سند صرف'}',
+      text: shareText,
     );
   } catch (e) {
     // Ensure cleanup on failure
@@ -217,6 +251,7 @@ class VoucherImageCard extends StatelessWidget {
   // ════════════════════════════════════════════════════════════════════════════
 
   Widget _headerBar() {
+    final prefs = InjectionContainer.sharedPreferences;
     return Container(
       color: _headerBg,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -227,9 +262,18 @@ class VoucherImageCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _text('قيد — المحاسبة الشخصية', 12, _navy, bold: true),
+                _text(
+                    prefs.getString('pdf_header_title') ??
+                        'قيد — المحاسبة الشخصية',
+                    12,
+                    _navy,
+                    bold: true),
                 const SizedBox(height: 2),
-                _text('نظام السندات المالية المشفّرة', 8, _muted),
+                _text(
+                    prefs.getString('pdf_header_subtitle') ??
+                        'نظام السندات المالية المشفّرة',
+                    8,
+                    _muted),
               ],
             ),
           ),
@@ -238,10 +282,10 @@ class VoucherImageCard extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              image: const DecorationImage(
+              image: DecorationImage(
                 image: AssetImage('assets/images/logo.png'),
                 fit: BoxFit.contain,
               ),
@@ -249,23 +293,19 @@ class VoucherImageCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           // English info
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _text(
+                Text(
                   'Qayd — Personal Accounting',
-                  9,
-                  _navy,
-                  bold: true,
-                  dir: TextDirection.ltr,
+                  style: TextStyle(
+                      fontSize: 9, fontWeight: FontWeight.bold, color: _navy),
                 ),
-                const SizedBox(height: 2),
-                _text(
+                SizedBox(height: 2),
+                Text(
                   'Encrypted Financial Voucher System',
-                  7,
-                  _muted,
-                  dir: TextDirection.ltr,
+                  style: TextStyle(fontSize: 7, color: _muted),
                 ),
               ],
             ),
@@ -280,6 +320,10 @@ class VoucherImageCard extends StatelessWidget {
   // ════════════════════════════════════════════════════════════════════════════
 
   Widget _titleRow(String titleAr, String dateStr) {
+    final prefs = InjectionContainer.sharedPreferences;
+    final labelNo = prefs.getString('pdf_label_voucher_no') ?? 'رقم السند:';
+    final labelDate = prefs.getString('pdf_label_date') ?? 'التاريخ:';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       child: Column(
@@ -287,8 +331,8 @@ class VoucherImageCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _borderedBox('رقم السند:', _shortId(data.id)),
-              _borderedBox('التاريخ:', dateStr),
+              _borderedBox(labelNo, _shortId(data.id)),
+              _borderedBox(labelDate, dateStr),
             ],
           ),
           const SizedBox(height: 8),
@@ -334,8 +378,7 @@ class VoucherImageCard extends StatelessWidget {
     String? notesText;
 
     if (data.isTripartite) {
-      final isReceiptLeg =
-          data.tripartiteRole == 'receipt' ||
+      final isReceiptLeg = data.tripartiteRole == 'receipt' ||
           data.tripartiteRole == 'intermediary_receipt';
 
       if (isDebit) {
@@ -379,32 +422,26 @@ class VoucherImageCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    RichText(
-                      textDirection: TextDirection.rtl,
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '$sectionLabel ',
-                            style: GoogleFonts.cairo(
-                              fontSize: 10,
-                              color: _navy,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          TextSpan(
-                            text: accountName,
-                            style: GoogleFonts.cairo(
-                              fontSize: 10,
-                              color: accent,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Row(
+                      children: [
+                        _text(
+                            InjectionContainer.sharedPreferences
+                                    .getString('pdf_label_from') ??
+                                sectionLabel,
+                            10,
+                            _navy,
+                            bold: true),
+                        const SizedBox(width: 5),
+                        _text(accountName, 10, accent, bold: true),
+                      ],
                     ),
                     if (_notEmpty(descText)) ...[
                       const SizedBox(height: 5),
-                      _labeledLine('البيان التفصيلي:', descText!),
+                      _labeledLine(
+                          InjectionContainer.sharedPreferences
+                                  .getString('pdf_label_description') ??
+                              'البيان التفصيلي:',
+                          descText!),
                     ],
                     if (_notEmpty(notesText)) ...[
                       const SizedBox(height: 3),
@@ -479,8 +516,10 @@ class VoucherImageCard extends StatelessWidget {
   // ════════════════════════════════════════════════════════════════════════════
 
   Widget _signatureRow() {
-    final hasSenderSig = data.senderSignatureHex != null && data.senderSignatureHex!.isNotEmpty;
-    final hasReceiverSig = data.receiverSignatureHex != null && data.receiverSignatureHex!.isNotEmpty;
+    final hasSenderSig =
+        data.senderSignatureHex != null && data.senderSignatureHex!.isNotEmpty;
+    final hasReceiverSig = data.receiverSignatureHex != null &&
+        data.receiverSignatureHex!.isNotEmpty;
 
     if (data.isTripartite) {
       return Row(
@@ -495,16 +534,18 @@ class VoucherImageCard extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          flex: 2, 
+          flex: 2,
           child: _sigBox(
-            data.typeCode == 'receipt' ? '(توقيع العميل المرسل)' : '(توقيع العميل المستلم)', 
+            data.typeCode == 'receipt'
+                ? '(توقيع العميل المرسل)'
+                : '(توقيع العميل المستلم)',
             data.typeCode == 'receipt' ? hasSenderSig : hasReceiverSig,
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Container(
-            height: 60,
+            height: 70,
             decoration: BoxDecoration(
               border: Border.all(color: _border, width: 0.8),
               borderRadius: BorderRadius.circular(4),
@@ -532,7 +573,7 @@ class VoucherImageCard extends StatelessWidget {
 
   Widget _sigBox(String label, bool hasSig) {
     return Container(
-      height: 60,
+      height: 70,
       decoration: BoxDecoration(
         border: Border.all(color: _border, width: 0.8),
         borderRadius: BorderRadius.circular(4),
@@ -575,7 +616,12 @@ class VoucherImageCard extends StatelessWidget {
               children: [
                 _text('تم الإنشاء:  $createdStr', 7.5, _muted),
                 const SizedBox(height: 2),
-                _text('المصدر: تطبيق قيد للمحاسبة الشخصية', 7.5, _muted),
+                _text(
+                    InjectionContainer.sharedPreferences
+                            .getString('pdf_footer_text') ??
+                        'المصدر: تطبيق قيد للمحاسبة الشخصية',
+                    7.5,
+                    _muted),
                 if (_notEmpty(data.senderPublicKeyHex)) ...[
                   const SizedBox(height: 2),
                   _text(
@@ -645,12 +691,10 @@ class VoucherImageCard extends StatelessWidget {
 
   String _buildTitle(GetVoucherDetailsOutput d, String typeAr) {
     if (!d.isTripartite) return typeAr;
-    final isReceiptLeg =
-        d.tripartiteRole == 'receipt' ||
+    final isReceiptLeg = d.tripartiteRole == 'receipt' ||
         d.tripartiteRole == 'intermediary_receipt';
-    final legLabel = isReceiptLeg
-        ? 'إشعار للطرفين'
-        : 'إشعار قيد العميل المحوّل';
+    final legLabel =
+        isReceiptLeg ? 'إشعار للطرفين' : 'إشعار قيد العميل المحوّل';
     return 'سند قيد مزدوج وإشعار قيد ($legLabel)';
   }
 

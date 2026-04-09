@@ -36,7 +36,7 @@ CREATE TABLE accrual_components (
   total_amount_minor INTEGER NOT NULL,
   currency_code TEXT NOT NULL,
   source_account_id TEXT,
-  destination_account_id TEXT,
+  destination_account_id TEXT NOT NULL,
   cost_center_id TEXT,
   category_id TEXT,
   frequency TEXT NOT NULL,
@@ -46,14 +46,24 @@ CREATE TABLE accrual_components (
   created_at TEXT NOT NULL,
   FOREIGN KEY (source_account_id) REFERENCES accounts (id) ON DELETE SET NULL,
   FOREIGN KEY (destination_account_id) REFERENCES accounts (id) ON DELETE SET NULL,
-  FOREIGN KEY (cost_center_id) REFERENCES cost_centers (id) ON DELETE SET NULL
+  FOREIGN KEY (cost_center_id) REFERENCES cost_centers (id) ON DELETE SET NULL,
+  FOREIGN KEY (category_id) REFERENCES cost_center_dimension_categories (id) ON DELETE SET NULL
 )
 ''');
     await db.execute(
-      'CREATE INDEX idx_accrual_account ON accrual_components (account_id)',
+      'CREATE INDEX idx_accrual_source ON accrual_components (source_account_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_accrual_destination ON accrual_components (destination_account_id)',
     );
     await db.execute(
       'CREATE INDEX idx_accrual_center ON accrual_components (cost_center_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_accrual_category ON accrual_components (category_id)',
+    );
+    await db.execute(
+      'CREATE INDEX idx_accrual_next_due ON accrual_components (next_due_date)',
     );
 
     // 3. Seed new Life Dimensions Categories

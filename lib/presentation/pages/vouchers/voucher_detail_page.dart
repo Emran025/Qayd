@@ -108,7 +108,7 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                 IconButton(
                   tooltip: AppStringsAr.shareAsTextTooltip,
                   icon: const Icon(Icons.text_snippet_outlined),
-                  onPressed: () => shareVoucherAsText(state.data),
+                  onPressed: () => shareVoucherAsText(context, state.data),
                 ),
                 IconButton(
                   tooltip: AppStringsAr.shareAsImageTooltip,

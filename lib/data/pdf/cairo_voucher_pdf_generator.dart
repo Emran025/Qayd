@@ -9,6 +9,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/dtos/voucher_report_dto.dart';
 import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -64,6 +65,17 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
         logoImage = null;
       }
 
+      // Load Custom Brand Texts & Labels
+      final prefs = InjectionContainer.sharedPreferences;
+      final customHeaderTitle = prefs.getString('pdf_header_title') ?? 'قيد — المحاسبة الشخصية';
+      final customHeaderSubtitle = prefs.getString('pdf_header_subtitle') ?? 'نظام السندات المالية المشفّرة';
+      final customFooterText = prefs.getString('pdf_footer_text') ?? 'المصدر: تطبيق قيد للمحاسبة الشخصية';
+      
+      final labelVoucherNo = prefs.getString('pdf_label_voucher_no') ?? 'رقم السند:';
+      final labelDate = prefs.getString('pdf_label_date') ?? 'التاريخ:';
+      final labelFrom = prefs.getString('pdf_label_from') ?? 'من حساب العميل:';
+      final labelDescription = prefs.getString('pdf_label_description') ?? 'البيان التفصيلي:';
+
       // Title logic
       final titleAr = _buildTitle(report, typeAr);
 
@@ -97,10 +109,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
                   // ── HEADER BAR ──────────────────────────────────────────
-                  _buildHeaderBar(font, logoImage),
+                  _buildHeaderBar(font, logoImage, customHeaderTitle, customHeaderSubtitle),
 
                   // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
-                  _buildTitleRow(font, report, titleAr, dateStr, accent),
+                  _buildTitleRow(font, report, titleAr, dateStr, accent, labelVoucherNo, labelDate),
 
                   pw.SizedBox(height: 6),
 
@@ -117,6 +129,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                           sectionType: 'debit',
                           report: report,
                           accent: accent,
+                          labelFrom: labelFrom,
+                          labelDescription: labelDescription,
                         ),
 
                         pw.SizedBox(height: 8),
@@ -129,6 +143,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                             sectionType: 'credit',
                             report: report,
                             accent: accent,
+                            labelFrom: labelFrom,
+                            labelDescription: labelDescription,
                           ),
 
                         pw.SizedBox(height: 14),
@@ -139,7 +155,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                         pw.SizedBox(height: 14),
 
                         // ── FOOTER ─────────────────────────────────────────
-                        _buildFooter(font, report, createdStr, qrPayload),
+                        _buildFooter(font, report, createdStr, qrPayload, customFooterText),
                       ],
                     ),
                   ),
@@ -162,7 +178,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   // ── HEADER BAR (Company-style) ─────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildHeaderBar(pw.Font font, pw.ImageProvider? logoImage) {
+  pw.Widget _buildHeaderBar(pw.Font font, pw.ImageProvider? logoImage, String title, String subtitle) {
     return pw.Container(
       color: _headerBg,
       padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -175,7 +191,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 pw.Text(
-                  'قيد — المحاسبة الشخصية',
+                  title,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 11,
@@ -186,7 +202,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  'نظام السندات المالية المشفّرة',
+                  subtitle,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 8,
@@ -257,6 +273,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     String titleAr,
     String dateStr,
     PdfColor accent,
+    String labelVoucherNo,
+    String labelDate,
   ) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -267,9 +285,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               // Voucher number box (right in RTL)
-              _borderedLabel(font, 'رقم السند:', _shortId(report.voucherId)),
+              _borderedLabel(font, labelVoucherNo, _shortId(report.voucherId)),
               // Date box (left in RTL)
-              _borderedLabel(font, 'التاريخ:', dateStr),
+              _borderedLabel(font, labelDate, dateStr),
             ],
           ),
           pw.SizedBox(height: 10),
@@ -335,6 +353,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     required String sectionType, // 'debit' or 'credit'
     required VoucherReportDto report,
     required PdfColor accent,
+    required String labelFrom,
+    required String labelDescription,
   }) {
     final isDebit = sectionType == 'debit';
     final isReceipt = report.typeCode == 'receipt';
@@ -370,10 +390,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     } else {
       // Standard voucher: single party
       if (isReceipt) {
-        sectionLabel = 'بيانات القيد - من حساب العميل:';
+        sectionLabel = labelFrom;
         accountName = report.counterpartyName;
       } else {
-        sectionLabel = 'بيانات القيد - إلى حساب العميل:';
+        sectionLabel = labelFrom;
         accountName = report.counterpartyName;
       }
       descriptionText = report.description ?? '';
@@ -458,7 +478,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   // Description
                   if (descriptionText.trim().isNotEmpty) ...[
                     pw.SizedBox(height: 6),
-                    _labeledLine(font, 'البيان التفصيلي:', descriptionText),
+                    _labeledLine(font, labelDescription, descriptionText),
                   ],
 
                   // Notes
@@ -638,6 +658,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     VoucherReportDto report,
     String createdStr,
     String qrPayload,
+    String footerText,
   ) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 0, vertical: 8),
@@ -658,7 +679,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 ),
                 pw.SizedBox(height: 3),
                 pw.Text(
-                  'المصدر: تطبيق قيد للمحاسبة الشخصية',
+                  footerText,
                   style: pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
                 ),
 

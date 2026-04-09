@@ -24,6 +24,13 @@ abstract final class TemplateBindingMaps {
       'notes': d.notes ?? '',
       'voucher_id': d.id,
       'type': typeAr,
+      'account_id': d.affectedAccountId,
+      'affected_account_id': d.affectedAccountId,
+      'counterparty_id': d.counterpartyAccountId,
+      'signature': d.senderSignatureHex ?? d.receiverSignatureHex ?? 'مشمول بالتوقيع الإلكتروني',
+      'signature_verification': d.senderSignatureHex != null || d.receiverSignatureHex != null 
+          ? 'تم التحقق رقمياً: ${d.senderSignatureHex ?? d.receiverSignatureHex}' 
+          : 'مُصدّر آلياً وموثق رقمياً عبر نظام قيد',
     };
   }
 

@@ -10,6 +10,7 @@ import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/identity_qr_dialog.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_list_page.dart';
+import 'package:qayd/presentation/pages/accruals/accrual_list_page.dart';
 
 class SettingsSidebar extends StatelessWidget {
   const SettingsSidebar({super.key});
@@ -118,6 +119,11 @@ class SettingsSidebar extends StatelessWidget {
                   icon: Icons.pie_chart_outline_rounded,
                   title: AppStringsAr.costCentersTitle,
                   onTap: () => _navTo(context, const CostCenterListPage()),
+                ),
+                _DrawerTile(
+                  icon: Icons.event_repeat_rounded,
+                  title: "الاستحقاقات والالتزامات",
+                  onTap: () => _navTo(context, const AccrualListPage()),
                 ),
                 const Divider(
                   indent: 20,

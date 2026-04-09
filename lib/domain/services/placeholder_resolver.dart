@@ -1,6 +1,6 @@
 /// Replaces `{{token}}` segments using a binding map (unknown keys → empty string).
 abstract final class PlaceholderResolver {
-  static final RegExp _token = RegExp(r'\{\{(\w+)\}\}');
+  static final RegExp _token = RegExp(r'\{\{\s*(\w+)\s*\}\}');
 
   static String resolve(String template, Map<String, String> bindings) {
     return template.replaceAllMapped(_token, (m) {

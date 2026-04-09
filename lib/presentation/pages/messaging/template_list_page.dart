@@ -13,6 +13,7 @@ import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/pages/messaging/template_text_controller.dart';
 
 class NotificationTemplatesPage extends StatelessWidget {
   const NotificationTemplatesPage({super.key});
@@ -36,7 +37,7 @@ class _TemplateListScaffold extends StatelessWidget {
   Future<void> _openCreate(BuildContext context) async {
     var kind = MessageTemplateKind.receipt;
     final nameCtrl = TextEditingController();
-    final bodyCtrl = TextEditingController(text: 'عزيزي {{customer}}،\n');
+    final bodyCtrl = TemplateTextController(initialDbText: 'عزيزي {{customer}}،\nنود إفادتكم بتسجيل إشعار قبض...\nالتوقيع: {{signature}}');
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -87,19 +88,27 @@ class _TemplateListScaffold extends StatelessWidget {
                   QaydTextField(
                     controller: bodyCtrl,
                     label: AppStringsAr.templateBodyLabel,
-                    maxLines: 8,
+                    maxLines: 6,
                     textInputAction: TextInputAction.done,
                   ),
+                  const SizedBox(height: SpacingTokens.sm),
+                  _buildVariableChipsRow(kind, bodyCtrl),
                 ],
               ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
+                onPressed: () {
+                  FocusScope.of(ctx).unfocus();
+                  Navigator.of(ctx).pop(false);
+                },
                 child: Text(AppStringsAr.templateEditCancel),
               ),
               FilledButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
+                onPressed: () {
+                  FocusScope.of(ctx).unfocus();
+                  Navigator.of(ctx).pop(true);
+                },
                 child: Text(AppStringsAr.templateEditSave),
               ),
             ],
@@ -108,14 +117,18 @@ class _TemplateListScaffold extends StatelessWidget {
       ),
     );
     if (ok != true || !context.mounted) {
-      nameCtrl.dispose();
-      bodyCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 250), () {
+        nameCtrl.dispose();
+        bodyCtrl.dispose();
+      });
       return;
     }
     final name = nameCtrl.text.trim();
-    final bodyText = bodyCtrl.text;
-    nameCtrl.dispose();
-    bodyCtrl.dispose();
+    final bodyText = bodyCtrl.dbText;
+    Future.delayed(const Duration(milliseconds: 250), () {
+      nameCtrl.dispose();
+      bodyCtrl.dispose();
+    });
     final r = await InjectionContainer.createMessageTemplateUseCase(
       kind: kind,
       name: name,
@@ -143,7 +156,7 @@ class _TemplateListScaffold extends StatelessWidget {
 
   Future<void> _edit(BuildContext context, MessageTemplate t) async {
     final nameCtrl = TextEditingController(text: t.name);
-    final bodyCtrl = TextEditingController(text: t.body);
+    final bodyCtrl = TemplateTextController(initialDbText: t.body);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -165,41 +178,53 @@ class _TemplateListScaffold extends StatelessWidget {
               QaydTextField(
                 controller: bodyCtrl,
                 label: AppStringsAr.templateBodyLabel,
-                maxLines: 10,
+                maxLines: 8,
                 textInputAction: TextInputAction.done,
               ),
+              const SizedBox(height: SpacingTokens.sm),
+              _buildVariableChipsRow(t.kind, bodyCtrl),
             ],
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () {
+              FocusScope.of(ctx).unfocus();
+              Navigator.of(ctx).pop(false);
+            },
             child: Text(AppStringsAr.templateEditCancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
+            onPressed: () {
+              FocusScope.of(ctx).unfocus();
+              Navigator.of(ctx).pop(true);
+            },
             child: Text(AppStringsAr.templateEditSave),
           ),
         ],
       ),
     );
     if (ok != true || !context.mounted) {
-      nameCtrl.dispose();
-      bodyCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 250), () {
+        nameCtrl.dispose();
+        bodyCtrl.dispose();
+      });
       return;
     }
     final updated = MessageTemplate(
       id: t.id,
       kind: t.kind,
       name: nameCtrl.text.trim(),
-      body: bodyCtrl.text,
+      body: bodyCtrl.dbText,
       isSystem: t.isSystem,
       sortOrder: t.sortOrder,
       createdAt: t.createdAt,
       updatedAt: DateTime.now(),
     );
-    nameCtrl.dispose();
-    bodyCtrl.dispose();
+    Future.delayed(const Duration(milliseconds: 250), () {
+      nameCtrl.dispose();
+      bodyCtrl.dispose();
+    });
     final r = await context.read<TemplateListCubit>().saveTemplate(updated);
     if (!context.mounted) {
       return;
@@ -365,6 +390,31 @@ class _TemplateListScaffold extends StatelessWidget {
         foregroundColor: ColorTokens.navy950,
         icon: const Icon(Icons.add_rounded),
         label: Text(AppStringsAr.templateAddFab),
+      ),
+    );
+  }
+
+  Widget _buildVariableChipsRow(MessageTemplateKind currentKind, TemplateTextController controller) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: kTemplateVariables.where((v) {
+          if (v.kindRestricted != null && v.kindRestricted != currentKind) return false;
+          return true;
+        }).map((v) {
+          return Padding(
+            padding: const EdgeInsets.only(left: SpacingTokens.xs),
+            child: ActionChip(
+              label: Text(v.label, style: const TextStyle(fontSize: 12)),
+              backgroundColor: Colors.amber.withOpacity(0.1),
+              side: BorderSide(color: Colors.amber.shade300),
+              labelStyle: TextStyle(color: Colors.amber.shade900),
+              onPressed: () {
+                controller.insertVariable(v);
+              },
+            ),
+          );
+        }).toList(),
       ),
     );
   }

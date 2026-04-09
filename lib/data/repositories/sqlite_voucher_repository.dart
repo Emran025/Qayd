@@ -53,7 +53,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       args.add(filter.affectedAccountId!.value);
     }
     if (filter.involvedAccountId != null) {
-      whereParts.add('(${p}affected_account_id = ? OR ${p}counterparty_id = ? OR ${p}linked_party_id = ? OR ${p}mediator_account_id = ?)');
+      whereParts.add(
+          '(${p}affected_account_id = ? OR ${p}counterparty_id = ? OR ${p}linked_party_id = ? OR ${p}mediator_account_id = ?)');
       args.add(filter.involvedAccountId!.value);
       args.add(filter.involvedAccountId!.value);
       args.add(filter.involvedAccountId!.value);
@@ -87,7 +88,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
         args.add(rootId);
         args.add(counterRootId);
       } else {
-        whereParts.add('(${p}affected_account_id IN ($recursivePart) OR ${p}counterparty_id IN ($recursivePart))');
+        whereParts.add(
+            '(${p}affected_account_id IN ($recursivePart) OR ${p}counterparty_id IN ($recursivePart))');
         args.add(rootId);
         args.add(rootId);
       }
@@ -98,7 +100,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
         SELECT id FROM (
           WITH RECURSIVE internal_accounts AS (
             SELECT id FROM accounts 
-            WHERE standard_classification_kind IN ('liquidAssets', 'personalExpenses', 'personalRevenues', 'settlements')
+            WHERE standard_classification IN ('liquidAssets', 'personalExpenses', 'personalRevenues', 'settlements')
             AND parent_id IS NULL
             UNION ALL
             SELECT a.id FROM accounts a
@@ -106,7 +108,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
           ) SELECT id FROM internal_accounts
         )
       ''';
-      whereParts.add('${p}affected_account_id IN ($internalPart) AND ${p}counterparty_id IN ($internalPart)');
+      whereParts.add(
+          '${p}affected_account_id IN ($internalPart) AND ${p}counterparty_id IN ($internalPart)');
     }
 
     if (filter.dateRange != null) {
@@ -121,14 +124,15 @@ final class SqliteVoucherRepository implements VoucherRepository {
       whereParts.add('${p}transfer_group_id IS NOT NULL');
     }
     if (filter.costCenterId != null) {
-      whereParts.add('${p}id IN (SELECT voucher_id FROM voucher_cost_centers WHERE cost_center_id = ?)');
+      whereParts.add(
+          '${p}id IN (SELECT voucher_id FROM voucher_cost_centers WHERE cost_center_id = ?)');
       args.add(filter.costCenterId!);
     }
   }
 
   Future<List<Voucher>> _mapVoucherRows(List<Map<String, Object?>> rows) async {
     if (rows.isEmpty) return const [];
-    
+
     // Pre-fetch all currencies for lookup
     final currencyMaps = await _db.query('currencies');
     final currencyLookup = {
@@ -167,7 +171,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
         whereArgs: [model.currencyCode],
         limit: 1,
       );
-      final currency = CurrencyMapper.toEntity(CurrencyModel.fromMap(currencyMaps.first));
+      final currency =
+          CurrencyMapper.toEntity(CurrencyModel.fromMap(currencyMaps.first));
       return Success(VoucherMapper.toEntity(model, currency));
     } catch (_) {
       return const FailureResult(
@@ -186,10 +191,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       final whereParts = <String>[];
       final args = <Object>[];
       _appendFilterClauses(filter, '', whereParts, args);
-      final where =
-          whereParts.isEmpty ? null : whereParts.join(' AND ');
-      var sql =
-          'SELECT *, ' 
+      final where = whereParts.isEmpty ? null : whereParts.join(' AND ');
+      var sql = 'SELECT *, '
           '(SELECT COUNT(*) FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id) as reversal_count, '
           '(SELECT id FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id ORDER BY created_at ASC LIMIT 1) as first_child_id '
           'FROM $_vouchers${where != null ? ' WHERE $where' : ''} ORDER BY date DESC, created_at DESC';
@@ -340,8 +343,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       final whereParts = <String>[];
       final args = <Object>[];
       _appendFilterClauses(filter, '', whereParts, args);
-      final where =
-          whereParts.isEmpty ? null : whereParts.join(' AND ');
+      final where = whereParts.isEmpty ? null : whereParts.join(' AND ');
       final rows = await _db.rawQuery(
         'SELECT COUNT(*) AS c FROM $_vouchers${where != null ? ' WHERE $where' : ''}',
         args,
@@ -487,8 +489,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
 
       final rows = await _db.query(
         _vouchers,
-        where:
-            'amount_minor = ? AND currency_code = ? AND counterparty_id = ? '
+        where: 'amount_minor = ? AND currency_code = ? AND counterparty_id = ? '
             'AND type = ? AND state = ? AND date >= ? AND date <= ?',
         whereArgs: [
           amountMinor,
