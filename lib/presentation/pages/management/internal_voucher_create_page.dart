@@ -27,7 +27,14 @@ import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class InternalVoucherCreatePage extends StatefulWidget {
-  const InternalVoucherCreatePage({super.key});
+  final VoucherType? initialType;
+  final AccountSummaryDto? initialCategoryAccount;
+
+  const InternalVoucherCreatePage({
+    super.key,
+    this.initialType,
+    this.initialCategoryAccount,
+  });
 
   @override
   State<InternalVoucherCreatePage> createState() =>
@@ -57,6 +64,13 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
   @override
   void initState() {
     super.initState();
+    if (widget.initialType != null) {
+      _type = widget.initialType!;
+    }
+    if (widget.initialCategoryAccount != null) {
+      _categoryAccount = widget.initialCategoryAccount!;
+    }
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -97,6 +111,32 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
       if (baseRes.isSuccess) {
         _currencyCode = baseRes.valueOrNull!;
       }
+
+      // Auto-select category if not provided and only one account exists for this type
+      if (_categoryAccount == null) {
+        final classification = _type == VoucherType.payment
+            ? 'personalExpenses'
+            : 'personalRevenues';
+
+        // Check for children first
+        final children = accounts
+            .where((a) =>
+                a.standardClassificationKind == classification && !a.isRoot)
+            .toList();
+
+        if (children.length == 1) {
+          _categoryAccount = children.first;
+        } else if (children.isEmpty) {
+          // If no children, check if there's a root (as a fallback or if it's treated as a single account)
+          final root = accounts
+              .where((a) =>
+                  a.standardClassificationKind == classification && a.isRoot)
+              .firstOrNull;
+          if (root != null) {
+            _categoryAccount = root;
+          }
+        }
+      }
     }
     if (mounted) setState(() => _isLoading = false);
   }
@@ -128,7 +168,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
     final a = await showAccountPickerSheet(
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
-      requireNoRoot: true,
+      requireNoRoot: false,
       requireParentClassification: classification,
     );
     if (a != null) {

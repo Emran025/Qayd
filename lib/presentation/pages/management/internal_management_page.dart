@@ -140,7 +140,13 @@ class _InternalManagementViewState extends State<_InternalManagementView>
 
   Future<void> _openCreate(BuildContext context) async {
     final listCubit = context.read<VoucherListCubit>();
-    if (_tabController.index == 0) {
+    if (_tabController.index == 0 ||
+        _tabController.index == 2 ||
+        _tabController.index == 3) {
+      VoucherType? type;
+      if (_tabController.index == 2) type = VoucherType.receipt;
+      if (_tabController.index == 3) type = VoucherType.payment;
+
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => MultiBlocProvider(
@@ -158,7 +164,7 @@ class _InternalManagementViewState extends State<_InternalManagementView>
                 ),
               ),
             ],
-            child: const InternalVoucherCreatePage(),
+            child: InternalVoucherCreatePage(initialType: type),
           ),
         ),
       );
@@ -170,12 +176,6 @@ class _InternalManagementViewState extends State<_InternalManagementView>
         // Assets are typically added under depreciable assets by default here
         parentId = widget.depreciableAssetsRootId;
         parentKind = 'fixedDepreciableAssets';
-      } else if (_tabController.index == 2) {
-        parentId = widget.revenuesRootId;
-        parentKind = 'personalRevenues';
-      } else if (_tabController.index == 3) {
-        parentId = widget.expensesRootId;
-        parentKind = 'personalExpenses';
       }
 
       await showModalBottomSheet(
@@ -201,16 +201,7 @@ class _InternalManagementViewState extends State<_InternalManagementView>
                             .fixedDepreciableAssets,
                         StandardAccountClassificationKind.fixedProfitableAssets,
                       ]
-                    : _tabController.index == 2
-                        ? const [
-                            StandardAccountClassificationKind.personalRevenues
-                          ]
-                        : _tabController.index == 3
-                            ? const [
-                                StandardAccountClassificationKind
-                                    .personalExpenses
-                              ]
-                            : null,
+                    : null,
               ),
             ),
           ),
