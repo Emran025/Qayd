@@ -6,6 +6,7 @@ import 'package:qayd/application/reports/dtos/trial_balance_line_dto.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 
 /// Professional PDF generator for Trial Balance reports.
 ///
@@ -99,12 +100,14 @@ final class TrialBalancePdfGenerator {
                 style: pw.TextStyle(font: font, fontSize: 10, color: _gold),
               ),
               pw.SizedBox(height: 2),
-              pw.Text(
-                '${dateFmt.format(report.fromDate)} — ${dateFmt.format(report.toDate)}',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 8,
-                  color: PdfColor.fromInt(0xFFB0BEC5),
+              pw.RichText(
+                text: buildPdfNumericalScaledSpan(
+                  '${dateFmt.format(report.fromDate)} — ${dateFmt.format(report.toDate)}',
+                  pw.TextStyle(
+                    font: font,
+                    fontSize: 8,
+                    color: PdfColor.fromInt(0xFFB0BEC5),
+                  ),
                 ),
               ),
             ],
@@ -196,10 +199,7 @@ final class TrialBalancePdfGenerator {
       groups[line.accountId]!.add(line);
     }
 
-    return pw.ClipRRect(
-        horizontalRadius: 6,
-        verticalRadius: 6,
-        child: pw.Table(
+    return pw.Table(
           border: pw.TableBorder.all(
               color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
           columnWidths: const {
@@ -328,7 +328,7 @@ final class TrialBalancePdfGenerator {
               );
             }),
           ],
-        ));
+        );
   }
 
   pw.Widget _buildGroupedDualColumn(
@@ -398,19 +398,23 @@ final class TrialBalancePdfGenerator {
                         color: _navy,
                       ),
                     )),
-                pw.Spacer(),
+                pw.Expanded(child: pw.SizedBox()),
                 pw.Row(children: [
                   pw.Text('مدين ',
                       style: pw.TextStyle(
                           font: font, fontSize: 8, color: debitColor)),
-                  pw.Text(_formatMoney(debit, s.currencyDigits),
-                      style: pw.TextStyle(
-                          font: font,
-                          fontSize: isBold ? 10 : 9,
-                          fontWeight: isBold
-                              ? pw.FontWeight.bold
-                              : pw.FontWeight.normal,
-                          color: _navy)),
+                  pw.RichText(
+                    text: buildPdfNumericalScaledSpan(
+                      _formatMoney(debit, s.currencyDigits),
+                      pw.TextStyle(
+                        font: font,
+                        fontSize: isBold ? 10 : 9,
+                        fontWeight:
+                            isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+                        color: _navy,
+                      ),
+                    ),
+                  ),
                 ]),
                 pw.Padding(
                   padding: const pw.EdgeInsets.symmetric(horizontal: 10),
@@ -421,14 +425,18 @@ final class TrialBalancePdfGenerator {
                   pw.Text('دائن ',
                       style: pw.TextStyle(
                           font: font, fontSize: 8, color: creditColor)),
-                  pw.Text(_formatMoney(credit, s.currencyDigits),
-                      style: pw.TextStyle(
-                          font: font,
-                          fontSize: isBold ? 10 : 9,
-                          fontWeight: isBold
-                              ? pw.FontWeight.bold
-                              : pw.FontWeight.normal,
-                          color: _navy)),
+                  pw.RichText(
+                    text: buildPdfNumericalScaledSpan(
+                      _formatMoney(credit, s.currencyDigits),
+                      pw.TextStyle(
+                        font: font,
+                        fontSize: isBold ? 10 : 9,
+                        fontWeight:
+                            isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+                        color: _navy,
+                      ),
+                    ),
+                  ),
                 ]),
               ]));
         }
@@ -445,8 +453,6 @@ final class TrialBalancePdfGenerator {
             children: [
               // ── Card Header ──
               pw.Container(
-                padding:
-                    const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: pw.BoxDecoration(
                   color: isBalanced
                       ? PdfColor.fromInt(0xFFECFDF5) // Emerald 50
@@ -455,41 +461,47 @@ final class TrialBalancePdfGenerator {
                     topLeft: pw.Radius.circular(9),
                     topRight: pw.Radius.circular(9),
                   ),
-                  border: pw.Border(
-                    bottom: pw.BorderSide(color: statusColor, width: 0.5),
-                  ),
                 ),
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                child: pw.Column(
                   children: [
-                    pw.Text(
-                      'خلاصة ميزان المراجعة — ${s.currencyCode}',
-                      style: pw.TextStyle(
-                        font: font,
-                        fontSize: 10,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _navy,
-                      ),
-                    ),
-                    // Pill
-                    pw.Container(
+                    pw.Padding(
                       padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: pw.BoxDecoration(
-                        color: PdfColors.white,
-                        borderRadius: pw.BorderRadius.circular(12),
-                        border: pw.Border.all(color: statusColor, width: 0.5),
-                      ),
-                      child: pw.Text(
-                        isBalanced ? 'متوازن ✓' : 'غير متوازن',
-                        style: pw.TextStyle(
-                          font: font,
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
-                          color: statusColor,
-                        ),
+                          horizontal: 12, vertical: 8),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(
+                            'خلاصة ميزان المراجعة — ${s.currencyCode}',
+                            style: pw.TextStyle(
+                              font: font,
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                              color: _navy,
+                            ),
+                          ),
+                          // Pill
+                          pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: pw.BoxDecoration(
+                              color: PdfColors.white,
+                              borderRadius: pw.BorderRadius.circular(12),
+                              border: pw.Border.all(color: statusColor, width: 0.5),
+                            ),
+                            child: pw.Text(
+                              isBalanced ? 'متوازن ✓' : 'غير متوازن',
+                              style: pw.TextStyle(
+                                font: font,
+                                fontSize: 8,
+                                fontWeight: pw.FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    pw.Divider(height: 0, thickness: 0.5, color: statusColor),
                   ],
                 ),
               ),
@@ -581,8 +593,8 @@ final class TrialBalancePdfGenerator {
         PdfColor.fromInt(0xFF16A34A); // scheme.tertiary equivalents
     final creditColor =
         PdfColor.fromInt(0xFFDC2626); // scheme.error equivalents
-    final subBgColor =
-        PdfColor.fromInt(0xFFE2E8F0); // scheme.surfaceContainerHighest
+    // final subBgColor =
+    //     PdfColor.fromInt(0xFFE2E8F0); // scheme.surfaceContainerHighest
 
     if (subHeaders != null) {
       return pw.Column(
@@ -602,44 +614,43 @@ final class TrialBalancePdfGenerator {
               ),
             ),
           ),
-          pw.Container(
-            color: subBgColor,
-            child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-              children: [
-                pw.Expanded(
-                  child: pw.Center(
-                    child: pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                      child: pw.Text(
-                        subHeaders[0],
-                        style: pw.TextStyle(
-                            font: font,
-                            fontSize: 7,
-                            color: debitColor,
-                            fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
-                pw.Container(width: 0.5, color: PdfColor.fromInt(0xFFCBD5E1)),
-                pw.Expanded(
-                  child: pw.Center(
-                    child: pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                      child: pw.Text(
-                        subHeaders[1],
-                        style: pw.TextStyle(
-                            font: font,
-                            fontSize: 7,
-                            color: creditColor,
-                            fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+          pw.Table(
+            border: const pw.TableBorder(
+              top: pw.BorderSide(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+              verticalInside: pw.BorderSide(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
             ),
+            children: [
+              pw.TableRow(
+                children: [
+                  pw.Container(
+                    alignment: pw.Alignment.center,
+                    padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                    child: pw.Text(
+                      subHeaders[0],
+                      style: pw.TextStyle(
+                        font: font,
+                        fontSize: 7,
+                        color: debitColor,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  pw.Container(
+                    alignment: pw.Alignment.center,
+                    padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                    child: pw.Text(
+                      subHeaders[1],
+                      style: pw.TextStyle(
+                        font: font,
+                        fontSize: 7,
+                        color: creditColor,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       );
@@ -660,28 +671,28 @@ final class TrialBalancePdfGenerator {
     );
   }
 
-  pw.Widget _dataCell(
-    pw.Font font,
-    String text, {
-    bool isBold = false,
-    double fontSize = 8,
-    pw.EdgeInsets? padding,
-    pw.Alignment align = pw.Alignment.center,
-  }) {
-    return pw.Container(
-      alignment: align,
-      padding: padding ?? const pw.EdgeInsets.all(4),
-      child: pw.Text(
-        text,
-        style: pw.TextStyle(
-          font: font,
-          fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
-          fontSize: fontSize,
-          color: _navy,
-        ),
-      ),
-    );
-  }
+  // pw.Widget _dataCell(
+  //   pw.Font font,
+  //   String text, {
+  //   bool isBold = false,
+  //   double fontSize = 8,
+  //   pw.EdgeInsets? padding,
+  //   pw.Alignment align = pw.Alignment.center,
+  // }) {
+  //   return pw.Container(
+  //     alignment: align,
+  //     padding: padding ?? const pw.EdgeInsets.all(4),
+  //     child: pw.Text(
+  //       text,
+  //       style: pw.TextStyle(
+  //         font: font,
+  //         fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+  //         fontSize: fontSize,
+  //         color: _navy,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   pw.Widget _dualCell(
     pw.Font font,
@@ -693,43 +704,47 @@ final class TrialBalancePdfGenerator {
     final debitColor = PdfColor.fromInt(0xFF16A34A);
     final creditColor = PdfColor.fromInt(0xFFDC2626);
 
-    return pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+    return pw.Table(
+      border: const pw.TableBorder(
+        verticalInside:
+            pw.BorderSide(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+      ),
       children: [
-        pw.Expanded(
-          child: pw.Center(
-            child: pw.Padding(
+        pw.TableRow(
+          children: [
+            pw.Container(
+              alignment: pw.Alignment.center,
               padding: const pw.EdgeInsets.symmetric(vertical: 5),
-              child: pw.Text(
-                _formatMoney(debit, digits),
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 7,
-                  fontWeight:
-                      isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
-                  color: debit > 0 ? debitColor : _navy,
+              child: pw.RichText(
+                text: buildPdfNumericalScaledSpan(
+                  _formatMoney(debit, digits),
+                  pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    fontWeight:
+                        isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+                    color: debit > 0 ? debitColor : _navy,
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        pw.Container(width: 0.5, color: PdfColor.fromInt(0xFFCBD5E1)),
-        pw.Expanded(
-          child: pw.Center(
-            child: pw.Padding(
+            pw.Container(
+              alignment: pw.Alignment.center,
               padding: const pw.EdgeInsets.symmetric(vertical: 5),
-              child: pw.Text(
-                _formatMoney(credit, digits),
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 7,
-                  fontWeight:
-                      isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
-                  color: credit > 0 ? creditColor : _navy,
+              child: pw.RichText(
+                text: buildPdfNumericalScaledSpan(
+                  _formatMoney(credit, digits),
+                  pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    fontWeight:
+                        isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+                    color: credit > 0 ? creditColor : _navy,
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ],
     );

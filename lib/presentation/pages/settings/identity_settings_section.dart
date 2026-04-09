@@ -236,11 +236,9 @@ class _MnemonicDialog extends StatelessWidget {
   }
 
   Future<void> _share() async {
-    await SharePlus.instance.share(
-      ShareParams(
-        text: mnemonic.phrase,
-        subject: AppStringsAr.identityShareSeedSubject,
-      ),
+    await Share.share(
+      mnemonic.phrase,
+      subject: AppStringsAr.identityShareSeedSubject,
     );
   }
 

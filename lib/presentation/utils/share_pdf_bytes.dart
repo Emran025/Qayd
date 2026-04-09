@@ -13,10 +13,8 @@ Future<void> sharePdfBytes(Uint8List bytes, String fileName,
   final path = p.join(dir.path, safeName);
   final file = File(path);
   await file.writeAsBytes(bytes, flush: true);
-  await SharePlus.instance.share(
-    ShareParams(
-      text: text,
-      files: [XFile(path, mimeType: 'application/pdf')],
-    ),
+  await Share.shareXFiles(
+    [XFile(path, mimeType: 'application/pdf')],
+    text: text,
   );
 }

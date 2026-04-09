@@ -187,8 +187,9 @@ class _VoucherListViewState extends State<_VoucherListView> {
     if (q.isNotEmpty) {
       chips.add(
         InputChip(
-          label: Text(
+          label: QaydText(
             '${AppStringsAr.voucherFilterChipSearchPrefix}$q',
+            slot: QaydTextStyleSlot.labelMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -221,12 +222,15 @@ class _VoucherListViewState extends State<_VoucherListView> {
       );
     }
     if (f.fromDate != null || f.toDate != null) {
-      final df = DateFormat.yMMMd('ar');
+      final df = DateFormat.yMMMd('en');
       final from = f.fromDate != null ? df.format(f.fromDate!) : '…';
       final to = f.toDate != null ? df.format(f.toDate!) : '…';
       chips.add(
         InputChip(
-          label: Text('$from — $to'),
+          label: QaydText(
+            '$from — $to',
+            slot: QaydTextStyleSlot.labelMedium,
+          ),
           onDeleted: () => cubit.patchAdvancedFilter((x) => x.clearDateRange()),
         ),
       );
@@ -236,8 +240,9 @@ class _VoucherListViewState extends State<_VoucherListView> {
       final name = cubit.accountNamesById[cp] ?? cp;
       chips.add(
         InputChip(
-          label: Text(
+          label: QaydText(
             '${AppStringsAr.voucherCounterpartyLabel}: $name',
+            slot: QaydTextStyleSlot.labelMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -251,8 +256,9 @@ class _VoucherListViewState extends State<_VoucherListView> {
       final name = cubit.accountNamesById[aff] ?? aff;
       chips.add(
         InputChip(
-          label: Text(
+          label: QaydText(
             '${AppStringsAr.voucherAffectedAccountLabel}: $name',
+            slot: QaydTextStyleSlot.labelMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -480,7 +486,7 @@ class _VoucherTile extends StatelessWidget {
         : ColorTokens.goldAccent.withValues(alpha: 0.22);
     final iconFg = isReceipt ? ColorTokens.emerald700 : ColorTokens.navy900;
 
-    final dateStr = DateFormat.yMMMd('ar').format(DateTime.parse(dto.dateIso));
+    final dateStr = DateFormat.yMMMd('en').format(DateTime.parse(dto.dateIso));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
@@ -576,15 +582,11 @@ class _VoucherTile extends StatelessWidget {
                                   color: scheme.surfaceContainerHighest,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: Text(
+                                child: QaydText(
                                   AppStringsAr.tripartiteContingentBadge,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        color: scheme.onSurfaceVariant,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  slot: QaydTextStyleSlot.labelSmall,
+                                  // fontWeight: FontWeight.bold,
+                                  color: scheme.onSurfaceVariant,
                                 ),
                               ),
                             // ── Transaction Markers (Protocol §3.3) ─────────
@@ -595,9 +597,9 @@ class _VoucherTile extends StatelessWidget {
                                     const EdgeInsets.symmetric(horizontal: 4),
                                 avatar:
                                     const Icon(Icons.history_rounded, size: 12),
-                                label: Text(
+                                label: QaydText(
                                   '${AppStringsAr.voucherReversalIndicator} ${dto.reversalCount}',
-                                  style: const TextStyle(fontSize: 10),
+                                  slot: QaydTextStyleSlot.labelSmall,
                                 ),
                                 onPressed: onChildTap,
                               ),
@@ -610,15 +612,11 @@ class _VoucherTile extends StatelessWidget {
                                       .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: Text(
+                                child: QaydText(
                                   AppStringsAr.voucherSettlementIndicator,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        color: ColorTokens.emerald700,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  slot: QaydTextStyleSlot.labelSmall,
+                                  // fontWeight: FontWeight.bold,
+                                  color: ColorTokens.emerald700,
                                 ),
                               ),
                           ],

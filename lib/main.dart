@@ -63,22 +63,30 @@ class QaydApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          // SecurityLockOverlay handles hard-blocks (license, clock tamper).
-          // AppLockScreen handles PIN lock.
-          child: SecurityLockOverlay(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                child ?? const SizedBox.shrink(),
-                BlocBuilder<SecurityCubit, SecurityState>(
-                  builder: (context, sec) {
-                    if (!sec.isLocked) return const SizedBox.shrink();
-                    return const Positioned.fill(child: AppLockScreen());
-                  },
-                ),
-              ],
+        return GestureDetector(
+          onTap: () {
+            // Dismiss focus/keyboard when tapping outside an input field
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          // Translucent behavior allows the tap to reach widgets below while still detecting it
+          behavior: HitTestBehavior.translucent,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            // SecurityLockOverlay handles hard-blocks (license, clock tamper).
+            // AppLockScreen handles PIN lock.
+            child: SecurityLockOverlay(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  child ?? const SizedBox.shrink(),
+                  BlocBuilder<SecurityCubit, SecurityState>(
+                    builder: (context, sec) {
+                      if (!sec.isLocked) return const SizedBox.shrink();
+                      return const Positioned.fill(child: AppLockScreen());
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         );

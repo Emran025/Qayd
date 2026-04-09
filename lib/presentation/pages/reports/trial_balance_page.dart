@@ -159,7 +159,20 @@ class _TrialBalanceTab extends StatelessWidget {
                 ],
               ),
             ),
-          TrialBalanceReady(:final output) => _TrialBalanceBody(output: output),
+          TrialBalanceReady(:final output, :final isExporting) => Stack(
+              children: [
+                _TrialBalanceBody(output: output),
+                if (isExporting)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black26,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
         };
       },
     );

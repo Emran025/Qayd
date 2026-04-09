@@ -58,11 +58,9 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
 
   Future<void> _sharePhrase() async {
     if (_mnemonic == null) return;
-    await SharePlus.instance.share(
-      ShareParams(
-        text: _mnemonic!.phrase,
-        subject: AppStringsAr.identityShareSeedSubject,
-      ),
+    await Share.share(
+      _mnemonic!.phrase,
+      subject: AppStringsAr.identityShareSeedSubject,
     );
   }
 

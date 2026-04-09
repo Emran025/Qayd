@@ -87,7 +87,7 @@ class _AccrualListPageState extends State<AccrualListPage> {
                         ),
                         const SizedBox(height: SpacingTokens.xs),
                         Text(
-                          '${NumberFormat.decimalPattern().format(totalMonthly)} SAR',
+                          '${NumberFormat.decimalPattern('en').format(totalMonthly)} SAR',
                           style: const TextStyle(
                             color: ColorTokens.warningAmber,
                             fontSize: 32,
@@ -321,7 +321,7 @@ class _AccrualCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'الاستحقاق القادم: ${DateFormat('yyyy-MM-dd').format(item.nextDueDate)}',
+                          'الاستحقاق القادم: ${DateFormat('yyyy-MM-dd', 'en').format(item.nextDueDate)}',
                           style: TextStyle(
                             fontSize: 11,
                             color: isDueSoon

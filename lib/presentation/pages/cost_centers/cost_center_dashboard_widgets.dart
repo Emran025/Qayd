@@ -12,6 +12,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:intl/intl.dart';
+import 'package:qayd/presentation/utils/numerical_styling.dart';
 
 // ── Glass Card ────────────────────────────────────────────────────────────
 
@@ -234,12 +235,14 @@ class _DashKpiCardState extends State<DashKpiCard>
           const SizedBox(height: SpacingTokens.sm),
           AnimatedBuilder(
             animation: _anim,
-            builder: (context, _) => Text(
-              widget.formatValue(_anim.value),
-              style: TextStyle(
-                color: c,
-                fontWeight: FontWeight.w800,
-                fontSize: 18,
+            builder: (context, _) => Text.rich(
+              buildNumericalScaledSpan(
+                widget.formatValue(_anim.value),
+                TextStyle(
+                  color: c,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -616,12 +619,14 @@ class _BudgetGaugeState extends State<BudgetGauge>
                     ),
                     Positioned(
                       bottom: 25,
-                      child: Text(
-                        '${(val * 100).toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: activeColor,
+                      child: Text.rich(
+                        buildNumericalScaledSpan(
+                          '${(val * 100).toStringAsFixed(0)}%',
+                          TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: activeColor,
+                          ),
                         ),
                       ),
                     ),
@@ -646,11 +651,13 @@ class _BudgetGaugeState extends State<BudgetGauge>
             ],
           )
         else
-          Text(
-            '${widget.totalMinor ~/ 100} / ${widget.budgetMinor ~/ 100} ${widget.primaryCurrency}',
-            style: TextStyle(
-              fontSize: 11,
-              color: scheme.onSurfaceVariant,
+          Text.rich(
+            buildNumericalScaledSpan(
+              '${widget.totalMinor ~/ 100} / ${widget.budgetMinor ~/ 100} ${widget.primaryCurrency}',
+              TextStyle(
+                fontSize: 11,
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ),
       ],
@@ -712,12 +719,14 @@ class VoucherActivityCard extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Text(
-          '${summary.amountMinor ~/ 100} ${summary.currencyCode}',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: c,
-            fontSize: 14,
+        trailing: Text.rich(
+          buildNumericalScaledSpan(
+            '${summary.amountMinor ~/ 100} ${summary.currencyCode}',
+            TextStyle(
+              fontWeight: FontWeight.w900,
+              color: c,
+              fontSize: 14,
+            ),
           ),
         ),
       ),

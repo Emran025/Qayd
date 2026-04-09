@@ -14,9 +14,10 @@ final class TrialBalanceLoading extends TrialBalanceState {
 }
 
 final class TrialBalanceReady extends TrialBalanceState {
-  const TrialBalanceReady(this.output);
+  const TrialBalanceReady(this.output, {this.isExporting = false});
 
   final TrialBalanceOutput output;
+  final bool isExporting;
 }
 
 final class TrialBalanceFailure extends TrialBalanceState {

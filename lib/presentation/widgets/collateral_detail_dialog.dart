@@ -60,7 +60,7 @@ class CollateralDetailDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final gold = ColorTokens.goldAccent;
     final theme = Theme.of(context);
-    final valueStr = NumberFormat.decimalPattern('ar')
+    final valueStr = NumberFormat.decimalPattern('en')
         .format(collateral.estimatedValue.minorUnits / 100);
 
     return Dialog(
@@ -114,7 +114,7 @@ class CollateralDetailDialog extends StatelessWidget {
                 _InfoRow(
                   icon: Icons.event_rounded,
                   label: 'تاريخ الاستحقاق',
-                  value: DateFormat.yMMMd('ar').format(collateral.expiryDate!),
+                  value: DateFormat.yMMMd('en').format(collateral.expiryDate!),
                   valueColor:
                       collateral.isExpired ? theme.colorScheme.error : null,
                 ),
@@ -335,14 +335,14 @@ class _RevaluationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final oldVal =
-        NumberFormat.decimalPattern('ar').format(reval.oldValueMinor / 100);
+        NumberFormat.decimalPattern('en').format(reval.oldValueMinor / 100);
     final newVal =
-        NumberFormat.decimalPattern('ar').format(reval.newValueMinor / 100);
+        NumberFormat.decimalPattern('en').format(reval.newValueMinor / 100);
     final delta = reval.valueDelta;
     final scheme = Theme.of(context).colorScheme;
     final deltaStr = delta >= 0 ? '+${delta / 100}' : '${delta / 100}';
     final deltaColor = delta >= 0 ? Colors.green : scheme.error;
-    final dateStr = DateFormat.yMMMd('ar').format(reval.evaluatedAt);
+    final dateStr = DateFormat.yMMMd('en').format(reval.evaluatedAt);
 
     return Container(
       margin: const EdgeInsets.only(bottom: SpacingTokens.xs),

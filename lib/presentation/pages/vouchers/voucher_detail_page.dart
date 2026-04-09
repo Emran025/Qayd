@@ -235,8 +235,8 @@ class _VoucherDetailBody extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final isReceipt = data.typeCode == 'receipt';
-    final dateStr = DateFormat.yMMMd('ar').format(DateTime.parse(data.dateIso));
-    final createdStr = DateFormat('hh:mm a  dd/MM/yyyy', 'ar')
+    final dateStr = DateFormat.yMMMd('en').format(DateTime.parse(data.dateIso));
+    final createdStr = DateFormat('hh:mm a  dd/MM/yyyy', 'en')
         .format(DateTime.parse(data.createdAtIso));
 
     return RepaintBoundary(
@@ -553,13 +553,13 @@ class _VoucherDetailBody extends StatelessWidget {
             if (data.confirmedAtIso != null)
               _Row(
                 label: AppStringsAr.voucherConfirmedAtLabel,
-                value: DateFormat('hh:mm a  dd/MM/yyyy', 'ar')
+                value: DateFormat('hh:mm a  dd/MM/yyyy', 'en')
                     .format(DateTime.parse(data.confirmedAtIso!)),
               ),
             if (data.settledAtIso != null)
               _Row(
                 label: AppStringsAr.voucherSettledAtLabel,
-                value: DateFormat('hh:mm a  dd/MM/yyyy', 'ar')
+                value: DateFormat('hh:mm a  dd/MM/yyyy', 'en')
                     .format(DateTime.parse(data.settledAtIso!)),
               ),
 

@@ -281,10 +281,8 @@ class AutoBackupService {
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final tmp = p.join(tmpDir.path, 'qayd_backup_$stamp.db');
       await File(srcPath).copy(tmp);
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(tmp, mimeType: 'application/octet-stream')],
-        ),
+      await Share.shareXFiles(
+        [XFile(tmp, mimeType: 'application/octet-stream')],
       );
       return const Success(null);
     } catch (_) {

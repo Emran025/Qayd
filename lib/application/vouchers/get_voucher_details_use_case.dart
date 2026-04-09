@@ -223,7 +223,7 @@ class GetVoucherDetailsUseCase {
           costCenters: costCenters,
         ),
       );
-    } catch (e, st) {
+    } catch (e) {
       return FailureResult(failureFromDomainException(e));
     }
   }

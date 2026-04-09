@@ -16,9 +16,7 @@ Future<void> shareExportBytes(
   final path = p.join(dir.path, safeName);
   final file = File(path);
   await file.writeAsBytes(bytes, flush: true);
-  await SharePlus.instance.share(
-    ShareParams(
-      files: [XFile(path, mimeType: mimeType)],
-    ),
+  await Share.shareXFiles(
+    [XFile(path, mimeType: mimeType)],
   );
 }

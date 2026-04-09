@@ -77,9 +77,7 @@ class _AttachmentGalleryDialogState extends State<AttachmentGalleryDialog> {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/$name');
     await file.writeAsBytes(bytes);
-    await SharePlus.instance.share(
-      ShareParams(files: [XFile(file.path)]),
-    );
+    await Share.shareXFiles([XFile(file.path)]);
   }
 
   @override

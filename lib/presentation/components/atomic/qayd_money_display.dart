@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/utils/numerical_styling.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/presentation/theme/type_scale.dart';
-import 'package:qayd/presentation/utils/eastern_arabic_digits.dart';
 
 /// Visual weight for monetary amounts (maps to design system moneyLarge / Medium / Small).
 enum QaydMoneyDisplaySize {
@@ -18,8 +18,8 @@ class QaydMoneyDisplay extends StatelessWidget {
     required this.money,
     this.displayNegative = false,
     this.size = QaydMoneyDisplaySize.medium,
-    this.useEasternArabicNumerals = true,
-    this.locale = 'ar',
+    this.useEasternArabicNumerals = false,
+    this.locale = 'en',
     this.textAlign = TextAlign.start,
     this.semanticsLabel,
     this.fontWeight,
@@ -49,9 +49,6 @@ class QaydMoneyDisplay extends StatelessWidget {
       minimumFractionDigits: money.fractionalDigits,
       maximumFractionDigits: money.fractionalDigits,
     );
-    if (useEasternArabicNumerals) {
-      formatted = toEasternArabicDigits(formatted);
-    }
 
     final textStyle = switch (size) {
       QaydMoneyDisplaySize.large => TypeScale.moneyLarge(scheme),
@@ -66,9 +63,8 @@ class QaydMoneyDisplay extends StatelessWidget {
       style = style.copyWith(fontWeight: fontWeight);
     }
 
-    return Text(
-      displayText,
-      style: style,
+    return Text.rich(
+      buildNumericalScaledSpan(displayText, style),
       textScaler: textScaler,
       textAlign: textAlign,
       semanticsLabel: semanticsLabel,

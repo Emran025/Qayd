@@ -103,7 +103,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
   }
 
   String _formatMinor(int minor) =>
-      NumberFormat.decimalPattern('ar').format(minor / 100);
+      NumberFormat.decimalPattern('en').format(minor / 100);
 
   @override
   Widget build(BuildContext context) {

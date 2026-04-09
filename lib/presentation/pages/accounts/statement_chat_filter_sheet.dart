@@ -67,7 +67,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
       initialDate: initial,
       firstDate: DateTime(2000),
       lastDate: DateTime(now.year + 5),
-      locale: const Locale('ar'),
+      locale: const Locale('en'),
     );
     if (picked == null || !mounted) return;
     setState(() {
@@ -196,7 +196,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
   @override
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
-    final df = DateFormat.yMMMd('ar');
+    final df = DateFormat.yMMMd('en');
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return Padding(

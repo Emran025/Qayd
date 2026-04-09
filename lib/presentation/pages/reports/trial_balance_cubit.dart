@@ -1,15 +1,15 @@
-import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:qayd/application/reports/dtos/generate_trial_balance_input.dart';
 import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
+import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 
 import 'package:qayd/data/excel/reports/excel_report_generator.dart';
 import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/reports/trial_balance_pdf_generator.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_state.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:qayd/presentation/utils/share_export_bytes.dart';
+import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
 
 class TrialBalanceCubit extends Cubit<TrialBalanceState> {
   TrialBalanceCubit(this._generate) : super(const TrialBalanceInitial());
@@ -29,45 +29,48 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
     final currentState = state;
     if (currentState is! TrialBalanceReady) return;
 
+    emit(TrialBalanceReady(currentState.output, isExporting: true));
     try {
       final ttf = await CairoPdfFonts.font;
 
       const generator = TrialBalancePdfGenerator();
       final bytes = await generator.generate(currentState.output, ttf);
 
-      final dir = await getTemporaryDirectory();
-      final file = File(
-          '${dir.path}/trial_balance_${DateTime.now().millisecondsSinceEpoch}.pdf');
-      await file.writeAsBytes(bytes);
-
-      await Share.shareXFiles(
-        [XFile(file.path)],
+      await sharePdfBytes(
+        bytes,
+        'trial_balance_${DateTime.now().millisecondsSinceEpoch}.pdf',
         text: 'ميزان المراجعة — نظام قيد',
       );
-    } catch (_) {
-      // TODO: surface export errors to user
+    } catch (e) {
+      emit(TrialBalanceFailure(
+        FileSystemFailure(messageAr: 'تعذر تصدير ميزان المراجعة كـ PDF: $e'),
+      ));
+      return;
     }
+    emit(TrialBalanceReady(currentState.output));
   }
 
   Future<void> exportExcel() async {
     final currentState = state;
     if (currentState is! TrialBalanceReady) return;
 
+    emit(TrialBalanceReady(currentState.output, isExporting: true));
     try {
       const generator = ExcelReportGenerator();
       final bytes = generator.generateTrialBalance(currentState.output);
 
-      final dir = await getTemporaryDirectory();
-      final file = File(
-          '${dir.path}/trial_balance_${DateTime.now().millisecondsSinceEpoch}.xlsx');
-      await file.writeAsBytes(bytes);
-
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'ميزان المراجعة — نظام قيد',
+      await shareExportBytes(
+        bytes,
+        'trial_balance_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
-    } catch (_) {
-      // TODO: surface export errors to user
+    } catch (e) {
+      emit(TrialBalanceFailure(
+        FileSystemFailure(messageAr: 'تعذر تصدير ميزان المراجعة كـ Excel: $e'),
+      ));
+      return;
     }
+    emit(TrialBalanceReady(currentState.output));
   }
 }

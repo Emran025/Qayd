@@ -17,7 +17,8 @@ Future<void> shareVoucherAsText(
   final type = isReceipt
       ? AppStringsAr.voucherTypeReceipt
       : AppStringsAr.voucherTypePayment;
-  final date = DateFormat.yMMMd('ar').format(DateTime.parse(data.dateIso));
+  final dateFmt = DateFormat('dd/MM/yyyy', 'en');
+  final date = dateFmt.format(DateTime.parse(data.dateIso));
   final amount = MoneyFormatter.formatWithSymbol(
     data.amountMinorUnits / (data.currencyDigits == 0 ? 1 : 100),
     data.currencySymbol,

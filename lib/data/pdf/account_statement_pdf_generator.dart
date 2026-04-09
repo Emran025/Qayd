@@ -10,6 +10,7 @@ import 'package:qayd/data/dtos/account_statement_report_dto.dart';
 import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 
 abstract interface class AccountStatementPdfGenerator {
   Future<Result<Uint8List>> buildStatementPdf(AccountStatementReportDto report);
@@ -44,7 +45,7 @@ final class CairoAccountStatementPdfGenerator
     try {
       final font = await CairoPdfFonts.font;
       final theme = pw.ThemeData.withFont(base: font, bold: font);
-      final dateFmt = DateFormat.yMMMd('ar');
+      final dateFmt = DateFormat.yMMMd('en');
       final genAt = dateFmt.format(DateTime.parse(report.generatedAtIso));
 
       // Load logo image from assets
@@ -372,9 +373,11 @@ final class CairoAccountStatementPdfGenerator
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Expanded(
-          child: pw.Text(
-            value,
-            style: pw.TextStyle(font: font, fontSize: 9, color: _navy),
+          child: pw.RichText(
+            text: buildPdfNumericalScaledSpan(
+              value,
+              pw.TextStyle(font: font, fontSize: 9, color: _navy),
+            ),
             textAlign: pw.TextAlign.right,
           ),
         ),
@@ -564,14 +567,16 @@ final class CairoAccountStatementPdfGenerator
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(
-            value,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 9,
-              color: _navy,
-              fontWeight:
-                  isTotalRow ? pw.FontWeight.bold : pw.FontWeight.normal,
+          pw.RichText(
+            text: buildPdfNumericalScaledSpan(
+              value,
+              pw.TextStyle(
+                font: font,
+                fontSize: 9,
+                color: _navy,
+                fontWeight:
+                    isTotalRow ? pw.FontWeight.bold : pw.FontWeight.normal,
+              ),
             ),
             textAlign: pw.TextAlign.left,
           ),

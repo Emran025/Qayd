@@ -50,11 +50,11 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
     final PreferredSizeWidget effectiveBottom;
     if (bottom != null) {
       effectiveBottom = _CombinedPreferredSize(
-        top: bottom!,
-        bottom: PreferredSize(
+        top: PreferredSize(
           preferredSize: const Size.fromHeight(3),
           child: goldUnderline,
         ),
+        bottom: bottom!,
       );
     } else {
       effectiveBottom = PreferredSize(

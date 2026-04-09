@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/utils/numerical_styling.dart';
 
 /// Typography aligned with [TextTheme] / type scale; respects RTL via [TextAlign.start].
 enum QaydTextStyleSlot {
@@ -73,9 +74,10 @@ class QaydText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolved = _resolvedStyle(Theme.of(context).textTheme);
-    return Text(
-      data,
-      style: resolved,
+    if (resolved == null) return Text(data, textAlign: textAlign);
+
+    return Text.rich(
+      buildNumericalScaledSpan(data, resolved),
       textScaler: MediaQuery.textScalerOf(context),
       textAlign: textAlign,
       maxLines: maxLines,

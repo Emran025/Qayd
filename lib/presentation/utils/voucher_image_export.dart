@@ -11,6 +11,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
+import 'package:qayd/presentation/utils/numerical_styling.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
@@ -167,9 +168,9 @@ class VoucherImageCard extends StatelessWidget {
     final accent = isReceipt ? _emerald : _gold;
     final typeAr = isReceipt ? 'سند قبض' : 'سند صرف';
 
-    final dateFmt = intl.DateFormat('dd/MM/yyyy');
+    final dateFmt = intl.DateFormat('dd/MM/yyyy', 'en');
     final dateStr = dateFmt.format(DateTime.parse(data.dateIso));
-    final createdFmt = intl.DateFormat('hh:mm:ss a  dd/MM/yyyy');
+    final createdFmt = intl.DateFormat('hh:mm:ss a  dd/MM/yyyy', 'en');
     final createdStr = createdFmt.format(DateTime.parse(data.createdAtIso));
 
     final divisor = math.pow(10, data.currencyDigits).toDouble();
@@ -674,16 +675,18 @@ class VoucherImageCard extends StatelessWidget {
     TextAlign? align,
     TextDirection? dir,
   }) {
-    return Text(
-      text,
+    final style = GoogleFonts.cairo(
+      fontSize: size,
+      color: color,
+      fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+      height: 1.35,
+    );
+
+    // Apply numerical scaling for visual harmony with Cairo font
+    return Text.rich(
+      buildNumericalScaledSpan(text, style),
       textDirection: dir,
       textAlign: align,
-      style: GoogleFonts.cairo(
-        fontSize: size,
-        color: color,
-        fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-        height: 1.35,
-      ),
     );
   }
 

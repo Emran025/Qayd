@@ -35,6 +35,7 @@ class PhoneZoneForm extends StatefulWidget {
 class _PhoneZoneFormState extends State<PhoneZoneForm> {
   CountryModel? selectedCountry;
   final List<FocusNode> focusNodes = [FocusNode(), FocusNode()];
+  String? _errorText;
 
   @override
   void initState() {
@@ -52,8 +53,9 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     }
 
     if (selectedCountry != null && widget.zoneController.text.isEmpty) {
+      // Normalize calling code to digits only since we show a fixed '+' label
       widget.zoneController.text =
-          selectedCountry!.countryCallingCode.replaceAll(' ', '');
+          selectedCountry!.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '');
     }
 
     // Add focus listeners to update the border color when fields gain focus.
@@ -75,14 +77,6 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     super.dispose();
   }
 
-  void _handleInput(int index) {
-    if (index == 0) {
-      focusNodes[1].requestFocus();
-    } else {
-      focusNodes[1].unfocus();
-    }
-  }
-
   void _handleKeyEvent(KeyEvent event, int index) {
     if (event is KeyDownEvent &&
         event.logicalKey == LogicalKeyboardKey.backspace &&
@@ -99,6 +93,59 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     widget.onFullNumberChanged?.call(merged);
   }
 
+  void _onZoneChanged(String val) {
+    // Smart Spilling: If the user adds numbers to a already satisfied zone code,
+    // move the extra numbers to the beginning of the phone controller and switch focus.
+    if (selectedCountry != null) {
+      final codeDigits =
+          selectedCountry!.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '');
+      final inputDigits = val.replaceAll(RegExp(r'[^\d]'), '');
+
+      if (inputDigits.length > codeDigits.length &&
+          inputDigits.startsWith(codeDigits)) {
+        final extra = inputDigits.substring(codeDigits.length);
+
+        // Prepend extra digits to phone and reset zone to code
+        widget.phoneController.text = extra + widget.phoneController.text;
+        widget.zoneController.text = codeDigits;
+
+        // Move focus and position cursor after inserted digits
+        focusNodes[1].requestFocus();
+        widget.phoneController.selection = TextSelection.fromPosition(
+          TextPosition(offset: extra.length),
+        );
+
+        _updateFullNumber();
+        _clearError();
+        return;
+      }
+    }
+
+    _findCountryByCode(val);
+    _updateFullNumber();
+    _clearError();
+
+    // Auto-focus logic: move to phone if the input exactly matches a unique country code
+    final normalized = val.replaceAll(RegExp(r'[^\d]'), '');
+    if (normalized.length >= 2) {
+      final isExactMatch = countries.any(
+        (c) =>
+            c.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '') == normalized,
+      );
+      if (isExactMatch) {
+        focusNodes[1].requestFocus();
+      }
+    }
+  }
+
+  void _clearError() {
+    if (_errorText != null) {
+      setState(() {
+        _errorText = null;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -106,22 +153,29 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     final accentColor = customColors?.goldAccent ?? theme.colorScheme.primary;
 
     final isFocused = focusNodes[0].hasFocus || focusNodes[1].hasFocus;
-    final borderColor = isFocused
-        ? accentColor
-        : theme.colorScheme.outline.withValues(alpha: 0.4);
-    final borderWidth = isFocused ? 1.5 : 1.0;
+    final hasError = _errorText != null;
 
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
+    final activeBorderColor = hasError
+        ? theme.colorScheme.error
+        : (isFocused
+            ? accentColor
+            : theme.colorScheme.outline.withValues(alpha: 0.4));
+    final activeBorderWidth = (isFocused || hasError) ? 1.5 : 1.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Container(
             height: 56,
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(RadiusTokens.md),
-              border: Border.all(color: borderColor, width: borderWidth),
+              border: Border.all(
+                color: activeBorderColor,
+                width: activeBorderWidth,
+              ),
             ),
             child: Row(
               children: [
@@ -201,13 +255,7 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
                       ),
-                      onChanged: (val) {
-                        _findCountryByCode(val);
-                        _updateFullNumber();
-                        if (val.length >= 3) {
-                          _handleInput(0);
-                        }
-                      },
+                      onChanged: _onZoneChanged,
                     ),
                   ),
                 ),
@@ -239,6 +287,26 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                         required maxLength,
                       }) =>
                           null,
+                      onChanged: (val) {
+                        _updateFullNumber();
+                        _clearError();
+                      },
+                      validator: (val) {
+                        String? error;
+                        if (selectedCountry == null) {
+                          error = "يجب اختيار الدولة";
+                        } else if (val == null || val.isEmpty) {
+                          error = "رقم الهاتف مطلوب";
+                        }
+
+                        // Update local error state to change border color
+                        if (error != _errorText) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) setState(() => _errorText = error);
+                          });
+                        }
+                        return error;
+                      },
                       decoration: InputDecoration(
                         hintText: widget.label,
                         filled: false,
@@ -248,40 +316,44 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
+                        errorStyle: const TextStyle(height: 0, fontSize: 0),
                       ),
-                      onChanged: (val) {
-                        _updateFullNumber();
-                      },
-                      validator: (val) {
-                        if (selectedCountry == null) return "يجب اختيار الدولة";
-                        if (val == null || val.isEmpty) {
-                          return "رقم الهاتف مطلوب";
-                        }
-                        return null;
-                      },
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
+            child: Text(
+              _errorText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
   void _findCountryByCode(String code) {
     if (code.isEmpty) return;
+    final normalizedInput = code.replaceAll(RegExp(r'[^\d]'), '');
     try {
       final country = countries.firstWhere(
         (c) =>
-            c.countryCallingCode.replaceAll(' ', '') ==
-            code.replaceAll(' ', ''),
+            c.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '') ==
+            normalizedInput,
       );
-      setState(() {
-        selectedCountry = country;
-      });
-      widget.onCountryChanged?.call();
+      if (selectedCountry != country) {
+        setState(() {
+          selectedCountry = country;
+        });
+        widget.onCountryChanged?.call();
+      }
     } catch (_) {
       // Not found
     }
@@ -295,12 +367,11 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
         onCountrySelected: (country) {
           setState(() {
             selectedCountry = country;
-            widget.zoneController.text = country.countryCallingCode.replaceAll(
-              ' ',
-              '',
-            );
+            widget.zoneController.text =
+                country.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '');
             widget.onCountryChanged?.call();
             _updateFullNumber();
+            _clearError();
             focusNodes[1].requestFocus();
           });
         },

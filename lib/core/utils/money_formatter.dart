@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 abstract final class MoneyFormatter {
   static String formatDecimal(
     num amount, {
-    String locale = 'ar',
+    String locale = 'en',
     int minimumFractionDigits = 2,
     int maximumFractionDigits = 2,
   }) {
@@ -17,7 +17,7 @@ abstract final class MoneyFormatter {
   static String formatWithSymbol(
     num amount,
     String symbol, {
-    String locale = 'ar',
+    String locale = 'en',
     int fractionalDigits = 2,
   }) {
     final val = formatDecimal(

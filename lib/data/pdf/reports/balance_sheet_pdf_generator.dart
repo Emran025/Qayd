@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:qayd/application/reports/dtos/balance_sheet_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
+import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:intl/intl.dart' as intl;
 
 /// Professional PDF generator for Balance Sheet reports.
@@ -197,7 +198,7 @@ final class BalanceSheetPdfGenerator {
   // ══════════════════════════════════════════════════════════════════════════
 
   pw.Widget _buildInfoBar(pw.Font font, BalanceSheetOutput report) {
-    final dateFmt = intl.DateFormat.yMMMd('ar');
+    final dateFmt = intl.DateFormat.yMMMd('en');
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: pw.BoxDecoration(
@@ -212,7 +213,7 @@ final class BalanceSheetPdfGenerator {
           _infoCell(
             font,
             'تاريخ الإصدار:',
-            intl.DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
+            intl.DateFormat('yyyy-MM-dd HH:mm', 'en').format(DateTime.now()),
           ),
         ],
       ),
@@ -220,13 +221,11 @@ final class BalanceSheetPdfGenerator {
   }
 
   pw.Widget _infoCell(pw.Font font, String label, String value) {
+    final style = pw.TextStyle(font: font, fontSize: 9, color: _navy);
     return pw.Row(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
-        pw.Text(
-          value,
-          style: pw.TextStyle(font: font, fontSize: 9, color: _navy),
-        ),
+        pw.RichText(text: buildPdfNumericalScaledSpan(value, style)),
         pw.SizedBox(width: 4),
         pw.Text(
           label,
@@ -381,10 +380,12 @@ final class BalanceSheetPdfGenerator {
                                     ),
                                   ),
                                 ),
-                          child: pw.Text(
-                            l.currencyCode,
-                            style: pw.TextStyle(
-                                font: font, fontSize: 7, color: _muted),
+                          child: pw.RichText(
+                            text: buildPdfNumericalScaledSpan(
+                              l.currencyCode,
+                              pw.TextStyle(
+                                  font: font, fontSize: 7, color: _muted),
+                            ),
                           ),
                         );
                       }).toList(),
@@ -411,18 +412,20 @@ final class BalanceSheetPdfGenerator {
                                   ),
                                 )
                               : null,
-                          child: pw.Text(
-                            _formatMoney(l.balanceMinorUnits, l.currencyDigits),
-                            style: pw.TextStyle(
-                              font: font,
-                              fontSize: 8,
-                              fontWeight: isParent
-                                  ? pw.FontWeight.bold
-                                  : pw.FontWeight.normal,
-                              color: l.balanceMinorUnits < 0
-                                  ? PdfColors.red700
-                                  : _navy,
-                            ),
+                          child: pw.RichText(
+                            text: buildPdfNumericalScaledSpan(
+                                _formatMoney(
+                                    l.balanceMinorUnits, l.currencyDigits),
+                                pw.TextStyle(
+                                  font: font,
+                                  fontSize: 8,
+                                  fontWeight: isParent
+                                      ? pw.FontWeight.bold
+                                      : pw.FontWeight.normal,
+                                  color: l.balanceMinorUnits < 0
+                                      ? PdfColors.red700
+                                      : _navy,
+                                )),
                           ),
                         );
                       }).toList(),
@@ -480,8 +483,6 @@ final class BalanceSheetPdfGenerator {
             children: [
               // ── Card Header ──
               pw.Container(
-                padding:
-                    const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: pw.BoxDecoration(
                   color: isBalanced
                       ? PdfColor.fromInt(0xFFECFDF5) // Emerald 50
@@ -490,41 +491,50 @@ final class BalanceSheetPdfGenerator {
                     topLeft: pw.Radius.circular(9),
                     topRight: pw.Radius.circular(9),
                   ),
-                  border: pw.Border(
-                    bottom: pw.BorderSide(color: statusColor, width: 0.5),
-                  ),
                 ),
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                child: pw.Column(
                   children: [
-                    pw.Text(
-                      'ملخص الإجماليات — ${s.currencyCode}',
-                      style: pw.TextStyle(
-                        font: font,
-                        fontSize: 10,
-                        fontWeight: pw.FontWeight.bold,
-                        color: _navy,
-                      ),
-                    ),
-                    // Pill
-                    pw.Container(
+                    pw.Padding(
                       padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: pw.BoxDecoration(
-                        color: PdfColors.white,
-                        borderRadius: pw.BorderRadius.circular(12),
-                        border: pw.Border.all(color: statusColor, width: 0.5),
-                      ),
-                      child: pw.Text(
-                        isBalanced ? 'متوازن ✓' : 'غير متوازن',
-                        style: pw.TextStyle(
-                          font: font,
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
-                          color: statusColor,
-                        ),
+                          horizontal: 12, vertical: 8),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.RichText(
+                            text: buildPdfNumericalScaledSpan(
+                              'ملخص الإجماليات — ${s.currencyCode}',
+                              pw.TextStyle(
+                                font: font,
+                                fontSize: 10,
+                                fontWeight: pw.FontWeight.bold,
+                                color: _navy,
+                              ),
+                            ),
+                          ),
+                          // Pill
+                          pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: pw.BoxDecoration(
+                              color: PdfColors.white,
+                              borderRadius: pw.BorderRadius.circular(12),
+                              border:
+                                  pw.Border.all(color: statusColor, width: 0.5),
+                            ),
+                            child: pw.Text(
+                              isBalanced ? 'متوازن ✓' : 'غير متوازن',
+                              style: pw.TextStyle(
+                                font: font,
+                                fontSize: 8,
+                                fontWeight: pw.FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    pw.Divider(height: 0, thickness: 0.5, color: statusColor),
                   ],
                 ),
               ),
@@ -557,16 +567,18 @@ final class BalanceSheetPdfGenerator {
                             color: _navy,
                           ),
                         ),
-                        pw.Text(
-                          _formatMoney(
-                              s.totalLiabilitiesMinorUnits +
-                                  s.totalEquityMinorUnits,
-                              s.currencyDigits),
-                          style: pw.TextStyle(
-                            font: font,
-                            fontSize: 10,
-                            fontWeight: pw.FontWeight.bold,
-                            color: _navy,
+                        pw.RichText(
+                          text: buildPdfNumericalScaledSpan(
+                            _formatMoney(
+                                s.totalLiabilitiesMinorUnits +
+                                    s.totalEquityMinorUnits,
+                                s.currencyDigits),
+                            pw.TextStyle(
+                              font: font,
+                              fontSize: 10,
+                              fontWeight: pw.FontWeight.bold,
+                              color: _navy,
+                            ),
                           ),
                         ),
                       ],
@@ -585,9 +597,11 @@ final class BalanceSheetPdfGenerator {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Text(
-          _formatMoney(amount, digits),
-          style: pw.TextStyle(font: font, fontSize: 9, color: _navy),
+        pw.RichText(
+          text: buildPdfNumericalScaledSpan(
+            _formatMoney(amount, digits),
+            pw.TextStyle(font: font, fontSize: 9, color: _navy),
+          ),
         ),
         pw.Text(
           label,
@@ -642,6 +656,7 @@ final class BalanceSheetPdfGenerator {
     }
     return MoneyFormatter.formatDecimal(
       minorUnits / divisor,
+      locale: 'en',
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
     );

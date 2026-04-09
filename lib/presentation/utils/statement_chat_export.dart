@@ -135,7 +135,7 @@ Future<void> shareStatementChatAsExcel(
     }
 
     final rows = <List<Object?>>[];
-    final dateFmtAr = DateFormat.yMMMd('ar');
+    final dateFmtAr = DateFormat.yMMMd('en');
 
     int totalDebitMinor = 0;
     int totalCreditMinor = 0;
@@ -264,5 +264,5 @@ Future<void> shareStatementChatAsExcel(
 
 /// Formats a number with the correct number of decimal places.
 String _fmtNum(num value, int digits) {
-  return NumberFormat('#,##0.${'0' * digits}', 'ar').format(value);
+  return NumberFormat('#,##0.${'0' * digits}', 'en').format(value);
 }

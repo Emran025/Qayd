@@ -27,6 +27,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/utils/numerical_styling.dart';
 import 'package:qayd/presentation/utils/statement_chat_export.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
 
@@ -436,18 +437,30 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         );
 
         return Scaffold(
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {
-              RequestTripartiteSheet.show(
-                context,
-                destinationAccountId: data.counterpartyAccountId,
-                destinationName: data.counterpartyName,
-              );
-            },
-            icon: const Icon(Icons.send_rounded),
-            label: const Text('طلب حوالة'),
-            backgroundColor: custom.goldAccent,
-            foregroundColor: ColorTokens.navy950,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(bottom: 40.0), // Lift it a bit higher
+            child: FloatingActionButton.extended(
+              onPressed: () {
+                RequestTripartiteSheet.show(
+                  context,
+                  destinationAccountId: data.counterpartyAccountId,
+                  destinationName: data.counterpartyName,
+                );
+              },
+              // Swap positions: Text on right, Icon on left (in RTL)
+              icon: null,
+              label: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('طلب حوالة'),
+                  SizedBox(width: 8),
+                  Icon(Icons.send_rounded),
+                ],
+              ),
+              backgroundColor: custom.goldAccent,
+              foregroundColor: ColorTokens.navy950,
+            ),
           ),
           body: Column(
             children: [
@@ -564,9 +577,11 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
 
                             return ListView.builder(
                               controller: _scrollController,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: SpacingTokens.sm,
-                                vertical: SpacingTokens.sm,
+                              padding: const EdgeInsets.only(
+                                left: SpacingTokens.sm,
+                                right: SpacingTokens.sm,
+                                top: SpacingTokens.sm,
+                                bottom: 110.0, // Extra padding so FAB doesn't cover numbers
                               ),
                               itemCount: data.messages.length,
                               itemBuilder: (context, i) {
@@ -923,7 +938,7 @@ class _ActiveFilterChips extends StatelessWidget {
     }
 
     if (data.filter.fromDate != null || data.filter.toDate != null) {
-      final df = DateFormat.yMd('ar');
+      final df = DateFormat.yMd('en');
       final from =
           data.filter.fromDate != null ? df.format(data.filter.fromDate!) : '…';
       final to =
@@ -1406,7 +1421,7 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat.yMMMd('ar').format(DateTime.parse(msg.dateIso));
+    final dateStr = DateFormat.yMMMd('en').format(DateTime.parse(msg.dateIso));
     final statusColor = _statusColor(context);
     final scheme = Theme.of(context).colorScheme;
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
@@ -1967,16 +1982,19 @@ class _BalanceAmountText extends StatelessWidget {
     final formatted = major.toStringAsFixed(currencyDigits);
 
     final effectiveFontSize = fontSize ?? (large ? 18.0 : 13.0);
+    final text = '$formatted $currencySymbol';
 
-    return Text(
-      '$formatted $currencySymbol',
-      textDirection: TextDirection.ltr,
-      style: TextStyle(
-        color: color,
-        fontWeight: large ? FontWeight.w800 : FontWeight.w600,
-        fontSize: effectiveFontSize,
-        fontFeatures: const [FontFeature.tabularFigures()],
+    return Text.rich(
+      buildNumericalScaledSpan(
+        text,
+        TextStyle(
+          color: color,
+          fontWeight: large ? FontWeight.w800 : FontWeight.w600,
+          fontSize: effectiveFontSize,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
+      textDirection: TextDirection.ltr,
     );
   }
 }

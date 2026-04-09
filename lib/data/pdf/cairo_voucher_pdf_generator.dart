@@ -12,6 +12,7 @@ import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 
 /// Professional financial voucher PDF matching the Galal Nasser Exchange format.
 ///
@@ -339,12 +340,14 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             ),
           ),
           pw.SizedBox(width: 6),
-          pw.Text(
-            value,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 10,
-              color: _navy,
+          pw.RichText(
+            text: buildPdfNumericalScaledSpan(
+              value,
+              pw.TextStyle(
+                font: font,
+                fontSize: 10,
+                color: _navy,
+              ),
             ),
           ),
         ],
@@ -436,13 +439,15 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   border: pw.Border.all(color: _navy, width: 1.2),
                   borderRadius: pw.BorderRadius.circular(4),
                 ),
-                child: pw.Text(
-                  amountStr,
-                  style: pw.TextStyle(
-                    font: font,
-                    fontSize: 9,
-                    color: _navy,
-                    fontWeight: pw.FontWeight.bold,
+                child: pw.RichText(
+                  text: buildPdfNumericalScaledSpan(
+                    amountStr,
+                    pw.TextStyle(
+                      font: font,
+                      fontSize: 9,
+                      color: _navy,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
                   textAlign: pw.TextAlign.center,
                 ),
@@ -523,9 +528,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               fontWeight: pw.FontWeight.bold,
             ),
           ),
-          pw.TextSpan(
-            text: value,
-            style: pw.TextStyle(
+          buildPdfNumericalScaledSpan(
+            value,
+            pw.TextStyle(
               font: font,
               fontSize: 9,
               color: _muted,
@@ -682,9 +687,11 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text(
-                  'تم الإنشاء:  $createdStr',
-                  style: pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
+                pw.RichText(
+                  text: buildPdfNumericalScaledSpan(
+                    'تم الإنشاء:  $createdStr',
+                    pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
+                  ),
                 ),
                 pw.SizedBox(height: 3),
                 pw.Text(

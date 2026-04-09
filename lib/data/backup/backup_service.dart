@@ -62,9 +62,7 @@ class BackupService {
         files.add(XFile(idCopy.path, mimeType: 'application/octet-stream'));
       }
 
-      await SharePlus.instance.share(
-        ShareParams(files: files),
-      );
+      await Share.shareXFiles(files);
       return const Success(null);
     } catch (_) {
       return const FailureResult(
