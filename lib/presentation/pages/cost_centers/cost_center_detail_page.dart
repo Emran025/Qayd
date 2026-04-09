@@ -149,7 +149,8 @@ class _DashboardState extends State<_Dashboard> {
       CostCenterDimensionCategory.educationAndDevelopment => Colors.indigo,
       CostCenterDimensionCategory.familyAndDependents => Colors.teal,
       CostCenterDimensionCategory.obligationsAndDebts => Colors.deepOrange,
-      CostCenterDimensionCategory.investmentsAndProjects => ColorTokens.warningAmber,
+      CostCenterDimensionCategory.investmentsAndProjects =>
+        ColorTokens.warningAmber,
       CostCenterDimensionCategory.savingsAndReserves => Colors.purple,
       CostCenterDimensionCategory.entertainmentAndLifestyle => Colors.pink,
       _ => _typeColor,

@@ -53,9 +53,10 @@ class GetVoucherDetailsUseCase {
 
       final counterpartyName = await nameFor(v.counterpartyId);
       final affectedName = await nameFor(v.affectedAccountId);
-      
+
       final licenseData = await _licenseVault.readLicenseData() ?? {};
-      final ownerPhone = (licenseData['user']?['phone'] ?? licenseData['phone']) as String?;
+      final ownerPhone =
+          (licenseData['user']?['phone'] ?? licenseData['phone']) as String?;
 
       String? linkedPartyName;
       if (v.tripartiteMeta?.linkedPartyId != null) {
@@ -101,7 +102,9 @@ class GetVoucherDetailsUseCase {
         final settleR = await _voucherRepository.getByOriginVoucherId(v.id);
         if (settleR.isSuccess) {
           collateralSettlementVoucherIds = settleR.valueOrNull!
-              .where((sv) => sv.state == VoucherState.settled || sv.state == VoucherState.confirmed)
+              .where((sv) =>
+                  sv.state == VoucherState.settled ||
+                  sv.state == VoucherState.confirmed)
               .map((sv) => sv.id.value)
               .toList();
         }
@@ -109,7 +112,8 @@ class GetVoucherDetailsUseCase {
 
       // ── Cost / Profit Centers ────────────────────────────────────────────
       final List<CostCenterSummary> costCenters = [];
-      final ccIdsR = await _costCenterRepository.getCostCenterIdsForVoucher(v.id.value);
+      final ccIdsR =
+          await _costCenterRepository.getCostCenterIdsForVoucher(v.id.value);
       if (ccIdsR.isSuccess) {
         for (final ccId in ccIdsR.valueOrNull!) {
           final ccR = await _costCenterRepository.getById(ccId);
@@ -133,31 +137,37 @@ class GetVoucherDetailsUseCase {
 
       // ── Protocol §2: Approval Permissions ────────────────────────────────
       bool canApprove = false;
-      
+
       final myLicense = await _licenseVault.readLicenseData();
-      final myPubKey = (myLicense?['user']?['public_key'] ?? myLicense?['public_key']) as String?;
-      
+      final myPubKey = (myLicense?['user']?['public_key'] ??
+          myLicense?['public_key']) as String?;
+
       // Ownership check: If we don't have a signature yet, compare account classifications.
       // Internal accounts (Liquid Assets) belong to the local user.
       final affectedRes = await _accountRepository.getById(v.affectedAccountId);
-      final isAffectedInternal = affectedRes.valueOrNull?.classification.standardKind?.name == 'liquidAssets';
-      
+      final isAffectedInternal =
+          affectedRes.valueOrNull?.classification.standardKind?.name ==
+              'liquidAssets';
+
       // We are the sender if:
       // 1. Our public key matches the sender signature key.
       // 2. OR There is no signature yet, but the 'affected' account is one of our funds.
-      final isMeSender = (v.senderPublicKeyHex != null && v.senderPublicKeyHex == myPubKey) ||
-                         (v.senderPublicKeyHex == null && isAffectedInternal);
-      
-      if (!v.isWithdrawn && (v.state == VoucherState.draft || v.state == VoucherState.confirmed)) {
+      final isMeSender =
+          (v.senderPublicKeyHex != null && v.senderPublicKeyHex == myPubKey) ||
+              (v.senderPublicKeyHex == null && isAffectedInternal);
+
+      if (!v.isWithdrawn &&
+          (v.state == VoucherState.draft ||
+              v.state == VoucherState.confirmed)) {
         if (v.receiverStatus == AgreementStatus.underRequest) {
           // Case A: Counterparty Signature (Approval)
           // We can only approve if we are NOT the sender (we didn't create it).
           if (!isMeSender) {
             canApprove = true;
           }
-        } else if (v.senderStatus == AgreementStatus.accepted && 
-                   v.receiverStatus == AgreementStatus.accepted &&
-                   v.state == VoucherState.draft) {
+        } else if (v.senderStatus == AgreementStatus.accepted &&
+            v.receiverStatus == AgreementStatus.accepted &&
+            v.state == VoucherState.draft) {
           // Case B: Final Ledger Confirmation (تأكيد)
           // Both have signed. Now the local user should confirm it into their accounts.
           // This only applies if it's still in 'draft' state.
@@ -214,8 +224,6 @@ class GetVoucherDetailsUseCase {
         ),
       );
     } catch (e, st) {
-      print('USE CASE ERROR: $e');
-      print(st);
       return FailureResult(failureFromDomainException(e));
     }
   }

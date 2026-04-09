@@ -56,7 +56,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void markAsRead(String id) {
-    // Current simple implementation: change local state only. 
+    // Current simple implementation: change local state only.
     // In a full implementation, we'd persist this in a separate Inbox repository.
     final s = state;
     if (s is NotificationsReady) {

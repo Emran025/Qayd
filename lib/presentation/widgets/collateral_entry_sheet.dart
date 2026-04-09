@@ -133,8 +133,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                   child: Container(
                     width: 40,
                     height: 4,
-                    margin:
-                        const EdgeInsets.only(bottom: SpacingTokens.lg),
+                    margin: const EdgeInsets.only(bottom: SpacingTokens.lg),
                     decoration: BoxDecoration(
                       color: scheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(2),
@@ -149,11 +148,10 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                     const SizedBox(width: SpacingTokens.sm),
                     Text(
                       'إضافة رهن / ضمان',
-                      style:
-                          Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: scheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: scheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ],
                 ),
@@ -206,10 +204,9 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                   children: [
                     Text(
                       'صور الرهن',
-                      style:
-                          Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
                     ),
                     TextButton.icon(
                       onPressed: _addImages,

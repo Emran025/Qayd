@@ -109,8 +109,7 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: QaydAppBar(
-        title:  
-          'إدارة العملات',
+        title: 'إدارة العملات',
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
@@ -134,7 +133,8 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
           final baseCode = baseRes.valueOrNull ?? 'SAR';
 
           return ListView.builder(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+            padding:
+                const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
             itemCount: currencies.length,
             itemBuilder: (context, index) {
               final c = currencies[index];
@@ -178,7 +178,8 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                       style: TextStyle(
                         color: scheme.onSurface,
                         fontWeight: FontWeight.bold,
-                        decoration: c.isActive ? null : TextDecoration.lineThrough,
+                        decoration:
+                            c.isActive ? null : TextDecoration.lineThrough,
                       ),
                     ),
                     subtitle: Text(
@@ -213,11 +214,16 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                         else
                           IconButton(
                             icon: Icon(
-                              c.isActive ? Icons.visibility : Icons.visibility_off,
-                              color: c.isActive ? scheme.primary : scheme.onSurfaceVariant,
+                              c.isActive
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: c.isActive
+                                  ? scheme.primary
+                                  : scheme.onSurfaceVariant,
                             ),
                             onPressed: () async {
-                              final res = await InjectionContainer.toggleCurrencyStatusUseCase(
+                              final res = await InjectionContainer
+                                  .toggleCurrencyStatusUseCase(
                                 c.code,
                                 !c.isActive,
                               );
@@ -230,10 +236,10 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                           IconButton(
                             icon: const Icon(Icons.star_border, size: 20),
                             onPressed: () async {
-                              final res =
-                                  await InjectionContainer.setBaseCurrencyUseCase(
-                                    c.code,
-                                  );
+                              final res = await InjectionContainer
+                                  .setBaseCurrencyUseCase(
+                                c.code,
+                              );
                               if (res.isSuccess) {
                                 _refresh();
                               }

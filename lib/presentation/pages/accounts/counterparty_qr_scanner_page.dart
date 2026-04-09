@@ -7,7 +7,8 @@ class CounterpartyQrScannerPage extends StatefulWidget {
   const CounterpartyQrScannerPage({super.key});
 
   @override
-  State<CounterpartyQrScannerPage> createState() => _CounterpartyQrScannerPageState();
+  State<CounterpartyQrScannerPage> createState() =>
+      _CounterpartyQrScannerPageState();
 }
 
 class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
@@ -43,7 +44,8 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
               for (final barcode in barcodes) {
                 final code = barcode.rawValue;
                 if (code != null) {
-                  final data = InjectionContainer.counterpartyQrService.parseAccountQr(code);
+                  final data = InjectionContainer.counterpartyQrService
+                      .parseAccountQr(code);
                   if (data != null) {
                     setState(() => _found = true);
                     Navigator.pop(context, data);
@@ -90,7 +92,9 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
             width: size,
             height: size,
             decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFFACC15), width: 3), // Gold border for identity scanner
+              border: Border.all(
+                  color: const Color(0xFFFACC15),
+                  width: 3), // Gold border for identity scanner
               borderRadius: BorderRadius.circular(24),
             ),
           ),

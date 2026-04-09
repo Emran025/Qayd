@@ -1,1 +1,3 @@
-class AccountLocalDataSource { const AccountLocalDataSource(); }
+class AccountLocalDataSource {
+  const AccountLocalDataSource();
+}

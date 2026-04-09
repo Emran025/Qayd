@@ -35,7 +35,8 @@ class SqliteTransactionFeeSettingsRepository
       return Success(setting);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: 'فشل في الحصول على رسوم التحويل النشطة: \$e'),
+        DatabaseFailure(
+            messageAr: 'فشل في الحصول على رسوم التحويل النشطة: \$e'),
       );
     }
   }

@@ -12,4 +12,9 @@ final class DateRange {
 
   final DateTime start;
   final DateTime end;
+
+  bool contains(DateTime date) {
+    return (date.isAtSameMomentAs(start) || date.isAfter(start)) &&
+        (date.isAtSameMomentAs(end) || date.isBefore(end));
+  }
 }

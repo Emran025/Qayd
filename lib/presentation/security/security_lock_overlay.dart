@@ -326,9 +326,9 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
       _errorAr = null;
     });
     final result = await context.read<SecurityCubit>().provisionDevice(
-      email: _emailCtrl.text.trim(),
-      password: _passCtrl.text,
-    );
+          email: _emailCtrl.text.trim(),
+          password: _passCtrl.text,
+        );
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) {

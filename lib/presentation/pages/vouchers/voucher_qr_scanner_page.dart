@@ -31,7 +31,6 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-
         foregroundColor: Colors.white,
       ),
       body: Stack(
@@ -43,24 +42,24 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
               final List<Barcode> barcodes = capture.barcodes;
               for (final barcode in barcodes) {
                 final code = barcode.rawValue;
-                  if (code != null) {
-                    const qrService = VoucherQrService();
-                    if (qrService.isP2PLink(code)) {
-                      final p2p = qrService.parseP2PLink(code);
-                      if (p2p != null) {
-                        setState(() => _found = true);
-                        Navigator.pop(context, {'p2p': p2p});
-                        return;
-                      }
-                    }
-
-                    final data = qrService.parseQrData(code);
-                    if (data != null) {
+                if (code != null) {
+                  const qrService = VoucherQrService();
+                  if (qrService.isP2PLink(code)) {
+                    final p2p = qrService.parseP2PLink(code);
+                    if (p2p != null) {
                       setState(() => _found = true);
-                      Navigator.pop(context, data);
+                      Navigator.pop(context, {'p2p': p2p});
                       return;
                     }
                   }
+
+                  final data = qrService.parseQrData(code);
+                  if (data != null) {
+                    setState(() => _found = true);
+                    Navigator.pop(context, data);
+                    return;
+                  }
+                }
               }
             },
           ),

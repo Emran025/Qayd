@@ -170,8 +170,7 @@ ORDER BY a.name COLLATE NOCASE
     } on DatabaseException {
       return const FailureResult(
         DatabaseFailure(
-          messageAr:
-              'تعذر حذف الحساب. قد يوجد حسابات فرعية أو حركات مرتبطة.',
+          messageAr: 'تعذر حذف الحساب. قد يوجد حسابات فرعية أو حركات مرتبطة.',
         ),
       );
     } catch (_) {
@@ -207,7 +206,8 @@ ORDER BY a.name COLLATE NOCASE
         'bank_account_info': details.bankAccountInfo,
         'party_type': details.partyType,
         'current_public_key_hex': details.currentPublicKeyHex,
-        'public_key_history_json': _encodeKeyHistory(details.publicKeyHistoryHex),
+        'public_key_history_json':
+            _encodeKeyHistory(details.publicKeyHistoryHex),
         'server_account_id': details.serverAccountId,
       };
       await _db.insert(

@@ -2,7 +2,8 @@ import 'package:qayd/data/models/currency_model.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 
 final class CurrencyMapper {
-  static CurrencyModel toModel(CurrencyCode currency, {bool isPredefined = false}) {
+  static CurrencyModel toModel(CurrencyCode currency,
+      {bool isPredefined = false}) {
     return CurrencyModel(
       code: currency.code,
       nameAr: currency.nameAr,

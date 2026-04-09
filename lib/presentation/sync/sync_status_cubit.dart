@@ -31,7 +31,8 @@ class SyncStatusCubit extends Cubit<SyncStatusState> {
 
   void setSyncing() => emit(state.copyWith(status: SyncStatus.syncing));
   void setConnected() => emit(state.copyWith(status: SyncStatus.connected));
-  void setError(String message) => emit(state.copyWith(status: SyncStatus.error, errorMessage: message));
+  void setError(String message) =>
+      emit(state.copyWith(status: SyncStatus.error, errorMessage: message));
 
   void reportDecryptionfailure(String nodeId) {
     final newList = Set<String>.from(state.mismatchedNodeIds)..add(nodeId);

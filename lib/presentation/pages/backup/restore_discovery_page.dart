@@ -69,7 +69,6 @@ class RestoreDiscoveryPage extends StatelessWidget {
                   'هناك نسخة احتياطية سابقة لبياناتك. هل تود استعادتها الآن؟',
             ),
             const SizedBox(height: SpacingTokens.xl),
-
             if (state.localFile.existsSync()) ...[
               _buildBackupCard(
                 context,
@@ -77,12 +76,11 @@ class RestoreDiscoveryPage extends StatelessWidget {
                 subtitle:
                     'بتاريخ: ${localMod != null ? dateFormat.format(localMod) : 'غير معروف'}',
                 onTap: () => context.read<RestoreCubit>().performRestore(
-                  localFile: state.localFile,
-                ),
+                      localFile: state.localFile,
+                    ),
               ),
               const SizedBox(height: SpacingTokens.sm),
             ],
-
             if (state.driveInfo != null) ...[
               _buildBackupCard(
                 context,
@@ -90,12 +88,11 @@ class RestoreDiscoveryPage extends StatelessWidget {
                 subtitle:
                     'بتاريخ: ${state.driveInfo!.lastModified != null ? dateFormat.format(state.driveInfo!.lastModified!) : 'غير معروف'}',
                 onTap: () => context.read<RestoreCubit>().performRestore(
-                  fromDrive: true,
-                ),
+                      fromDrive: true,
+                    ),
               ),
               const SizedBox(height: SpacingTokens.sm),
             ],
-
             const Spacer(),
             AuthSubmitButton(
               label: 'استعادة النسخة المحددة',
@@ -204,9 +201,9 @@ class RestoreDiscoveryPage extends StatelessWidget {
               if (phrase.isNotEmpty) {
                 Navigator.pop(dCtx);
                 context.read<RestoreCubit>().restoreWithPrimaryKey(
-                  path,
-                  phrase,
-                );
+                      path,
+                      phrase,
+                    );
               }
             },
             child: const Text('تأكيد وفك التشفير'),

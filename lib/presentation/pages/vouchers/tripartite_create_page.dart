@@ -66,13 +66,14 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     if (data['description'] != null) {
       _descriptionController.text = data['description'] as String;
     }
-    
+
     _loadAccountsFromIds(data['sourceAccountId'], data['destAccountId']);
   }
 
   Future<void> _loadAccountsFromIds(String? sourceId, String? destId) async {
     if (sourceId != null) {
-      final res = await InjectionContainer.listAccountsUseCase.call(const ListAccountsInput());
+      final res = await InjectionContainer.listAccountsUseCase
+          .call(const ListAccountsInput());
       if (res.isSuccess) {
         final accounts = res.valueOrNull as List<AccountSummaryDto>?;
         final match = accounts?.where((a) => a.id == sourceId).firstOrNull;
@@ -80,7 +81,8 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
       }
     }
     if (destId != null) {
-      final res = await InjectionContainer.listAccountsUseCase.call(const ListAccountsInput());
+      final res = await InjectionContainer.listAccountsUseCase
+          .call(const ListAccountsInput());
       if (res.isSuccess) {
         final accounts = res.valueOrNull as List<AccountSummaryDto>?;
         final match = accounts?.where((a) => a.id == destId).firstOrNull;
@@ -107,7 +109,8 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
   }
 
   Future<void> _pickCurrency() async {
-    final c = await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
+    final c =
+        await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
     if (c != null) setState(() => _currencyCode = c.code);
   }
 
@@ -131,10 +134,15 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     final messenger = ScaffoldMessenger.of(context);
 
     if (_affected == null) {
-      final accountsRes = await InjectionContainer.listAccountsUseCase.call(const ListAccountsInput());
+      final accountsRes = await InjectionContainer.listAccountsUseCase
+          .call(const ListAccountsInput());
       if (accountsRes.isSuccess) {
-        final accounts = (accountsRes.valueOrNull as List<AccountSummaryDto>?) ?? [];
-        _affected = accounts.where((a) => a.standardClassificationKind == 'liquidAssets').firstOrNull ?? accounts.firstOrNull;
+        final accounts =
+            (accountsRes.valueOrNull as List<AccountSummaryDto>?) ?? [];
+        _affected = accounts
+                .where((a) => a.standardClassificationKind == 'liquidAssets')
+                .firstOrNull ??
+            accounts.firstOrNull;
       }
     }
 
@@ -189,8 +197,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
 
         return Scaffold(
           appBar: QaydAppBar(
-            title: 
-              'تحويل جديد',
+            title: 'تحويل جديد',
           ),
           body: AbsorbPointer(
             absorbing: submitting,

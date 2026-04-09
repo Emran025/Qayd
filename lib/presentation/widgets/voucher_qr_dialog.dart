@@ -34,7 +34,6 @@ class VoucherQrDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                
                 borderRadius: BorderRadius.circular(16),
               ),
               child: QrImageView(

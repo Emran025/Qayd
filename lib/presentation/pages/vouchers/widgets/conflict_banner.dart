@@ -51,8 +51,8 @@ class ConflictBanner extends StatelessWidget {
   }
 
   void _openConflictResolution(BuildContext context) {
-     Navigator.of(context).push(
-       ConflictResolutionPage.route(proposals.first),
-     );
+    Navigator.of(context).push(
+      ConflictResolutionPage.route(proposals.first),
+    );
   }
 }

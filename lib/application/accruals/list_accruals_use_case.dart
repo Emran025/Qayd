@@ -7,7 +7,7 @@ final class ListAccrualsUseCase {
   final AccrualRepository _repository;
 
   Future<Result<List<AccrualComponent>>> call() => _repository.getAll();
-  
-  Future<Result<List<AccrualComponent>>> byCostCenter(String costCenterId) => 
+
+  Future<Result<List<AccrualComponent>>> byCostCenter(String costCenterId) =>
       _repository.getByCostCenter(costCenterId);
 }

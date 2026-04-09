@@ -52,8 +52,8 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     }
 
     if (selectedCountry != null && widget.zoneController.text.isEmpty) {
-      widget.zoneController.text = selectedCountry!.countryCallingCode
-          .replaceAll(' ', '');
+      widget.zoneController.text =
+          selectedCountry!.countryCallingCode.replaceAll(' ', '');
     }
 
     // Add focus listeners to update the border color when fields gain focus.
@@ -187,13 +187,13 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                         color: accentColor,
                       ),
                       maxLength: 4,
-                      buildCounter:
-                          (
-                            _, {
-                            required currentLength,
-                            required isFocused,
-                            required maxLength,
-                          }) => null,
+                      buildCounter: (
+                        _, {
+                        required currentLength,
+                        required isFocused,
+                        required maxLength,
+                      }) =>
+                          null,
                       decoration: const InputDecoration(
                         filled: false,
                         contentPadding: EdgeInsets.zero,
@@ -232,13 +232,13 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       textDirection: TextDirection.ltr,
                       style: theme.textTheme.bodyLarge,
                       maxLength: 14,
-                      buildCounter:
-                          (
-                            _, {
-                            required currentLength,
-                            required isFocused,
-                            required maxLength,
-                          }) => null,
+                      buildCounter: (
+                        _, {
+                        required currentLength,
+                        required isFocused,
+                        required maxLength,
+                      }) =>
+                          null,
                       decoration: InputDecoration(
                         hintText: widget.label,
                         filled: false,

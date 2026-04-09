@@ -49,9 +49,8 @@ final class ResubmitVoucherUseCase {
         );
       }
 
-      final status = v.isReceipt
-          ? AgreementStatus.accepted
-          : AgreementStatus.underRequest;
+      final status =
+          v.isReceipt ? AgreementStatus.accepted : AgreementStatus.underRequest;
 
       final resubmitted = v.attachSignature(
         signatureHex: v.senderSignatureHex ?? _dummySigHex,

@@ -96,11 +96,15 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     );
     if (res.isSuccess && mounted) {
       final accounts = res.valueOrNull!.accounts;
-      final roots = accounts.where((a) => a.standardClassificationKind == 'liquidAssets' && a.isRoot);
+      final roots = accounts.where(
+          (a) => a.standardClassificationKind == 'liquidAssets' && a.isRoot);
       final fund = roots.isNotEmpty
           ? roots.first
-          : accounts.where((a) => a.standardClassificationKind == 'liquidAssets').firstOrNull ?? accounts.firstOrNull;
-      
+          : accounts
+                  .where((a) => a.standardClassificationKind == 'liquidAssets')
+                  .firstOrNull ??
+              accounts.firstOrNull;
+
       if (fund != null && _affected == null) {
         setState(() => _affected = fund);
       }
@@ -127,7 +131,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       _hiddenTripartiteRole = data['tripartiteRole'] as String?;
       _hiddenLinkedPartyId = data['linkedPartyId'] as String?;
       _hiddenIsContingent = data['isContingent'] as bool? ?? false;
-      
+
       // If we received an intermediary payment, this receipt is the final act.
       // We flip the role to receipt to indicate we are receiving the payment.
       if (_hiddenTripartiteRole == 'intermediaryPayment') {
@@ -167,13 +171,11 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     super.dispose();
   }
 
-  DateTime get _voucherDate =>
-      DateTime(_date.year, _date.month, _date.day);
+  DateTime get _voucherDate => DateTime(_date.year, _date.month, _date.day);
 
   void _applyFromSuggestion(VoucherSuggestionsApplied a) {
     if (a.amountMinorUnits != null) {
-      _amountController.text =
-          formatMinorAmountForField(a.amountMinorUnits!);
+      _amountController.text = formatMinorAmountForField(a.amountMinorUnits!);
     }
     if (a.date != null) {
       _date = DateTime(a.date!.year, a.date!.month, a.date!.day);
@@ -207,9 +209,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     if (a != null) {
       setState(() => _counterparty = a);
       if (mounted) {
-        await context
-            .read<VoucherSuggestionsCubit>()
-            .loadForCounterparty(a.id);
+        await context.read<VoucherSuggestionsCubit>().loadForCounterparty(a.id);
       }
     }
   }
@@ -231,10 +231,9 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     }
   }
 
-
-
   Future<void> _pickCurrency() async {
-    final c = await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
+    final c =
+        await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
     if (c != null && mounted) {
       setState(() => _currencyCode = c.code);
     }
@@ -256,6 +255,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       setState(() => _collateralInput = input);
     }
   }
+
   Future<void> _submit() async {
     final messenger = ScaffoldMessenger.of(context);
     if (!(_formKey.currentState?.validate() ?? false)) {
@@ -329,10 +329,9 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     await context.read<VoucherCreateCubit>().submit(input);
   }
 
-  String _typeLabel(VoucherType t) =>
-      t == VoucherType.receipt
-          ? AppStringsAr.voucherTypeReceipt
-          : AppStringsAr.voucherTypePayment;
+  String _typeLabel(VoucherType t) => t == VoucherType.receipt
+      ? AppStringsAr.voucherTypeReceipt
+      : AppStringsAr.voucherTypePayment;
 
   @override
   Widget build(BuildContext context) {
@@ -371,8 +370,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
             );
           }
           if (state is VoucherCreateSuccess) {
-            final msg = state.stateCode == 'draft' 
-                ? AppStringsAr.voucherCreatedDraft 
+            final msg = state.stateCode == 'draft'
+                ? AppStringsAr.voucherCreatedDraft
                 : 'تم تأكيد السند وإرساله للمزامنة';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -395,70 +394,69 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                 child: ListView(
                   padding: const EdgeInsets.all(SpacingTokens.lg),
                   children: [
-                      // ── Standard mode ─────────────────────────────────
-                      SegmentedButton<VoucherType>(
-                        segments: const [
-                          ButtonSegment<VoucherType>(
-                            value: VoucherType.receipt,
-                            label: Text(AppStringsAr.voucherTypeReceipt),
-                            icon: Icon(Icons.south_west_rounded, size: 18),
-                          ),
-                          ButtonSegment<VoucherType>(
-                            value: VoucherType.payment,
-                            label: Text(AppStringsAr.voucherTypePayment),
-                            icon: Icon(Icons.north_east_rounded, size: 18),
-                          ),
-                        ],
-                        selected: {_type},
-                        onSelectionChanged: (s) {
-                          setState(() => _type = s.first);
-                        },
+                    // ── Standard mode ─────────────────────────────────
+                    SegmentedButton<VoucherType>(
+                      segments: const [
+                        ButtonSegment<VoucherType>(
+                          value: VoucherType.receipt,
+                          label: Text(AppStringsAr.voucherTypeReceipt),
+                          icon: Icon(Icons.south_west_rounded, size: 18),
+                        ),
+                        ButtonSegment<VoucherType>(
+                          value: VoucherType.payment,
+                          label: Text(AppStringsAr.voucherTypePayment),
+                          icon: Icon(Icons.north_east_rounded, size: 18),
+                        ),
+                      ],
+                      selected: {_type},
+                      onSelectionChanged: (s) {
+                        setState(() => _type = s.first);
+                      },
+                    ),
+                    const SizedBox(height: SpacingTokens.lg),
+                    _buildDateTile(gold),
+                    const Divider(),
+                    _buildCurrencyTile(gold),
+                    const Divider(),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: QaydText(
+                        _type == VoucherType.payment
+                            ? AppStringsAr.voucherCounterpartyLabel
+                            : 'الحساب المتأثر (طَرَف)',
+                        slot: QaydTextStyleSlot.labelLarge,
                       ),
-                      const SizedBox(height: SpacingTokens.lg),
-                      _buildDateTile(gold),
-                      const Divider(),
-                      _buildCurrencyTile(gold),
-                      const Divider(),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: QaydText(
-                          _type == VoucherType.payment
-                              ? AppStringsAr.voucherCounterpartyLabel
-                              : 'الحساب المتأثر (طَرَف)',
-                          slot: QaydTextStyleSlot.labelLarge,
-                        ),
-                        subtitle: QaydText(
-                          _counterparty?.name ??
-                              'اختر حساب الطرف (العميل/المورد)',
-                          slot: QaydTextStyleSlot.bodyLarge,
-                          color: _counterparty == null
-                              ? Theme.of(context).colorScheme.onSurfaceVariant
-                              : null,
-                        ),
-                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
-                        onTap: _pickCounterparty,
+                      subtitle: QaydText(
+                        _counterparty?.name ??
+                            'اختر حساب الطرف (العميل/المورد)',
+                        slot: QaydTextStyleSlot.bodyLarge,
+                        color: _counterparty == null
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : null,
                       ),
-                      const Divider(),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: QaydText(
-                          _type == VoucherType.payment
-                              ? 'صرف من حساب'
-                              : 'قبض إلى حساب',
-                          slot: QaydTextStyleSlot.labelLarge,
-                        ),
-                        subtitle: QaydText(
-                          _affected?.name ?? 'اختر الحساب (الصندوق/المصروفات)',
-                          slot: QaydTextStyleSlot.bodyLarge,
-                          color: _affected == null
-                              ? Theme.of(context).colorScheme.onSurfaceVariant
-                              : null,
-                        ),
-                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
-                        onTap: _pickAffectedAccount,
+                      trailing: Icon(Icons.chevron_left_rounded, color: gold),
+                      onTap: _pickCounterparty,
+                    ),
+                    const Divider(),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: QaydText(
+                        _type == VoucherType.payment
+                            ? 'صرف من حساب'
+                            : 'قبض إلى حساب',
+                        slot: QaydTextStyleSlot.labelLarge,
                       ),
-                      if (_counterparty != null)
-                        _buildSuggestionsStrip(context),
+                      subtitle: QaydText(
+                        _affected?.name ?? 'اختر الحساب (الصندوق/المصروفات)',
+                        slot: QaydTextStyleSlot.bodyLarge,
+                        color: _affected == null
+                            ? Theme.of(context).colorScheme.onSurfaceVariant
+                            : null,
+                      ),
+                      trailing: Icon(Icons.chevron_left_rounded, color: gold),
+                      onTap: _pickAffectedAccount,
+                    ),
+                    if (_counterparty != null) _buildSuggestionsStrip(context),
                     const SizedBox(height: SpacingTokens.md),
                     SlideTransition(
                       position: _slideOffset,
@@ -478,11 +476,12 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                             textInputAction: TextInputAction.done,
                           ),
                           const SizedBox(height: SpacingTokens.md),
-                          
+
                           CostCenterTagSelector(
-                            onChanged: (tags) => setState(() => _costCenterTags = tags),
+                            onChanged: (tags) =>
+                                setState(() => _costCenterTags = tags),
                           ),
-                          
+
                           const SizedBox(height: SpacingTokens.md),
 
                           // ── Attachment & Collateral Actions ──────
@@ -536,8 +535,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                   return Stack(
                                     children: [
                                       ClipRRect(
-                                        borderRadius:
-                                            BorderRadius.circular(8),
+                                        borderRadius: BorderRadius.circular(8),
                                         child: Image.file(
                                           File(_pickedImages[i].path),
                                           width: 72,
@@ -553,8 +551,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                             () => _pickedImages.removeAt(i),
                                           ),
                                           child: Container(
-                                            padding:
-                                                const EdgeInsets.all(2),
+                                            padding: const EdgeInsets.all(2),
                                             decoration: const BoxDecoration(
                                               color: Colors.black54,
                                               shape: BoxShape.circle,
@@ -578,8 +575,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                           if (_collateralInput != null) ...[
                             const SizedBox(height: SpacingTokens.sm),
                             Container(
-                              padding:
-                                  const EdgeInsets.all(SpacingTokens.sm),
+                              padding: const EdgeInsets.all(SpacingTokens.sm),
                               decoration: BoxDecoration(
                                 color: gold.withValues(alpha: 0.06),
                                 borderRadius: BorderRadius.circular(8),
@@ -599,8 +595,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                         Text(
                                           _collateralInput!.description,
                                           maxLines: 1,
-                                          overflow:
-                                              TextOverflow.ellipsis,
+                                          overflow: TextOverflow.ellipsis,
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall
@@ -715,8 +710,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
         onTap: _pickCurrency,
       );
 
-
-
   Widget _buildSuggestionsStrip(BuildContext context) {
     return BlocBuilder<VoucherSuggestionsCubit, VoucherSuggestionsState>(
       builder: (context, sug) {
@@ -781,7 +774,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 }
 
-
 // ── Suggestion card (unchanged) ──────────────────────────────────────────────
 
 class _SuggestionCard extends StatelessWidget {
@@ -804,8 +796,7 @@ class _SuggestionCard extends StatelessWidget {
     final dateStr = suggestion.date != null
         ? DateFormat.yMMMd('ar').format(suggestion.date!)
         : '—';
-    final typeStr =
-        suggestion.type != null ? typeLabel(suggestion.type!) : '—';
+    final typeStr = suggestion.type != null ? typeLabel(suggestion.type!) : '—';
 
     return Material(
       color: ColorTokens.navy800.withValues(alpha: 0.35),

@@ -173,7 +173,8 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
         ActionChip(
           label: Text(AppStringsAr.statementDateLastQuarter),
           onPressed: () {
-            final qStart = DateTime(now.year, ((now.month - 1) ~/ 3) * 3 + 1 - 3, 1);
+            final qStart =
+                DateTime(now.year, ((now.month - 1) ~/ 3) * 3 + 1 - 3, 1);
             final qEnd = DateTime(qStart.year, qStart.month + 3, 0);
             setState(() {
               _from = qStart.isBefore(DateTime(2000)) ? DateTime(2000) : qStart;
@@ -316,8 +317,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
                       backgroundColor: gold,
                       foregroundColor: ColorTokens.navy950,
                     ),
-                    onPressed: () =>
-                        Navigator.of(context).pop(_buildResult()),
+                    onPressed: () => Navigator.of(context).pop(_buildResult()),
                     child: Text(AppStringsAr.voucherFilterApply),
                   ),
                 ),

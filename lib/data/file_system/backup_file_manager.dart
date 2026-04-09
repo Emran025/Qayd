@@ -31,13 +31,15 @@ final class BackupFileManager {
     Directory? extDir;
     if (Platform.isAndroid) {
       // Logic from AutoBackupService to find the media folder
-      final paths = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      final paths =
+          await getExternalStorageDirectories(type: StorageDirectory.documents);
       if (paths != null && paths.isNotEmpty) {
         final parts = p.split(paths.first.path);
         final androidIdx = parts.indexOf('Android');
         if (androidIdx != -1 && androidIdx + 1 < parts.length) {
           final pkgName = parts[androidIdx + 2];
-          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()..addAll(['media', pkgName]));
+          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()
+            ..addAll(['media', pkgName]));
           extDir = Directory(mediaRoot);
         }
       }
@@ -52,18 +54,20 @@ final class BackupFileManager {
   Future<Directory?> externalImagesDir() async {
     Directory? extDir;
     if (Platform.isAndroid) {
-      final paths = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      final paths =
+          await getExternalStorageDirectories(type: StorageDirectory.documents);
       if (paths != null && paths.isNotEmpty) {
         final parts = p.split(paths.first.path);
         final androidIdx = parts.indexOf('Android');
         if (androidIdx != -1 && androidIdx + 1 < parts.length) {
           final pkgName = parts[androidIdx + 2];
-          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()..addAll(['media', pkgName]));
+          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()
+            ..addAll(['media', pkgName]));
           extDir = Directory(mediaRoot);
         }
       }
     }
-    
+
     // Default to app documents/images if external is unavailable
     final base = extDir ?? await getApplicationDocumentsDirectory();
     final dir = Directory(p.join(base.path, 'qayd_images'));
@@ -83,7 +87,8 @@ final class BackupFileManager {
 
   /// Deletes old backup files keeping at most [keepCount].
   Future<void> pruneOldBackups(Directory dir, {int keepCount = 7}) async {
-    final files = listBackupFiles(dir)..sort((a, b) => a.path.compareTo(b.path));
+    final files = listBackupFiles(dir)
+      ..sort((a, b) => a.path.compareTo(b.path));
     while (files.length > keepCount) {
       try {
         await files.removeAt(0).delete();

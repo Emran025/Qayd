@@ -26,9 +26,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return QaydScaffold(
-      appBar: QaydAppBar(
-        title: AppStringsAr.settingsTitle
-      ),
+      appBar: QaydAppBar(title: AppStringsAr.settingsTitle),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
@@ -157,7 +155,8 @@ class SettingsPage extends StatelessWidget {
     });
 
     if (!context.mounted) return;
-    Navigator.of(context, rootNavigator: true).pop(); // Dismiss loader AFTER processing
+    Navigator.of(context, rootNavigator: true)
+        .pop(); // Dismiss loader AFTER processing
     final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     await shareExportBytes(
       bytes,

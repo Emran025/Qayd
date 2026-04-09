@@ -104,8 +104,7 @@ class AutoBackupService {
     // 2. Also backup to external storage (survives reinstall on Android).
     try {
       final externalDir = await _externalBackupDir();
-      if (externalDir != null &&
-          externalDir.path != internalDir.path) {
+      if (externalDir != null && externalDir.path != internalDir.path) {
         final externalDest = p.join(externalDir.path, dbFileName);
         await File(srcPath).copy(externalDest);
         await _copyKeyAndIdentityTo(externalDir);
@@ -125,8 +124,7 @@ class AutoBackupService {
   Future<void> _copyKeyAndIdentityTo(Directory backupDir) async {
     // Copy DB encryption key (from secure storage) to a file in the backup dir.
     try {
-      final dbKey =
-          await _storage.read(key: 'qayd_db_derived_key_v2');
+      final dbKey = await _storage.read(key: 'qayd_db_derived_key_v2');
       if (dbKey != null && dbKey.isNotEmpty) {
         final keyFile = File(p.join(backupDir.path, _dbKeyFileName));
         await keyFile.writeAsString(dbKey);
@@ -159,7 +157,8 @@ class AutoBackupService {
     if (Platform.isAndroid) {
       // Use the media directory as it's more likely to survive app uninstallation
       // than the standard data folder on many Android builds.
-      final paths = await getExternalStorageDirectories(type: StorageDirectory.documents);
+      final paths =
+          await getExternalStorageDirectories(type: StorageDirectory.documents);
       if (paths != null && paths.isNotEmpty) {
         // e.g. /storage/emulated/0/Android/data/com.example.app/files/Documents
         // We want to transform this into /storage/emulated/0/Android/media/com.example.app/
@@ -167,12 +166,13 @@ class AutoBackupService {
         final androidIdx = parts.indexOf('Android');
         if (androidIdx != -1 && androidIdx + 1 < parts.length) {
           final pkgName = parts[androidIdx + 2]; // com.example.app
-          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()..addAll(['media', pkgName]));
+          final mediaRoot = p.joinAll(parts.sublist(0, androidIdx + 1).toList()
+            ..addAll(['media', pkgName]));
           extDir = Directory(mediaRoot);
         }
       }
     }
-    
+
     if (extDir == null) return null;
     final dir = Directory(p.join(extDir.path, _backupDirName));
     if (!dir.existsSync()) await dir.create(recursive: true);
@@ -200,18 +200,25 @@ class AutoBackupService {
   Future<File?> latestLocalBackup() async {
     final internalDir = await _localBackupDir();
     final externalDir = await _externalBackupDir();
-    
+
     final allFiles = <File>[];
     if (internalDir.existsSync()) {
-      allFiles.addAll(internalDir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+      allFiles.addAll(internalDir
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.db')));
     }
     if (externalDir != null && externalDir.existsSync()) {
-      allFiles.addAll(externalDir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+      allFiles.addAll(externalDir
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.db')));
     }
 
     if (allFiles.isEmpty) return null;
 
-    allFiles.sort((a, b) => b.path.compareTo(a.path)); // Newest first by timestamp in name
+    allFiles.sort((a, b) =>
+        b.path.compareTo(a.path)); // Newest first by timestamp in name
     return allFiles.first;
   }
 
@@ -242,8 +249,9 @@ class AutoBackupService {
   Future<Result<String>> saveToExternalStorage() async {
     try {
       final srcPath = await DatabaseProvider.databaseFilePath();
-      final backupFolder = await _externalBackupDir() ?? await _localBackupDir();
-      
+      final backupFolder =
+          await _externalBackupDir() ?? await _localBackupDir();
+
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final destPath = p.join(backupFolder.path, 'qayd_backup_$stamp.db');
       await File(srcPath).copy(destPath);
@@ -266,7 +274,8 @@ class AutoBackupService {
     try {
       final srcPath = await DatabaseProvider.databaseFilePath();
       if (!File(srcPath).existsSync()) {
-        return const FailureResult(FileSystemFailure(messageAr: 'قاعدة البيانات غير موجودة.'));
+        return const FailureResult(
+            FileSystemFailure(messageAr: 'قاعدة البيانات غير موجودة.'));
       }
       final tmpDir = await getTemporaryDirectory();
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -290,15 +299,21 @@ class AutoBackupService {
     try {
       final dir = await _localBackupDir();
       final extDir = await _externalBackupDir();
-      
+
       final files = <File>[];
       if (dir.existsSync()) {
-        files.addAll(dir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+        files.addAll(dir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.db')));
       }
       if (extDir != null && extDir.existsSync()) {
-        files.addAll(extDir.listSync().whereType<File>().where((f) => f.path.endsWith('.db')));
+        files.addAll(extDir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.db')));
       }
-      
+
       files.sort((a, b) => b.path.compareTo(a.path));
       return files;
     } catch (_) {

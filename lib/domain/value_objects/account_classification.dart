@@ -49,7 +49,8 @@ final class AccountClassification {
   );
 
   /// System: مقاصة الحوالات (Remittance Clearing Glass Account)
-  static const AccountClassification clearingRemittances = AccountClassification._(
+  static const AccountClassification clearingRemittances =
+      AccountClassification._(
     standardKind: StandardAccountClassificationKind.clearingRemittances,
     defaultNature: AccountNature.debit, // Transient, typically clears to 0
   );
@@ -61,13 +62,15 @@ final class AccountClassification {
   );
 
   /// Standard: أصول ثابتة (مهلكة)
-  static const AccountClassification fixedDepreciableAssets = AccountClassification._(
+  static const AccountClassification fixedDepreciableAssets =
+      AccountClassification._(
     standardKind: StandardAccountClassificationKind.fixedDepreciableAssets,
     defaultNature: AccountNature.debit,
   );
 
   /// Standard: أصول ثابتة (ربحية)
-  static const AccountClassification fixedProfitableAssets = AccountClassification._(
+  static const AccountClassification fixedProfitableAssets =
+      AccountClassification._(
     standardKind: StandardAccountClassificationKind.fixedProfitableAssets,
     defaultNature: AccountNature.debit,
   );
@@ -84,7 +87,8 @@ final class AccountClassification {
   }) {
     final n = name.trim();
     if (n.isEmpty) {
-      throw ArgumentError.value(name, 'name', 'Custom classification name required');
+      throw ArgumentError.value(
+          name, 'name', 'Custom classification name required');
     }
     return AccountClassification._(
       standardKind: null,

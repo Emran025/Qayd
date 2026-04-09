@@ -87,7 +87,9 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
         _load(); // Reload URL from vault
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.failureOrNull?.messageAr ?? 'خطأ في التحديث')),
+          SnackBar(
+              content:
+                  Text(result.failureOrNull?.messageAr ?? 'خطأ في التحديث')),
         );
       }
     }
@@ -109,7 +111,7 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
                   ),
             ),
             const SizedBox(height: SpacingTokens.md),
-            
+
             // ── Avatar & Logo Row ───────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -157,7 +159,7 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
                 prefixIcon: Icon(Icons.chat_bubble_outline),
               ),
             ),
-             const SizedBox(height: SpacingTokens.sm),
+            const SizedBox(height: SpacingTokens.sm),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -173,7 +175,8 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.save_outlined),
               label: Text(AppStringsAr.profileUpdateAction),
@@ -223,7 +226,12 @@ class _ImagePickerSlot extends StatelessWidget {
                   shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
                   borderRadius: isCircle ? null : BorderRadius.circular(12),
                   image: image != null
-                      ? DecorationImage(image: image, fit: BoxShape.circle == (isCircle ? BoxShape.circle : null) ? BoxFit.cover : BoxFit.contain)
+                      ? DecorationImage(
+                          image: image,
+                          fit: BoxShape.circle ==
+                                  (isCircle ? BoxShape.circle : null)
+                              ? BoxFit.cover
+                              : BoxFit.contain)
                       : null,
                 ),
                 child: image == null
@@ -243,7 +251,8 @@ class _ImagePickerSlot extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                  child: const Icon(Icons.camera_alt,
+                      size: 16, color: Colors.white),
                 ),
               ),
             ],

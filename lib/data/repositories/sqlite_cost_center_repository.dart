@@ -110,7 +110,6 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
         whereArgs.add(costCenterId);
       }
 
-
       final rows = await _db.rawQuery(
         '''
 SELECT d.*, c.name AS cat_name, c.icon_name AS cat_icon, c.is_default AS cat_is_default
@@ -172,7 +171,8 @@ ORDER BY d.category, d.name COLLATE NOCASE
   }
 
   @override
-  Future<Result<void>> saveCategory(CostCenterDimensionCategory category) async {
+  Future<Result<void>> saveCategory(
+      CostCenterDimensionCategory category) async {
     try {
       await _db.insert(
         _cats,
@@ -353,7 +353,8 @@ GROUP BY v.currency_code
     try {
       final now = DateTime.now();
       final from = DateTime(now.year, now.month - (months - 1), 1);
-      final fromStr = '${from.year}-${from.month.toString().padLeft(2, '0')}-01';
+      final fromStr =
+          '${from.year}-${from.month.toString().padLeft(2, '0')}-01';
       final rows = await _db.rawQuery(
         '''
 SELECT strftime('%Y-%m', v.date) AS month_key,

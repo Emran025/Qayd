@@ -31,6 +31,9 @@ final class LedgerEntry {
   final DateTime date;
   final DateTime createdAt;
 
+  bool get isDebit => side == EntrySide.debit;
+  bool get isCredit => side == EntrySide.credit;
+
   factory LedgerEntry.create({
     required EntryId id,
     required TransactionId transactionId,

@@ -41,7 +41,8 @@ void main() {
       verify(() => mockRepo.save(currency, isPredefined: false)).called(1);
     });
 
-    test('Should return repository failure if the database operation fails', () async {
+    test('Should return repository failure if the database operation fails',
+        () async {
       final failure = DatabaseFailure(messageAr: 'DB Write Error');
       when(() => mockRepo.save(any(), isPredefined: any(named: 'isPredefined')))
           .thenAnswer((_) async => FailureResult(failure));

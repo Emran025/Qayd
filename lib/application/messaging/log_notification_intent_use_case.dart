@@ -45,9 +45,7 @@ class LogNotificationIntentUseCase {
       return logR;
     }
     final cp = suggestionCounterpartyAccountId?.trim();
-    if (cp != null &&
-        cp.isNotEmpty &&
-        renderedBody.trim().isNotEmpty) {
+    if (cp != null && cp.isNotEmpty && renderedBody.trim().isNotEmpty) {
       return _notificationMessages.insert(
         id: _ids.next(),
         bodyText: renderedBody,

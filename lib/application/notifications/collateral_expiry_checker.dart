@@ -45,8 +45,7 @@ class CollateralExpiryChecker {
       final expiring = result.valueOrNull ?? [];
       for (final c in expiring) {
         if (c.expiryDate != null) {
-          final daysLeft =
-              c.expiryDate!.difference(DateTime.now()).inDays;
+          final daysLeft = c.expiryDate!.difference(DateTime.now()).inDays;
           if (daysLeft > 1) {
             await notificationService.showLocalNotification(
               title: 'تذكير: رهن يستحق قريباً',

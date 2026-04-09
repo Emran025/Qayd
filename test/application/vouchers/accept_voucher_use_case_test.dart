@@ -200,12 +200,11 @@ void main() {
         .thenAnswer((_) async => const Success(null));
 
     when(() => mockEntryGenerator.generateForConfirmedVoucher(
-            voucher: any(named: 'voucher'),
-            transactionId: any(named: 'transactionId'),
-            debitEntryId: any(named: 'debitEntryId'),
-            creditEntryId: any(named: 'creditEntryId'),
-            ledgerCreatedAt: any(named: 'ledgerCreatedAt')))
-        .thenReturn([]);
+        voucher: any(named: 'voucher'),
+        transactionId: any(named: 'transactionId'),
+        debitEntryId: any(named: 'debitEntryId'),
+        creditEntryId: any(named: 'creditEntryId'),
+        ledgerCreatedAt: any(named: 'ledgerCreatedAt'))).thenReturn([]);
 
     when(() => mockIdGenerator.next()).thenReturn('id-123');
 
@@ -233,15 +232,10 @@ void main() {
 
     final result = await useCase('v-123');
 
-    // Debugging output for failure
-    if (result.isFailure) {
-      print('Failure: ${result.failureOrNull}');
-    }
-
     expect(result.isSuccess, isTrue);
     verify(() => mockVoucherRepo.saveWithLedgerEntries(
-      voucher: any(named: 'voucher'),
-      ledgerEntries: any(named: 'ledgerEntries'),
-    )).called(1);
+          voucher: any(named: 'voucher'),
+          ledgerEntries: any(named: 'ledgerEntries'),
+        )).called(1);
   });
 }

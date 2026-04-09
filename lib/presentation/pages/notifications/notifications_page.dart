@@ -12,7 +12,6 @@ import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
-import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 /// Centralized inbox for all incoming interactions (مركز الإشعارات)
 /// Displaying pending requests, unread vouchers, and status shifts.
@@ -52,8 +51,9 @@ class _NotificationsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return QaydScaffold(
-      appBar: QaydAppBar(title: AppStringsAr.messagingInboxTab),
+    return Scaffold(
+      appBar: QaydAppBar(
+          title: AppStringsAr.messagingInboxTab, showNotifications: true),
       body: BlocBuilder<NotificationsCubit, NotificationsState>(
         builder: (context, state) {
           if (state is NotificationsLoading) {
@@ -111,8 +111,10 @@ class _NotificationsView extends StatelessWidget {
                               'amountMinorUnits': int.tryParse(
                                   uri.queryParameters['amount'] ?? '0'),
                               'currencyCode': uri.queryParameters['currency'],
-                              'sourceAccountId': uri.queryParameters['sourceAccountId'],
-                              'destAccountId': uri.queryParameters['destAccountId'],
+                              'sourceAccountId':
+                                  uri.queryParameters['sourceAccountId'],
+                              'destAccountId':
+                                  uri.queryParameters['destAccountId'],
                             },
                           ),
                         ),

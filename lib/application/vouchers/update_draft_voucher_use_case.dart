@@ -10,6 +10,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
+
 class UpdateDraftVoucherUseCase {
   UpdateDraftVoucherUseCase(
     this._voucherRepository,
@@ -21,21 +22,24 @@ class UpdateDraftVoucherUseCase {
   final CurrencyRepository _currencyRepository;
   final GovernanceWriteGuard _writeGuard;
 
-  Future<Result<UpdateDraftVoucherOutput>> call(UpdateDraftVoucherInput input) async {
+  Future<Result<UpdateDraftVoucherOutput>> call(
+      UpdateDraftVoucherInput input) async {
     try {
       final gate = await _writeGuard.assertWritesPermitted();
       if (gate.isFailure) {
         return FailureResult(gate.failureOrNull!);
       }
-      final loaded = await _voucherRepository.getById(VoucherId(input.voucherId));
+      final loaded =
+          await _voucherRepository.getById(VoucherId(input.voucherId));
       if (loaded.isFailure) {
         return FailureResult(loaded.failureOrNull!);
       }
       final current = loaded.valueOrNull!;
-      
+
       CurrencyCode? currency;
       if (input.currencyCode != null) {
-        final currencyRes = await _currencyRepository.getByCode(input.currencyCode!);
+        final currencyRes =
+            await _currencyRepository.getByCode(input.currencyCode!);
         if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
           return FailureResult(ValidationFailure(
             messageAr: 'العملة المختارة غير صالحة.',
@@ -51,7 +55,7 @@ class UpdateDraftVoucherUseCase {
         final activeCurrency = currency ?? current.currency;
         amount = Money.positiveAmount(input.amountMinorUnits!, activeCurrency);
       }
-      
+
       final updated = current.updateDraft(
         type: input.type,
         date: input.date,

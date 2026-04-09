@@ -4,7 +4,7 @@ import 'package:qayd/domain/value_objects/digital_signature.dart';
 /// Service responsible for End-to-End Encrypting arbitrary business payloads
 /// before they are routed through the Zero-Knowledge backend architecture.
 abstract class E2EEEncryptionService {
-  /// Encrypts an arbitrary JSON payload using a derived shared secret 
+  /// Encrypts an arbitrary JSON payload using a derived shared secret
   /// (e.g., via ECDH between [senderKeyPair] and [receiverPublicKeyHex]).
   /// Returns a Base64 encoded ciphertext string.
   Future<String> encryptPayload({
@@ -21,7 +21,7 @@ abstract class E2EEEncryptionService {
     required String senderPublicKeyHex,
   });
 
-  /// Verifies the embedded cryptographic signature inside a decrypted payload 
+  /// Verifies the embedded cryptographic signature inside a decrypted payload
   /// strictly belongs to the defined counterparty.
   bool verifySignerAuthenticity({
     required Map<String, dynamic> decryptedPayload,

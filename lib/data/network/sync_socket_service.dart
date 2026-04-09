@@ -9,7 +9,7 @@ import 'dart:convert';
 /// Connects securely to the routing server channel using the Pusher protocol.
 class SyncSocketService {
   SyncSocketService({
-    required this.wsUrl, 
+    required this.wsUrl,
     required this.tokenProvider,
     required this.authUrl,
   });
@@ -32,7 +32,7 @@ class SyncSocketService {
   /// Connects to the Laravel WebSocket socket (Using Reverb/Custom port).
   Future<void> connect(int currentUserId) async {
     disconnect();
-    
+
     final token = await tokenProvider();
     if (token == null) return;
 
@@ -47,22 +47,22 @@ class SyncSocketService {
           try {
             final payload = jsonDecode(message);
             final eventName = payload['event'];
-            
+
             // 1. Handle Pusher Connection Established Handshake
             if (eventName == 'pusher:connection_established') {
-                final dataString = payload['data'];
-                final dataObj = jsonDecode(dataString);
-                final socketId = dataObj['socket_id'];
-                
-                // Perform HTTP auth for private channel
-                final channelName = 'private-user.sync.$currentUserId';
-                
-                debugPrint('Authenticating channel: $channelName for socket: $socketId');
-                
-                try {
-                  final dio = Dio();
-                  final response = await dio.post(
-                    authUrl,
+              final dataString = payload['data'];
+              final dataObj = jsonDecode(dataString);
+              final socketId = dataObj['socket_id'];
+
+              // Perform HTTP auth for private channel
+              final channelName = 'private-user.sync.$currentUserId';
+
+              debugPrint(
+                  'Authenticating channel: $channelName for socket: $socketId');
+
+              try {
+                final dio = Dio();
+                final response = await dio.post(authUrl,
                     data: {
                       'socket_id': socketId,
                       'channel_name': channelName,
@@ -75,41 +75,39 @@ class SyncSocketService {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Content-Type': 'application/x-www-form-urlencoded',
                       },
-                    )
-                  );
-                  
-                  final authHash = response.data['auth'];
-                  debugPrint('Broadcasting Auth Success for $channelName');
-                  
-                  // Authenticate to private channel
-                  _channel?.sink.add(jsonEncode({
-                    'event': 'pusher:subscribe',
-                    'data': {
-                      'auth': authHash,
-                      'channel': channelName
-                    }
-                  }));
-                  
-                  // Establish ping loop to keep-alive Reverb
-                  _pingTimer?.cancel();
-                  _pingTimer = Timer.periodic(const Duration(seconds: 30), (t) {
-                     _channel?.sink.add(jsonEncode({'event': 'pusher:ping', 'data': {}}));
-                  });
-                } catch (e) {
-                  debugPrint('Broadcasting Auth Failed: $e');
-                }
+                    ));
+
+                final authHash = response.data['auth'];
+                debugPrint('Broadcasting Auth Success for $channelName');
+
+                // Authenticate to private channel
+                _channel?.sink.add(jsonEncode({
+                  'event': 'pusher:subscribe',
+                  'data': {'auth': authHash, 'channel': channelName}
+                }));
+
+                // Establish ping loop to keep-alive Reverb
+                _pingTimer?.cancel();
+                _pingTimer = Timer.periodic(const Duration(seconds: 30), (t) {
+                  _channel?.sink
+                      .add(jsonEncode({'event': 'pusher:ping', 'data': {}}));
+                });
+              } catch (e) {
+                debugPrint('Broadcasting Auth Failed: $e');
+              }
             }
-            
+
             // 2. Handle actual data events
-            if (eventName == 'sync.node.dispatched' || eventName == 'App\\Events\\SyncNodeDispatched') {
-               final data = payload['data']; // The SyncNode payload
-               // Laravel sometimes double encodes the data if sent via Event
-               final dataMap = data is String ? jsonDecode(data) : data;
-               
-               // Use 'node' or direct payload depending on backend format
-               final nodeData = dataMap['node'] ?? dataMap;
-               final node = SyncNode.fromJson(nodeData);
-               _nodeStreamController.add(node);
+            if (eventName == 'sync.node.dispatched' ||
+                eventName == 'App\\Events\\SyncNodeDispatched') {
+              final data = payload['data']; // The SyncNode payload
+              // Laravel sometimes double encodes the data if sent via Event
+              final dataMap = data is String ? jsonDecode(data) : data;
+
+              // Use 'node' or direct payload depending on backend format
+              final nodeData = dataMap['node'] ?? dataMap;
+              final node = SyncNode.fromJson(nodeData);
+              _nodeStreamController.add(node);
             }
           } catch (e) {
             debugPrint('Error parsing socket message: $e');
@@ -131,7 +129,7 @@ class SyncSocketService {
 
   void _reconnect(int currentUserId) {
     if (_reconnectTimer != null && _reconnectTimer!.isActive) return;
-    
+
     // Clean up current references before reconnecting
     _subscription?.cancel();
     _channel?.sink.close();

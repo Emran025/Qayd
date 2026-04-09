@@ -17,14 +17,21 @@ import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
 class MockVoucherRepository extends Mock implements VoucherRepository {}
+
 class MockCurrencyRepository extends Mock implements CurrencyRepository {}
+
 class MockAttachmentRepository extends Mock implements AttachmentRepository {}
+
 class MockIdGenerator extends Mock implements IdGenerator {}
+
 class MockAccountRepository extends Mock implements AccountRepository {}
+
 class MockCostCenterRepository extends Mock implements CostCenterRepository {}
+
 class FakeVoucher extends Fake implements Voucher {}
 
-class MockAttachmentStorageService extends Mock implements AttachmentStorageService {
+class MockAttachmentStorageService extends Mock
+    implements AttachmentStorageService {
   @override
   // ignore: must_call_super
   noSuchMethod(Invocation invocation) => {super.noSuchMethod(invocation)};
@@ -108,11 +115,17 @@ void main() {
 
     expect(result.isFailure, isTrue);
     expect(result.failureOrNull, isA<ValidationFailure>());
-    expect((result.failureOrNull as ValidationFailure).code, 'invalid_currency');
+    expect(
+        (result.failureOrNull as ValidationFailure).code, 'invalid_currency');
   });
 
   test('should create voucher successfully without attachments', () async {
-    final currency = CurrencyCode(code: 'USD', nameAr: 'دولار أمريكي', symbol: r'$', fractionalDigits: 2, isActive: true);
+    final currency = CurrencyCode(
+        code: 'USD',
+        nameAr: 'دولار أمريكي',
+        symbol: r'$',
+        fractionalDigits: 2,
+        isActive: true);
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
     when(() => mockIdGenerator.next()).thenReturn('v-id-123');

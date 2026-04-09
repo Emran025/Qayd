@@ -89,7 +89,6 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
             title: state is VoucherDetailReady
                 ? AppStringsAr.voucherDetailTitle
                 : AppStringsAr.voucherDetailTitle,
-          
             actions: [
               if (state is VoucherDetailReady) ...[
                 IconButton(
@@ -113,7 +112,8 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                 IconButton(
                   tooltip: AppStringsAr.shareAsImageTooltip,
                   icon: const Icon(Icons.image_outlined),
-                  onPressed: () => shareVoucherAsFormattedImage(context, state.data),
+                  onPressed: () =>
+                      shareVoucherAsFormattedImage(context, state.data),
                 ),
                 IconButton(
                   tooltip: AppStringsAr.exportSharePdfTooltip,
@@ -146,9 +146,9 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                       );
                     },
                   ),
-                
+
                 // --- Protocol §2: Withdrawal Action ---
-                if (state.data.stateCode == 'draft' || 
+                if (state.data.stateCode == 'draft' ||
                     state.data.receiverStatusCode == 'under_request' ||
                     state.data.receiverStatusCode == 'rejected')
                   PopupMenuButton<String>(
@@ -208,8 +208,9 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                         padding: const EdgeInsets.symmetric(
                           vertical: SpacingTokens.md,
                         ),
-                        backgroundColor:
-                            Theme.of(context).extension<QaydCustomColors>()!.goldAccent,
+                        backgroundColor: Theme.of(context)
+                            .extension<QaydCustomColors>()!
+                            .goldAccent,
                         foregroundColor: ColorTokens.navy950,
                       ),
                       child: Text(AppStringsAr.voucherConfirmAction),
@@ -254,14 +255,16 @@ class _VoucherDetailBody extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                    border:
+                        Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded, color: Colors.orange, size: 20),
+                          const Icon(Icons.info_outline_rounded,
+                              color: Colors.orange, size: 20),
                           const SizedBox(width: 8),
                           Expanded(
                             child: QaydText(
@@ -275,20 +278,23 @@ class _VoucherDetailBody extends StatelessWidget {
                       const SizedBox(height: SpacingTokens.sm),
                       FilledButton.icon(
                         onPressed: () {
-                           Navigator.of(context).push(
-                             QaydPageRoute.slideFromStart(
-                               builder: (ctx) => VoucherCreatePage(
-                                 initialQrData: {
-                                   'type': data.typeCode == 'payment' ? VoucherType.payment : VoucherType.receipt,
-                                   'date': DateTime.parse(data.dateIso),
-                                   'amountMinorUnits': data.amountMinorUnits,
-                                   'description': data.description,
-                                   'counterpartyAccountId': data.counterpartyAccountId,
-                                   'originVoucherId': data.id,
-                                 },
-                               ),
-                             ),
-                           );
+                          Navigator.of(context).push(
+                            QaydPageRoute.slideFromStart(
+                              builder: (ctx) => VoucherCreatePage(
+                                initialQrData: {
+                                  'type': data.typeCode == 'payment'
+                                      ? VoucherType.payment
+                                      : VoucherType.receipt,
+                                  'date': DateTime.parse(data.dateIso),
+                                  'amountMinorUnits': data.amountMinorUnits,
+                                  'description': data.description,
+                                  'counterpartyAccountId':
+                                      data.counterpartyAccountId,
+                                  'originVoucherId': data.id,
+                                },
+                              ),
+                            ),
+                          );
                         },
                         icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
                         label: const Text('تصحيح وإعادة توجيه'),
@@ -307,18 +313,21 @@ class _VoucherDetailBody extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: SpacingTokens.md),
                 child: InkWell(
-                  onTap: () => VoucherDetailPage.show(context, data.successorVoucherId!),
+                  onTap: () =>
+                      VoucherDetailPage.show(context, data.successorVoucherId!),
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
                     padding: const EdgeInsets.all(SpacingTokens.sm),
                     decoration: BoxDecoration(
                       color: Colors.amber.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.forward_rounded, size: 16, color: Colors.amber),
+                        const Icon(Icons.forward_rounded,
+                            size: 16, color: Colors.amber),
                         const SizedBox(width: SpacingTokens.sm),
                         Expanded(
                           child: QaydText(
@@ -327,7 +336,8 @@ class _VoucherDetailBody extends StatelessWidget {
                             color: Colors.amber,
                           ),
                         ),
-                        const Icon(Icons.chevron_left_rounded, size: 16, color: Colors.amber),
+                        const Icon(Icons.chevron_left_rounded,
+                            size: 16, color: Colors.amber),
                       ],
                     ),
                   ),
@@ -343,10 +353,12 @@ class _VoucherDetailBody extends StatelessWidget {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: scheme.primary.withValues(alpha: 0.25)),
+                    side: BorderSide(
+                        color: scheme.primary.withValues(alpha: 0.25)),
                   ),
                   child: InkWell(
-                    onTap: () => VoucherDetailPage.show(context, data.originVoucherId!),
+                    onTap: () =>
+                        VoucherDetailPage.show(context, data.originVoucherId!),
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
                       padding: const EdgeInsets.all(SpacingTokens.md),
@@ -359,7 +371,8 @@ class _VoucherDetailBody extends StatelessWidget {
                               color: scheme.primary.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(Icons.reply_rounded, size: 22, color: scheme.primary),
+                            child: Icon(Icons.reply_rounded,
+                                size: 22, color: scheme.primary),
                           ),
                           const SizedBox(width: SpacingTokens.md),
                           Expanded(
@@ -368,7 +381,10 @@ class _VoucherDetailBody extends StatelessWidget {
                               children: [
                                 Text(
                                   AppStringsAr.voucherOriginDocumentButton,
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
                                         color: scheme.primary,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -376,14 +392,19 @@ class _VoucherDetailBody extends StatelessWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   AppStringsAr.voucherReplyHeader,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: scheme.primary.withValues(alpha: 0.7),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: scheme.primary
+                                            .withValues(alpha: 0.7),
                                       ),
                                 ),
                               ],
                             ),
                           ),
-                          Icon(Icons.chevron_left_rounded, size: 24, color: scheme.primary),
+                          Icon(Icons.chevron_left_rounded,
+                              size: 24, color: scheme.primary),
                         ],
                       ),
                     ),
@@ -395,7 +416,9 @@ class _VoucherDetailBody extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  isReceipt ? Icons.south_west_rounded : Icons.north_east_rounded,
+                  isReceipt
+                      ? Icons.south_west_rounded
+                      : Icons.north_east_rounded,
                   color: gold,
                   size: 28,
                 ),
@@ -407,11 +430,14 @@ class _VoucherDetailBody extends StatelessWidget {
                   slot: QaydTextStyleSlot.headlineSmall,
                 ),
                 const SizedBox(width: SpacingTokens.sm),
-                QaydBadge(state: voucherStateFromCode(data.stateCode), context: context),
+                QaydBadge(
+                    state: voucherStateFromCode(data.stateCode),
+                    context: context),
                 if (data.isContingent) ...[
                   const SizedBox(width: SpacingTokens.sm),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: scheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(4),
@@ -440,7 +466,8 @@ class _VoucherDetailBody extends StatelessWidget {
                   label: AppStringsAr.voucherSenderLabel,
                 ),
                 QaydBadge.agreement(
-                  status: AgreementStatus.values.byName(data.receiverStatusCode),
+                  status:
+                      AgreementStatus.values.byName(data.receiverStatusCode),
                   context: context,
                   label: AppStringsAr.voucherReceiverLabel,
                 ),
@@ -500,7 +527,8 @@ class _VoucherDetailBody extends StatelessWidget {
               const SizedBox(height: SpacingTokens.sm),
             ],
 
-            if (data.referenceNumber != null && data.referenceNumber!.isNotEmpty)
+            if (data.referenceNumber != null &&
+                data.referenceNumber!.isNotEmpty)
               _Row(
                 label: AppStringsAr.voucherReferenceLabel,
                 value: data.referenceNumber!,
@@ -679,12 +707,12 @@ class _CostCenterSection extends StatelessWidget {
                 final typeLabel = isCost
                     ? AppStringsAr.voucherCostCenterTypeCost
                     : AppStringsAr.voucherCostCenterTypeProfit;
-                final chipColor = isCost
-                    ? Colors.red.shade300
-                    : Colors.green.shade400;
+                final chipColor =
+                    isCost ? Colors.red.shade300 : Colors.green.shade400;
 
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: chipColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
@@ -694,7 +722,9 @@ class _CostCenterSection extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        isCost ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+                        isCost
+                            ? Icons.trending_down_rounded
+                            : Icons.trending_up_rounded,
                         size: 14,
                         color: chipColor,
                       ),
@@ -775,7 +805,8 @@ class _AttachmentsSection extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: gold.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -826,7 +857,10 @@ class _AttachmentsSection extends StatelessWidget {
                               children: [
                                 Text(
                                   att.fileName,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
                                         fontWeight: FontWeight.w600,
                                         color: scheme.onSurface,
                                       ),
@@ -836,7 +870,10 @@ class _AttachmentsSection extends StatelessWidget {
                                 const SizedBox(height: 2),
                                 Text(
                                   _formatFileSize(att.byteSize),
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
                                         color: scheme.onSurfaceVariant,
                                       ),
                                 ),
@@ -947,13 +984,13 @@ class _CollateralSummaryCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: statusColor.withValues(alpha: 0.3)),
+                    border:
+                        Border.all(color: statusColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     statusLabel,
@@ -1024,44 +1061,49 @@ class _CollateralSummaryCard extends StatelessWidget {
               const SizedBox(height: SpacingTokens.xs),
               ...data.collateralSettlementVoucherIds.asMap().entries.map(
                     (entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
-                  child: InkWell(
-                    onTap: () => VoucherDetailPage.show(context, entry.value),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: SpacingTokens.sm,
-                        vertical: SpacingTokens.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.08),
+                      padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
+                      child: InkWell(
+                        onTap: () =>
+                            VoucherDetailPage.show(context, entry.value),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: scheme.primary.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.receipt_long_rounded,
-                              size: 16, color: scheme.primary),
-                          const SizedBox(width: SpacingTokens.sm),
-                          Expanded(
-                            child: Text(
-                              AppStringsAr.voucherCollateralSettlementLink(entry.key + 1),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: scheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SpacingTokens.sm,
+                            vertical: SpacingTokens.xs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: scheme.primary.withValues(alpha: 0.2),
                             ),
                           ),
-                          Icon(Icons.chevron_left_rounded,
-                              size: 16, color: scheme.primary),
-                        ],
+                          child: Row(
+                            children: [
+                              Icon(Icons.receipt_long_rounded,
+                                  size: 16, color: scheme.primary),
+                              const SizedBox(width: SpacingTokens.sm),
+                              Expanded(
+                                child: Text(
+                                  AppStringsAr.voucherCollateralSettlementLink(
+                                      entry.key + 1),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: scheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                ),
+                              ),
+                              Icon(Icons.chevron_left_rounded,
+                                  size: 16, color: scheme.primary),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
             ],
           ],
         ),
@@ -1086,8 +1128,10 @@ class _TripartiteFlowDiagram extends StatelessWidget {
 
     // Determine roles based on whether we are looking at the receipt (A->C) or payment (C->B) leg
     final isReceipt = data.tripartiteRole == 'intermediary_receipt';
-    final sourceName = isReceipt ? data.counterpartyName : data.linkedPartyName ?? '—';
-    final destName = isReceipt ? data.linkedPartyName ?? '—' : data.counterpartyName;
+    final sourceName =
+        isReceipt ? data.counterpartyName : data.linkedPartyName ?? '—';
+    final destName =
+        isReceipt ? data.linkedPartyName ?? '—' : data.counterpartyName;
 
     return Card(
       color: gold.withValues(alpha: 0.05),
@@ -1217,7 +1261,9 @@ class _FlowNode extends StatelessWidget {
         QaydText(
           label,
           slot: QaydTextStyleSlot.labelSmall,
-          color: isActive ? (isGold ? gold : scheme.primary) : scheme.onSurfaceVariant,
+          color: isActive
+              ? (isGold ? gold : scheme.primary)
+              : scheme.onSurfaceVariant,
         ),
         const SizedBox(height: SpacingTokens.xs),
         QaydText(

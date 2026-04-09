@@ -74,8 +74,7 @@ final class Collateral {
   bool get isActive => status.isActive;
 
   /// Whether this collateral is eligible for the liquidation workflow.
-  bool get canLiquidate =>
-      (status.isActive || status.isExpired) && isExpired;
+  bool get canLiquidate => (status.isActive || status.isExpired) && isExpired;
 
   /// Whether the status is terminal (no further transitions).
   bool get isTerminal => status.isTerminal;

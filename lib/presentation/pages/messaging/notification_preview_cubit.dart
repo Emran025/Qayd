@@ -118,9 +118,8 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
   }) {
     final first = templates.isEmpty ? null : templates.first;
     final selectedId = first?.id;
-    final body = first != null
-        ? PlaceholderResolver.resolve(first.body, bindings)
-        : '';
+    final body =
+        first != null ? PlaceholderResolver.resolve(first.body, bindings) : '';
     emit(
       NotificationPreviewReady(
         templates: templates,

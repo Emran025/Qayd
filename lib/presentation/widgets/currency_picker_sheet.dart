@@ -8,7 +8,8 @@ class CurrencyPickerSheet extends StatefulWidget {
 
   final String? selectedCode;
 
-  static Future<CurrencyCode?> show(BuildContext context, {String? selectedCode}) {
+  static Future<CurrencyCode?> show(BuildContext context,
+      {String? selectedCode}) {
     return showModalBottomSheet<CurrencyCode>(
       context: context,
       isScrollControlled: true,
@@ -27,7 +28,8 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
   @override
   void initState() {
     super.initState();
-    _currenciesFuture = InjectionContainer.listCurrenciesUseCase(onlyActive: true);
+    _currenciesFuture =
+        InjectionContainer.listCurrenciesUseCase(onlyActive: true);
   }
 
   @override
@@ -112,7 +114,9 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                           child: Text(
                             c.symbol,
                             style: TextStyle(
-                              color: isSelected ? scheme.primary : scheme.onSurface,
+                              color: isSelected
+                                  ? scheme.primary
+                                  : scheme.onSurface,
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
@@ -129,7 +133,8 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                         subtitle: Text(
                           c.code,
                           textAlign: TextAlign.right,
-                          style: TextStyle(color: scheme.onSurfaceVariant,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),

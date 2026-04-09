@@ -127,8 +127,7 @@ class LiquidateCollateralUseCase {
         counterpartyId: linkedVoucher.counterpartyId,
         affectedAccountId: linkedVoucher.affectedAccountId,
         createdAt: DateTime.now(),
-        description:
-            'تسوية رهن - تصفية ضمان "${collateral.description}"',
+        description: 'تسوية رهن - تصفية ضمان "${collateral.description}"',
       );
 
       await voucherRepository.save(settlementVoucher);
@@ -143,14 +142,12 @@ class LiquidateCollateralUseCase {
           id: VoucherId(surplusReceiptId),
           type: VoucherType.receipt,
           date: DateTime.now(),
-          amount:
-              Money.positiveAmount(surplusMinor, linkedVoucher.currency),
+          amount: Money.positiveAmount(surplusMinor, linkedVoucher.currency),
           currency: linkedVoucher.currency,
           counterpartyId: linkedVoucher.counterpartyId,
           affectedAccountId: linkedVoucher.affectedAccountId,
           createdAt: DateTime.now(),
-          description:
-              'فائض تصفية رهن - محتجز لصالح العميل',
+          description: 'فائض تصفية رهن - محتجز لصالح العميل',
         );
         await voucherRepository.save(surplusVoucher);
       }

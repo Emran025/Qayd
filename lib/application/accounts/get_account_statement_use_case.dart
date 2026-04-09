@@ -38,7 +38,8 @@ class GetAccountStatementUseCase {
         );
       }
 
-      final accountR = await _accountRepository.getById(AccountId(input.accountId));
+      final accountR =
+          await _accountRepository.getById(AccountId(input.accountId));
       if (accountR.isFailure) {
         return FailureResult(accountR.failureOrNull!);
       }
@@ -74,10 +75,8 @@ class GetAccountStatementUseCase {
       for (final e in entries) {
         final delta = _signedDelta(e, account.nature);
         running += delta;
-        final debitCol =
-            e.side == EntrySide.debit ? e.amount.minorUnits : 0;
-        final creditCol =
-            e.side == EntrySide.credit ? e.amount.minorUnits : 0;
+        final debitCol = e.side == EntrySide.debit ? e.amount.minorUnits : 0;
+        final creditCol = e.side == EntrySide.credit ? e.amount.minorUnits : 0;
         lines.add(
           AccountStatementLineDto(
             dateIso: e.date.toIso8601String(),

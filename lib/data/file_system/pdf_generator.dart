@@ -1,1 +1,3 @@
-class PdfGenerator { const PdfGenerator(); }
+class PdfGenerator {
+  const PdfGenerator();
+}

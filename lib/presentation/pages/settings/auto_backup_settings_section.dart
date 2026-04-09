@@ -23,8 +23,7 @@ class AutoBackupSettingsSection extends StatefulWidget {
       _AutoBackupSettingsSectionState();
 }
 
-class _AutoBackupSettingsSectionState
-    extends State<AutoBackupSettingsSection> {
+class _AutoBackupSettingsSectionState extends State<AutoBackupSettingsSection> {
   bool _loading = true;
   bool _enabled = true;
   DateTime? _lastBackup;
@@ -97,8 +96,7 @@ class _AutoBackupSettingsSectionState
     );
     if (path == null || !mounted) return;
     setState(() => _working = true);
-    final r =
-        await InjectionContainer.backupService.saveBackupCopyToPath(path);
+    final r = await InjectionContainer.backupService.saveBackupCopyToPath(path);
     setState(() => _working = false);
     if (!mounted) return;
     if (r.isFailure) {

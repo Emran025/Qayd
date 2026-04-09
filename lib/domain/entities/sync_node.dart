@@ -5,12 +5,12 @@ enum SyncEventType {
   acceptance,
   rejection,
   journalEntry,
-  attachmentSync,    // Blob reference + wrapped voucher key
-  collateralSync,    // Encrypted collateral data
-  collateralUpdate,  // Re-evaluation event
-  withdrawal,        // Voucher withdrawn by creator
-  settlement,        // Settlement linked via originVoucherId
-  p2pHandshake,      // P2P bidirectional sync handshake
+  attachmentSync, // Blob reference + wrapped voucher key
+  collateralSync, // Encrypted collateral data
+  collateralUpdate, // Re-evaluation event
+  withdrawal, // Voucher withdrawn by creator
+  settlement, // Settlement linked via originVoucherId
+  p2pHandshake, // P2P bidirectional sync handshake
   tripartiteRequest, // Sender -> Mediator Request (A -> B)
   unknown;
 
@@ -36,10 +36,10 @@ class SyncNode {
 
   /// Unique client-generated UUID for the node
   final String id;
-  
+
   /// Counterpart who sent it
   final int senderId;
-  
+
   /// User who the payload is targeted at
   final int receiverId;
 

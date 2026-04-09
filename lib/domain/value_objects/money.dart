@@ -43,13 +43,18 @@ final class Money implements Comparable<Money> {
     return Money._(minorUnits, currency);
   }
 
+  /// Any amount (positive or negative). Used for balances and results of arithmetic.
+  factory Money.fromMinorUnits(int minorUnits, CurrencyCode currency) {
+    return Money._(minorUnits, currency);
+  }
+
   bool get isZero => minorUnits == 0;
+  bool get isNegative => minorUnits < 0;
 
   void _assertSameCurrency(Money other) {
     if (currency != other.currency) {
       throw CurrencyMismatchException(
-        messageAr:
-            'لا يمكن إجراء عمليات حسابية بين عملتين مختلفتين.',
+        messageAr: 'لا يمكن إجراء عمليات حسابية بين عملتين مختلفتين.',
         code: 'cross_currency_arithmetic',
         currencyA: currency.code,
         currencyB: other.currency.code,
@@ -65,12 +70,20 @@ final class Money implements Comparable<Money> {
 
   Money operator +(Money other) {
     _assertSameCurrency(other);
-    return Money.nonNegative(minorUnits + other.minorUnits, currency);
+    return Money._(minorUnits + other.minorUnits, currency);
   }
 
   Money operator -(Money other) {
     _assertSameCurrency(other);
-    return Money.nonNegative(minorUnits - other.minorUnits, currency);
+    return Money._(minorUnits - other.minorUnits, currency);
+  }
+
+  Money operator -() {
+    return Money._(-minorUnits, currency);
+  }
+
+  Money abs() {
+    return Money._(minorUnits.abs(), currency);
   }
 
   @override

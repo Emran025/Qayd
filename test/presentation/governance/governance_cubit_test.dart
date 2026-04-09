@@ -9,8 +9,11 @@ import 'package:qayd/domain/value_objects/governance_status.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/governance/governance_ui_state.dart';
 
-class MockCheckGovernanceStatusUseCase extends Mock implements CheckGovernanceStatusUseCase {}
-class MockSubmitActivationUseCase extends Mock implements SubmitActivationUseCase {}
+class MockCheckGovernanceStatusUseCase extends Mock
+    implements CheckGovernanceStatusUseCase {}
+
+class MockSubmitActivationUseCase extends Mock
+    implements SubmitActivationUseCase {}
 
 void main() {
   late MockCheckGovernanceStatusUseCase mockCheckGovernance;
@@ -45,7 +48,8 @@ void main() {
             .having((p) => p.refreshInFlight, 'busy', false)
             .having((p) => p.isLocked, 'isLocked', true)
             .having((p) => p.ownerAccountNumber, 'accountNumber', '777123')
-            .having((p) => p.statusMessage, 'message', 'انتهت الفترة التجريبية'),
+            .having(
+                (p) => p.statusMessage, 'message', 'انتهت الفترة التجريبية'),
       ],
     );
 

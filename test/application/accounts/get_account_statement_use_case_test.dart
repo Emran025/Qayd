@@ -21,7 +21,9 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 
 class MockAccountRepository extends Mock implements AccountRepository {}
+
 class MockLedgerRepository extends Mock implements LedgerRepository {}
+
 class MockVoucherRepository extends Mock implements VoucherRepository {}
 
 void main() {
@@ -52,7 +54,8 @@ void main() {
     final result = await useCase(input);
 
     expect(result.isFailure, isTrue);
-    expect((result.failureOrNull as ValidationFailure).code, 'statement_date_range');
+    expect((result.failureOrNull as ValidationFailure).code,
+        'statement_date_range');
   });
 
   test('should generate account statement successfully', () async {
@@ -63,8 +66,13 @@ void main() {
       classification: AccountClassification.liquidAssets, // debit nature
       createdAt: DateTime.now(),
     );
-    final currency = CurrencyCode(code: 'USD', nameAr: 'دولار', symbol: r'$', fractionalDigits: 2, isActive: true);
-    
+    final currency = CurrencyCode(
+        code: 'USD',
+        nameAr: 'دولار',
+        symbol: r'$',
+        fractionalDigits: 2,
+        isActive: true);
+
     final entry1 = LedgerEntry.create(
       id: EntryId('e1'),
       transactionId: TransactionId('t1'),
@@ -76,7 +84,7 @@ void main() {
       date: DateTime(2023, 1, 1),
       createdAt: DateTime(2023, 1, 1),
     );
-    
+
     final entry2 = LedgerEntry.create(
       id: EntryId('e2'),
       transactionId: TransactionId('t1'),
@@ -89,8 +97,26 @@ void main() {
       createdAt: DateTime(2023, 1, 2),
     );
 
-    final v1 = Voucher.draft(id: VoucherId('v1'), type: VoucherType.receipt, date: DateTime(2023,1,1), amount: Money.positiveAmount(100, currency), currency: currency, counterpartyId: AccountId('cp1'), affectedAccountId: AccountId('acc-1'), createdAt: DateTime.now(), description: 'v1 desc');
-    final v2 = Voucher.draft(id: VoucherId('v2'), type: VoucherType.payment, date: DateTime(2023,1,2), amount: Money.positiveAmount(50, currency), currency: currency, counterpartyId: AccountId('cp1'), affectedAccountId: AccountId('acc-1'), createdAt: DateTime.now(), description: 'v2 desc');
+    final v1 = Voucher.draft(
+        id: VoucherId('v1'),
+        type: VoucherType.receipt,
+        date: DateTime(2023, 1, 1),
+        amount: Money.positiveAmount(100, currency),
+        currency: currency,
+        counterpartyId: AccountId('cp1'),
+        affectedAccountId: AccountId('acc-1'),
+        createdAt: DateTime.now(),
+        description: 'v1 desc');
+    final v2 = Voucher.draft(
+        id: VoucherId('v2'),
+        type: VoucherType.payment,
+        date: DateTime(2023, 1, 2),
+        amount: Money.positiveAmount(50, currency),
+        currency: currency,
+        counterpartyId: AccountId('cp1'),
+        affectedAccountId: AccountId('acc-1'),
+        createdAt: DateTime.now(),
+        description: 'v2 desc');
 
     when(() => mockAccountRepo.getById(AccountId('acc-1')))
         .thenAnswer((_) async => Success(account));

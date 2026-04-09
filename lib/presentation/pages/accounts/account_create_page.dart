@@ -50,7 +50,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   final _whatsappController = TextEditingController();
   final _bankInfoController = TextEditingController();
   final _partyTypeController = TextEditingController();
-  
+
   // Asset fields
   final _purchasePriceController = TextEditingController();
   final _purchaseDateController = TextEditingController();
@@ -70,7 +70,8 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     if (picked != null) {
       setState(() {
         _selectedPurchaseDate = picked;
-        _purchaseDateController.text = picked.toIso8601String().split('T').first;
+        _purchaseDateController.text =
+            picked.toIso8601String().split('T').first;
       });
     }
   }
@@ -104,7 +105,8 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
 
   bool get _showAssetDetails {
     final kind = widget.isChild ? _parentStandardKind : _standardKind.name;
-    return kind == StandardAccountClassificationKind.fixedDepreciableAssets.name ||
+    return kind ==
+            StandardAccountClassificationKind.fixedDepreciableAssets.name ||
         kind == StandardAccountClassificationKind.fixedProfitableAssets.name;
   }
 
@@ -163,33 +165,35 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
           : null,
       customClassificationNature:
           !widget.isChild && _useCustomRootClassification
-          ? _customNature
-          : null,
+              ? _customNature
+              : null,
       phoneNumber: _showPartyDetails
           ? (_phoneZoneController.text + _phoneController.text)
-                .replaceAll(' ', '')
-                .replaceAll('+', '')
+              .replaceAll(' ', '')
+              .replaceAll('+', '')
           : null,
       whatsappNumber: _showPartyDetails
           ? (_whatsappZoneController.text + _whatsappController.text)
-                .replaceAll(' ', '')
-                .replaceAll('+', '')
+              .replaceAll(' ', '')
+              .replaceAll('+', '')
           : null,
-      bankAccountInfo: _showPartyDetails
-          ? _bankInfoController.text.trim()
-          : null,
+      bankAccountInfo:
+          _showPartyDetails ? _bankInfoController.text.trim() : null,
       partyType: _showPartyDetails ? _partyTypeController.text.trim() : null,
       email: _scannedData?.email,
       currentPublicKeyHex: _scannedData?.currentPublicKeyHex,
       publicKeyHistoryHex: _scannedData?.publicKeyHistoryHex,
       serverAccountId: _scannedData?.serverAccountId,
-      metadata: _showAssetDetails ? {
-        'purchase_price': double.tryParse(_purchasePriceController.text) ?? 0.0,
-        'purchase_date': _selectedPurchaseDate?.toIso8601String(),
-        'serial_number': _assetSerialController.text.trim(),
-        'model': _assetModelController.text.trim(),
-        'notes': _assetNotesController.text.trim(),
-      } : {},
+      metadata: _showAssetDetails
+          ? {
+              'purchase_price':
+                  double.tryParse(_purchasePriceController.text) ?? 0.0,
+              'purchase_date': _selectedPurchaseDate?.toIso8601String(),
+              'serial_number': _assetSerialController.text.trim(),
+              'model': _assetModelController.text.trim(),
+              'notes': _assetNotesController.text.trim(),
+            }
+          : {},
     );
 
     await context.read<AccountCreateCubit>().submit(input);
@@ -436,7 +440,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     },
                   ),
                   const SizedBox(height: SpacingTokens.xl),
-
                   if (_showPartyDetails) ...[
                     QaydText(
                       AppStringsAr.partyDetailsSection,
@@ -468,7 +471,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     ),
                     const SizedBox(height: SpacingTokens.xl),
                   ],
-
                   if (_showAssetDetails) ...[
                     QaydText(
                       'بيانات الأصل (Asset Details)',
@@ -510,7 +512,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     ),
                     const SizedBox(height: SpacingTokens.xl),
                   ],
-
                   FilledButton(
                     onPressed: submitting ? null : _submit,
                     style: FilledButton.styleFrom(

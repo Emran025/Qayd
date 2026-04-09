@@ -40,7 +40,7 @@ class VoucherSummaryDto {
   final String affectedAccountId;
   final String affectedName;
   final String? description;
-  
+
   // Tripartite Transfer
   final bool isTripartite;
   final String? transferGroupId;

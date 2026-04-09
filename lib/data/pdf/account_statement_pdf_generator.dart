@@ -111,7 +111,8 @@ final class CairoAccountStatementPdfGenerator
                     pw.SizedBox(height: 12),
 
                     // ── Info Section (إلى / من) ──────────────────────────────────
-                    _buildInfoSection(font, report, genAt, natureAr, periodLabel),
+                    _buildInfoSection(
+                        font, report, genAt, natureAr, periodLabel),
 
                     pw.SizedBox(height: 14),
 
@@ -569,7 +570,8 @@ final class CairoAccountStatementPdfGenerator
               font: font,
               fontSize: 9,
               color: _navy,
-              fontWeight: isTotalRow ? pw.FontWeight.bold : pw.FontWeight.normal,
+              fontWeight:
+                  isTotalRow ? pw.FontWeight.bold : pw.FontWeight.normal,
             ),
             textAlign: pw.TextAlign.left,
           ),

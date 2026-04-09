@@ -1,1 +1,3 @@
-class ExcelWriter { const ExcelWriter(); }
+class ExcelWriter {
+  const ExcelWriter();
+}

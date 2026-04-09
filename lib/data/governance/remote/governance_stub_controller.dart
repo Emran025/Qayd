@@ -4,7 +4,8 @@ import 'package:qayd/domain/value_objects/governance_status.dart';
 /// Replace with real API responses when wiring production.
 final class GovernanceStubController {
   GovernanceStubController({
-    this.remoteStatus = const GovernanceStatus(kind: GovernanceStatusKind.activated),
+    this.remoteStatus =
+        const GovernanceStatus(kind: GovernanceStatusKind.activated),
   });
 
   /// Simulated server-side status returned by [fetchStatus].

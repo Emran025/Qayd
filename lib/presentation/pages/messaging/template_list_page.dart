@@ -37,7 +37,9 @@ class _TemplateListScaffold extends StatelessWidget {
   Future<void> _openCreate(BuildContext context) async {
     var kind = MessageTemplateKind.receipt;
     final nameCtrl = TextEditingController();
-    final bodyCtrl = TemplateTextController(initialDbText: 'عزيزي {{customer}}،\nنود إفادتكم بتسجيل إشعار قبض...\nالتوقيع: {{signature}}');
+    final bodyCtrl = TemplateTextController(
+        initialDbText:
+            'عزيزي {{customer}}،\nنود إفادتكم بتسجيل إشعار قبض...\nالتوقيع: {{signature}}');
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -293,93 +295,92 @@ class _TemplateListScaffold extends StatelessWidget {
         builder: (context, state) {
           return switch (state) {
             TemplateListLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
+                child: CircularProgressIndicator(),
+              ),
             TemplateListFailure(:final failure) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(SpacingTokens.lg),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    QaydText(
-                      failure.messageAr,
-                      slot: QaydTextStyleSlot.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: SpacingTokens.md),
-                    FilledButton.tonal(
-                      onPressed: () => context.read<TemplateListCubit>().load(),
-                      child: Text(AppStringsAr.retryAction),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(SpacingTokens.lg),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      QaydText(
+                        failure.messageAr,
+                        slot: QaydTextStyleSlot.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: SpacingTokens.md),
+                      FilledButton.tonal(
+                        onPressed: () =>
+                            context.read<TemplateListCubit>().load(),
+                        child: Text(AppStringsAr.retryAction),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            TemplateListReady(:final templates) =>
-              templates.isEmpty
-                  ? Center(
-                      child: QaydText(
-                        AppStringsAr.notificationNoTemplates,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(
-                        SpacingTokens.md,
-                        SpacingTokens.sm,
-                        SpacingTokens.md,
-                        SpacingTokens.xxl,
-                      ),
-                      itemCount: templates.length,
-                      itemBuilder: (context, i) {
-                        final t = templates[i];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: SpacingTokens.sm,
-                          ),
-                          child: Card(
-                            child: ListTile(
-                              title: QaydText(
-                                t.name,
-                                slot: QaydTextStyleSlot.titleSmall,
-                              ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(
-                                  top: SpacingTokens.xs,
-                                ),
-                                child: QaydText(
-                                  _kindLabel(t.kind),
-                                  slot: QaydTextStyleSlot.bodySmall,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (!t.isSystem)
-                                    IconButton(
-                                      tooltip: AppStringsAr.templateDeleteTitle,
-                                      icon: const Icon(
-                                        Icons.delete_outline_rounded,
-                                      ),
-                                      onPressed: () =>
-                                          _confirmDelete(context, t),
-                                    ),
-                                  IconButton(
-                                    tooltip: AppStringsAr.templateEditTitle,
-                                    icon: Icon(Icons.edit_rounded, color: gold),
-                                    onPressed: () => _edit(context, t),
-                                  ),
-                                ],
-                              ),
-                              onTap: () => _edit(context, t),
-                            ),
-                          ),
-                        );
-                      },
+            TemplateListReady(:final templates) => templates.isEmpty
+                ? Center(
+                    child: QaydText(
+                      AppStringsAr.notificationNoTemplates,
+                      slot: QaydTextStyleSlot.bodyLarge,
                     ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(
+                      SpacingTokens.md,
+                      SpacingTokens.sm,
+                      SpacingTokens.md,
+                      SpacingTokens.xxl,
+                    ),
+                    itemCount: templates.length,
+                    itemBuilder: (context, i) {
+                      final t = templates[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: SpacingTokens.sm,
+                        ),
+                        child: Card(
+                          child: ListTile(
+                            title: QaydText(
+                              t.name,
+                              slot: QaydTextStyleSlot.titleSmall,
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(
+                                top: SpacingTokens.xs,
+                              ),
+                              child: QaydText(
+                                _kindLabel(t.kind),
+                                slot: QaydTextStyleSlot.bodySmall,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (!t.isSystem)
+                                  IconButton(
+                                    tooltip: AppStringsAr.templateDeleteTitle,
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                    ),
+                                    onPressed: () => _confirmDelete(context, t),
+                                  ),
+                                IconButton(
+                                  tooltip: AppStringsAr.templateEditTitle,
+                                  icon: Icon(Icons.edit_rounded, color: gold),
+                                  onPressed: () => _edit(context, t),
+                                ),
+                              ],
+                            ),
+                            onTap: () => _edit(context, t),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           };
         },
       ),
@@ -394,12 +395,14 @@ class _TemplateListScaffold extends StatelessWidget {
     );
   }
 
-  Widget _buildVariableChipsRow(MessageTemplateKind currentKind, TemplateTextController controller) {
+  Widget _buildVariableChipsRow(
+      MessageTemplateKind currentKind, TemplateTextController controller) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: kTemplateVariables.where((v) {
-          if (v.kindRestricted != null && v.kindRestricted != currentKind) return false;
+          if (v.kindRestricted != null && v.kindRestricted != currentKind)
+            return false;
           return true;
         }).map((v) {
           return Padding(

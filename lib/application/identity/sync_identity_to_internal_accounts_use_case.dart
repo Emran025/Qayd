@@ -31,8 +31,9 @@ class SyncIdentityToInternalAccountsUseCase {
       if (phone == null || phone.isEmpty) return const Success(null);
 
       final accountsResult = await _accountRepository.getAll();
-      if (accountsResult.isFailure)
-        {return FailureResult(accountsResult.failureOrNull!);}
+      if (accountsResult.isFailure) {
+        return FailureResult(accountsResult.failureOrNull!);
+      }
 
       final accounts = accountsResult.valueOrNull!;
       final internalKinds = [

@@ -9,7 +9,6 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 
-
 /// Outcome of incoming voucher verification.
 class VerificationOutcome {
   const VerificationOutcome({
@@ -104,7 +103,8 @@ class VerifyIncomingVoucherUseCase {
       final storedVoucher = voucher.attachSignature(
         signatureHex: voucher.senderSignatureHex ?? '',
         publicKeyHex: voucher.senderPublicKeyHex ?? '',
-        isSender: true, // The counterparty (the one who sent this) is the creator/sender.
+        isSender:
+            true, // The counterparty (the one who sent this) is the creator/sender.
         status: finalStatus,
         signerPhone: senderPhone,
       );

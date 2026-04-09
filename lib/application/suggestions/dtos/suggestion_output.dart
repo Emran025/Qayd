@@ -1,1 +1,3 @@
-class SuggestionOutput { const SuggestionOutput(); }
+class SuggestionOutput {
+  const SuggestionOutput();
+}

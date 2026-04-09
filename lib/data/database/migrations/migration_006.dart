@@ -49,14 +49,12 @@ CREATE TABLE app_settings (
     // Note: SQLite doesn't support NOT NULL column additions easily; we'll add it and then update.
     await db.addColumnIfNotExists('vouchers', 'currency_code', 'TEXT');
     await db.execute(
-      "UPDATE vouchers SET currency_code = 'YER' WHERE currency_code IS NULL"
-    );
+        "UPDATE vouchers SET currency_code = 'YER' WHERE currency_code IS NULL");
 
     // 5. Add currency_code column to ledger_entries
     await db.addColumnIfNotExists('ledger_entries', 'currency_code', 'TEXT');
     await db.execute(
-      "UPDATE ledger_entries SET currency_code = 'YER' WHERE currency_code IS NULL"
-    );
+        "UPDATE ledger_entries SET currency_code = 'YER' WHERE currency_code IS NULL");
 
     // 6. Create indexes for new columns
     await db.execute(

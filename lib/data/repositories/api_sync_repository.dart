@@ -12,7 +12,7 @@ class ApiSyncRepository implements SyncRepository {
   @override
   Future<List<SyncNode>> pullNodes({String? since}) async {
     try {
-      final endpoint = since != null 
+      final endpoint = since != null
           ? '${ApiEndpoints.syncPull}?since=$since'
           : ApiEndpoints.syncPull;
       final response = await _apiClient.get(endpoint);

@@ -81,25 +81,31 @@ Future<void> shareVoucherAsPdf(
   final bytes = result.valueOrNull!;
   try {
     var shareText = await resolveVoucherShareText(data);
-    
+
     // Fallback if no template is found
     if (shareText == null || shareText.isEmpty) {
       final amountTextFormatter = MoneyFormatter.formatWithSymbol(
-        data.amountMinorUnits / (data.currencyDigits == 0 ? 1 : (data.currencyDigits == 2 ? 100 : 100)),
+        data.amountMinorUnits /
+            (data.currencyDigits == 0
+                ? 1
+                : (data.currencyDigits == 2 ? 100 : 100)),
         data.currencySymbol,
         fractionalDigits: data.currencyDigits,
       );
-      final voucherType = data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
+      final voucherType =
+          data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
       shareText = 'مرفق لكم $voucherType من حساب ${data.affectedName}.\n'
           'المبلغ: $amountTextFormatter\n'
           'الطرف الآخر: ${data.counterpartyName}\n'
           'المرجع: ${data.referenceNumber ?? data.id.substring(0, 8)}\n'
           '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
-      if (data.senderSignatureHex != null || data.receiverSignatureHex != null) {
-        shareText += '\nبصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}';
+      if (data.senderSignatureHex != null ||
+          data.receiverSignatureHex != null) {
+        shareText +=
+            '\nبصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}';
       }
     }
-        
+
     // Preview and edit Step
     final editedText = await VoucherSharePreviewSheet.show(context, shareText);
     if (editedText == null) return; // Cancelled

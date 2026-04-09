@@ -83,7 +83,8 @@ class SignatureVerificationEngine {
     String? senderEmail,
     required String myPhone,
   }) async {
-    if (voucher.senderSignatureHex == null || voucher.senderPublicKeyHex == null) {
+    if (voucher.senderSignatureHex == null ||
+        voucher.senderPublicKeyHex == null) {
       return SignatureVerificationResult.unverified('NO_SIGNATURE_PRESENT');
     }
 

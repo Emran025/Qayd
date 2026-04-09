@@ -100,10 +100,7 @@ abstract final class CsvAccountsImportDraft {
     final lower = header.map((e) => e.trim().toLowerCase()).toList();
     return lower.indexWhere(
       (h) =>
-          h == 'nature' ||
-          h == 'طبيعة' ||
-          h == 'type' ||
-          h == 'debit_credit',
+          h == 'nature' || h == 'طبيعة' || h == 'type' || h == 'debit_credit',
     );
   }
 }

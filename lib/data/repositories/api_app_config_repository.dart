@@ -79,7 +79,8 @@ class ApiAppConfigRepository implements AppConfigRepository {
           }
         });
 
-        debugPrint('AppConfig: Successfully parsed ${documents.length} documents. Keys: ${documents.keys.toList()}');
+        debugPrint(
+            'AppConfig: Successfully parsed ${documents.length} documents. Keys: ${documents.keys.toList()}');
 
         if (documents.isNotEmpty) {
           await sharedPreferences.setString(
@@ -164,8 +165,7 @@ class ApiAppConfigRepository implements AppConfigRepository {
       try {
         final payload = {
           'type': ticket['type'],
-          'message':
-              ticket['message'] +
+          'message': ticket['message'] +
               '\n\n[Offline timestamp: ${ticket['timestamp']}]',
         };
         await apiClient.post(ApiEndpoints.supportTickets, body: payload);

@@ -13,6 +13,7 @@ abstract final class MoneyFormatter {
       ..maximumFractionDigits = maximumFractionDigits;
     return format.format(amount);
   }
+
   static String formatWithSymbol(
     num amount,
     String symbol, {

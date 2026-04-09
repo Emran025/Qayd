@@ -44,15 +44,17 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
   }
 
   Future<void> _loadAccounts() async {
-    final res = await InjectionContainer.listAccountsUseCase(const ListAccountsInput());
+    final res =
+        await InjectionContainer.listAccountsUseCase(const ListAccountsInput());
     res.fold((_) {}, (out) {
       setState(() {
         _accounts = out.accounts;
         // Auto-select first liquid asset as source if available
         try {
-          _selectedSourceAccountId = _accounts.firstWhere(
-            (a) => a.standardClassificationKind == 'liquidAssets' && a.isRoot
-          ).id;
+          _selectedSourceAccountId = _accounts
+              .firstWhere((a) =>
+                  a.standardClassificationKind == 'liquidAssets' && a.isRoot)
+              .id;
         } catch (_) {}
       });
     });
@@ -79,14 +81,14 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_selectedDestAccountId == null) {
-       _showError('يرجى اختيار الحساب المستهدف (المصروف).');
-       return;
+      _showError('يرجى اختيار الحساب المستهدف (المصروف).');
+      return;
     }
 
     setState(() => _saving = true);
 
     final amount = double.tryParse(_amountCtrl.text) ?? 0;
-    
+
     final res = await InjectionContainer.saveAccrualUseCase(
       name: _nameCtrl.text,
       description: _descCtrl.text,
@@ -138,7 +140,8 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 labelText: 'مسمى الالتزام (مثلاً: إيجار الشقة)',
                 prefixIcon: Icon(Icons.title_rounded),
               ),
-              validator: (v) => (v == null || v.isEmpty) ? 'هذا الحقل مطلوب' : null,
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'هذا الحقل مطلوب' : null,
             ),
             const SizedBox(height: SpacingTokens.md),
             TextFormField(
@@ -147,22 +150,30 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 labelText: 'المبلغ التقديري',
                 prefixIcon: Icon(Icons.account_balance_wallet_rounded),
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              validator: (v) => (double.tryParse(v ?? '0') ?? 0) <= 0 ? 'يرجى إدخال مبلغ صالح' : null,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              validator: (v) => (double.tryParse(v ?? '0') ?? 0) <= 0
+                  ? 'يرجى إدخال مبلغ صالح'
+                  : null,
             ),
             const SizedBox(height: SpacingTokens.md),
 
             // ── Frequency ──────────────────────────────────────────────────
-            QaydText('تكرار الالتزام', slot: QaydTextStyleSlot.labelLarge, color: scheme.onSurfaceVariant),
+            QaydText('تكرار الالتزام',
+                slot: QaydTextStyleSlot.labelLarge,
+                color: scheme.onSurfaceVariant),
             const SizedBox(height: SpacingTokens.sm),
             DropdownButtonFormField<AccrualFrequency>(
               value: _frequency,
-              items: AccrualFrequency.values.map((f) => DropdownMenuItem(
-                value: f,
-                child: Text(f.labelAr),
-              )).toList(),
+              items: AccrualFrequency.values
+                  .map((f) => DropdownMenuItem(
+                        value: f,
+                        child: Text(f.labelAr),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() => _frequency = v!),
-              decoration: const InputDecoration(prefixIcon: Icon(Icons.repeat_rounded)),
+              decoration:
+                  const InputDecoration(prefixIcon: Icon(Icons.repeat_rounded)),
             ),
             const SizedBox(height: SpacingTokens.md),
 
@@ -180,14 +191,18 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
             const SizedBox(height: SpacingTokens.md),
 
             // ── Source Account ─────────────────────────────────────────────
-            QaydText('حساب الدفع (منين؟)', slot: QaydTextStyleSlot.labelLarge, color: scheme.onSurfaceVariant),
+            QaydText('حساب الدفع (منين؟)',
+                slot: QaydTextStyleSlot.labelLarge,
+                color: scheme.onSurfaceVariant),
             const SizedBox(height: SpacingTokens.sm),
             DropdownButtonFormField<String>(
               value: _selectedSourceAccountId,
-              items: _accounts.map((a) => DropdownMenuItem(
-                value: a.id,
-                child: Text(a.name),
-              )).toList(),
+              items: _accounts
+                  .map((a) => DropdownMenuItem(
+                        value: a.id,
+                        child: Text(a.name),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() => _selectedSourceAccountId = v),
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.account_balance_rounded),
@@ -197,25 +212,32 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
             const SizedBox(height: SpacingTokens.md),
 
             // ── Destination Account ────────────────────────────────────────
-            QaydText('حساب الاستحقاق (لفين؟)', slot: QaydTextStyleSlot.labelLarge, color: scheme.onSurfaceVariant),
+            QaydText('حساب الاستحقاق (لفين؟)',
+                slot: QaydTextStyleSlot.labelLarge,
+                color: scheme.onSurfaceVariant),
             const SizedBox(height: SpacingTokens.sm),
             DropdownButtonFormField<String>(
               value: _selectedDestAccountId,
-              items: _accounts.map((a) => DropdownMenuItem(
-                value: a.id,
-                child: Text(a.name),
-              )).toList(),
+              items: _accounts
+                  .map((a) => DropdownMenuItem(
+                        value: a.id,
+                        child: Text(a.name),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() => _selectedDestAccountId = v),
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.account_tree_rounded),
                 hintText: 'اختر حساب المصروف (سكن، غذاء...)',
               ),
-              validator: (v) => v == null ? 'يرجى اختيار الحساب المستهدف' : null,
+              validator: (v) =>
+                  v == null ? 'يرجى اختيار الحساب المستهدف' : null,
             ),
             const SizedBox(height: SpacingTokens.md),
 
             // ── Categories (Dimensions) ───────────────────────────────────
-            QaydText('البعد الحياتي المرتبط', slot: QaydTextStyleSlot.labelLarge, color: scheme.onSurfaceVariant),
+            QaydText('البعد الحياتي المرتبط',
+                slot: QaydTextStyleSlot.labelLarge,
+                color: scheme.onSurfaceVariant),
             const SizedBox(height: SpacingTokens.sm),
             Wrap(
               spacing: SpacingTokens.xs,
@@ -225,7 +247,8 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 return ChoiceChip(
                   label: Text(cat.name),
                   selected: isSelected,
-                  onSelected: (val) => setState(() => _selectedCategoryId = val ? cat.id : null),
+                  onSelected: (val) =>
+                      setState(() => _selectedCategoryId = val ? cat.id : null),
                   selectedColor: gold.withValues(alpha: 0.2),
                 );
               }).toList(),
@@ -235,7 +258,9 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
             // ── Save Button ───────────────────────────────────────────────
             FilledButton.icon(
               onPressed: _saving ? null : _save,
-              icon: _saving ? const CircularProgressIndicator() : const Icon(Icons.check_rounded),
+              icon: _saving
+                  ? const CircularProgressIndicator()
+                  : const Icon(Icons.check_rounded),
               label: const Text('حفظ الالتزام'),
               style: FilledButton.styleFrom(
                 backgroundColor: ColorTokens.warningAmber,

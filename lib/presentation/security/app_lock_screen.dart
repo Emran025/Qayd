@@ -104,7 +104,8 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   if (state.trialDaysRemaining != null) {
                     return Padding(
                       padding: const EdgeInsets.only(top: SpacingTokens.md),
-                      child: SecurityTrialBadge(days: state.trialDaysRemaining!),
+                      child:
+                          SecurityTrialBadge(days: state.trialDaysRemaining!),
                     );
                   }
                   return const SizedBox.shrink();
@@ -117,7 +118,8 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   vertical: SpacingTokens.md,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.35),
                   borderRadius: BorderRadius.circular(RadiusTokens.md),
                   border: Border.all(
                     color: accentColor.withValues(alpha: 0.35),
@@ -151,8 +153,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
                   child: TextButton.icon(
                     onPressed: _tryBiometric,
-                    icon: Icon(Icons.fingerprint_rounded,
-                        color: accentColor),
+                    icon: Icon(Icons.fingerprint_rounded, color: accentColor),
                     label: Text(
                       AppStringsAr.biometricUnlock,
                       style: textStyle.labelLarge?.copyWith(
@@ -169,8 +170,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                     foregroundColor: theme.colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  onPressed:
-                      _pin.length >= _minLen ? _submit : null,
+                  onPressed: _pin.length >= _minLen ? _submit : null,
                   child: Text(
                     AppStringsAr.unlockAction,
                     style: textStyle.titleMedium?.copyWith(

@@ -11,7 +11,8 @@ class GovernanceUiState {
   final bool refreshInFlight;
   final String? lastErrorAr;
 
-  bool get requiresActivationScreen => status.kind == GovernanceStatusKind.revoked;
+  bool get requiresActivationScreen =>
+      status.kind == GovernanceStatusKind.revoked;
 
   bool get isLocked => status.kind == GovernanceStatusKind.expired;
 

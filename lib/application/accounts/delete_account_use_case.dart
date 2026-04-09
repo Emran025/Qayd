@@ -1,1 +1,3 @@
-class DeleteAccountUseCase { const DeleteAccountUseCase(); }
+class DeleteAccountUseCase {
+  const DeleteAccountUseCase();
+}

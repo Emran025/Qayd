@@ -64,12 +64,12 @@ class ListAccountsUseCase {
       final directBalances = <String, Map<String, int>>{};
       for (final a in allAccounts) {
         // Confirmed balance from general ledger
-        final perCurrency = _balanceCalculator
-            .signedBalanceMinorUnitsPerCurrency(
-              entries: allEntries,
-              accountId: a.id,
-              nature: a.nature,
-            );
+        final perCurrency =
+            _balanceCalculator.signedBalanceMinorUnitsPerCurrency(
+          entries: allEntries,
+          accountId: a.id,
+          nature: a.nature,
+        );
         final baseMap = {
           for (final entry in perCurrency.entries) entry.key.code: entry.value,
         };
@@ -109,9 +109,8 @@ class ListAccountsUseCase {
       var accountsToShow = allAccounts;
       if (input.parentAccountId != null) {
         final pid = input.parentAccountId!;
-        accountsToShow = allAccounts
-            .where((a) => a.parentId?.value == pid)
-            .toList();
+        accountsToShow =
+            allAccounts.where((a) => a.parentId?.value == pid).toList();
       }
 
       final summaries = <AccountSummaryDto>[];
@@ -160,8 +159,10 @@ class ListAccountsUseCase {
     final bool isAccountOwnerTheSender = v.affectedAccountId == a;
     final bool isAccountOwnerTheReceiver = v.counterpartyId == a;
 
-    if (isAccountOwnerTheSender && v.senderStatus != AgreementStatus.accepted) return 0;
-    if (isAccountOwnerTheReceiver && v.receiverStatus != AgreementStatus.accepted) return 0;
+    if (isAccountOwnerTheSender && v.senderStatus != AgreementStatus.accepted)
+      return 0;
+    if (isAccountOwnerTheReceiver &&
+        v.receiverStatus != AgreementStatus.accepted) return 0;
 
     final isDebitAccount = nature == AccountNature.debit;
     if (isDebitAccount) {

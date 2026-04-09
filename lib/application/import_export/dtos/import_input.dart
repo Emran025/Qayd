@@ -1,1 +1,3 @@
-class ImportInput { const ImportInput(); }
+class ImportInput {
+  const ImportInput();
+}

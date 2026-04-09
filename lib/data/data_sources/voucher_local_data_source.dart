@@ -1,1 +1,3 @@
-class VoucherLocalDataSource { const VoucherLocalDataSource(); }
+class VoucherLocalDataSource {
+  const VoucherLocalDataSource();
+}

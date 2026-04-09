@@ -73,7 +73,8 @@ class CreateVoucherUseCase {
       if (gate.isFailure) {
         return FailureResult(gate.failureOrNull!);
       }
-      final currencyRes = await _currencyRepository.getByCode(input.currencyCode);
+      final currencyRes =
+          await _currencyRepository.getByCode(input.currencyCode);
       if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
         return FailureResult(ValidationFailure(
           messageAr: 'العملة المختارة غير صالحة.',
@@ -95,15 +96,20 @@ class CreateVoucherUseCase {
             (a) => a.id.value == input.affectedAccountId,
           );
 
-          final isPersonal = affected.classification.standardKind == StandardAccountClassificationKind.personalExpenses ||
-                            affected.classification.standardKind == StandardAccountClassificationKind.personalRevenues;
+          final isPersonal = affected.classification.standardKind ==
+                  StandardAccountClassificationKind.personalExpenses ||
+              affected.classification.standardKind ==
+                  StandardAccountClassificationKind.personalRevenues;
 
           if (isPersonal) {
             final fund = accounts.firstWhere(
-              (a) => a.classification.standardKind == StandardAccountClassificationKind.liquidAssets && a.isRoot,
-              orElse: () => affected, 
+              (a) =>
+                  a.classification.standardKind ==
+                      StandardAccountClassificationKind.liquidAssets &&
+                  a.isRoot,
+              orElse: () => affected,
             );
-            
+
             if (fund.id.value != affected.id.value) {
               actualAffectedAccountId = fund.id.value;
               isAutomatedExpensePosting = true;
@@ -133,7 +139,7 @@ class CreateVoucherUseCase {
           input.attachments.map((a) => _attachmentStorage.store(a, voucherId)),
         );
         await _attachmentRepository.saveAll(stored);
-        
+
         attachmentRefs.addAll(stored.map((s) => AttachmentRef(
               id: s.id,
               storagePath: s.storagePath,
@@ -169,7 +175,7 @@ class CreateVoucherUseCase {
           if (keyPair != null) {
             final licenseData = await _licenseVault?.readLicenseData();
             final myPhone = licenseData?['phone'] as String? ?? '';
-            
+
             String cpPhone = '';
             if (_accountRepository != null) {
               final cpParty = await _accountRepository!.getPartyDetails(
@@ -202,13 +208,15 @@ class CreateVoucherUseCase {
 
       // §6: Corrective Resubmission Logic
       if (input.originVoucherId != null) {
-        final originRes = await _voucherRepository.getById(VoucherId(input.originVoucherId!));
+        final originRes =
+            await _voucherRepository.getById(VoucherId(input.originVoucherId!));
         if (originRes.isSuccess) {
-           final origin = originRes.valueOrNull!;
-           if (origin.state.isDraft || origin.receiverStatus == AgreementStatus.rejected) {
-              final supercoded = origin.withdraw(DateTime.now());
-              await _voucherRepository.save(supercoded);
-           }
+          final origin = originRes.valueOrNull!;
+          if (origin.state.isDraft ||
+              origin.receiverStatus == AgreementStatus.rejected) {
+            final supercoded = origin.withdraw(DateTime.now());
+            await _voucherRepository.save(supercoded);
+          }
         }
       }
 
@@ -272,7 +280,9 @@ class CreateVoucherUseCase {
         }
       }
 
-      if (saved.isSuccess && input.costCenterTags.isNotEmpty && _costCenterRepository != null) {
+      if (saved.isSuccess &&
+          input.costCenterTags.isNotEmpty &&
+          _costCenterRepository != null) {
         for (final tag in input.costCenterTags) {
           await _costCenterRepository!.attachVoucher(
             voucherId: voucher.id.value,

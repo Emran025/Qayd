@@ -8,6 +8,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 
 class MockVoucherRepository extends Mock implements VoucherRepository {}
+
 class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
 
 void main() {
@@ -30,8 +31,8 @@ void main() {
   });
 
   test('should return failure when write guard denies access', () async {
-    when(() => mockWriteGuard.assertWritesPermitted())
-        .thenAnswer((_) async => FailureResult(ValidationFailure(messageAr: 'Denied')));
+    when(() => mockWriteGuard.assertWritesPermitted()).thenAnswer(
+        (_) async => FailureResult(ValidationFailure(messageAr: 'Denied')));
 
     final result = await useCase(voucherId: 'v-1');
 

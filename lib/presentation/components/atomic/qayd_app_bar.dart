@@ -11,7 +11,7 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.leading,
     this.centerTitle = true,
-    this.showNotifications = true,
+    this.showNotifications = false,
     this.bottom,
   });
 
@@ -76,11 +76,13 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 3));
+  Size get preferredSize =>
+      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 3));
 }
 
 /// Helper widget to combine two PreferredSizeWidgets (like TabBar + Underline)
-class _CombinedPreferredSize extends StatelessWidget implements PreferredSizeWidget {
+class _CombinedPreferredSize extends StatelessWidget
+    implements PreferredSizeWidget {
   const _CombinedPreferredSize({required this.top, required this.bottom});
 
   final PreferredSizeWidget top;
@@ -98,5 +100,6 @@ class _CombinedPreferredSize extends StatelessWidget implements PreferredSizeWid
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(top.preferredSize.height + bottom.preferredSize.height);
+  Size get preferredSize =>
+      Size.fromHeight(top.preferredSize.height + bottom.preferredSize.height);
 }

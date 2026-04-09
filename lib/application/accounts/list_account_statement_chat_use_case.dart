@@ -59,19 +59,20 @@ final class ListAccountStatementChatUseCase {
         final f = VoucherQueryFilter(involvedAccountId: myId);
         final r = await voucherRepository.getAll(filter: f);
         if (r.isFailure) return FailureResult(r.failureOrNull!);
-        
+
         final myVouchers = r.valueOrNull!;
-        
+
         allVouchers = myVouchers.where((v) {
-          final involvesCp = v.affectedAccountId == cpId || 
-                             v.counterpartyId == cpId || 
-                             v.tripartiteMeta?.linkedPartyId == cpId;
-          
+          final involvesCp = v.affectedAccountId == cpId ||
+              v.counterpartyId == cpId ||
+              v.tripartiteMeta?.linkedPartyId == cpId;
+
           if (!involvesCp) return false;
 
           // Rule 3: Exclude any voucher where the Mediator is the Counterparty unless it is a pure direct voucher.
           if (v.isTripartite) {
-            final mediatorId = v.tripartiteMeta?.mediatorAccountId ?? v.affectedAccountId;
+            final mediatorId =
+                v.tripartiteMeta?.mediatorAccountId ?? v.affectedAccountId;
             if (myId == mediatorId || cpId == mediatorId) {
               return false; // Exclude from Mediator's chat with parties
             }
@@ -91,13 +92,13 @@ final class ListAccountStatementChatUseCase {
       final Map<String, String> accountNamesLookup = {};
       final involvedAccountIds = allVouchers
           .expand((v) => [
-                v.affectedAccountId.value, 
+                v.affectedAccountId.value,
                 v.counterpartyId.value,
                 if (v.tripartiteMeta?.mediatorAccountId != null)
                   v.tripartiteMeta!.mediatorAccountId!.value,
               ])
           .toSet();
-      
+
       for (final idStr in involvedAccountIds) {
         final accR = await accountRepository.getById(AccountId(idStr));
         if (accR.isSuccess) {
@@ -113,14 +114,15 @@ final class ListAccountStatementChatUseCase {
         if (v.state.isWithdrawn) return false;
 
         // Perspective check: Who are we looking for?
-        final bool isMyView = filter.viewMode == StatementChatViewMode.myAccounts;
+        final bool isMyView =
+            filter.viewMode == StatementChatViewMode.myAccounts;
         final targetId = isMyView ? myId : cpId;
 
         // If the target party is the Sender, check if they accepted (signed).
         if (v.affectedAccountId == targetId) {
           return v.senderStatus != AgreementStatus.rejected;
         }
-        
+
         // If the target party is the Receiver, check if they accepted (signed).
         if (v.counterpartyId == targetId) {
           return v.receiverStatus != AgreementStatus.rejected;
@@ -153,7 +155,7 @@ final class ListAccountStatementChatUseCase {
         if (filter.includePreviousBalance) {
           final priorVouchers =
               allVouchers.where((v) => v.date.isBefore(fromStart)).toList();
-          
+
           broughtForward = 0;
           for (final v in priorVouchers) {
             final dir = _directionFromPerspective(
@@ -267,8 +269,8 @@ final class ListAccountStatementChatUseCase {
         final mergedDescription = (v.description ?? v.notes ?? '').trim();
 
         // Find the "Other" party
-        final otherId = v.affectedAccountId == subjectId 
-            ? v.counterpartyId.value 
+        final otherId = v.affectedAccountId == subjectId
+            ? v.counterpartyId.value
             : v.affectedAccountId.value;
         final otherName = accountNamesLookup[otherId] ?? 'Unknown';
 
@@ -289,7 +291,7 @@ final class ListAccountStatementChatUseCase {
           runningBalanceMinorUnits: runningBalance,
           referenceNumber: v.referenceNumber,
           mediatorAccountId: v.tripartiteMeta?.mediatorAccountId?.value,
-          mediatorName: v.tripartiteMeta?.mediatorAccountId != null 
+          mediatorName: v.tripartiteMeta?.mediatorAccountId != null
               ? accountNamesLookup[v.tripartiteMeta!.mediatorAccountId!.value]
               : null,
           feeAmountMinorUnits: v.tripartiteMeta?.feeAmount?.minorUnits,
@@ -312,15 +314,17 @@ final class ListAccountStatementChatUseCase {
   }) {
     if (v.isTripartite) {
       final isReceipt = v.type == VoucherType.receipt;
-      final sourceId = isReceipt ? v.counterpartyId : v.tripartiteMeta!.linkedPartyId;
-      final destId = isReceipt ? v.tripartiteMeta!.linkedPartyId : v.counterpartyId;
+      final sourceId =
+          isReceipt ? v.counterpartyId : v.tripartiteMeta!.linkedPartyId;
+      final destId =
+          isReceipt ? v.tripartiteMeta!.linkedPartyId : v.counterpartyId;
 
       if (perspectiveId == sourceId) return 'outgoing';
       if (perspectiveId == destId) return 'incoming';
-      
+
       // If perspectiveId is Mediator
       if (perspectiveId == v.affectedAccountId) {
-         return isReceipt ? 'incoming' : 'outgoing';
+        return isReceipt ? 'incoming' : 'outgoing';
       }
       return 'incoming';
     }

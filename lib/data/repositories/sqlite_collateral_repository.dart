@@ -175,15 +175,18 @@ final class SqliteCollateralRepository implements CollateralRepository {
 
   Map<String, dynamic> _toRow(Collateral c) {
     final imagesJson = c.imageRefs.isNotEmpty
-        ? jsonEncode(c.imageRefs.map((r) => {
-              'id': r.id.value,
-              'path': r.storagePath,
-              if (r.mimeType != null) 'mimeType': r.mimeType,
-              if (r.byteSize != null) 'byteSize': r.byteSize,
-              if (r.encryptedBlobHash != null) 'blobHash': r.encryptedBlobHash,
-              if (r.thumbnailPath != null) 'thumbPath': r.thumbnailPath,
-              'source': r.sourceType.name,
-            }).toList())
+        ? jsonEncode(c.imageRefs
+            .map((r) => {
+                  'id': r.id.value,
+                  'path': r.storagePath,
+                  if (r.mimeType != null) 'mimeType': r.mimeType,
+                  if (r.byteSize != null) 'byteSize': r.byteSize,
+                  if (r.encryptedBlobHash != null)
+                    'blobHash': r.encryptedBlobHash,
+                  if (r.thumbnailPath != null) 'thumbPath': r.thumbnailPath,
+                  'source': r.sourceType.name,
+                })
+            .toList())
         : null;
 
     return {

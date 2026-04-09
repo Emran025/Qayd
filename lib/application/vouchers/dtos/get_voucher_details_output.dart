@@ -95,6 +95,7 @@ class GetVoucherDetailsOutput {
   final String? collateralStatusCode;
   final int? collateralValueMinor;
   final String? collateralExpiryIso;
+
   /// Voucher IDs of settlement vouchers linked to this collateral.
   final List<String> collateralSettlementVoucherIds;
 
@@ -132,6 +133,7 @@ class CostCenterSummary {
 
   final String id;
   final String name;
+
   /// 'cost' or 'profit'
   final String typeCode;
 }

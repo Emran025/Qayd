@@ -23,13 +23,15 @@ final class SqliteCurrencyRepository implements CurrencyRepository {
         where: whereClause,
         orderBy: 'is_predefined DESC, code ASC',
       );
-      final list = maps.map((m) => CurrencyMapper.toEntity(CurrencyModel.fromMap(m))).toList();
+      final list = maps
+          .map((m) => CurrencyMapper.toEntity(CurrencyModel.fromMap(m)))
+          .toList();
 
       // Sort: base currency first, then active status, then original repository order (predefined first)
       list.sort((a, b) {
         if (a.code == baseCode) return -1;
         if (b.code == baseCode) return 1;
-        
+
         if (a.isActive != b.isActive) {
           return a.isActive ? -1 : 1;
         }
@@ -52,16 +54,19 @@ final class SqliteCurrencyRepository implements CurrencyRepository {
         limit: 1,
       );
       if (maps.isEmpty) return const Success(null);
-      return Success(CurrencyMapper.toEntity(CurrencyModel.fromMap(maps.first)));
+      return Success(
+          CurrencyMapper.toEntity(CurrencyModel.fromMap(maps.first)));
     } catch (e) {
       return FailureResult(DatabaseFailure(messageAr: 'فشل تحميل العملة: $e'));
     }
   }
 
   @override
-  Future<Result<void>> save(CurrencyCode currency, {bool isPredefined = false}) async {
+  Future<Result<void>> save(CurrencyCode currency,
+      {bool isPredefined = false}) async {
     try {
-      final model = CurrencyMapper.toModel(currency, isPredefined: isPredefined);
+      final model =
+          CurrencyMapper.toModel(currency, isPredefined: isPredefined);
       await _db.insert(
         'currencies',
         model.toMap(),
@@ -84,7 +89,8 @@ final class SqliteCurrencyRepository implements CurrencyRepository {
       );
       return const Success(null);
     } catch (e) {
-      return FailureResult(DatabaseFailure(messageAr: 'فشل تغيير حالة العملة: $e'));
+      return FailureResult(
+          DatabaseFailure(messageAr: 'فشل تغيير حالة العملة: $e'));
     }
   }
 
@@ -114,7 +120,8 @@ final class SqliteCurrencyRepository implements CurrencyRepository {
       );
       return const Success(null);
     } catch (e) {
-      return FailureResult(DatabaseFailure(messageAr: 'فشل حفظ العملة الأساسية: $e'));
+      return FailureResult(
+          DatabaseFailure(messageAr: 'فشل حفظ العملة الأساسية: $e'));
     }
   }
 }

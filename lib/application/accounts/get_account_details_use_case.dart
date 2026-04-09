@@ -19,9 +19,11 @@ class GetAccountDetailsUseCase {
   final LedgerRepository _ledgerRepository;
   final BalanceCalculator _balanceCalculator;
 
-  Future<Result<GetAccountDetailsOutput>> call(GetAccountDetailsInput input) async {
+  Future<Result<GetAccountDetailsOutput>> call(
+      GetAccountDetailsInput input) async {
     try {
-      final loaded = await _accountRepository.getById(AccountId(input.accountId));
+      final loaded =
+          await _accountRepository.getById(AccountId(input.accountId));
       if (loaded.isFailure) {
         return FailureResult(loaded.failureOrNull!);
       }
@@ -47,14 +49,16 @@ class GetAccountDetailsUseCase {
         }
       }
 
-      final partyDetailsR = await _accountRepository.getPartyDetails(account.id);
+      final partyDetailsR =
+          await _accountRepository.getPartyDetails(account.id);
       final partyDetails = partyDetailsR.valueOrNull;
 
       return Success(
         GetAccountDetailsOutput(
           accountId: account.id.value,
           name: account.name,
-          natureCode: account.nature == AccountNature.debit ? 'debit' : 'credit',
+          natureCode:
+              account.nature == AccountNature.debit ? 'debit' : 'credit',
           isActive: account.isActive,
           isRoot: account.isRoot,
           parentId: account.parentId?.value,

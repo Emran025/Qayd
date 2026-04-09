@@ -62,8 +62,7 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
 
     return Scaffold(
       appBar: QaydAppBar(
-        title: 
-          AppStringsAr.notificationPreviewTitle,        
+        title: AppStringsAr.notificationPreviewTitle,
       ),
       body: BlocConsumer<NotificationPreviewCubit, NotificationPreviewState>(
         listenWhen: (p, c) {
@@ -175,7 +174,8 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                                   if (r.isFailure) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(r.failureOrNull!.messageAr),
+                                        content:
+                                            Text(r.failureOrNull!.messageAr),
                                       ),
                                     );
                                   } else {
@@ -209,7 +209,8 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                                   if (r.isFailure) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(r.failureOrNull!.messageAr),
+                                        content:
+                                            Text(r.failureOrNull!.messageAr),
                                       ),
                                     );
                                   } else {
@@ -223,7 +224,8 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                                   }
                                 },
                                 icon: const Icon(Icons.chat_rounded),
-                                label: Text(AppStringsAr.notificationSendWhatsApp),
+                                label:
+                                    Text(AppStringsAr.notificationSendWhatsApp),
                               ),
                             ),
                           ],

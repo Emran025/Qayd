@@ -4,7 +4,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 
 /// Resolves a reciprocal matching conflict detected during synchronization (Protocol §1).
-/// 
+///
 /// If [merge] is true, the local Draft is confirmed (moving to ledger) and linked
 /// to the inbound ID. If false, the inbound claim is discarded as a duplicate.
 class ResolveConflictUseCase {
@@ -30,7 +30,8 @@ class ResolveConflictUseCase {
       final confirmResult = await _confirmVoucher(
         ConfirmVoucherInput(voucherId: localVoucherId),
       );
-      if (confirmResult.isFailure) return FailureResult(confirmResult.failureOrNull!);
+      if (confirmResult.isFailure)
+        return FailureResult(confirmResult.failureOrNull!);
     }
 
     return const Success(null);

@@ -95,8 +95,7 @@ final class GoogleDriveBackupService {
   }
 
   /// Returns the previously stored account email (for display when offline).
-  Future<String?> storedAccountEmail() =>
-      _storage.read(key: _kAccountEmail);
+  Future<String?> storedAccountEmail() => _storage.read(key: _kAccountEmail);
 
   // ── Settings ──────────────────────────────────────────────────────────────
 
@@ -251,8 +250,7 @@ final class GoogleDriveBackupService {
       }
 
       // 2. Download identity file (best-effort).
-      final identityPath =
-          p.join(downloadDir.path, _driveIdentityFileName);
+      final identityPath = p.join(downloadDir.path, _driveIdentityFileName);
       await _downloadFile(token, _driveIdentityFileName, identityPath);
 
       // 3. Download DB key (best-effort).
@@ -353,7 +351,8 @@ final class GoogleDriveBackupService {
     } else {
       // Create new file in appDataFolder using multipart upload.
       final metadata = '{"name":"$driveName","parents":["appDataFolder"]}';
-      final boundary = '===qayd_boundary_${DateTime.now().millisecondsSinceEpoch}===';
+      final boundary =
+          '===qayd_boundary_${DateTime.now().millisecondsSinceEpoch}===';
 
       final body = StringBuffer()
         ..write('--$boundary\r\n')

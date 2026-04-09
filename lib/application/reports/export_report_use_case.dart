@@ -1,1 +1,3 @@
-class ExportReportUseCase { const ExportReportUseCase(); }
+class ExportReportUseCase {
+  const ExportReportUseCase();
+}

@@ -1,1 +1,3 @@
-class ImportFromExcelUseCase { const ImportFromExcelUseCase(); }
+class ImportFromExcelUseCase {
+  const ImportFromExcelUseCase();
+}

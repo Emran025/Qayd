@@ -7,7 +7,8 @@ import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/transaction_fee_setting.dart';
 import 'package:qayd/domain/repositories/transaction_fee_settings_repository.dart';
 
-class MockTransactionFeeSettingsRepository extends Mock implements TransactionFeeSettingsRepository {}
+class MockTransactionFeeSettingsRepository extends Mock
+    implements TransactionFeeSettingsRepository {}
 
 class MockIdGenerator extends Mock implements IdGenerator {}
 
@@ -36,12 +37,15 @@ void main() {
       when(() => mockRepo.insert(any()))
           .thenAnswer((_) async => const Success(null));
 
-      final result = await useCase.enableFee(amountMinorUnits: 50, currencyCode: 'USD');
+      final result =
+          await useCase.enableFee(amountMinorUnits: 50, currencyCode: 'USD');
 
       expect(result.isSuccess, isTrue);
       verify(() => mockRepo.deactivateAll()).called(1);
       verify(() => mockIdGenerator.next()).called(1);
-      final captured = verify(() => mockRepo.insert(captureAny())).captured.first as TransactionFeeSetting;
+      final captured = verify(() => mockRepo.insert(captureAny()))
+          .captured
+          .first as TransactionFeeSetting;
       expect(captured.id, 'fee-1');
       expect(captured.amountMinorUnits, 50);
       expect(captured.currencyCode, 'USD');
@@ -53,18 +57,22 @@ void main() {
       when(() => mockRepo.deactivateAll())
           .thenAnswer((_) async => FailureResult(failure));
 
-      final result = await useCase.enableFee(amountMinorUnits: 50, currencyCode: 'USD');
+      final result =
+          await useCase.enableFee(amountMinorUnits: 50, currencyCode: 'USD');
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, equals(failure));
       verifyNever(() => mockIdGenerator.next());
       verifyNever(() => mockRepo.insert(any()));
     });
-    
-    test('Should return exception wrapped in validation failure if unexpected error occurs', () async {
+
+    test(
+        'Should return exception wrapped in validation failure if unexpected error occurs',
+        () async {
       when(() => mockRepo.deactivateAll()).thenThrow(Exception('Crash'));
 
-      final result = await useCase.enableFee(amountMinorUnits: 50, currencyCode: 'USD');
+      final result =
+          await useCase.enableFee(amountMinorUnits: 50, currencyCode: 'USD');
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, isA<ValidationFailure>());
@@ -81,8 +89,10 @@ void main() {
       expect(result.isSuccess, isTrue);
       verify(() => mockRepo.deactivateAll()).called(1);
     });
-    
-    test('Should return exception wrapped in validation failure if unexpected error occurs', () async {
+
+    test(
+        'Should return exception wrapped in validation failure if unexpected error occurs',
+        () async {
       when(() => mockRepo.deactivateAll()).thenThrow(Exception('Crash'));
 
       final result = await useCase.disableFee();

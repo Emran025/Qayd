@@ -6,7 +6,9 @@ import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/core/error/failures.dart';
 
-class MockNotificationMessageRepository extends Mock implements NotificationMessageRepository {}
+class MockNotificationMessageRepository extends Mock
+    implements NotificationMessageRepository {}
+
 class MockSyncEventDispatcher extends Mock implements SyncEventDispatcher {}
 
 void main() {
@@ -31,7 +33,8 @@ void main() {
   );
 
   group('CreateTripartiteRequestUseCase', () {
-    test('should succeed when both repo and dispatcher calls are successful', () async {
+    test('should succeed when both repo and dispatcher calls are successful',
+        () async {
       // Arrange
       when(() => mockNotificationRepo.insert(
             id: any(named: 'id'),
@@ -61,7 +64,7 @@ void main() {
             bodyText: any(named: 'bodyText'),
             createdAtIso: any(named: 'createdAtIso'),
           )).called(1);
-          
+
       verify(() => mockSyncDispatcher.dispatchGenericEvent(
             counterpartyAccountId: input.mediatorAccountId,
             eventType: 'tripartite_request',
@@ -81,10 +84,12 @@ void main() {
           )).thenAnswer((_) async => const Success(null));
 
       when(() => mockSyncDispatcher.dispatchGenericEvent(
-            counterpartyAccountId: any(named: 'counterpartyAccountId'),
-            eventType: any(named: 'eventType'),
-            payload: any(named: 'payload'),
-          )).thenAnswer((_) async => const FailureResult(ValidationFailure(messageAr: 'خطأ في التشفير')));
+                counterpartyAccountId: any(named: 'counterpartyAccountId'),
+                eventType: any(named: 'eventType'),
+                payload: any(named: 'payload'),
+              ))
+          .thenAnswer((_) async => const FailureResult(
+              ValidationFailure(messageAr: 'خطأ في التشفير')));
 
       // Act
       final result = await useCase.call(input);

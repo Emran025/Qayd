@@ -39,17 +39,14 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
   }
   // Map parent standard classification to child
   final roots = result.valueOrNull!.accounts.where((a) => a.isRoot).toList();
-  final classMap = {
-    for (final r in roots)
-      r.id: r.standardClassificationKind
-  };
+  final classMap = {for (final r in roots) r.id: r.standardClassificationKind};
 
   final accounts = result.valueOrNull!.accounts.where((a) {
     if (a.id == excludeAccountId) return false;
     if (requireNoRoot && a.isRoot) return false;
     if (!rootAllowed && a.isRoot) return false;
     if (onlyRoots && !a.isRoot) return false;
-    
+
     // Sterile roots filtering logic
     if (hideSterileRoots && a.isRoot) {
       if (sterileClassifications.contains(a.standardClassificationKind)) {
@@ -59,14 +56,15 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
 
     if (requireParentClassification != null) {
       if (a.isRoot) {
-         if (a.standardClassificationKind != requireParentClassification) return false;
+        if (a.standardClassificationKind != requireParentClassification)
+          return false;
       } else {
-         if (a.parentId != null) {
-           final pClass = classMap[a.parentId!];
-           if (pClass != requireParentClassification) return false;
-         } else {
-           return false;
-         }
+        if (a.parentId != null) {
+          final pClass = classMap[a.parentId!];
+          if (pClass != requireParentClassification) return false;
+        } else {
+          return false;
+        }
       }
     }
 
@@ -77,7 +75,8 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
       } else if (a.parentId != null) {
         currentClass = classMap[a.parentId!];
       }
-      if (currentClass == null || !allowedClassifications.contains(currentClass)) {
+      if (currentClass == null ||
+          !allowedClassifications.contains(currentClass)) {
         return false;
       }
     }
@@ -175,7 +174,8 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
                     horizontal: SpacingTokens.md,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  fillColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(SpacingTokens.sm),
                     borderSide: BorderSide.none,

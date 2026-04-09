@@ -365,8 +365,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     }
 
     for (final m in history) {
-      final current =
-          currentBalances[m.currencyCode] ??
+      final current = currentBalances[m.currencyCode] ??
           _BalanceSnapshot(
             code: m.currencyCode,
             symbol: m.currencySymbol,
@@ -716,7 +715,9 @@ class _ChatHeader extends StatelessWidget {
                           children: [
                             Text(
                               counterpartyName,
-                              style: Theme.of(context).textTheme.titleMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -725,7 +726,9 @@ class _ChatHeader extends StatelessWidget {
                               isUnified
                                   ? 'سجل السندات (موحد)'
                                   : '$messageCount ${AppStringsAr.statementVoucherCount}',
-                              style: Theme.of(context).textTheme.bodySmall
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
                                   ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
                           ],
@@ -921,12 +924,10 @@ class _ActiveFilterChips extends StatelessWidget {
 
     if (data.filter.fromDate != null || data.filter.toDate != null) {
       final df = DateFormat.yMd('ar');
-      final from = data.filter.fromDate != null
-          ? df.format(data.filter.fromDate!)
-          : '…';
-      final to = data.filter.toDate != null
-          ? df.format(data.filter.toDate!)
-          : '…';
+      final from =
+          data.filter.fromDate != null ? df.format(data.filter.fromDate!) : '…';
+      final to =
+          data.filter.toDate != null ? df.format(data.filter.toDate!) : '…';
       chips.add(
         InputChip(
           label: Text('$from → $to'),
@@ -1062,9 +1063,9 @@ class _UnreadSessionDivider extends StatelessWidget {
                 Text(
                   'رسائل جديدة غير مقروءة',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: custom.goldAccent,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: custom.goldAccent,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ],
             ),
@@ -1107,13 +1108,13 @@ class _SummaryFooter extends StatelessWidget {
     final statusLabel = isPositive
         ? AppStringsAr.statementBalanceForYou
         : isNegative
-        ? AppStringsAr.statementBalanceAgainstYou
-        : AppStringsAr.statementBalanceSettled;
+            ? AppStringsAr.statementBalanceAgainstYou
+            : AppStringsAr.statementBalanceSettled;
     final statusColor = isPositive
         ? custom.credit
         : isNegative
-        ? ColorTokens.errorDeep
-        : custom.confirmedState;
+            ? ColorTokens.errorDeep
+            : custom.confirmedState;
 
     return Container(
       decoration: BoxDecoration(
@@ -1149,15 +1150,15 @@ class _SummaryFooter extends StatelessWidget {
                 Text(
                   AppStringsAr.statementFinalBalance,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+                        color: scheme.onSurfaceVariant,
+                      ),
                 ),
                 Text(
                   statusLabel,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ],
             ),
@@ -1238,9 +1239,9 @@ class _ActionButton extends StatelessWidget {
               label,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ],
         ),
@@ -1273,14 +1274,14 @@ class _ChronologySummaryTable extends StatelessWidget {
               final color = isPositive
                   ? custom.credit
                   : isNegative
-                  ? ColorTokens.errorDeep
-                  : custom.confirmedState;
+                      ? ColorTokens.errorDeep
+                      : custom.confirmedState;
 
               final label = isPositive
                   ? 'لك'
                   : isNegative
-                  ? 'عليك'
-                  : 'متعادل';
+                      ? 'عليك'
+                      : 'متعادل';
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -1416,7 +1417,7 @@ class _MessageBubble extends StatelessWidget {
       symbol: msg.currencySymbol,
       fractionalDigits: msg.currencyDigits,
     );
-    final money = Money.nonNegative(msg.amountMinorUnits, currency);
+    final money = Money.fromMinorUnits(msg.amountMinorUnits, currency);
 
     final alignment = _isIncoming
         ? AlignmentDirectional.centerStart
@@ -1590,7 +1591,9 @@ class _MessageBubble extends StatelessWidget {
                                 ),
                                 child: Text(
                                   msg.currencyCode,
-                                  style: Theme.of(context).textTheme.labelSmall
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
                                       ?.copyWith(
                                         color: statusColor,
                                         fontWeight: FontWeight.w700,
@@ -1614,7 +1617,9 @@ class _MessageBubble extends StatelessWidget {
                               msg.description,
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
                                   ?.copyWith(
                                     color: scheme.onSurfaceVariant,
                                     height: 1.4,
@@ -1637,8 +1642,10 @@ class _MessageBubble extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: scheme.tertiaryContainer.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                                color: scheme.tertiaryContainer
+                                    .withValues(alpha: 0.3),
+                                borderRadius:
+                                    BorderRadius.circular(RadiusTokens.sm),
                                 border: Border.all(
                                   color: scheme.tertiary.withValues(alpha: 0.2),
                                 ),
@@ -1654,28 +1661,38 @@ class _MessageBubble extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       'حوالة عبر الوسيط: ${msg.mediatorName}',
-                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
                                             color: scheme.onTertiaryContainer,
                                             fontWeight: FontWeight.w600,
                                           ),
                                     ),
                                   ),
-                                  if (msg.feeAmountMinorUnits != null && msg.feeAmountMinorUnits! > 0) ...[
+                                  if (msg.feeAmountMinorUnits != null &&
+                                      msg.feeAmountMinorUnits! > 0) ...[
                                     Container(
                                       width: 1,
                                       height: 12,
-                                      color: scheme.tertiary.withValues(alpha: 0.3),
-                                      margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.xs),
+                                      color: scheme.tertiary
+                                          .withValues(alpha: 0.3),
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: SpacingTokens.xs),
                                     ),
                                     Text(
                                       'الرسوم: ',
-                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
                                             color: scheme.tertiary,
                                             fontWeight: FontWeight.w700,
                                           ),
                                     ),
                                     QaydMoneyDisplay(
-                                      money: Money.nonNegative(msg.feeAmountMinorUnits!, currency),
+                                      money: Money.fromMinorUnits(
+                                          msg.feeAmountMinorUnits!, currency),
                                       size: QaydMoneyDisplaySize.small,
                                     ),
                                   ],
@@ -1715,7 +1732,9 @@ class _MessageBubble extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 dateStr,
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
                                     ?.copyWith(
                                       color: scheme.onSurfaceVariant.withValues(
                                         alpha: 0.6,
@@ -1735,7 +1754,9 @@ class _MessageBubble extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 '${AppStringsAr.statementRunningBalance}: ',
-                                style: Theme.of(context).textTheme.bodySmall
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
                                     ?.copyWith(
                                       color: scheme.onSurfaceVariant.withValues(
                                         alpha: 0.5,
@@ -1802,9 +1823,8 @@ class _MessageBubble extends StatelessWidget {
           children: [
             Expanded(
               child: FilledButton.icon(
-                onPressed: mutating
-                    ? null
-                    : () async => onAccept(msg.voucherId),
+                onPressed:
+                    mutating ? null : () async => onAccept(msg.voucherId),
                 icon: const Icon(Icons.check_rounded, size: 16),
                 label: Text(AppStringsAr.statementChatAccept),
                 style: FilledButton.styleFrom(
@@ -1822,9 +1842,8 @@ class _MessageBubble extends StatelessWidget {
             const SizedBox(width: SpacingTokens.sm),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: mutating
-                    ? null
-                    : () async => onReject(msg.voucherId),
+                onPressed:
+                    mutating ? null : () async => onReject(msg.voucherId),
                 icon: const Icon(Icons.close_rounded, size: 16),
                 label: Text(AppStringsAr.statementChatReject),
                 style: OutlinedButton.styleFrom(
@@ -1862,9 +1881,8 @@ class _MessageBubble extends StatelessWidget {
           if (showResubmit)
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: mutating
-                    ? null
-                    : () async => onResubmit(msg.voucherId),
+                onPressed:
+                    mutating ? null : () async => onResubmit(msg.voucherId),
                 icon: const Icon(Icons.refresh_rounded, size: 16),
                 label: Text(AppStringsAr.statementChatResubmit),
                 style: OutlinedButton.styleFrom(
@@ -1886,9 +1904,8 @@ class _MessageBubble extends StatelessWidget {
           if (showWithdraw)
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: mutating
-                    ? null
-                    : () async => onWithdraw(msg.voucherId),
+                onPressed:
+                    mutating ? null : () async => onWithdraw(msg.voucherId),
                 icon: const Icon(Icons.undo_rounded, size: 16),
                 label: Text(AppStringsAr.statementChatWithdraw),
                 style: OutlinedButton.styleFrom(
@@ -1938,8 +1955,8 @@ class _BalanceAmountText extends StatelessWidget {
     final color = isPositive
         ? custom.credit
         : isNegative
-        ? ColorTokens.errorDeep
-        : custom.confirmedState;
+            ? ColorTokens.errorDeep
+            : custom.confirmedState;
 
     num divisor = 1;
     for (var i = 0; i < currencyDigits; i++) {

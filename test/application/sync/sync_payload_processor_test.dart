@@ -22,15 +22,26 @@ import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 
 class MockIdentityRepository extends Mock implements IdentityRepository {}
+
 class MockVoucherRepository extends Mock implements VoucherRepository {}
+
 class MockLedgerRepository extends Mock implements LedgerRepository {}
+
 class MockAccountRepository extends Mock implements AccountRepository {}
+
 class MockCurrencyRepository extends Mock implements CurrencyRepository {}
-class MockNotificationMessageRepository extends Mock implements NotificationMessageRepository {}
+
+class MockNotificationMessageRepository extends Mock
+    implements NotificationMessageRepository {}
+
 class MockE2EEEncryptionService extends Mock implements E2EEEncryptionService {}
+
 class MockReceiptSigningService extends Mock implements ReceiptSigningService {}
+
 class MockAttachmentRepository extends Mock implements AttachmentRepository {}
+
 class MockCollateralRepository extends Mock implements CollateralRepository {}
+
 class MockVoucherKeyService extends Mock implements VoucherKeyService {}
 
 void main() {
@@ -56,19 +67,23 @@ void main() {
       e2eeService: mockE2ee,
       signingService: MockReceiptSigningService(),
       getCurrentUserKeyPair: () async => CryptoKeyPair.fromHex(
-        publicKeyHex: '0000000000000000000000000000000000000000000000000000000000000000',
-        privateKeyHex: '0000000000000000000000000000000000000000000000000000000000000000',
+        publicKeyHex:
+            '0000000000000000000000000000000000000000000000000000000000000000',
+        privateKeyHex:
+            '0000000000000000000000000000000000000000000000000000000000000000',
       ),
       attachmentRepository: MockAttachmentRepository(),
       collateralRepository: MockCollateralRepository(),
       voucherKeyService: MockVoucherKeyService(),
     );
-    
-    registerFallbackValue(CryptoKeyPair(publicKey: Uint8List(32), privateKey: Uint8List(32)));
+
+    registerFallbackValue(
+        CryptoKeyPair(publicKey: Uint8List(32), privateKey: Uint8List(32)));
   });
 
   group('SyncPayloadProcessor - TripartiteRequest', () {
-    test('should process inbound tripartite request and save notification', () async {
+    test('should process inbound tripartite request and save notification',
+        () async {
       // Arrange
       final node = SyncNode(
         id: 'node-123',
@@ -109,10 +124,10 @@ void main() {
             receiverKeyPair: any(named: 'receiverKeyPair'),
             senderPublicKeyHex: any(named: 'senderPublicKeyHex'),
           )).thenAnswer((_) async => {
-                'type': 'tripartite_request',
-                'amountMinorUnits': 1000,
-                'currencyCode': 'SAR',
-              });
+            'type': 'tripartite_request',
+            'amountMinorUnits': 1000,
+            'currencyCode': 'SAR',
+          });
 
       when(() => mockAccountRepo.getById(AccountId('101')))
           .thenAnswer((_) async => Success(senderAccount));

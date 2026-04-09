@@ -45,7 +45,8 @@ class GlassCard extends StatelessWidget {
 // ── Hero Background ───────────────────────────────────────────────────────
 
 class HeroBackground extends StatelessWidget {
-  const HeroBackground({super.key, 
+  const HeroBackground({
+    super.key,
     required this.trend,
     required this.typeColor,
     required this.isProfit,
@@ -92,7 +93,8 @@ class HeroBackground extends StatelessWidget {
                       lineBarsData: [
                         LineChartBarData(
                           spots: trend.asMap().entries.map((e) {
-                            return FlSpot(e.key.toDouble(), e.value.totalMinor.toDouble());
+                            return FlSpot(e.key.toDouble(),
+                                e.value.totalMinor.toDouble());
                           }).toList(),
                           isCurved: true,
                           color: Colors.white,
@@ -125,7 +127,9 @@ class HeroBackground extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        isProfit ? Icons.trending_up_rounded : Icons.pie_chart_rounded,
+                        isProfit
+                            ? Icons.trending_up_rounded
+                            : Icons.pie_chart_rounded,
                         color: Colors.white,
                         size: 32,
                       ),
@@ -186,15 +190,18 @@ class DashKpiCard extends StatefulWidget {
   State<DashKpiCard> createState() => _DashKpiCardState();
 }
 
-class _DashKpiCardState extends State<DashKpiCard> with SingleTickerProviderStateMixin {
+class _DashKpiCardState extends State<DashKpiCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _anim = Tween<double>(begin: 0, end: widget.value).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1500));
+    _anim = Tween<double>(begin: 0, end: widget.value)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
     _ctrl.forward();
   }
 
@@ -202,7 +209,8 @@ class _DashKpiCardState extends State<DashKpiCard> with SingleTickerProviderStat
   void didUpdateWidget(covariant DashKpiCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
-      _anim = Tween<double>(begin: _anim.value, end: widget.value).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+      _anim = Tween<double>(begin: _anim.value, end: widget.value)
+          .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
       _ctrl.forward(from: 0);
     }
   }
@@ -262,7 +270,7 @@ class TrendLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    
+
     // Find max value for Y axis padding
     var maxY = trend.map((e) => e.totalMinor.toDouble()).reduce(max);
     if (maxY == 0) maxY = 100; // prevent empty chart issues
@@ -280,9 +288,12 @@ class TrendLineChart extends StatelessWidget {
         ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -334,7 +345,8 @@ class TrendLineChart extends StatelessWidget {
             isStrokeCapRound: true,
             dotData: FlDotData(
               show: true,
-              getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+              getDotPainter: (spot, percent, barData, index) =>
+                  FlDotCirclePainter(
                 radius: 4,
                 color: scheme.surface,
                 strokeWidth: 2,
@@ -364,7 +376,8 @@ class TrendLineChart extends StatelessWidget {
 // ── Donut Chart ───────────────────────────────────────────────────────────
 
 class DonutChart extends StatefulWidget {
-  const DonutChart({super.key, required this.items, this.activeDimId, required this.onTap});
+  const DonutChart(
+      {super.key, required this.items, this.activeDimId, required this.onTap});
   final List<DimensionBreakdownItem> items;
   final String? activeDimId;
   final ValueChanged<String> onTap;
@@ -407,9 +420,12 @@ class _DonutChartState extends State<DonutChart> {
                       _touchedIndex = -1;
                       return;
                     }
-                    _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                    if (event is FlTapUpEvent && _touchedIndex >= 0 && _touchedIndex < widget.items.length) {
-                       widget.onTap(widget.items[_touchedIndex].dimensionId);
+                    _touchedIndex =
+                        pieTouchResponse.touchedSection!.touchedSectionIndex;
+                    if (event is FlTapUpEvent &&
+                        _touchedIndex >= 0 &&
+                        _touchedIndex < widget.items.length) {
+                      widget.onTap(widget.items[_touchedIndex].dimensionId);
                     }
                   });
                 },
@@ -422,8 +438,9 @@ class _DonutChartState extends State<DonutChart> {
                 final item = e.value;
                 final isTouched = i == _touchedIndex;
                 final isSelected = widget.activeDimId == item.dimensionId;
-                final isOtherSelected = widget.activeDimId != null && !isSelected;
-                
+                final isOtherSelected =
+                    widget.activeDimId != null && !isSelected;
+
                 final radius = isTouched || isSelected ? 40.0 : 30.0;
                 final opacity = isOtherSelected ? 0.3 : 1.0;
                 final c = colors[i % colors.length].withValues(alpha: opacity);
@@ -455,7 +472,7 @@ class _DonutChartState extends State<DonutChart> {
               final c = colors[e.key % colors.length];
               final isSelected = widget.activeDimId == item.dimensionId;
               final isOtherSelected = widget.activeDimId != null && !isSelected;
-              
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: GestureDetector(
@@ -465,7 +482,11 @@ class _DonutChartState extends State<DonutChart> {
                     duration: const Duration(milliseconds: 300),
                     child: Row(
                       children: [
-                        Container(width: 8, height: 8, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
+                        Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                                color: c, shape: BoxShape.circle)),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -513,23 +534,27 @@ class BudgetGauge extends StatefulWidget {
   State<BudgetGauge> createState() => _BudgetGaugeState();
 }
 
-class _BudgetGaugeState extends State<BudgetGauge> with SingleTickerProviderStateMixin {
+class _BudgetGaugeState extends State<BudgetGauge>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   late Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _anim = Tween<double>(begin: 0, end: widget.utilization).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1500));
+    _anim = Tween<double>(begin: 0, end: widget.utilization)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
     _ctrl.forward();
   }
-  
+
   @override
   void didUpdateWidget(covariant BudgetGauge oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.utilization != widget.utilization) {
-      _anim = Tween<double>(begin: _anim.value, end: widget.utilization).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+      _anim = Tween<double>(begin: _anim.value, end: widget.utilization)
+          .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
       _ctrl.forward(from: 0);
     }
   }
@@ -544,7 +569,7 @@ class _BudgetGaugeState extends State<BudgetGauge> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isOver = widget.utilization > 1.0;
-    
+
     // Gauge colors
     final activeColor = isOver ? ColorTokens.errorSoft : widget.typeColor;
     final bgColor = scheme.onSurface.withValues(alpha: 0.1);
@@ -554,66 +579,69 @@ class _BudgetGaugeState extends State<BudgetGauge> with SingleTickerProviderStat
         SizedBox(
           height: 100,
           child: AnimatedBuilder(
-            animation: _anim,
-            builder: (context, _) {
-              final val = _anim.value;
-              final displayVal = min(val, 1.0); // max 100% for the arc
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  PieChart(
-                    PieChartData(
-                      startDegreeOffset: 180,
-                      sectionsSpace: 0,
-                      centerSpaceRadius: 35,
-                      sections: [
-                        PieChartSectionData(
-                          color: activeColor,
-                          value: displayVal * 100,
-                          radius: 12,
-                          showTitle: false,
-                        ),
-                        PieChartSectionData(
-                          color: bgColor,
-                          value: (1 - displayVal) * 100,
-                          radius: 12,
-                          showTitle: false,
-                        ),
-                        // Hidden section to make it a semi-circle
-                        PieChartSectionData(
-                          color: Colors.transparent,
-                          value: 100,
-                          radius: 12,
-                          showTitle: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 25,
-                    child: Text(
-                      '${(val * 100).toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: activeColor,
+              animation: _anim,
+              builder: (context, _) {
+                final val = _anim.value;
+                final displayVal = min(val, 1.0); // max 100% for the arc
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        startDegreeOffset: 180,
+                        sectionsSpace: 0,
+                        centerSpaceRadius: 35,
+                        sections: [
+                          PieChartSectionData(
+                            color: activeColor,
+                            value: displayVal * 100,
+                            radius: 12,
+                            showTitle: false,
+                          ),
+                          PieChartSectionData(
+                            color: bgColor,
+                            value: (1 - displayVal) * 100,
+                            radius: 12,
+                            showTitle: false,
+                          ),
+                          // Hidden section to make it a semi-circle
+                          PieChartSectionData(
+                            color: Colors.transparent,
+                            value: 100,
+                            radius: 12,
+                            showTitle: false,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              );
-            }
-          ),
+                    Positioned(
+                      bottom: 25,
+                      child: Text(
+                        '${(val * 100).toStringAsFixed(0)}%',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: activeColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
         ),
         if (isOver)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.warning_amber_rounded, size: 14, color: ColorTokens.errorSoft),
+              const Icon(Icons.warning_amber_rounded,
+                  size: 14, color: ColorTokens.errorSoft),
               const SizedBox(width: 4),
               Text(
                 AppStringsAr.costCenterOverBudgetWarning,
-                style: const TextStyle(color: ColorTokens.errorSoft, fontSize: 11, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: ColorTokens.errorSoft,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold),
               ),
             ],
           )
@@ -641,7 +669,8 @@ class VoucherActivityCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final isReceipt = summary.type == VoucherType.receipt;
     final c = isReceipt ? ColorTokens.debitBlue : ColorTokens.creditGreen;
-    final icon = isReceipt ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+    final icon =
+        isReceipt ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
 
     return Card(
       elevation: 0,
@@ -651,7 +680,8 @@ class VoucherActivityCard extends StatelessWidget {
         side: BorderSide(color: scheme.onSurface.withValues(alpha: 0.05)),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.md, vertical: 4),
         leading: CircleAvatar(
           backgroundColor: c.withValues(alpha: 0.1),
           foregroundColor: c,
@@ -676,7 +706,9 @@ class VoucherActivityCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               DateFormat('yyyy-MM-dd').format(summary.date),
-              style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant.withValues(alpha: 0.7)),
+              style: TextStyle(
+                  fontSize: 10,
+                  color: scheme.onSurfaceVariant.withValues(alpha: 0.7)),
             ),
           ],
         ),

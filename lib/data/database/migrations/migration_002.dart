@@ -1,1 +1,3 @@
-class Migration002 { const Migration002(); }
+class Migration002 {
+  const Migration002();
+}

@@ -47,8 +47,9 @@ final class CostCenterDetailsDto {
       monthlyTrend.isEmpty ? 0 : monthlyTrend.last.totalMinor;
 
   /// Previous month total in minor units.
-  int get prevMonthTotal =>
-      monthlyTrend.length < 2 ? 0 : monthlyTrend[monthlyTrend.length - 2].totalMinor;
+  int get prevMonthTotal => monthlyTrend.length < 2
+      ? 0
+      : monthlyTrend[monthlyTrend.length - 2].totalMinor;
 
   /// Month-over-month growth percentage (null if no previous data).
   double? get growthPct {

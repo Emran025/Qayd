@@ -1,66 +1,48 @@
 import 'package:qayd/domain/value_objects/account_id.dart';
-import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 
-/// One row in a trial balance: amounts in minor units in debit and/or credit columns.
+/// One row in a trial balance report, containing hierarchical metadata and
+/// six balance columns (Opening, Period Movement, Closing) for both Debit and Credit.
 final class TrialBalanceLine {
   const TrialBalanceLine({
     required this.accountId,
+    required this.accountCode,
+    required this.accountName,
+    required this.accountLevel,
+    required this.isParent,
     required this.currency,
-    required this.debitMinorUnits,
-    required this.creditMinorUnits,
-  }) : assert(debitMinorUnits >= 0 && creditMinorUnits >= 0);
+    required this.openingDebitMinorUnits,
+    required this.openingCreditMinorUnits,
+    required this.periodDebitMinorUnits,
+    required this.periodCreditMinorUnits,
+    required this.closingDebitMinorUnits,
+    required this.closingCreditMinorUnits,
+  });
 
   final AccountId accountId;
+  final String accountCode;
+  final String accountName;
+  final int accountLevel;
+  final bool isParent;
   final CurrencyCode currency;
-  final int debitMinorUnits;
-  final int creditMinorUnits;
 
-  /// Maps signed minor units (debit-nature: debits − credits; credit-nature: credits − debits)
-  /// into non-negative debit and credit display columns.
-  factory TrialBalanceLine.fromSignedBalance({
-    required AccountId accountId,
-    required AccountNature accountNature,
-    required CurrencyCode currency,
-    required int signedMinorUnits,
-  }) {
-    if (signedMinorUnits == 0) {
-      return TrialBalanceLine(
-        accountId: accountId,
-        currency: currency,
-        debitMinorUnits: 0,
-        creditMinorUnits: 0,
-      );
-    }
-    if (accountNature == AccountNature.debit) {
-      if (signedMinorUnits > 0) {
-        return TrialBalanceLine(
-          accountId: accountId,
-          currency: currency,
-          debitMinorUnits: signedMinorUnits,
-          creditMinorUnits: 0,
-        );
-      }
-      return TrialBalanceLine(
-        accountId: accountId,
-        currency: currency,
-        debitMinorUnits: 0,
-        creditMinorUnits: -signedMinorUnits,
-      );
-    }
-    if (signedMinorUnits > 0) {
-      return TrialBalanceLine(
-        accountId: accountId,
-        currency: currency,
-        debitMinorUnits: 0,
-        creditMinorUnits: signedMinorUnits,
-      );
-    }
-    return TrialBalanceLine(
-      accountId: accountId,
-      currency: currency,
-      debitMinorUnits: -signedMinorUnits,
-      creditMinorUnits: 0,
-    );
-  }
+  // Opening Balance
+  final int openingDebitMinorUnits;
+  final int openingCreditMinorUnits;
+
+  // Period Movement
+  final int periodDebitMinorUnits;
+  final int periodCreditMinorUnits;
+
+  // Closing Balance
+  final int closingDebitMinorUnits;
+  final int closingCreditMinorUnits;
+
+  /// Helper to calculate the net signed movement (positive for debit, negative for credit).
+  int get netMovementMinorUnits =>
+      periodDebitMinorUnits - periodCreditMinorUnits;
+
+  /// Helper to calculate the net signed closing balance.
+  int get netClosingMinorUnits =>
+      closingDebitMinorUnits - closingCreditMinorUnits;
 }

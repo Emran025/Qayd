@@ -55,13 +55,13 @@ final class WithdrawVoucherUseCase {
         final childrenRes = await _voucherRepository.getByOriginVoucherId(v.id);
         if (childrenRes.isSuccess) {
           for (final child in childrenRes.valueOrNull!) {
-             // If it's an automated internal posting, withdraw it too
-             if (child.state.isConfirmed && child.originVoucherId == v.id) {
-                // Internal vouchers can be withdrawn even if confirmed 
-                // because they have no counterparty agreement constraints.
-                final withdrawnChild = child.withdraw(now);
-                await _voucherRepository.save(withdrawnChild);
-             }
+            // If it's an automated internal posting, withdraw it too
+            if (child.state.isConfirmed && child.originVoucherId == v.id) {
+              // Internal vouchers can be withdrawn even if confirmed
+              // because they have no counterparty agreement constraints.
+              final withdrawnChild = child.withdraw(now);
+              await _voucherRepository.save(withdrawnChild);
+            }
           }
         }
       }

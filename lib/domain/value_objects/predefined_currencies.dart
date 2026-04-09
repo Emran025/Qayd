@@ -80,6 +80,16 @@ abstract final class PredefinedCurrencies {
   );
 
   static const List<CurrencyCode> all = [
-    sar, yer, usd, eur, aed, kwd, bhd, omr, qar, egp, jod,
+    sar,
+    yer,
+    usd,
+    eur,
+    aed,
+    kwd,
+    bhd,
+    omr,
+    qar,
+    egp,
+    jod,
   ];
 }

@@ -16,28 +16,34 @@ final class SqliteAccrualRepository implements AccrualRepository {
       final rows = await _db.query(_table, orderBy: 'next_due_date ASC');
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
-      return const FailureResult(DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاقات.'));
+      return const FailureResult(
+          DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاقات.'));
     }
   }
 
   @override
   Future<Result<AccrualComponent?>> getById(String id) async {
     try {
-      final rows = await _db.query(_table, where: 'id = ?', whereArgs: [id], limit: 1);
+      final rows =
+          await _db.query(_table, where: 'id = ?', whereArgs: [id], limit: 1);
       if (rows.isEmpty) return const Success(null);
       return Success(_fromRow(rows.first));
     } catch (_) {
-      return const FailureResult(DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاق.'));
+      return const FailureResult(
+          DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاق.'));
     }
   }
 
   @override
-  Future<Result<List<AccrualComponent>>> getByCostCenter(String costCenterId) async {
+  Future<Result<List<AccrualComponent>>> getByCostCenter(
+      String costCenterId) async {
     try {
-      final rows = await _db.query(_table, where: 'cost_center_id = ?', whereArgs: [costCenterId]);
+      final rows = await _db.query(_table,
+          where: 'cost_center_id = ?', whereArgs: [costCenterId]);
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
-      return const FailureResult(DatabaseFailure(messageAr: 'تعذر قراءة استحقاقات المركز.'));
+      return const FailureResult(
+          DatabaseFailure(messageAr: 'تعذر قراءة استحقاقات المركز.'));
     }
   }
 
@@ -46,13 +52,14 @@ final class SqliteAccrualRepository implements AccrualRepository {
     try {
       final dateStr = at.toIso8601String().split('T').first;
       final rows = await _db.query(
-        _table, 
-        where: 'next_due_date <= ? AND is_active = 1', 
+        _table,
+        where: 'next_due_date <= ? AND is_active = 1',
         whereArgs: [dateStr],
       );
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
-      return const FailureResult(DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاقات المستحقة.'));
+      return const FailureResult(
+          DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاقات المستحقة.'));
     }
   }
 
@@ -66,7 +73,8 @@ final class SqliteAccrualRepository implements AccrualRepository {
       );
       return const Success(null);
     } catch (_) {
-      return const FailureResult(DatabaseFailure(messageAr: 'تعذر حفظ الاستحقاق.'));
+      return const FailureResult(
+          DatabaseFailure(messageAr: 'تعذر حفظ الاستحقاق.'));
     }
   }
 
@@ -76,7 +84,8 @@ final class SqliteAccrualRepository implements AccrualRepository {
       await _db.delete(_table, where: 'id = ?', whereArgs: [id]);
       return const Success(null);
     } catch (_) {
-      return const FailureResult(DatabaseFailure(messageAr: 'تعذر حذف الاستحقاق.'));
+      return const FailureResult(
+          DatabaseFailure(messageAr: 'تعذر حذف الاستحقاق.'));
     }
   }
 

@@ -12,7 +12,7 @@ abstract interface class NativeNotificationService {
     required String body,
     String? payload,
   });
-  
+
   /// Initialize native notification channels and permissions.
   Future<void> initialize();
 }

@@ -20,7 +20,9 @@ import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/core/error/failures.dart';
 
 class MockAccountRepository extends Mock implements AccountRepository {}
+
 class MockLedgerRepository extends Mock implements LedgerRepository {}
+
 class MockVoucherRepository extends Mock implements VoucherRepository {}
 
 class MockBalanceCalculator extends Mock implements BalanceCalculator {}
@@ -66,10 +68,9 @@ void main() {
     when(() => mockVoucherRepo.getAll())
         .thenAnswer((_) async => const Success([]));
     when(() => mockBalanceCalc.signedBalanceMinorUnitsPerCurrency(
-            entries: any(named: 'entries'),
-            accountId: any(named: 'accountId'),
-            nature: any(named: 'nature')))
-        .thenReturn({});
+        entries: any(named: 'entries'),
+        accountId: any(named: 'accountId'),
+        nature: any(named: 'nature'))).thenReturn({});
 
     final result = await useCase(const ListAccountsInput());
 
@@ -85,7 +86,12 @@ void main() {
       classification: AccountClassification.settlements,
       createdAt: DateTime.now(),
     );
-    final currency = CurrencyCode(code: 'USD', nameAr: 'دولار أمريكي', symbol: r'$', fractionalDigits: 2, isActive: true);
+    final currency = CurrencyCode(
+        code: 'USD',
+        nameAr: 'دولار أمريكي',
+        symbol: r'$',
+        fractionalDigits: 2,
+        isActive: true);
 
     final voucher = Voucher.draft(
       id: VoucherId('v-123'),
@@ -104,9 +110,7 @@ void main() {
         publicKeyHex: 'pubhex',
         isSender: true,
         status: AgreementStatus.accepted,
-        signerPhone: '123'
-    );
-
+        signerPhone: '123');
 
     when(() => mockAccountRepo.getAll(activeOnly: any(named: 'activeOnly')))
         .thenAnswer((_) async => Success([account]));
@@ -115,10 +119,9 @@ void main() {
     when(() => mockVoucherRepo.getAll())
         .thenAnswer((_) async => Success([acceptedVoucher]));
     when(() => mockBalanceCalc.signedBalanceMinorUnitsPerCurrency(
-            entries: any(named: 'entries'),
-            accountId: any(named: 'accountId'),
-            nature: any(named: 'nature')))
-        .thenReturn({});
+        entries: any(named: 'entries'),
+        accountId: any(named: 'accountId'),
+        nature: any(named: 'nature'))).thenReturn({});
 
     final result = await useCase(const ListAccountsInput());
 
@@ -126,7 +129,8 @@ void main() {
     expect(result.valueOrNull?.accounts, hasLength(1));
     final balances = result.valueOrNull?.accounts.first.balancesMinorUnits;
     expect(balances, isNotNull);
-    expect(balances!['USD'], -100); // Affected account on receipt is debit side, settlements is a liability (credit nature) -> so debit reduces it.
+    expect(balances!['USD'],
+        -100); // Affected account on receipt is debit side, settlements is a liability (credit nature) -> so debit reduces it.
   });
 
   test('should handle exception gracefully', () async {

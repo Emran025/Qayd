@@ -113,18 +113,14 @@ void main() {
 
     when(() => mockQrService.generateQrData(voucher, '12345'))
         .thenReturn('qr-data');
-    
+
     when(() => mockCostCenterRepo.getCostCenterIdsForVoucher('v-1'))
         .thenAnswer((_) async => const Success([]));
 
     final result =
         await useCase(const GetVoucherDetailsInput(voucherId: 'v-1'));
 
-    if (result.isFailure) {
-      print('Failure: ${result.failureOrNull?.messageAr}');
-      print('Failure Type: ${result.failureOrNull.runtimeType}');
-      print('Failure Exception: ${result.failureOrNull.toString()}');
-    }
+    if (result.isFailure) {}
 
     expect(result.isSuccess, isTrue);
     final out = result.valueOrNull!;

@@ -24,6 +24,7 @@ import 'package:qayd/application/messaging/delete_message_template_use_case.dart
 import 'package:qayd/application/messaging/list_message_templates_use_case.dart';
 import 'package:qayd/application/messaging/log_notification_intent_use_case.dart';
 import 'package:qayd/application/reports/generate_trial_balance_use_case.dart';
+import 'package:qayd/application/reports/generate_balance_sheet_use_case.dart';
 import 'package:qayd/application/settings/get_active_transaction_fee_use_case.dart';
 import 'package:qayd/application/settings/manage_transaction_fee_use_case.dart';
 import 'package:qayd/application/settings/get_base_currency_use_case.dart';
@@ -89,6 +90,7 @@ import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/services/trial_balance_generator.dart';
+import 'package:qayd/domain/services/balance_sheet_generator.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/data/security/ed25519_identity_service.dart';
 import 'package:qayd/data/security/identity_file_storage.dart';
@@ -178,7 +180,8 @@ abstract final class InjectionContainer {
   static late final IdentityRepository identityRepository;
   static late final SetupIdentityUseCase setupIdentityUseCase;
   static late final UpdateProfileUseCase updateProfileUseCase;
-  static late final SyncIdentityToInternalAccountsUseCase syncIdentityToInternalAccountsUseCase;
+  static late final SyncIdentityToInternalAccountsUseCase
+      syncIdentityToInternalAccountsUseCase;
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
 
@@ -200,7 +203,7 @@ abstract final class InjectionContainer {
 
   static late CreateAccountUseCase createAccountUseCase;
   static late BatchImportAccountsFromCsvUseCase
-  batchImportAccountsFromCsvUseCase;
+      batchImportAccountsFromCsvUseCase;
   static late UpdateAccountUseCase updateAccountUseCase;
   static late DeactivateAccountUseCase deactivateAccountUseCase;
   static late GetAccountDetailsUseCase getAccountDetailsUseCase;
@@ -219,6 +222,7 @@ abstract final class InjectionContainer {
   static late GetVoucherDetailsUseCase getVoucherDetailsUseCase;
   static late ResolveConflictUseCase resolveConflictUseCase;
   static late GenerateTrialBalanceUseCase generateTrialBalanceUseCase;
+  static late GenerateBalanceSheetUseCase generateBalanceSheetUseCase;
   static late VoucherPdfGenerator voucherPdfGenerator;
   static late ListInboxNotificationsUseCase listInboxNotificationsUseCase;
   static late NotificationsCubit notificationsCubit;
@@ -234,7 +238,7 @@ abstract final class InjectionContainer {
   static late NotificationMessageRepository notificationMessageRepository;
   static late GetAutoSuggestionsUseCase getAutoSuggestionsUseCase;
   static late MarkNotificationMessageProcessedUseCase
-  markNotificationMessageProcessedUseCase;
+      markNotificationMessageProcessedUseCase;
   static late ListCurrenciesUseCase listCurrenciesUseCase;
   static late GetBaseCurrencyUseCase getBaseCurrencyUseCase;
   static late SetBaseCurrencyUseCase setBaseCurrencyUseCase;
@@ -380,8 +384,7 @@ abstract final class InjectionContainer {
 
     // ── Encryption key provider ─────────────────────────────────────────────
 
-    _encryptionKeyProvider =
-        encryptionKeyProvider ??
+    _encryptionKeyProvider = encryptionKeyProvider ??
         HardwareBackedEncryptionKeyProvider(
           hardwareIdService: hardwareIdService,
           licenseVault: licenseVault,
@@ -528,6 +531,7 @@ abstract final class InjectionContainer {
     const balanceCalculator = BalanceCalculator();
     const entryGenerator = EntryGenerator();
     const trialBalanceGenerator = TrialBalanceGenerator();
+    const balanceSheetGenerator = BalanceSheetGenerator();
     const voucherQrService = VoucherQrService();
 
     // ── Cost and Profit Centers ───────────────────────────────────────────
@@ -661,6 +665,11 @@ abstract final class InjectionContainer {
       ledgerRepository,
       trialBalanceGenerator,
     );
+    generateBalanceSheetUseCase = GenerateBalanceSheetUseCase(
+      accountRepository,
+      ledgerRepository,
+      balanceSheetGenerator,
+    );
     voucherPdfGenerator = const CairoVoucherPdfGenerator();
     accountStatementPdfGenerator = const CairoAccountStatementPdfGenerator();
 
@@ -784,6 +793,7 @@ abstract final class InjectionContainer {
     accrualRepository = SqliteAccrualRepository(database);
     listAccrualsUseCase = ListAccrualsUseCase(accrualRepository);
     saveAccrualUseCase = SaveAccrualUseCase(accrualRepository, _idGenerator);
-    processAccrualUseCase = ProcessAccrualUseCase(accrualRepository, createVoucherUseCase);
+    processAccrualUseCase =
+        ProcessAccrualUseCase(accrualRepository, createVoucherUseCase);
   }
 }

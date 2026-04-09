@@ -14,7 +14,8 @@ class TransferFeesSettingsSection extends StatefulWidget {
       _TransferFeesSettingsSectionState();
 }
 
-class _TransferFeesSettingsSectionState extends State<TransferFeesSettingsSection> {
+class _TransferFeesSettingsSectionState
+    extends State<TransferFeesSettingsSection> {
   final _amountController = TextEditingController();
   bool _enabled = false;
   String? _currencyCode;
@@ -29,13 +30,14 @@ class _TransferFeesSettingsSectionState extends State<TransferFeesSettingsSectio
   Future<void> _load() async {
     final res = await InjectionContainer.getActiveTransactionFeeUseCase();
     final baseCurrencyRes = await InjectionContainer.getBaseCurrencyUseCase();
-    
+
     if (mounted) {
       setState(() {
         if (res.isSuccess && res.valueOrNull != null) {
           final fee = res.valueOrNull!;
           _enabled = true;
-          _amountController.text = formatMinorAmountForField(fee.amountMinorUnits);
+          _amountController.text =
+              formatMinorAmountForField(fee.amountMinorUnits);
           _currencyCode = fee.currencyCode;
         } else {
           _enabled = false;
@@ -66,7 +68,8 @@ class _TransferFeesSettingsSectionState extends State<TransferFeesSettingsSectio
   }
 
   Future<void> _pickCurrency() async {
-    final c = await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
+    final c =
+        await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
     if (c != null) {
       setState(() => _currencyCode = c.code);
       if (_enabled) _save();

@@ -3,7 +3,8 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/notification_log_repository.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-final class SqliteNotificationLogRepository implements NotificationLogRepository {
+final class SqliteNotificationLogRepository
+    implements NotificationLogRepository {
   SqliteNotificationLogRepository(this._db);
 
   final Database _db;

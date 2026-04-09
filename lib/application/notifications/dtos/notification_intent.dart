@@ -1,1 +1,3 @@
-class NotificationIntent { const NotificationIntent(); }
+class NotificationIntent {
+  const NotificationIntent();
+}

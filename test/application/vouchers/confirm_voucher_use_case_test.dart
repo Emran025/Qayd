@@ -23,10 +23,15 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/error/failures.dart';
 
 class MockVoucherRepository extends Mock implements VoucherRepository {}
+
 class MockEntryGenerator extends Mock implements EntryGenerator {}
+
 class MockIdGenerator extends Mock implements IdGenerator {}
+
 class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
+
 class MockSyncEventDispatcher extends Mock implements SyncEventDispatcher {}
+
 class FakeVoucher extends Fake implements Voucher {}
 
 void main() {
@@ -64,7 +69,8 @@ void main() {
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
 
-    final currency = CurrencyCode(code: 'USD', nameAr: 'USD', symbol: '\$', fractionalDigits: 2);
+    final currency = CurrencyCode(
+        code: 'USD', nameAr: 'USD', symbol: '\$', fractionalDigits: 2);
     final voucher = Voucher.restore(
       id: VoucherId('v-1'),
       type: VoucherType.receipt,
@@ -86,14 +92,16 @@ void main() {
 
     expect(result.isFailure, isTrue);
     expect(result.failureOrNull, isA<ValidationFailure>());
-    expect((result.failureOrNull as ValidationFailure).code, 'voucher_not_signed');
+    expect(
+        (result.failureOrNull as ValidationFailure).code, 'voucher_not_signed');
   });
 
   test('should confirm voucher successfully', () async {
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
 
-    final currency = CurrencyCode(code: 'USD', nameAr: 'USD', symbol: '\$', fractionalDigits: 2);
+    final currency = CurrencyCode(
+        code: 'USD', nameAr: 'USD', symbol: '\$', fractionalDigits: 2);
     var voucher = Voucher.draft(
       id: VoucherId('v-1'),
       type: VoucherType.receipt,
@@ -104,21 +112,56 @@ void main() {
       affectedAccountId: AccountId('aff-1'),
       createdAt: DateTime.now(),
     );
-    voucher = voucher.attachSignature(signatureHex: 'hex1', publicKeyHex: 'pub1', isSender: true, status: AgreementStatus.accepted, signerPhone: '1');
-    voucher = voucher.attachSignature(signatureHex: 'hex2', publicKeyHex: 'pub2', isSender: false, status: AgreementStatus.accepted, signerPhone: '2');
+    voucher = voucher.attachSignature(
+        signatureHex: 'hex1',
+        publicKeyHex: 'pub1',
+        isSender: true,
+        status: AgreementStatus.accepted,
+        signerPhone: '1');
+    voucher = voucher.attachSignature(
+        signatureHex: 'hex2',
+        publicKeyHex: 'pub2',
+        isSender: false,
+        status: AgreementStatus.accepted,
+        signerPhone: '2');
 
     when(() => mockVoucherRepo.getById(any()))
         .thenAnswer((_) async => Success(voucher));
-    
+
     when(() => mockIdGen.next()).thenReturn('id-mock');
 
-    final debitEntry = LedgerEntry.create(id: EntryId('e1'), transactionId: TransactionId('t1'), accountId: AccountId('aff-1'), side: EntrySide.debit, amount: Money.positiveAmount(100, currency), currency: currency, voucherId: VoucherId('v-1'), date: DateTime.now(), createdAt: DateTime.now());
-    final creditEntry = LedgerEntry.create(id: EntryId('e2'), transactionId: TransactionId('t1'), accountId: AccountId('cp-1'), side: EntrySide.credit, amount: Money.positiveAmount(100, currency), currency: currency, voucherId: VoucherId('v-1'), date: DateTime.now(), createdAt: DateTime.now());
+    final debitEntry = LedgerEntry.create(
+        id: EntryId('e1'),
+        transactionId: TransactionId('t1'),
+        accountId: AccountId('aff-1'),
+        side: EntrySide.debit,
+        amount: Money.positiveAmount(100, currency),
+        currency: currency,
+        voucherId: VoucherId('v-1'),
+        date: DateTime.now(),
+        createdAt: DateTime.now());
+    final creditEntry = LedgerEntry.create(
+        id: EntryId('e2'),
+        transactionId: TransactionId('t1'),
+        accountId: AccountId('cp-1'),
+        side: EntrySide.credit,
+        amount: Money.positiveAmount(100, currency),
+        currency: currency,
+        voucherId: VoucherId('v-1'),
+        date: DateTime.now(),
+        createdAt: DateTime.now());
 
-    when(() => mockEntryGen.generateForConfirmedVoucher(voucher: any(named: 'voucher'), transactionId: any(named: 'transactionId'), debitEntryId: any(named: 'debitEntryId'), creditEntryId: any(named: 'creditEntryId'), ledgerCreatedAt: any(named: 'ledgerCreatedAt')))
+    when(() => mockEntryGen.generateForConfirmedVoucher(
+            voucher: any(named: 'voucher'),
+            transactionId: any(named: 'transactionId'),
+            debitEntryId: any(named: 'debitEntryId'),
+            creditEntryId: any(named: 'creditEntryId'),
+            ledgerCreatedAt: any(named: 'ledgerCreatedAt')))
         .thenReturn([debitEntry, creditEntry]);
 
-    when(() => mockVoucherRepo.saveWithLedgerEntries(voucher: any(named: 'voucher'), ledgerEntries: any(named: 'ledgerEntries')))
+    when(() => mockVoucherRepo.saveWithLedgerEntries(
+            voucher: any(named: 'voucher'),
+            ledgerEntries: any(named: 'ledgerEntries')))
         .thenAnswer((_) async => const Success(null));
 
     when(() => mockSyncEventDispatcher.dispatchVoucherAcceptance(any()))
@@ -127,7 +170,10 @@ void main() {
     final result = await useCase(ConfirmVoucherInput(voucherId: 'v-1'));
 
     expect(result.isSuccess, isTrue);
-    verify(() => mockVoucherRepo.saveWithLedgerEntries(voucher: any(named: 'voucher'), ledgerEntries: any(named: 'ledgerEntries'))).called(1);
-    verify(() => mockSyncEventDispatcher.dispatchVoucherAcceptance(any())).called(1);
+    verify(() => mockVoucherRepo.saveWithLedgerEntries(
+        voucher: any(named: 'voucher'),
+        ledgerEntries: any(named: 'ledgerEntries'))).called(1);
+    verify(() => mockSyncEventDispatcher.dispatchVoucherAcceptance(any()))
+        .called(1);
   });
 }

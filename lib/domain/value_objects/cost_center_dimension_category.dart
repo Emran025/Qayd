@@ -15,7 +15,7 @@ class CostCenterDimensionCategory extends Equatable {
   final String? iconName;
   final bool isDefault;
 
-  // Preserve the static constants for known default categories to maintain 
+  // Preserve the static constants for known default categories to maintain
   // compatibility with parts of the code that expect specific 'spatial' or 'individual' logic.
 
   static const incomeAndWork = CostCenterDimensionCategory(

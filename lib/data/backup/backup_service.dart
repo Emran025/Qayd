@@ -74,7 +74,8 @@ class BackupService {
   }
 
   /// Validates without replacing the live DB (e.g. before showing restore confirmation).
-  Future<Result<void>> validateBackupFile(String backupPath, {String? customKey}) async {
+  Future<Result<void>> validateBackupFile(String backupPath,
+      {String? customKey}) async {
     final key = customKey ?? await _key();
     return QaydDatabaseValidator.validateFile(
       path: backupPath,
@@ -99,13 +100,15 @@ class BackupService {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        FileSystemFailure(messageAr: 'تعذر حفظ النسخة الاحتياطية في المسار المحدد.'),
+        FileSystemFailure(
+            messageAr: 'تعذر حفظ النسخة الاحتياطية في المسار المحدد.'),
       );
     }
   }
 
   /// Validates then replaces the app DB file. The live DB connection must be closed first.
-  Future<Result<void>> replaceDatabaseFromBackupFile(String backupPath, {String? customKey}) async {
+  Future<Result<void>> replaceDatabaseFromBackupFile(String backupPath,
+      {String? customKey}) async {
     final key = customKey ?? await _key();
     final v = await QaydDatabaseValidator.validateFile(
       path: backupPath,

@@ -17,8 +17,18 @@ final class MonthlyTrendPoint {
     if (parts.length < 2) return monthKey;
     final month = int.tryParse(parts[1]) ?? 0;
     const names = [
-      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+      'يناير',
+      'فبراير',
+      'مارس',
+      'أبريل',
+      'مايو',
+      'يونيو',
+      'يوليو',
+      'أغسطس',
+      'سبتمبر',
+      'أكتوبر',
+      'نوفمبر',
+      'ديسمبر',
     ];
     if (month < 1 || month > 12) return monthKey;
     return names[month - 1];

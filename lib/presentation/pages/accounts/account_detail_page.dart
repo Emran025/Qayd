@@ -43,7 +43,8 @@ class AccountDetailPage extends StatelessWidget {
                     Navigator.of(context).push<void>(
                       QaydPageRoute.slideFromStart<void>(
                         builder: (ctx) => NotificationPreviewPage(
-                          mode: NotificationPreviewAccount(state.data.accountId),
+                          mode:
+                              NotificationPreviewAccount(state.data.accountId),
                         ),
                       ),
                     );
@@ -56,10 +57,9 @@ class AccountDetailPage extends StatelessWidget {
                     QaydPageRoute.slideFromStart<void>(
                       builder: (ctx) => BlocProvider(
                         create: (_) => StatementChatCubit(
-                          listStatement:
-                              InjectionContainer.listAccountStatementChatUseCase,
-                          listAccounts:
-                              InjectionContainer.listAccountsUseCase,
+                          listStatement: InjectionContainer
+                              .listAccountStatementChatUseCase,
+                          listAccounts: InjectionContainer.listAccountsUseCase,
                           counterpartyAccountId: state.data.accountId,
                         )..load(),
                         child: AccountStatementChatPage(
@@ -118,16 +118,19 @@ class _DetailBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
-    final created = DateFormat.yMMMd('ar').format(DateTime.parse(data.createdAtIso));
+    final created =
+        DateFormat.yMMMd('ar').format(DateTime.parse(data.createdAtIso));
 
     final classificationText = data.standardClassificationKind != null
-        ? AppStringsAr.standardClassificationLabel(data.standardClassificationKind!)
+        ? AppStringsAr.standardClassificationLabel(
+            data.standardClassificationKind!)
         : data.customClassificationName ?? AppStringsAr.classificationOther;
 
     final natureDebit = data.natureCode == 'debit';
     final natureColor = natureDebit ? custom.debit : custom.credit;
-    final natureLabel =
-        natureDebit ? AppStringsAr.natureDebitShort : AppStringsAr.natureCreditShort;
+    final natureLabel = natureDebit
+        ? AppStringsAr.natureDebitShort
+        : AppStringsAr.natureCreditShort;
 
     return ListView(
       padding: const EdgeInsets.all(SpacingTokens.lg),
@@ -217,7 +220,10 @@ class _DetailBody extends StatelessWidget {
           label: AppStringsAr.createdAtLabel,
           value: created,
         ),
-        if (data.phoneNumber != null || data.whatsappNumber != null || data.bankAccountInfo != null || data.partyType != null) ...[
+        if (data.phoneNumber != null ||
+            data.whatsappNumber != null ||
+            data.bankAccountInfo != null ||
+            data.partyType != null) ...[
           const SizedBox(height: SpacingTokens.lg),
           QaydText(
             AppStringsAr.partyDetailsSection,
@@ -232,20 +238,24 @@ class _DetailBody extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (data.partyType?.isNotEmpty == true)
-                    _MetaRow(label: AppStringsAr.partyTypeLabel, value: data.partyType!),
+                    _MetaRow(
+                        label: AppStringsAr.partyTypeLabel,
+                        value: data.partyType!),
                   if (data.phoneNumber?.isNotEmpty == true)
                     _ActionRow(
                       icon: Icons.phone,
                       label: data.phoneNumber!,
                       actionLabel: AppStringsAr.actionCall,
-                      onTap: () => launchUrl(Uri.parse('tel:${data.phoneNumber}')),
+                      onTap: () =>
+                          launchUrl(Uri.parse('tel:${data.phoneNumber}')),
                     ),
                   if (data.whatsappNumber?.isNotEmpty == true)
                     _ActionRow(
                       icon: Icons.message_rounded,
                       label: data.whatsappNumber!,
                       actionLabel: AppStringsAr.actionWhatsApp,
-                      onTap: () => launchUrl(Uri.parse('https://wa.me/${data.whatsappNumber}')),
+                      onTap: () => launchUrl(
+                          Uri.parse('https://wa.me/${data.whatsappNumber}')),
                     ),
                   if (data.bankAccountInfo?.isNotEmpty == true)
                     _ActionRow(
@@ -253,9 +263,11 @@ class _DetailBody extends StatelessWidget {
                       label: data.bankAccountInfo!,
                       actionLabel: AppStringsAr.actionCopyBank,
                       onTap: () {
-                        Clipboard.setData(ClipboardData(text: data.bankAccountInfo!));
+                        Clipboard.setData(
+                            ClipboardData(text: data.bankAccountInfo!));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text(AppStringsAr.bankInfoCopied)),
+                          const SnackBar(
+                              content: Text(AppStringsAr.bankInfoCopied)),
                         );
                       },
                     ),

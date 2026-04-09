@@ -22,7 +22,8 @@ class PersonalAccountsListView extends StatefulWidget {
   final bool showAssetDetails;
 
   @override
-  State<PersonalAccountsListView> createState() => _PersonalAccountsListViewState();
+  State<PersonalAccountsListView> createState() =>
+      _PersonalAccountsListViewState();
 }
 
 class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
@@ -47,7 +48,8 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
           _accounts = data.accounts.where((a) {
             // Find children of these kinds, or the roots themselves if they match
             // Actually, children inherit the standardClassificationKind from root!
-            return widget.kinds.contains(a.standardClassificationKind) && a.parentId != null; 
+            return widget.kinds.contains(a.standardClassificationKind) &&
+                a.parentId != null;
             // We explicitly only want children (the actual items), not the root buckets.
           }).toList();
           _loading = false;
@@ -64,7 +66,8 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_2_outlined, size: 48, color: Theme.of(context).colorScheme.outline),
+            Icon(Icons.inventory_2_outlined,
+                size: 48, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: SpacingTokens.md),
             QaydText(
               widget.emptyText,
@@ -81,7 +84,7 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
       itemBuilder: (ctx, i) {
         final a = _accounts[i];
         final metadata = a.metadata ?? {};
-        
+
         final price = metadata['purchase_price'] ?? 0.0;
         final date = metadata['purchase_date'] as String?;
         final serial = metadata['serial_number'] as String?;
@@ -91,8 +94,8 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
         int balanceMinor = 0;
         String cur = 'SAR';
         if (a.balancesMinorUnits.isNotEmpty) {
-           cur = a.balancesMinorUnits.keys.first;
-           balanceMinor = a.balancesMinorUnits[cur]!;
+          cur = a.balancesMinorUnits.keys.first;
+          balanceMinor = a.balancesMinorUnits[cur]!;
         }
         final balance = balanceMinor / 100.0;
 
@@ -104,58 +107,71 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Row(
-                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                     children: [
-                       Expanded(
-                         child: QaydText(
-                           a.name,
-                           slot: QaydTextStyleSlot.titleMedium,
-                         ),
-                       ),
-                       Container(
-                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                         decoration: BoxDecoration(
-                           color: ColorTokens.emerald400.withValues(alpha: 0.1),
-                           borderRadius: BorderRadius.circular(RadiusTokens.pill),
-                         ),
-                         child: QaydText(
-                           widget.showAssetDetails 
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: QaydText(
+                          a.name,
+                          slot: QaydTextStyleSlot.titleMedium,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: ColorTokens.emerald400.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(RadiusTokens.pill),
+                        ),
+                        child: QaydText(
+                          widget.showAssetDetails
                               ? '${price.toStringAsFixed(2)} SAR'
                               : '${balance.toStringAsFixed(2)} $cur',
-                           slot: QaydTextStyleSlot.labelSmall,
-                           color: ColorTokens.emerald400,
-                         ),
-                       ),
-                     ],
-                   ),
-                   
-                   if (widget.showAssetDetails && (model != null || serial != null || date != null)) ...[
-                     const SizedBox(height: SpacingTokens.sm),
-                     if (model != null && model.isNotEmpty) 
-                       _InfoRow(icon: Icons.directions_car_rounded, label: 'الموديل', value: model),
-                     if (serial != null && serial.isNotEmpty)
-                       _InfoRow(icon: Icons.numbers_rounded, label: 'الرقم التسلسلي', value: serial),
-                     if (date != null)
-                       _InfoRow(icon: Icons.calendar_today_rounded, label: 'تاريخ الشراء', value: date.split('T').first),
-                   ],
-                   
-                   const SizedBox(height: SpacingTokens.md),
-                   const Divider(height: 1),
-                   const SizedBox(height: SpacingTokens.md),
-                   Row(
-                     children: [
-                       const Icon(Icons.info_outline_rounded, size: 14, color: Colors.white54),
-                       const SizedBox(width: 4),
-                       Text(
-                         a.isActive ? 'نشط (Active)' : 'موقف (Inactive)',
-                         style: TextStyle(
-                           fontSize: 10,
-                           color: a.isActive ? ColorTokens.emerald400 : Colors.white54,
-                         ),
-                       ),
-                     ],
-                   ),
+                          slot: QaydTextStyleSlot.labelSmall,
+                          color: ColorTokens.emerald400,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (widget.showAssetDetails &&
+                      (model != null || serial != null || date != null)) ...[
+                    const SizedBox(height: SpacingTokens.sm),
+                    if (model != null && model.isNotEmpty)
+                      _InfoRow(
+                          icon: Icons.directions_car_rounded,
+                          label: 'الموديل',
+                          value: model),
+                    if (serial != null && serial.isNotEmpty)
+                      _InfoRow(
+                          icon: Icons.numbers_rounded,
+                          label: 'الرقم التسلسلي',
+                          value: serial),
+                    if (date != null)
+                      _InfoRow(
+                          icon: Icons.calendar_today_rounded,
+                          label: 'تاريخ الشراء',
+                          value: date.split('T').first),
+                  ],
+                  const SizedBox(height: SpacingTokens.md),
+                  const Divider(height: 1),
+                  const SizedBox(height: SpacingTokens.md),
+                  Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded,
+                          size: 14, color: Colors.white54),
+                      const SizedBox(width: 4),
+                      Text(
+                        a.isActive ? 'نشط (Active)' : 'موقف (Inactive)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: a.isActive
+                              ? ColorTokens.emerald400
+                              : Colors.white54,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -167,7 +183,8 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label, required this.value});
+  const _InfoRow(
+      {required this.icon, required this.label, required this.value});
   final IconData icon;
   final String label;
   final String value;
@@ -180,8 +197,13 @@ class _InfoRow extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: Colors.white54),
           const SizedBox(width: 8),
-          Text('$label: ', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text('$label: ',
+              style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          Text(value,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );

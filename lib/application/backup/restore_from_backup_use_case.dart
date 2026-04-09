@@ -24,7 +24,8 @@ final class RestoreFromBackupUseCase {
 
   /// Validates the backup at [backupPath].
   Future<Result<void>> validate(String backupPath, {String? customKey}) =>
-      _backupService.validateBackupFile(backupPath); // TODO: backupService needs customKey support
+      _backupService.validateBackupFile(
+          backupPath); // TODO: backupService needs customKey support
 
   /// Replaces the live database with the backup.
   ///

@@ -11,7 +11,8 @@ class AccountListCubit extends Cubit<AccountListState> {
 
   Future<void> load() async {
     emit(const AccountListLoading());
-    final result = await _listAccounts(const ListAccountsInput(activeOnly: false));
+    final result =
+        await _listAccounts(const ListAccountsInput(activeOnly: false));
     result.fold(
       (f) => emit(AccountListFailure(f)),
       (out) => emit(

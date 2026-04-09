@@ -20,7 +20,8 @@ abstract final class QaydDatabaseValidator {
       final uvRows = await db.rawQuery('PRAGMA user_version');
       final rawUv = uvRows.first.values.first;
       final userVersion = rawUv is int ? rawUv : (rawUv as num).toInt();
-      if (userVersion < 1 || userVersion > DatabaseProvider.schemaVersion + 50) {
+      if (userVersion < 1 ||
+          userVersion > DatabaseProvider.schemaVersion + 50) {
         await db.close();
         return const FailureResult(
           ValidationFailure(

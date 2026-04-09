@@ -89,8 +89,7 @@ class _AppShellPageState extends State<AppShellPage> {
             child: SafeArea(
               child: Column(
                 children: [
-                  if (_showRestorePrompt)
-                    _buildRestoreBanner(context),
+                  if (_showRestorePrompt) _buildRestoreBanner(context),
                   BlocBuilder<SyncStatusCubit, SyncStatusState>(
                     bloc: InjectionContainer.syncStatusCubit,
                     builder: (context, state) {
@@ -118,12 +117,14 @@ class _AppShellPageState extends State<AppShellPage> {
           ),
           NavigationDestination(
             icon: const Icon(Icons.swap_horiz_outlined),
-            selectedIcon: Icon(Icons.swap_horizontal_circle_rounded, color: gold),
+            selectedIcon:
+                Icon(Icons.swap_horizontal_circle_rounded, color: gold),
             label: AppStringsAr.navTripartiteTab,
           ),
           NavigationDestination(
             icon: const Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet_rounded, color: gold),
+            selectedIcon:
+                Icon(Icons.account_balance_wallet_rounded, color: gold),
             label: AppStringsAr.navAccountsTab,
           ),
           NavigationDestination(
@@ -154,12 +155,18 @@ class _AppShellPageState extends State<AppShellPage> {
             const Expanded(
               child: Text(
                 'وجدنا نسخة احتياطية محلية، هل تريد استعادة بياناتك السابقة؟',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13),
               ),
             ),
             TextButton(
               onPressed: _navigateToRestore,
-              child: const Text('استعادة الآن', style: TextStyle(color: Colors.white, decoration: TextDecoration.underline)),
+              child: const Text('استعادة الآن',
+                  style: TextStyle(
+                      color: Colors.white,
+                      decoration: TextDecoration.underline)),
             ),
             IconButton(
               icon: const Icon(Icons.close, color: Colors.white, size: 18),
@@ -184,15 +191,22 @@ class _AppShellPageState extends State<AppShellPage> {
             const Expanded(
               child: Text(
                 'بعض البيانات لا يمكن قراءتها بسبب اختلاف مفاتيح التشفير. جرب استعادة نسخة احتياطية محلية.',
-                style: TextStyle(color: ColorTokens.navy950, fontWeight: FontWeight.bold, fontSize: 12),
+                style: TextStyle(
+                    color: ColorTokens.navy950,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12),
               ),
             ),
             TextButton(
               onPressed: _navigateToRestore,
-              child: const Text('استعادة', style: TextStyle(color: ColorTokens.navy950, decoration: TextDecoration.underline)),
+              child: const Text('استعادة',
+                  style: TextStyle(
+                      color: ColorTokens.navy950,
+                      decoration: TextDecoration.underline)),
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: ColorTokens.navy950, size: 18),
+              icon:
+                  const Icon(Icons.close, color: ColorTokens.navy950, size: 18),
               onPressed: () => InjectionContainer.syncStatusCubit.reset(),
             ),
           ],

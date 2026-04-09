@@ -8,8 +8,7 @@ import 'package:qayd/domain/repositories/auth_repository.dart';
 /// All endpoint paths come from [ApiEndpoints] — never hard-coded strings here.
 /// All errors surface as [AuthException] via [ApiClient]'s error interceptor.
 final class RemoteAuthRepository implements AuthRepository {
-  RemoteAuthRepository({required ApiClient apiClient})
-      : _client = apiClient;
+  RemoteAuthRepository({required ApiClient apiClient}) : _client = apiClient;
 
   final ApiClient _client;
 

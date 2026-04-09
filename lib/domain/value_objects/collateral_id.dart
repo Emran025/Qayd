@@ -6,8 +6,7 @@ final class CollateralId {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CollateralId && value == other.value;
+      identical(this, other) || other is CollateralId && value == other.value;
 
   @override
   int get hashCode => value.hashCode;

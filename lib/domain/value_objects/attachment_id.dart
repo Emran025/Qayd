@@ -6,8 +6,7 @@ final class AttachmentId {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is AttachmentId && value == other.value;
+      identical(this, other) || other is AttachmentId && value == other.value;
 
   @override
   int get hashCode => value.hashCode;

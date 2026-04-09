@@ -31,7 +31,8 @@ class ManageTransactionFeeUseCase {
 
       return await _repo.insert(setting);
     } catch (e) {
-      return FailureResult(ValidationFailure(messageAr: 'فشل في تفعيل الرسوم: \$e'));
+      return FailureResult(
+          ValidationFailure(messageAr: 'فشل في تفعيل الرسوم: \$e'));
     }
   }
 
@@ -40,7 +41,8 @@ class ManageTransactionFeeUseCase {
     try {
       return await _repo.deactivateAll();
     } catch (e) {
-      return FailureResult(ValidationFailure(messageAr: 'فشل في تعطيل الرسوم: \$e'));
+      return FailureResult(
+          ValidationFailure(messageAr: 'فشل في تعطيل الرسوم: \$e'));
     }
   }
 }

@@ -110,11 +110,14 @@ class AdvancedFilterInput {
       state: state ?? this.state,
       fromDate: fromDate ?? this.fromDate,
       toDate: toDate ?? this.toDate,
-      counterpartyAccountId: counterpartyAccountId ?? this.counterpartyAccountId,
+      counterpartyAccountId:
+          counterpartyAccountId ?? this.counterpartyAccountId,
       affectedAccountId: affectedAccountId ?? this.affectedAccountId,
       costCenterId: costCenterId ?? this.costCenterId,
-      involvedRootAccountId: involvedRootAccountId ?? this.involvedRootAccountId,
-      involvedCounterRootAccountId: involvedCounterRootAccountId ?? this.involvedCounterRootAccountId,
+      involvedRootAccountId:
+          involvedRootAccountId ?? this.involvedRootAccountId,
+      involvedCounterRootAccountId:
+          involvedCounterRootAccountId ?? this.involvedCounterRootAccountId,
       isInternalOnly: isInternalOnly ?? this.isInternalOnly,
     );
   }

@@ -22,7 +22,8 @@ class VoucherSharePreviewSheet extends StatefulWidget {
   }
 
   @override
-  State<VoucherSharePreviewSheet> createState() => _VoucherSharePreviewSheetState();
+  State<VoucherSharePreviewSheet> createState() =>
+      _VoucherSharePreviewSheetState();
 }
 
 class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
@@ -93,7 +94,6 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
             ],
           ),
           const SizedBox(height: SpacingTokens.md),
-          
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.all(SpacingTokens.md),
@@ -101,7 +101,9 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
               color: _isEditing ? scheme.surface : scheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _isEditing ? gold : scheme.outlineVariant.withValues(alpha: 0.5),
+                color: _isEditing
+                    ? gold
+                    : scheme.outlineVariant.withValues(alpha: 0.5),
                 width: _isEditing ? 2 : 1,
               ),
             ),
@@ -133,7 +135,8 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Icon(Icons.touch_app_rounded, size: 14, color: gold.withValues(alpha: 0.6)),
+                            Icon(Icons.touch_app_rounded,
+                                size: 14, color: gold.withValues(alpha: 0.6)),
                             const SizedBox(width: 4),
                             QaydText(
                               'انقر للتعديل',
@@ -146,7 +149,6 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
                     ),
             ),
           ),
-          
           const SizedBox(height: SpacingTokens.lg),
           Row(
             children: [

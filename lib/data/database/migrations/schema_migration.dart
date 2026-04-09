@@ -23,7 +23,8 @@ extension DatabaseMigrationUtils on Database {
     String? defaultValue,
   }) async {
     if (!await hasColumn(table, column)) {
-      final String query = 'ALTER TABLE $table ADD COLUMN $column $type${defaultValue != null ? ' DEFAULT $defaultValue' : ''}';
+      final String query =
+          'ALTER TABLE $table ADD COLUMN $column $type${defaultValue != null ? ' DEFAULT $defaultValue' : ''}';
       await execute(query);
     }
   }

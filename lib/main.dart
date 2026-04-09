@@ -62,7 +62,6 @@ class QaydApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
@@ -87,7 +86,6 @@ class QaydApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      
       home: BlocBuilder<SecurityCubit, SecurityState>(
         buildWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
         builder: (context, state) {

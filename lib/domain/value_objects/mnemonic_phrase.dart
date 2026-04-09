@@ -13,7 +13,8 @@ final class MnemonicPhrase {
     }
     for (final w in words) {
       if (w.trim().isEmpty) {
-        throw ArgumentError.value(w, 'word', 'Mnemonic words must not be blank.');
+        throw ArgumentError.value(
+            w, 'word', 'Mnemonic words must not be blank.');
       }
     }
   }

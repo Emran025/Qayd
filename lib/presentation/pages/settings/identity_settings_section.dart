@@ -120,7 +120,8 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
             const SizedBox(height: SpacingTokens.sm),
             FilledButton.icon(
               onPressed: () => Navigator.of(context).push(
-                QaydPageRoute.slideFromStart(builder: (_) => const SeedSetupPage()),
+                QaydPageRoute.slideFromStart(
+                    builder: (_) => const SeedSetupPage()),
               ),
               icon: const Icon(Icons.vpn_key_outlined),
               label: Text(AppStringsAr.identitySetupAction),
@@ -171,7 +172,8 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
         ListTile(
           leading: const Icon(Icons.sync_rounded),
           title: const Text('رمز مزامنة P2P (Snap-Sync)'),
-          subtitle: const Text('لربط جهازين مباشرة عبر الشبكة المحلية دون إنترنت.'),
+          subtitle:
+              const Text('لربط جهازين مباشرة عبر الشبكة المحلية دون إنترنت.'),
           trailing: const Icon(Icons.qr_code_2_rounded),
           onTap: _showP2PCode,
         ),
@@ -187,7 +189,8 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.qr_code_2_rounded, size: 80, color: Colors.blueGrey),
+            const Icon(Icons.qr_code_2_rounded,
+                size: 80, color: Colors.blueGrey),
             const SizedBox(height: 16),
             const Text(
               'امسح هذا الرمز من الجهاز الآخر لبدء المزامنة المباشرة عالية السرعة.',
@@ -197,7 +200,10 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
             const SizedBox(height: 8),
             Text(
               'IP: (جارٍ اكتشاف الشبكة…)',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(fontFamily: 'monospace'),
             ),
           ],
         ),
@@ -287,9 +293,8 @@ class _MnemonicDialog extends StatelessWidget {
                     child: Text(
                       AppStringsAr.identitySeedWarning,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onErrorContainer,
+                            color:
+                                Theme.of(context).colorScheme.onErrorContainer,
                           ),
                     ),
                   ),

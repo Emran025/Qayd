@@ -14,8 +14,11 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/error/failures.dart';
 
 class MockVoucherRepository extends Mock implements VoucherRepository {}
+
 class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
+
 class MockSyncEventDispatcher extends Mock implements SyncEventDispatcher {}
+
 class FakeVoucher extends Fake implements Voucher {}
 
 void main() {
@@ -42,8 +45,8 @@ void main() {
   });
 
   test('should return failure when write guard denies access', () async {
-    when(() => mockWriteGuard.assertWritesPermitted())
-        .thenAnswer((_) async => FailureResult(ValidationFailure(messageAr: 'Denied')));
+    when(() => mockWriteGuard.assertWritesPermitted()).thenAnswer(
+        (_) async => FailureResult(ValidationFailure(messageAr: 'Denied')));
 
     final result = await useCase(voucherId: 'v-1');
 
@@ -54,19 +57,21 @@ void main() {
   test('should return failure if voucher not found', () async {
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
-    when(() => mockVoucherRepo.getById(any()))
-        .thenAnswer((_) async => FailureResult(ValidationFailure(messageAr: 'Not found')));
+    when(() => mockVoucherRepo.getById(any())).thenAnswer(
+        (_) async => FailureResult(ValidationFailure(messageAr: 'Not found')));
 
     final result = await useCase(voucherId: 'v-1');
 
     expect(result.isFailure, isTrue);
   });
 
-  test('should withdraw voucher and dispatch sync event successfully', () async {
+  test('should withdraw voucher and dispatch sync event successfully',
+      () async {
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
 
-    final currency = CurrencyCode(code: 'USD', nameAr: 'USD', symbol: '\$', fractionalDigits: 2);
+    final currency = CurrencyCode(
+        code: 'USD', nameAr: 'USD', symbol: '\$', fractionalDigits: 2);
     final voucher = Voucher.draft(
       id: VoucherId('v-1'),
       type: VoucherType.receipt,
@@ -89,6 +94,7 @@ void main() {
 
     expect(result.isSuccess, isTrue);
     verify(() => mockVoucherRepo.save(any())).called(1);
-    verify(() => mockSyncEventDispatcher.dispatchVoucherWithdrawal(any())).called(1);
+    verify(() => mockSyncEventDispatcher.dispatchVoucherWithdrawal(any()))
+        .called(1);
   });
 }

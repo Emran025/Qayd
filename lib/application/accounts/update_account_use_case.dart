@@ -18,7 +18,8 @@ class UpdateAccountUseCase {
       if (gate.isFailure) {
         return FailureResult(gate.failureOrNull!);
       }
-      final loaded = await _accountRepository.getById(AccountId(input.accountId));
+      final loaded =
+          await _accountRepository.getById(AccountId(input.accountId));
       if (loaded.isFailure) {
         return FailureResult(loaded.failureOrNull!);
       }

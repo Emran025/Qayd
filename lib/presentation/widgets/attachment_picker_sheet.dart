@@ -44,13 +44,13 @@ class AttachmentPickerSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-              Text(
-                'إرفاق صور',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
+            Text(
+              'إرفاق صور',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
             const SizedBox(height: SpacingTokens.lg),
             Row(
               children: [
@@ -82,7 +82,7 @@ class AttachmentPickerSheet extends StatelessWidget {
 
   Future<void> _pickFromCamera(BuildContext context) async {
     final status = await Permission.camera.request();
-    
+
     if (status.isPermanentlyDenied || status.isDenied) {
       if (context.mounted) {
         _showSettingsDialog(context, 'الكاميرا أو الصور');
@@ -126,13 +126,15 @@ class AttachmentPickerSheet extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('صلاحية مفقودة'),
-        content: Text('يبدو أنك قمت برفض السماح بالوصول لـ $serviceName مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.'),
+        content: Text(
+            'يبدو أنك قمت برفض السماح بالوصول لـ $serviceName مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
               'إلغاء',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
           ElevatedButton(

@@ -72,5 +72,6 @@ final class PublicKeyLookupResult {
   final String name;
 
   /// All keys authorized to sign for this identity.
-  List<String> get allAuthorizedKeys => [publicKeyHex, ...previousPublicKeysHex];
+  List<String> get allAuthorizedKeys =>
+      [publicKeyHex, ...previousPublicKeysHex];
 }

@@ -45,14 +45,16 @@ void main() {
       final result = await useCase('cc-1');
 
       expect(result.isSuccess, isTrue);
-      
-      final captured = verify(() => mockRepo.save(captureAny())).captured.first as CostCenter;
+
+      final captured = verify(() => mockRepo.save(captureAny())).captured.first
+          as CostCenter;
       expect(captured.id, 'cc-1');
       expect(captured.isActive, isTrue);
       expect(captured.suspendedAt, isNull);
     });
 
-    test('Should return validation failure if cost center does not exist', () async {
+    test('Should return validation failure if cost center does not exist',
+        () async {
       when(() => mockRepo.getById('cc-missing'))
           .thenAnswer((_) async => const Success(null));
 
@@ -60,8 +62,9 @@ void main() {
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, isA<ValidationFailure>());
-      expect((result.failureOrNull as ValidationFailure).code, 'cost_center_not_found');
-      
+      expect((result.failureOrNull as ValidationFailure).code,
+          'cost_center_not_found');
+
       verifyNever(() => mockRepo.save(any()));
     });
 
@@ -74,10 +77,10 @@ void main() {
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, equals(failure));
-      
+
       verifyNever(() => mockRepo.save(any()));
     });
-    
+
     test('Should return repository failure if save fails', () async {
       when(() => mockRepo.getById('cc-1'))
           .thenAnswer((_) async => Success(suspendedCenter));

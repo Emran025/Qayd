@@ -4,7 +4,8 @@ import 'package:qayd/domain/value_objects/governance_status.dart';
 import 'package:qayd/domain/value_objects/submit_activation_request.dart';
 
 /// Simulates latency and API shape until a real [GovernanceRemoteDataSource] exists.
-final class StubGovernanceRemoteDataSource implements GovernanceRemoteDataSource {
+final class StubGovernanceRemoteDataSource
+    implements GovernanceRemoteDataSource {
   StubGovernanceRemoteDataSource({required GovernanceStubController controller})
       : _controller = controller;
 
@@ -28,6 +29,7 @@ final class StubGovernanceRemoteDataSource implements GovernanceRemoteDataSource
         request.licenseKey.trim().isEmpty) {
       throw ArgumentError('activation_fields_required');
     }
-    _controller.remoteStatus = const GovernanceStatus(kind: GovernanceStatusKind.activated);
+    _controller.remoteStatus =
+        const GovernanceStatus(kind: GovernanceStatusKind.activated);
   }
 }

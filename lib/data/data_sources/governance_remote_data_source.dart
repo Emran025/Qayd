@@ -1,1 +1,3 @@
-class GovernanceRemoteDataSource { const GovernanceRemoteDataSource(); }
+class GovernanceRemoteDataSource {
+  const GovernanceRemoteDataSource();
+}

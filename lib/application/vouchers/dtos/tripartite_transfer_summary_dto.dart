@@ -23,7 +23,7 @@ class TripartiteTransferSummaryDto {
   final String currencySymbol;
   final int currencyDigits;
   final String currencyNameAr;
-  
+
   final String sourceName; // A
   final String destinationName; // B
   final String affectedName; // Our cashbox

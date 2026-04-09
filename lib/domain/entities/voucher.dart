@@ -14,7 +14,7 @@ import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 
 /// Receipt or payment document with strict draft → confirmed → settled lifecycle.
-/// 
+///
 /// Separation of concerns:
 /// - [state] (VoucherState): Tracks the creator's workflow (Draft vs Confirmed).
 /// - [agreementStatus] (AgreementStatus): Tracks the digital signature agreement (Accepted, Pending/UnderRequest, Rejected).
@@ -65,7 +65,7 @@ class Voucher {
   final CurrencyCode currency;
   final AccountId counterpartyId;
   final AccountId affectedAccountId;
-  
+
   /// Creator's validation state (Draft: mutable/internal, Confirmed: entries recorded).
   final VoucherState state;
   final String? description;
@@ -77,7 +77,7 @@ class Voucher {
   final DateTime? settledAt;
 
   // ── Digital signature fields (Dual Party Protocol v2.0) ─────────────────
-  
+
   /// Status of the sending party (usually Accepted upon creation).
   final AgreementStatus senderStatus;
 
@@ -125,16 +125,17 @@ class Voucher {
   final DateTime? withdrawnAt;
 
   // ── UI-only metadata for navigation/threaded view ─────────────────────
-  
+
   /// Number of reversals/settlements linked back to this voucher.
   final int reversalCount;
 
   /// ID of the first reversal/settlement child for jump-to navigation.
   final VoucherId? firstChildId;
-  
+
   // ── Computed helpers ───────────────────────────────────────────────────
-  
-  bool get hasSignature => senderSignatureHex != null || receiverSignatureHex != null;
+
+  bool get hasSignature =>
+      senderSignatureHex != null || receiverSignatureHex != null;
 
   /// Whether this voucher is part of a tripartite intermediary transfer.
   bool get isTripartite => tripartiteMeta != null;
@@ -214,8 +215,8 @@ class Voucher {
     );
   }
 
-  /// New business create. 
-  /// 
+  /// New business create.
+  ///
   /// Policy:
   /// - Payments (الصرف) are "Accepted" by default because the creator is the signer (the payer).
   /// - Receipts (القبض) are "Under Request" because they require the counterparty's signature.
@@ -251,8 +252,8 @@ class Voucher {
         code: 'voucher_amount_zero',
       );
     }
-    
-    // Policy v2.0: 
+
+    // Policy v2.0:
     // Creating the voucher constitutes implicit approval by the sender.
     // Documentation completion requires the receiver's signature.
     const senderStatus = AgreementStatus.accepted;
@@ -390,7 +391,7 @@ class Voucher {
     final nextType = type ?? this.type;
     final nextDate = date ?? this.date;
     final nextCurrency = currency ?? this.currency;
-    
+
     // If currency changed but amount didn't, we must re-classify the minor units.
     var nextAmount = amount ?? this.amount;
     if (nextCurrency != nextAmount.currency) {

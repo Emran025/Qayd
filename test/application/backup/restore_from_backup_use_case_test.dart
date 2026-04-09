@@ -44,7 +44,8 @@ void main() {
       final result = await useCase.validate('/path/backup.zip');
 
       expect(result.isSuccess, isTrue);
-      verify(() => mockBackupService.validateBackupFile('/path/backup.zip')).called(1);
+      verify(() => mockBackupService.validateBackupFile('/path/backup.zip'))
+          .called(1);
     });
 
     test('Should return failure if validation fails', () async {
@@ -61,41 +62,46 @@ void main() {
 
   group('RestoreFromBackupUseCase - restore', () {
     test('Should restore successfully and attempt identity restore', () async {
-      when(() => mockBackupService.replaceDatabaseFromBackupFile('/path/backup.zip'))
-          .thenAnswer((_) async => const Success(null));
-      when(() => mockIdentityFileStorage.restoreToVaultIfAvailable(mockMnemonicVault))
-          .thenAnswer((_) async => true);
+      when(() => mockBackupService.replaceDatabaseFromBackupFile(
+          '/path/backup.zip')).thenAnswer((_) async => const Success(null));
+      when(() => mockIdentityFileStorage.restoreToVaultIfAvailable(
+          mockMnemonicVault)).thenAnswer((_) async => true);
 
       final result = await useCase.restore('/path/backup.zip');
 
       expect(result.isSuccess, isTrue);
-      verify(() => mockBackupService.replaceDatabaseFromBackupFile('/path/backup.zip')).called(1);
-      verify(() => mockIdentityFileStorage.restoreToVaultIfAvailable(mockMnemonicVault)).called(1);
+      verify(() => mockBackupService
+          .replaceDatabaseFromBackupFile('/path/backup.zip')).called(1);
+      verify(() => mockIdentityFileStorage
+          .restoreToVaultIfAvailable(mockMnemonicVault)).called(1);
     });
 
     test('Should not fail restore if identity restore throws', () async {
-      when(() => mockBackupService.replaceDatabaseFromBackupFile('/path/backup.zip'))
-          .thenAnswer((_) async => const Success(null));
-      when(() => mockIdentityFileStorage.restoreToVaultIfAvailable(mockMnemonicVault))
-          .thenThrow(Exception('Vault Error'));
+      when(() => mockBackupService.replaceDatabaseFromBackupFile(
+          '/path/backup.zip')).thenAnswer((_) async => const Success(null));
+      when(() => mockIdentityFileStorage.restoreToVaultIfAvailable(
+          mockMnemonicVault)).thenThrow(Exception('Vault Error'));
 
       final result = await useCase.restore('/path/backup.zip');
 
       expect(result.isSuccess, isTrue);
-      verify(() => mockBackupService.replaceDatabaseFromBackupFile('/path/backup.zip')).called(1);
-      verify(() => mockIdentityFileStorage.restoreToVaultIfAvailable(mockMnemonicVault)).called(1);
+      verify(() => mockBackupService
+          .replaceDatabaseFromBackupFile('/path/backup.zip')).called(1);
+      verify(() => mockIdentityFileStorage
+          .restoreToVaultIfAvailable(mockMnemonicVault)).called(1);
     });
 
     test('Should propagate failure from backup replace operation', () async {
       final failure = FileSystemFailure(messageAr: 'Replace Failed');
-      when(() => mockBackupService.replaceDatabaseFromBackupFile('/path/backup.zip'))
-          .thenAnswer((_) async => FailureResult(failure));
+      when(() => mockBackupService.replaceDatabaseFromBackupFile(
+          '/path/backup.zip')).thenAnswer((_) async => FailureResult(failure));
 
       final result = await useCase.restore('/path/backup.zip');
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, equals(failure));
-      verifyNever(() => mockIdentityFileStorage.restoreToVaultIfAvailable(any()));
+      verifyNever(
+          () => mockIdentityFileStorage.restoreToVaultIfAvailable(any()));
     });
   });
 }

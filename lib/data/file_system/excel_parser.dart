@@ -1,1 +1,3 @@
-class ExcelParser { const ExcelParser(); }
+class ExcelParser {
+  const ExcelParser();
+}

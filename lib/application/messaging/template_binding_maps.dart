@@ -12,7 +12,8 @@ abstract final class TemplateBindingMaps {
       'customer': d.counterpartyName,
       'counterparty': d.counterpartyName,
       'amount': MoneyFormatter.formatWithSymbol(
-        d.amountMinorUnits / (d.currencyDigits == 0 ? 1 : (d.currencyDigits == 2 ? 100 : 100)),
+        d.amountMinorUnits /
+            (d.currencyDigits == 0 ? 1 : (d.currencyDigits == 2 ? 100 : 100)),
         d.currencySymbol,
         fractionalDigits: d.currencyDigits,
       ),
@@ -27,16 +28,20 @@ abstract final class TemplateBindingMaps {
       'account_id': d.affectedAccountId,
       'affected_account_id': d.affectedAccountId,
       'counterparty_id': d.counterpartyAccountId,
-      'signature': d.senderSignatureHex ?? d.receiverSignatureHex ?? 'مشمول بالتوقيع الإلكتروني',
-      'signature_verification': d.senderSignatureHex != null || d.receiverSignatureHex != null 
-          ? 'تم التحقق رقمياً: ${d.senderSignatureHex ?? d.receiverSignatureHex}' 
+      'signature': d.senderSignatureHex ??
+          d.receiverSignatureHex ??
+          'مشمول بالتوقيع الإلكتروني',
+      'signature_verification': d.senderSignatureHex != null ||
+              d.receiverSignatureHex != null
+          ? 'تم التحقق رقمياً: ${d.senderSignatureHex ?? d.receiverSignatureHex}'
           : 'مُصدّر آلياً وموثق رقمياً عبر نظام قيد',
     };
   }
 
   static Map<String, String> forAccount(GetAccountDetailsOutput d) {
     final balanceStr = d.balancesMinorUnits.entries
-        .map((e) => '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${e.key}')
+        .map((e) =>
+            '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${e.key}')
         .join(', ');
     final nature = d.natureCode == 'debit' ? 'مدين' : 'دائن';
     return {

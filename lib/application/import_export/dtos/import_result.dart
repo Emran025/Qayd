@@ -1,1 +1,3 @@
-class ImportResult { const ImportResult(); }
+class ImportResult {
+  const ImportResult();
+}

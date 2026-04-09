@@ -22,7 +22,8 @@ final class RemoteIdentityRepository implements IdentityRepository {
     } on AuthException {
       rethrow;
     } catch (e) {
-      throw AuthException('خطأ في تسجيل المفتاح العام: ${e.toString().split('\n').first}');
+      throw AuthException(
+          'خطأ في تسجيل المفتاح العام: ${e.toString().split('\n').first}');
     }
   }
 
@@ -38,8 +39,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       // Parse historical public keys for cross-vector verification.
       final previousKeysRaw =
           data['previous_public_keys'] as List<dynamic>? ?? [];
-      final previousKeys =
-          previousKeysRaw.map((e) => e as String).toList();
+      final previousKeys = previousKeysRaw.map((e) => e as String).toList();
 
       return PublicKeyLookupResult(
         phone: data['phone'] as String? ?? phone,
@@ -70,8 +70,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       // Parse historical public keys for cross-vector verification.
       final previousKeysRaw =
           data['previous_public_keys'] as List<dynamic>? ?? [];
-      final previousKeys =
-          previousKeysRaw.map((e) => e as String).toList();
+      final previousKeys = previousKeysRaw.map((e) => e as String).toList();
 
       return PublicKeyLookupResult(
         phone: data['phone'] as String? ?? '',
@@ -107,8 +106,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
         if (map['public_key'] != null) {
           final previousKeysRaw =
               map['previous_public_keys'] as List<dynamic>? ?? [];
-          final previousKeys =
-              previousKeysRaw.map((e) => e as String).toList();
+          final previousKeys = previousKeysRaw.map((e) => e as String).toList();
           results[phone] = PublicKeyLookupResult(
             phone: phone,
             publicKeyHex: map['public_key'] as String,
@@ -140,8 +138,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
 
       final previousKeysRaw =
           owner['previous_public_keys'] as List<dynamic>? ?? [];
-      final previousKeys =
-          previousKeysRaw.map((e) => e as String).toList();
+      final previousKeys = previousKeysRaw.map((e) => e as String).toList();
 
       return PublicKeyLookupResult(
         phone: owner['phone'] as String? ?? '',
@@ -174,8 +171,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
         if (whatsappNumber != null) 'whatsapp_number': whatsappNumber,
         if (avatarPath != null)
           'avatar': await MultipartFile.fromFile(avatarPath),
-        if (logoPath != null)
-          'logo': await MultipartFile.fromFile(logoPath),
+        if (logoPath != null) 'logo': await MultipartFile.fromFile(logoPath),
       };
 
       final data = await _client.postMultipart(

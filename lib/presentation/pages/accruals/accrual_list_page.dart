@@ -52,7 +52,8 @@ class _AccrualListPageState extends State<AccrualListPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => AccrualCreatePage(onCreated: _load)),
+          MaterialPageRoute(
+              builder: (_) => AccrualCreatePage(onCreated: _load)),
         ),
         label: const Text('إضافة التزام'),
         icon: const Icon(Icons.add_task_rounded),
@@ -99,7 +100,10 @@ class _AccrualListPageState extends State<AccrualListPage> {
                           children: [
                             _SummaryItem(
                               label: 'نشط',
-                              value: _accruals.where((e) => e.isActive).length.toString(),
+                              value: _accruals
+                                  .where((e) => e.isActive)
+                                  .length
+                                  .toString(),
                               icon: Icons.check_circle_outline_rounded,
                               color: ColorTokens.emerald400,
                             ),
@@ -171,7 +175,9 @@ class _AccrualListPageState extends State<AccrualListPage> {
   int _countDueSoon() {
     final now = DateTime.now();
     final soon = now.add(const Duration(days: 7));
-    return _accruals.where((e) => e.isActive && e.nextDueDate.isBefore(soon)).length;
+    return _accruals
+        .where((e) => e.isActive && e.nextDueDate.isBefore(soon))
+        .length;
   }
 }
 
@@ -220,16 +226,20 @@ class _AccrualCard extends StatelessWidget {
     final scaffold = ScaffoldMessenger.of(context);
 
     final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('تأكيد تنفيذ الالتزام'),
-        content: Text('هل تود تسجيل مبلغ ${item.amount} ${item.currencyCode} كعملية دفع حقيقية؟'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('نعم، تم الدفع')),
-        ],
-      )
-    );
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: const Text('تأكيد تنفيذ الالتزام'),
+              content: Text(
+                  'هل تود تسجيل مبلغ ${item.amount} ${item.currencyCode} كعملية دفع حقيقية؟'),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('إلغاء')),
+                FilledButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('نعم، تم الدفع')),
+              ],
+            ));
 
     if (confirm != true) return;
 
@@ -237,7 +247,8 @@ class _AccrualCard extends StatelessWidget {
     res.fold(
       (f) => scaffold.showSnackBar(SnackBar(content: Text(f.messageAr))),
       (_) {
-        scaffold.showSnackBar(const SnackBar(content: Text('تم تنفيذ الاستحقاق وتسجيل العملية بنجاح.')));
+        scaffold.showSnackBar(const SnackBar(
+            content: Text('تم تنفيذ الاستحقاق وتسجيل العملية بنجاح.')));
         onProcessed();
       },
     );
@@ -246,8 +257,9 @@ class _AccrualCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDueSoon = item.nextDueDate.isBefore(DateTime.now().add(const Duration(days: 3)));
-    
+    final isDueSoon =
+        item.nextDueDate.isBefore(DateTime.now().add(const Duration(days: 3)));
+
     return Container(
       margin: const EdgeInsets.only(bottom: SpacingTokens.md),
       child: GlassCard(
@@ -258,7 +270,8 @@ class _AccrualCard extends StatelessWidget {
               Container(
                 width: 4,
                 decoration: BoxDecoration(
-                  color: isDueSoon ? ColorTokens.errorSoft : ColorTokens.debitBlue,
+                  color:
+                      isDueSoon ? ColorTokens.errorSoft : ColorTokens.debitBlue,
                   borderRadius: BorderRadius.circular(RadiusTokens.pill),
                 ),
               ),
@@ -311,7 +324,9 @@ class _AccrualCard extends StatelessWidget {
                           'الاستحقاق القادم: ${DateFormat('yyyy-MM-dd').format(item.nextDueDate)}',
                           style: TextStyle(
                             fontSize: 11,
-                            color: isDueSoon ? ColorTokens.errorSoft : scheme.onSurfaceVariant,
+                            color: isDueSoon
+                                ? ColorTokens.errorSoft
+                                : scheme.onSurfaceVariant,
                             fontWeight: isDueSoon ? FontWeight.bold : null,
                           ),
                         ),
@@ -329,7 +344,8 @@ class _AccrualCard extends StatelessWidget {
                     icon: const Icon(Icons.payments_rounded),
                     tooltip: 'تسجيل عملية دفع',
                     style: IconButton.styleFrom(
-                      backgroundColor: ColorTokens.emerald400.withValues(alpha: 0.1),
+                      backgroundColor:
+                          ColorTokens.emerald400.withValues(alpha: 0.1),
                       foregroundColor: ColorTokens.emerald400,
                     ),
                   ),

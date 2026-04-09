@@ -158,9 +158,8 @@ class OutboxDao {
 
   /// Purge delivered entries older than [days] from the outbox.
   Future<void> purgeDelivered({int days = 30}) async {
-    final cutoff = DateTime.now()
-        .subtract(Duration(days: days))
-        .toIso8601String();
+    final cutoff =
+        DateTime.now().subtract(Duration(days: days)).toIso8601String();
     await _db.delete(
       _table,
       where: "state = 'delivered' AND delivered_at < ?",

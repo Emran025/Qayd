@@ -54,7 +54,8 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
   }
 
   Future<void> _loadCategories() async {
-    final res = await InjectionContainer.manageDimensionsUseCase.listCategories();
+    final res =
+        await InjectionContainer.manageDimensionsUseCase.listCategories();
     res.fold((_) {}, (cats) => setState(() => _categories = cats));
   }
 
@@ -159,8 +160,7 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
                   child: _TypeCard(
                     type: CostCenterType.profit,
                     selected: _type == CostCenterType.profit,
-                    onTap: () =>
-                        setState(() => _type = CostCenterType.profit),
+                    onTap: () => setState(() => _type = CostCenterType.profit),
                   ),
                 ),
               ],
@@ -172,13 +172,11 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: AppStringsAr.costCenterNameHint,
-                prefixIcon:
-                    const Icon(Icons.label_important_outline_rounded),
+                prefixIcon: const Icon(Icons.label_important_outline_rounded),
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty)
-                      ? AppStringsAr.costCenterNameValidator
-                      : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? AppStringsAr.costCenterNameValidator
+                  : null,
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: SpacingTokens.md),
@@ -203,7 +201,8 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
                 prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
                 hintText: AppStringsAr.costCenterBudgetNoneHint,
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.done,
             ),
 
@@ -216,7 +215,8 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
             ),
             const SizedBox(height: SpacingTokens.sm),
             if (_categories.isEmpty)
-              const Center(child: Padding(
+              const Center(
+                  child: Padding(
                 padding: EdgeInsets.all(SpacingTokens.md),
                 child: CircularProgressIndicator(),
               ))
@@ -278,8 +278,7 @@ class _TypeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isProfit = type == CostCenterType.profit;
-    final color =
-        isProfit ? ColorTokens.emerald600 : ColorTokens.debitBlue;
+    final color = isProfit ? ColorTokens.emerald600 : ColorTokens.debitBlue;
     final scheme = Theme.of(context).colorScheme;
 
     return InkWell(
@@ -313,9 +312,9 @@ class _TypeCard extends StatelessWidget {
             Text(
               type.labelAr,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: selected ? color : scheme.onSurfaceVariant,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-              ),
+                    color: selected ? color : scheme.onSurfaceVariant,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  ),
               textAlign: TextAlign.center,
             ),
           ],

@@ -19,7 +19,8 @@ final class SqliteLedgerRepository implements LedgerRepository {
 
   static const _table = 'ledger_entries';
 
-  Future<List<LedgerEntry>> _mapEntryRows(List<Map<String, Object?>> rows) async {
+  Future<List<LedgerEntry>> _mapEntryRows(
+      List<Map<String, Object?>> rows) async {
     if (rows.isEmpty) return const [];
 
     final currencyMaps = await _db.query('currencies');
@@ -103,7 +104,8 @@ final class SqliteLedgerRepository implements LedgerRepository {
   }
 
   @override
-  Future<Result<List<LedgerEntry>>> getEntriesForVoucher(VoucherId voucherId) async {
+  Future<Result<List<LedgerEntry>>> getEntriesForVoucher(
+      VoucherId voucherId) async {
     try {
       final rows = await _db.query(
         _table,
@@ -120,7 +122,8 @@ final class SqliteLedgerRepository implements LedgerRepository {
   }
 
   @override
-  Future<Result<List<LedgerEntry>>> getAllEntries({DateRange? dateRange}) async {
+  Future<Result<List<LedgerEntry>>> getAllEntries(
+      {DateRange? dateRange}) async {
     try {
       String? where;
       List<Object>? whereArgs;

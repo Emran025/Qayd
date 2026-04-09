@@ -13,6 +13,7 @@ sealed class ConflictResolutionState {
 }
 
 final class ConflictResolutionInitial extends ConflictResolutionState {}
+
 final class ConflictResolutionLoading extends ConflictResolutionState {}
 
 final class ConflictResolutionReady extends ConflictResolutionState {
@@ -64,12 +65,13 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
         return;
       }
 
-      final data = jsonDecode(notification.rawPayloadJson!) as Map<String, dynamic>;
+      final data =
+          jsonDecode(notification.rawPayloadJson!) as Map<String, dynamic>;
       final localId = data['local_voucher_id'] as String;
       final inboundPayload = data['inbound_payload'] as Map<String, dynamic>;
 
       final res = await _getDetails(GetVoucherDetailsInput(voucherId: localId));
-      
+
       res.fold(
         (f) => emit(ConflictResolutionFailure(f)),
         (out) => emit(ConflictResolutionReady(

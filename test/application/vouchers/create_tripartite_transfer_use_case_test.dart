@@ -18,14 +18,22 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 
 class MockVoucherRepository extends Mock implements VoucherRepository {}
+
 class MockCurrencyRepository extends Mock implements CurrencyRepository {}
+
 class MockIdGenerator extends Mock implements IdGenerator {}
+
 class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
-class MockGetActiveTransactionFeeUseCase extends Mock implements GetActiveTransactionFeeUseCase {}
+
+class MockGetActiveTransactionFeeUseCase extends Mock
+    implements GetActiveTransactionFeeUseCase {}
+
 class MockAccountRepository extends Mock implements AccountRepository {}
 
 class FakeVoucher extends Fake implements Voucher {}
+
 class FakeAccount extends Fake implements Account {}
+
 class MockTransactionFeeSetting extends Mock implements TransactionFeeSetting {}
 
 void main() {
@@ -79,16 +87,19 @@ void main() {
   );
 
   group('CreateTripartiteTransferUseCase', () {
-    test('should succeed and return output when all validations pass', () async {
+    test('should succeed and return output when all validations pass',
+        () async {
       // Arrange
       when(() => mockWriteGuard.assertWritesPermitted())
           .thenAnswer((_) async => const Success(null));
       when(() => mockCurrencyRepo.getByCode('SAR'))
           .thenAnswer((_) async => Success(currency));
       when(() => mockIdGen.next()).thenReturn('unique-id');
-      when(() => mockGetFee.call()).thenAnswer((_) async => const Success(null));
-      when(() => mockAccountRepo.getAll()).thenAnswer((_) async => const Success([]));
-      
+      when(() => mockGetFee.call())
+          .thenAnswer((_) async => const Success(null));
+      when(() => mockAccountRepo.getAll())
+          .thenAnswer((_) async => const Success([]));
+
       when(() => mockVoucherRepo.saveTripartitePair(
             receiptVoucher: any(named: 'receiptVoucher'),
             paymentVoucher: any(named: 'paymentVoucher'),
@@ -101,16 +112,18 @@ void main() {
       expect(result.isSuccess, isTrue);
       final output = result.valueOrNull as CreateTripartiteTransferOutput;
       expect(output.transferGroupId, 'unique-id');
-      
+
       verify(() => mockVoucherRepo.saveTripartitePair(
             receiptVoucher: any(named: 'receiptVoucher'),
             paymentVoucher: any(named: 'paymentVoucher'),
           )).called(1);
     });
 
-    test('should fail when source and destination accounts are identical', () async {
+    test('should fail when source and destination accounts are identical',
+        () async {
       // Arrange
-      final invalidInput = input.copyWith(destinationAccountId: input.sourceAccountId);
+      final invalidInput =
+          input.copyWith(destinationAccountId: input.sourceAccountId);
       when(() => mockWriteGuard.assertWritesPermitted())
           .thenAnswer((_) async => const Success(null));
       when(() => mockCurrencyRepo.getByCode('SAR'))
@@ -121,13 +134,14 @@ void main() {
 
       // Assert
       expect(result.isFailure, isTrue);
-      expect(result.failureOrNull?.messageAr, contains('لا يمكن أن يكون المصدر والوجهة نفس الطرف'));
+      expect(result.failureOrNull?.messageAr,
+          contains('لا يمكن أن يكون المصدر والوجهة نفس الطرف'));
     });
 
     test('should fail when governance gate blocks writes', () async {
       // Arrange
-      when(() => mockWriteGuard.assertWritesPermitted())
-          .thenAnswer((_) async => const FailureResult(UnexpectedFailure(messageAr: 'ممنوع الكتابة')));
+      when(() => mockWriteGuard.assertWritesPermitted()).thenAnswer((_) async =>
+          const FailureResult(UnexpectedFailure(messageAr: 'ممنوع الكتابة')));
 
       // Act
       final result = await useCase.call(input);
@@ -149,7 +163,8 @@ void main() {
 
       // Assert
       expect(result.isFailure, isTrue);
-      expect(result.failureOrNull?.messageAr, contains('العملة المختارة غير صالحة'));
+      expect(result.failureOrNull?.messageAr,
+          contains('العملة المختارة غير صالحة'));
     });
 
     test('should create fee voucher when transaction fee is active', () async {
@@ -163,16 +178,20 @@ void main() {
       when(() => mockCurrencyRepo.getByCode('SAR'))
           .thenAnswer((_) async => Success(currency));
       when(() => mockIdGen.next()).thenReturn('unique-id');
-      when(() => mockGetFee.call()).thenAnswer((_) async => Success(feeSetting));
-      when(() => mockAccountRepo.getAll()).thenAnswer((_) async => const Success([]));
-      
+      when(() => mockGetFee.call())
+          .thenAnswer((_) async => Success(feeSetting));
+      when(() => mockAccountRepo.getAll())
+          .thenAnswer((_) async => const Success([]));
+
       when(() => mockVoucherRepo.saveTripartitePair(
             receiptVoucher: any(named: 'receiptVoucher'),
             paymentVoucher: any(named: 'paymentVoucher'),
           )).thenAnswer((_) async => const Success(null));
-          
-      when(() => mockVoucherRepo.save(any())).thenAnswer((_) async => const Success(null));
-      when(() => mockAccountRepo.save(any())).thenAnswer((_) async => const Success(null));
+
+      when(() => mockVoucherRepo.save(any()))
+          .thenAnswer((_) async => const Success(null));
+      when(() => mockAccountRepo.save(any()))
+          .thenAnswer((_) async => const Success(null));
 
       // Act
       final result = await useCase.call(input);

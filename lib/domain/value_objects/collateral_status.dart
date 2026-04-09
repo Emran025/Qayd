@@ -20,8 +20,7 @@ enum CollateralStatus {
 
   /// Whether terminal (no further transitions allowed).
   bool get isTerminal =>
-      this == CollateralStatus.liquidated ||
-      this == CollateralStatus.released;
+      this == CollateralStatus.liquidated || this == CollateralStatus.released;
 
   static CollateralStatus fromString(String val) {
     return CollateralStatus.values.firstWhere(

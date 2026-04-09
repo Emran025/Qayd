@@ -123,7 +123,8 @@ class SyncPayloadProcessor {
         // 3. Process Domain Actions Structurally with Signatures
         switch (node.eventType) {
           case SyncEventType.claim:
-            await _inboundVoucherClaim(decryptedRawPayload, node.id, node.senderId.toString());
+            await _inboundVoucherClaim(
+                decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.acceptance:
             await _inboundVoucherAcceptance(
@@ -136,7 +137,8 @@ class SyncPayloadProcessor {
             );
             break;
           case SyncEventType.rejection:
-            await _inboundVoucherRejection(decryptedRawPayload, node.id, node.senderId.toString());
+            await _inboundVoucherRejection(
+                decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.journalEntry:
             await _inboundJournalEntryMirrored(decryptedRawPayload);
@@ -151,10 +153,12 @@ class SyncPayloadProcessor {
             await _inboundCollateralRevaluation(decryptedRawPayload);
             break;
           case SyncEventType.withdrawal:
-            await _inboundVoucherWithdrawal(decryptedRawPayload, node.id, node.senderId.toString());
+            await _inboundVoucherWithdrawal(
+                decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.settlement:
-            await _inboundVoucherSettlement(decryptedRawPayload, node.id, node.senderId.toString());
+            await _inboundVoucherSettlement(
+                decryptedRawPayload, node.id, node.senderId.toString());
             break;
           case SyncEventType.p2pHandshake:
             // P2P handshake is handled at the transport layer, not here.
@@ -163,7 +167,8 @@ class SyncPayloadProcessor {
             );
             break;
           case SyncEventType.tripartiteRequest:
-            await _inboundTripartiteRequest(decryptedRawPayload, node.senderId.toString(), node.id);
+            await _inboundTripartiteRequest(
+                decryptedRawPayload, node.senderId.toString(), node.id);
             break;
           case SyncEventType.unknown:
             debugPrint('Warning: Unknown event type in SyncNode [${node.id}]');
@@ -185,25 +190,30 @@ class SyncPayloadProcessor {
     if (voucherIdStr == null) return;
 
     // 1. Idempotency Guard
-    final existingResult = await voucherRepository.getById(VoucherId(voucherIdStr));
+    final existingResult =
+        await voucherRepository.getById(VoucherId(voucherIdStr));
     if (existingResult.isSuccess && existingResult.valueOrNull != null) return;
 
     // 2. Flip Logic: From their perspective to ours.
     final typeStr = payload['type'] as String? ?? 'receipt';
     // If they sent a Receipt (they got money), for us it is a Payment (we gave money).
-    final myType = typeStr == 'receipt' ? VoucherType.payment : VoucherType.receipt;
+    final myType =
+        typeStr == 'receipt' ? VoucherType.payment : VoucherType.receipt;
 
     final amountMinor = payload['amount_minor'] as int? ?? 0;
     final currencyCode = payload['currency_code'] as String? ?? 'YER';
-    final date = DateTime.tryParse(payload['date'] as String? ?? '') ?? DateTime.now();
+    final date =
+        DateTime.tryParse(payload['date'] as String? ?? '') ?? DateTime.now();
 
     // 3. Counterparty mapping: The one who sent the sync node is our counterparty.
     // (Sender ID is handled in the caller processIncomingNodes, but we need the AccountId here)
-    // For now, we rely on the payload's counterparty mapping if available, 
+    // For now, we rely on the payload's counterparty mapping if available,
     // but better to resolve from the Node's sender.
     // In our system, the sender of the claim IS the counterparty.
-    final senderParty = await accountRepository.findAccountByPhone(payload['signer_phone'] ?? '');
-    final counterpartyId = senderParty.valueOrNull ?? AccountId(payload['counterparty_id'] ?? '');
+    final senderParty = await accountRepository
+        .findAccountByPhone(payload['signer_phone'] ?? '');
+    final counterpartyId =
+        senderParty.valueOrNull ?? AccountId(payload['counterparty_id'] ?? '');
 
     // 4. Affected Account mapping: For inbound claims, our default fund is usually affected.
     final allAccounts = await accountRepository.getAll();
@@ -223,9 +233,14 @@ class SyncPayloadProcessor {
     if (tripartiteData != null) {
       tripartiteMeta = TripartiteMeta(
         transferGroupId: tripartiteData['transfer_group_id'] as String? ?? '',
-        role: TripartiteRole.fromColumnValue(tripartiteData['role'] as String?) ?? TripartiteRole.intermediaryReceipt,
-        linkedPartyId: AccountId(tripartiteData['linked_party_id'] as String? ?? ''),
-        mediatorAccountId: tripartiteData['mediator_account_id'] != null ? AccountId(tripartiteData['mediator_account_id'] as String) : null,
+        role:
+            TripartiteRole.fromColumnValue(tripartiteData['role'] as String?) ??
+                TripartiteRole.intermediaryReceipt,
+        linkedPartyId:
+            AccountId(tripartiteData['linked_party_id'] as String? ?? ''),
+        mediatorAccountId: tripartiteData['mediator_account_id'] != null
+            ? AccountId(tripartiteData['mediator_account_id'] as String)
+            : null,
         isContingent: tripartiteData['is_contingent'] as bool? ?? false,
       );
     }
@@ -238,7 +253,8 @@ class SyncPayloadProcessor {
       currency: currency,
       counterpartyId: counterpartyId,
       affectedAccountId: affectedAccountId,
-      state: VoucherState.draft, // Inbound claims are always drafts until WE accept them.
+      state: VoucherState
+          .draft, // Inbound claims are always drafts until WE accept them.
       createdAt: DateTime.now(),
       description: payload['description'],
       referenceNumber: payload['reference_number'],
@@ -247,7 +263,9 @@ class SyncPayloadProcessor {
       senderSignatureHex: payload['sender_signature_hex'],
       senderPublicKeyHex: payload['sender_public_key_hex'],
       signerPhone: payload['signer_phone'],
-      originVoucherId: payload['origin_voucher_id'] != null ? VoucherId(payload['origin_voucher_id']) : null,
+      originVoucherId: payload['origin_voucher_id'] != null
+          ? VoucherId(payload['origin_voucher_id'])
+          : null,
       tripartiteMeta: tripartiteMeta,
     );
 
@@ -272,7 +290,7 @@ class SyncPayloadProcessor {
       final localMatch = reciprocalResult.valueOrNull!;
       bodyText = 'سند مطابق — هل ترغب في دمج هذا السند مع المسودة المحلية؟';
       channel = 'conflict';
-      
+
       // We still use voucher_event as base but keep the conflict logic
       await notificationMessageRepository.insert(
         id: nodeId, // Use the sync node ID to prevent duplicates
@@ -622,12 +640,11 @@ class SyncPayloadProcessor {
     final updated = existing.revaluate(
       newValue: newMinor != null
           ? (newMinor > 0
-                ? Money.positiveAmount(newMinor, existing.currency)
-                : Money.zero(existing.currency))
+              ? Money.positiveAmount(newMinor, existing.currency)
+              : Money.zero(existing.currency))
           : null,
-      newExpiryDate: newExpiryStr != null
-          ? DateTime.tryParse(newExpiryStr)
-          : null,
+      newExpiryDate:
+          newExpiryStr != null ? DateTime.tryParse(newExpiryStr) : null,
     );
 
     await collateralRepository.update(updated);
@@ -739,7 +756,7 @@ class SyncPayloadProcessor {
     // Protocol §5 — Inbound Tripartite Request from Sender (A).
     // The mediator (B) saves this as a notification to allow deep-linking to the creation page.
     final now = DateTime.now();
-    
+
     // Resolve sender name for the notification UI
     final accountResult = await accountRepository.getById(AccountId(senderId));
     final senderName = accountResult.valueOrNull?.name ?? 'المُرسل';
@@ -752,7 +769,7 @@ class SyncPayloadProcessor {
       createdAtIso: now.toIso8601String(),
       rawPayloadJson: jsonEncode(payload),
     );
-    
+
     debugPrint('TripartiteRequest [$senderName -> B]: Ingested and stored.');
   }
 

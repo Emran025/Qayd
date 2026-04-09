@@ -23,13 +23,15 @@ class DeactivateAccountUseCase {
   final BalanceCalculator _balanceCalculator;
   final GovernanceWriteGuard _writeGuard;
 
-  Future<Result<DeactivateAccountOutput>> call(DeactivateAccountInput input) async {
+  Future<Result<DeactivateAccountOutput>> call(
+      DeactivateAccountInput input) async {
     try {
       final gate = await _writeGuard.assertWritesPermitted();
       if (gate.isFailure) {
         return FailureResult(gate.failureOrNull!);
       }
-      final loaded = await _accountRepository.getById(AccountId(input.accountId));
+      final loaded =
+          await _accountRepository.getById(AccountId(input.accountId));
       if (loaded.isFailure) {
         return FailureResult(loaded.failureOrNull!);
       }
@@ -50,13 +52,15 @@ class DeactivateAccountUseCase {
         final entry = perCurrency.entries.firstWhere((e) => e.value != 0);
         balanceCheck = Money.nonNegative(entry.value.abs(), entry.key);
       } else {
-        balanceCheck = Money.zero(const CurrencyCode(code: 'SAR', nameAr: 'ريال', symbol: 'ر.س'));
+        balanceCheck = Money.zero(
+            const CurrencyCode(code: 'SAR', nameAr: 'ريال', symbol: 'ر.س'));
       }
       final deactivated = account.deactivate(balance: balanceCheck);
       final saved = await _accountRepository.save(deactivated);
       return saved.fold(
         (f) => FailureResult(f),
-        (_) => Success(DeactivateAccountOutput(accountId: deactivated.id.value)),
+        (_) =>
+            Success(DeactivateAccountOutput(accountId: deactivated.id.value)),
       );
     } catch (e, _) {
       return FailureResult(failureFromDomainException(e));

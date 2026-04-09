@@ -51,38 +51,38 @@ class SyncCoordinatorService {
     // 2. Connect the active WebSocket listener
     socketService.connect(currentUserId);
     _socketSubscription = socketService.incomingNodes.listen((node) async {
-      
       // Pass the encrypted wrapper into the Crypto Engine for authentication/decryption
       await payloadProcessor.processIncomingNodes([node]);
-      
+
       // Auto-acknowledge receipt to update the server's tracking state
       await _acknowledge([node.id], 'delivered');
 
       // Trigger Native Notification and persist to inbox if it's an important event
       if (node.eventType == SyncEventType.claim) {
-         await nativeNotificationService.showImportantNotification(
-           title: 'طلب جديد',
-           body: 'تم استلام طلب سند جديد من شريكك.',
-         );
-         await notificationMessageRepository.insert(
-           id: node.id,
-           bodyText: 'تم استلام طلب سند جديد من شريكك.',
-           counterpartyAccountId: node.senderId.toString(),
-           createdAtIso: DateTime.now().toIso8601String(),
-           channel: 'server',
-         );
+        await nativeNotificationService.showImportantNotification(
+          title: 'طلب جديد',
+          body: 'تم استلام طلب سند جديد من شريكك.',
+        );
+        await notificationMessageRepository.insert(
+          id: node.id,
+          bodyText: 'تم استلام طلب سند جديد من شريكك.',
+          counterpartyAccountId: node.senderId.toString(),
+          createdAtIso: DateTime.now().toIso8601String(),
+          channel: 'server',
+        );
       } else if (node.eventType == SyncEventType.acceptance) {
-         await nativeNotificationService.showLocalNotification(
-           title: 'تم الاعتماد',
-           body: 'تم قبول السند الخاص بك ومزامنته.',
-         );
-         await notificationMessageRepository.insert(
-           id: node.id,
-           bodyText: 'تم اعتماد سند الصرف الخاص بك (#${node.id.substring(0, 4)}).',
-           counterpartyAccountId: node.senderId.toString(),
-           createdAtIso: DateTime.now().toIso8601String(),
-           channel: 'server',
-         );
+        await nativeNotificationService.showLocalNotification(
+          title: 'تم الاعتماد',
+          body: 'تم قبول السند الخاص بك ومزامنته.',
+        );
+        await notificationMessageRepository.insert(
+          id: node.id,
+          bodyText:
+              'تم اعتماد سند الصرف الخاص بك (#${node.id.substring(0, 4)}).',
+          counterpartyAccountId: node.senderId.toString(),
+          createdAtIso: DateTime.now().toIso8601String(),
+          channel: 'server',
+        );
       }
     });
 
@@ -131,7 +131,7 @@ class SyncCoordinatorService {
       if (nodes.isNotEmpty) {
         // Feed caught-up nodes firmly into local verification pipelines
         await payloadProcessor.processIncomingNodes(nodes);
-        
+
         final ids = nodes.map((e) => e.id).toList();
         await _acknowledge(ids, 'delivered');
       }
@@ -162,7 +162,7 @@ class SyncCoordinatorService {
         final node = SyncNode(
           id: entry.id,
           senderId: currentUserId,
-          receiverId: int.tryParse(entry.counterpartyAccountId) ?? 0, 
+          receiverId: int.tryParse(entry.counterpartyAccountId) ?? 0,
           eventType: _parseEventType(entry.eventType),
           encryptedPayload: entry.encryptedPayload,
           syncState: 'pending',

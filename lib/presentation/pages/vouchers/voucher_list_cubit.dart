@@ -51,7 +51,8 @@ class VoucherListCubit extends Cubit<VoucherListState> {
     _fetch();
   }
 
-  void patchAdvancedFilter(AdvancedFilterInput Function(AdvancedFilterInput) fn) {
+  void patchAdvancedFilter(
+      AdvancedFilterInput Function(AdvancedFilterInput) fn) {
     _advancedFilter = fn(_advancedFilter);
     _fetch();
   }

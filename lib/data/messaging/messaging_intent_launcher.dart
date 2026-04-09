@@ -17,7 +17,7 @@ abstract final class MessagingIntentLauncher {
       // Remove +, spaces, -, (, )
       formattedPhone = phoneNumber.replaceAll(RegExp(r'[\+\-\(\)\s]'), '');
     }
-    
+
     final uriStr = formattedPhone.isNotEmpty
         ? 'https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}'
         : 'https://wa.me/?text=${Uri.encodeComponent(text)}';

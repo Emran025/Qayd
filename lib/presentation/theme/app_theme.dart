@@ -114,7 +114,6 @@ abstract final class AppTheme {
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: textTheme.titleLarge?.copyWith(color: scheme.onSurface),
-        
       ),
       cardTheme: CardThemeData(
         elevation: 0,
@@ -174,6 +173,21 @@ abstract final class AppTheme {
           side: BorderSide(color: custom.subtleBorder),
           foregroundColor: scheme.onSurface,
           textStyle: textTheme.labelLarge,
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(RadiusTokens.lg),
+        ),
+        backgroundColor: scheme.surface,
+        elevation: 12,
+        actionsPadding: const EdgeInsets.symmetric(
+          horizontal: SpacingTokens.md,
+          vertical: SpacingTokens.sm,
+        ),
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 24.0, // Reduced from default 40.0 for slightly more width
+          vertical: 24.0,
         ),
       ),
     );

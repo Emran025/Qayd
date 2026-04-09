@@ -10,7 +10,8 @@ import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_state.dart';
 
 class TripartiteListCubit extends Cubit<TripartiteListState> {
-  TripartiteListCubit(this._listVouchers) : super(const TripartiteListInitial());
+  TripartiteListCubit(this._listVouchers)
+      : super(const TripartiteListInitial());
 
   final ListVouchersUseCase _listVouchers;
 
@@ -44,7 +45,8 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
     _fetch();
   }
 
-  void patchAdvancedFilter(AdvancedFilterInput Function(AdvancedFilterInput) fn) {
+  void patchAdvancedFilter(
+      AdvancedFilterInput Function(AdvancedFilterInput) fn) {
     _advancedFilter = fn(_advancedFilter);
     _fetch();
   }
@@ -83,7 +85,7 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
 
           if (v.transferGroupId == null) continue;
           final gid = v.transferGroupId!;
-          
+
           final isReceipt = v.typeCode == VoucherType.receipt.name;
           final isPayment = v.typeCode == VoucherType.payment.name;
 
@@ -94,9 +96,9 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
             String sourceName = '';
             String destinationName = '';
             if (isReceipt) {
-               sourceName = v.counterpartyName;
+              sourceName = v.counterpartyName;
             } else if (isPayment) {
-               destinationName = v.counterpartyName;
+              destinationName = v.counterpartyName;
             }
             return TripartiteTransferSummaryDto(
               transferGroupId: gid,
@@ -125,7 +127,8 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
             currencyDigits: existing.currencyDigits,
             currencyNameAr: existing.currencyNameAr,
             sourceName: isReceipt ? v.counterpartyName : existing.sourceName,
-            destinationName: isPayment ? v.counterpartyName : existing.destinationName,
+            destinationName:
+                isPayment ? v.counterpartyName : existing.destinationName,
             affectedName: existing.affectedName,
             receiptVoucher: isReceipt ? v : existing.receiptVoucher,
             paymentVoucher: isPayment ? v : existing.paymentVoucher,

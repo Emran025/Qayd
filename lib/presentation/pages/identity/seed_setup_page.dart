@@ -20,7 +20,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   bool _isLoading = false;
   bool _backupConfirmed = false;
 
-  final SetupIdentityUseCase _setupUseCase = InjectionContainer.setupIdentityUseCase;
+  final SetupIdentityUseCase _setupUseCase =
+      InjectionContainer.setupIdentityUseCase;
 
   @override
   void initState() {

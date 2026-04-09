@@ -74,7 +74,7 @@ class _ActivationPageState extends State<ActivationPage> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(SpacingTokens.lg),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
+                  constraints: const BoxConstraints(maxWidth: 520),
                   child: Card(
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -112,17 +112,22 @@ class _ActivationPageState extends State<ActivationPage> {
                                   return const SizedBox.shrink();
                                 }
                                 return Container(
-                                  margin: const EdgeInsets.only(bottom: SpacingTokens.xl),
-                                  padding: const EdgeInsets.all(SpacingTokens.md),
+                                  margin: const EdgeInsets.only(
+                                      bottom: SpacingTokens.xl),
+                                  padding:
+                                      const EdgeInsets.all(SpacingTokens.md),
                                   decoration: BoxDecoration(
-                                    color: ColorTokens.warningAmber.withValues(alpha: 0.1),
+                                    color: ColorTokens.warningAmber
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: ColorTokens.warningAmber.withValues(alpha: 0.3),
+                                      color: ColorTokens.warningAmber
+                                          .withValues(alpha: 0.3),
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       if (msg != null) ...[
                                         QaydText(
@@ -131,16 +136,19 @@ class _ActivationPageState extends State<ActivationPage> {
                                           color: scheme.onSurface,
                                           textAlign: TextAlign.center,
                                         ),
-                                        const SizedBox(height: SpacingTokens.md),
+                                        const SizedBox(
+                                            height: SpacingTokens.md),
                                       ],
                                       if (account != null) ...[
                                         QaydText(
-                                          AppStringsAr.governancePaymentInstruction,
+                                          AppStringsAr
+                                              .governancePaymentInstruction,
                                           slot: QaydTextStyleSlot.labelSmall,
                                           color: scheme.onSurfaceVariant,
                                           textAlign: TextAlign.center,
                                         ),
-                                        const SizedBox(height: SpacingTokens.xs),
+                                        const SizedBox(
+                                            height: SpacingTokens.xs),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
                                             vertical: SpacingTokens.sm,
@@ -148,14 +156,20 @@ class _ActivationPageState extends State<ActivationPage> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: scheme.surfaceContainerHigh,
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.account_balance_wallet_outlined, 
-                                                   size: 16, color: gold),
-                                              const SizedBox(width: SpacingTokens.sm),
+                                              Icon(
+                                                  Icons
+                                                      .account_balance_wallet_outlined,
+                                                  size: 16,
+                                                  color: gold),
+                                              const SizedBox(
+                                                  width: SpacingTokens.sm),
                                               SelectableText(
                                                 account,
                                                 style: TextStyle(
@@ -167,7 +181,8 @@ class _ActivationPageState extends State<ActivationPage> {
                                             ],
                                           ),
                                         ),
-                                        const SizedBox(height: SpacingTokens.md),
+                                        const SizedBox(
+                                            height: SpacingTokens.md),
                                         QaydText(
                                           AppStringsAr.governanceContactAdmin,
                                           slot: QaydTextStyleSlot.labelSmall,

@@ -7,7 +7,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
 
-class MockCheckGovernanceStatusUseCase extends Mock implements CheckGovernanceStatusUseCase {}
+class MockCheckGovernanceStatusUseCase extends Mock
+    implements CheckGovernanceStatusUseCase {}
 
 void main() {
   late MockCheckGovernanceStatusUseCase mockCheckGovernance;
@@ -26,7 +27,8 @@ void main() {
     test('should permit writes when status is activated', () async {
       // arrange
       when(() => mockCheckGovernance(any())).thenAnswer(
-        (_) async => const Success(GovernanceStatus(kind: GovernanceStatusKind.activated)),
+        (_) async => const Success(
+            GovernanceStatus(kind: GovernanceStatusKind.activated)),
       );
 
       // act
@@ -64,7 +66,8 @@ void main() {
     test('should block writes when status is expired', () async {
       // arrange
       when(() => mockCheckGovernance(any())).thenAnswer(
-        (_) async => const Success(GovernanceStatus(kind: GovernanceStatusKind.expired)),
+        (_) async =>
+            const Success(GovernanceStatus(kind: GovernanceStatusKind.expired)),
       );
 
       // act
@@ -84,7 +87,8 @@ void main() {
     test('should block writes when status is revoked', () async {
       // arrange
       when(() => mockCheckGovernance(any())).thenAnswer(
-        (_) async => const Success(GovernanceStatus(kind: GovernanceStatusKind.revoked)),
+        (_) async =>
+            const Success(GovernanceStatus(kind: GovernanceStatusKind.revoked)),
       );
 
       // act

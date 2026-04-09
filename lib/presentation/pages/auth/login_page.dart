@@ -64,9 +64,9 @@ class _LoginPageState extends State<LoginPage> {
 
     if (result.success) {
       // Provisioning success — now check for backups before BLoC emission swaps the UI.
-      // NOTE: SecurityCubit emits the new state at the end of provisionDevice, 
+      // NOTE: SecurityCubit emits the new state at the end of provisionDevice,
       // but Flutter's build cycle happens after the current task.
-      
+
       final restoreCubit = InjectionContainer.restoreCubit;
       await restoreCubit.checkBackups();
 
@@ -144,13 +144,12 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: _obscurePassword,
                     suffixIcon: PasswordToggleIcon(
                       obscure: _obscurePassword,
-                      onToggle: () => setState(
-                          () => _obscurePassword = !_obscurePassword),
+                      onToggle: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
-                    validator: (v) =>
-                        (v == null || v.isEmpty)
-                            ? AppStringsAr.activationFieldRequired
-                            : null,
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? AppStringsAr.activationFieldRequired
+                        : null,
                   ),
 
                   // Error
@@ -193,8 +192,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       TextButton(
                         style: TextButton.styleFrom(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),

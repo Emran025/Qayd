@@ -11,7 +11,8 @@ import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 
-Future<void> shareVoucherAsText(BuildContext context, GetVoucherDetailsOutput data) async {
+Future<void> shareVoucherAsText(
+    BuildContext context, GetVoucherDetailsOutput data) async {
   final isReceipt = data.typeCode == 'receipt';
   final type = isReceipt
       ? AppStringsAr.voucherTypeReceipt
@@ -39,7 +40,8 @@ Future<void> shareVoucherAsText(BuildContext context, GetVoucherDetailsOutput da
     buffer.writeln('\n--');
     buffer.writeln('مُصدّر آلياً وموثق رقمياً عبر نظام قيد');
     if (data.senderSignatureHex != null || data.receiverSignatureHex != null) {
-      buffer.writeln('بصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}');
+      buffer.writeln(
+          'بصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}');
     }
     shareText = buffer.toString();
   }
@@ -52,8 +54,8 @@ Future<void> shareVoucherAsText(BuildContext context, GetVoucherDetailsOutput da
   await Share.share(shareText);
 }
 
-Future<void> shareVoucherAsImage(
-    BuildContext context, GlobalKey boundaryKey, GetVoucherDetailsOutput data) async {
+Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey,
+    GetVoucherDetailsOutput data) async {
   try {
     final boundary = boundaryKey.currentContext?.findRenderObject()
         as RenderRepaintBoundary?;
@@ -71,9 +73,10 @@ Future<void> shareVoucherAsImage(
 
     var shareText = await resolveVoucherShareText(data);
     if (shareText == null || shareText.isEmpty) {
-      shareText = 'مرفق لكم إيصال قيد مالي رقم ${data.referenceNumber ?? data.id.substring(0, 8)}.\n\nموثق رقمياً عبر نظام قيد.';
+      shareText =
+          'مرفق لكم إيصال قيد مالي رقم ${data.referenceNumber ?? data.id.substring(0, 8)}.\n\nموثق رقمياً عبر نظام قيد.';
     }
-    
+
     // Preview and edit Step
     final editedText = await VoucherSharePreviewSheet.show(context, shareText);
     if (editedText == null) return; // Cancelled

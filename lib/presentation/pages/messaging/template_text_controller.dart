@@ -7,7 +7,8 @@ class TemplateVariable {
   final String charCode;
   final MessageTemplateKind? kindRestricted; // if null, available for all
 
-  const TemplateVariable(this.key, this.label, this.charCode, {this.kindRestricted});
+  const TemplateVariable(this.key, this.label, this.charCode,
+      {this.kindRestricted});
 }
 
 // Private Use Area Unicode Characters
@@ -25,9 +26,12 @@ final List<TemplateVariable> kTemplateVariables = [
   const TemplateVariable('{{type}}', 'النوع', '\uE00A'),
   const TemplateVariable('{{signature}}', 'التوقيع الإلكتروني', '\uE00B'),
   // Account Specific
-  const TemplateVariable('{{account_name}}', 'اسم الحساب', '\uE00C', kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{balance}}', 'الرصيد', '\uE00D', kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{nature}}', 'النوع (مدين/دائن)', '\uE00E', kindRestricted: MessageTemplateKind.accountBalance),
+  const TemplateVariable('{{account_name}}', 'اسم الحساب', '\uE00C',
+      kindRestricted: MessageTemplateKind.accountBalance),
+  const TemplateVariable('{{balance}}', 'الرصيد', '\uE00D',
+      kindRestricted: MessageTemplateKind.accountBalance),
+  const TemplateVariable('{{nature}}', 'النوع (مدين/دائن)', '\uE00E',
+      kindRestricted: MessageTemplateKind.accountBalance),
   const TemplateVariable('{{account_id}}', 'معرّف الحساب', '\uE00F'),
 ];
 
@@ -57,7 +61,7 @@ class TemplateTextController extends TextEditingController {
   void insertVariable(TemplateVariable v) {
     final int start = selection.baseOffset;
     final int end = selection.extentOffset;
-    
+
     // Safely fallback to cursor at the end
     if (start < 0 || end < 0) {
       text = text + v.charCode;
@@ -70,7 +74,7 @@ class TemplateTextController extends TextEditingController {
 
     final String prefix = text.substring(0, minPos);
     final String suffix = text.substring(maxPos);
-    
+
     text = prefix + v.charCode + suffix;
     selection = TextSelection.collapsed(offset: minPos + 1);
   }
@@ -83,47 +87,48 @@ class TemplateTextController extends TextEditingController {
   }) {
     final List<InlineSpan> children = [];
     final textStr = value.text;
-    
+
     // Fast path: find occurrences of characters
     final validChars = kTemplateVariables.map((e) => e.charCode).toSet();
 
     for (int i = 0; i < textStr.length; i++) {
-        final char = textStr[i];
-        if (validChars.contains(char)) {
-            final templateVar = kTemplateVariables.firstWhere((e) => e.charCode == char);
-            children.add(
-              WidgetSpan(
-                alignment: PlaceholderAlignment.middle,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.amber.shade300),
-                  ),
-                  child: Text(
-                    templateVar.label,
-                    style: (style ?? const TextStyle()).copyWith(
-                      color: Colors.amber.shade900,
-                      fontWeight: FontWeight.bold,
-                      fontSize: (style?.fontSize ?? 14) * 0.9,
-                    ),
-                  ),
+      final char = textStr[i];
+      if (validChars.contains(char)) {
+        final templateVar =
+            kTemplateVariables.firstWhere((e) => e.charCode == char);
+        children.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.amber.shade300),
+              ),
+              child: Text(
+                templateVar.label,
+                style: (style ?? const TextStyle()).copyWith(
+                  color: Colors.amber.shade900,
+                  fontWeight: FontWeight.bold,
+                  fontSize: (style?.fontSize ?? 14) * 0.9,
                 ),
               ),
-            );
-        } else {
-            // Buffer consecutive regular chars for better performance
-            int j = i;
-            while(j < textStr.length && !validChars.contains(textStr[j])) {
-               j++;
-            }
-            children.add(TextSpan(text: textStr.substring(i, j), style: style));
-            i = j - 1; // i will increment to j on loop continue
+            ),
+          ),
+        );
+      } else {
+        // Buffer consecutive regular chars for better performance
+        int j = i;
+        while (j < textStr.length && !validChars.contains(textStr[j])) {
+          j++;
         }
+        children.add(TextSpan(text: textStr.substring(i, j), style: style));
+        i = j - 1; // i will increment to j on loop continue
+      }
     }
-    
+
     return TextSpan(children: children, style: style);
   }
 }

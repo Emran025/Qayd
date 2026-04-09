@@ -56,7 +56,7 @@ class AccountStatementChatMessageDto {
 
   /// (Remittance) The third-party mediator if this voucher was created via remittance clearing.
   final String? mediatorAccountId;
-  
+
   /// (Remittance) The name of the mediator.
   final String? mediatorName;
 

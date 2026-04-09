@@ -29,7 +29,8 @@ class AuthField extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = accentColor ?? ColorTokens.emerald500;
     final borderColor = ColorTokens.slate200.withValues(alpha: 0.18);
-    final style = GoogleFonts.cairo(fontSize: 14, color: Theme.of(context).colorScheme.onSurface);
+    final style = GoogleFonts.cairo(
+        fontSize: 14, color: Theme.of(context).colorScheme.onSurface);
 
     final field = TextFormField(
       controller: controller,
@@ -39,7 +40,8 @@ class AuthField extends StatelessWidget {
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: style.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        hintStyle: style.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant),
         filled: true,
         fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         suffixIcon: suffixIcon,

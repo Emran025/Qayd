@@ -55,8 +55,7 @@ class LiquidationWizardSheet extends StatefulWidget {
   }
 
   @override
-  State<LiquidationWizardSheet> createState() =>
-      _LiquidationWizardSheetState();
+  State<LiquidationWizardSheet> createState() => _LiquidationWizardSheetState();
 }
 
 class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
@@ -64,10 +63,9 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
   String _settlementType = 'voucher';
   final _saleValueController = TextEditingController();
 
-  int get _debtMinor =>
-      _settlementType == 'full_debt'
-          ? widget.totalDebtMinor
-          : widget.voucherAmountMinor;
+  int get _debtMinor => _settlementType == 'full_debt'
+      ? widget.totalDebtMinor
+      : widget.voucherAmountMinor;
 
   int get _saleValueMinor {
     final text = _saleValueController.text.replaceAll(',', '');
@@ -449,7 +447,9 @@ class _EntryPreview extends StatelessWidget {
             : scheme.surfaceContainerHighest.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isSurplus ? scheme.primary.withValues(alpha: 0.2) : scheme.outlineVariant,
+          color: isSurplus
+              ? scheme.primary.withValues(alpha: 0.2)
+              : scheme.outlineVariant,
         ),
       ),
       child: Column(
@@ -458,7 +458,9 @@ class _EntryPreview extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: isSurplus ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+              color: isSurplus
+                  ? scheme.onPrimaryContainer
+                  : scheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
               fontSize: 13,
             ),
@@ -469,13 +471,15 @@ class _EntryPreview extends StatelessWidget {
               Expanded(
                 child: Text(
                   'مدين: $debit',
-                  style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                  style:
+                      TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                 ),
               ),
               Expanded(
                 child: Text(
                   'دائن: $credit',
-                  style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                  style:
+                      TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                 ),
               ),
             ],

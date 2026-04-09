@@ -19,7 +19,7 @@ class TrialExpiredPage extends StatelessWidget {
     return BlocBuilder<GovernanceCubit, GovernanceUiState>(
       builder: (context, state) {
         final account = state.ownerAccountNumber ?? '...';
-        
+
         return Scaffold(
           body: Container(
             width: double.infinity,
@@ -38,7 +38,7 @@ class TrialExpiredPage extends StatelessWidget {
             child: SafeArea(
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
+                  constraints: const BoxConstraints(maxWidth: 500),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -46,7 +46,8 @@ class TrialExpiredPage extends StatelessWidget {
                         padding: const EdgeInsets.all(SpacingTokens.lg),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: ColorTokens.warningAmber.withValues(alpha: 0.1),
+                          color:
+                              ColorTokens.warningAmber.withValues(alpha: 0.1),
                         ),
                         child: Icon(
                           Icons.lock_clock_rounded,
@@ -63,13 +64,14 @@ class TrialExpiredPage extends StatelessWidget {
                       ),
                       const SizedBox(height: SpacingTokens.md),
                       QaydText(
-                        state.statusMessage ?? AppStringsAr.vaultTrialExpiredBody,
+                        state.statusMessage ??
+                            AppStringsAr.vaultTrialExpiredBody,
                         slot: QaydTextStyleSlot.bodyMedium,
                         textAlign: TextAlign.center,
                         color: scheme.onSurfaceVariant,
                       ),
                       const SizedBox(height: SpacingTokens.xxl),
-                      
+
                       // Payment Section
                       Container(
                         padding: const EdgeInsets.all(SpacingTokens.lg),
@@ -101,7 +103,8 @@ class TrialExpiredPage extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.account_balance_wallet, color: gold, size: 20),
+                                  Icon(Icons.account_balance_wallet,
+                                      color: gold, size: 20),
                                   const SizedBox(width: SpacingTokens.md),
                                   SelectableText(
                                     account,
@@ -125,21 +128,23 @@ class TrialExpiredPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: SpacingTokens.xxl),
-                      
+
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton.icon(
-                          onPressed: state.refreshInFlight 
-                              ? null 
-                              : () => context.read<GovernanceCubit>().verifyRemoteStatus(),
-                          icon: state.refreshInFlight 
+                          onPressed: state.refreshInFlight
+                              ? null
+                              : () => context
+                                  .read<GovernanceCubit>()
+                                  .verifyRemoteStatus(),
+                          icon: state.refreshInFlight
                               ? const SizedBox(
-                                  width: 20, 
-                                  height: 20, 
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
-                                )
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white))
                               : const Icon(Icons.refresh_rounded),
                           label: Text(AppStringsAr.governanceRecheckAction),
                           style: FilledButton.styleFrom(
@@ -149,11 +154,13 @@ class TrialExpiredPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: SpacingTokens.md),
                       TextButton(
-                        onPressed: () => Navigator.of(context).pushReplacementNamed('/activation'), // Link back to activation if they have a key
-                        child: Text(AppStringsAr.backToLogin, style: TextStyle(color: scheme.onSurfaceVariant)),
+                        onPressed: () => Navigator.of(context).pushReplacementNamed(
+                            '/activation'), // Link back to activation if they have a key
+                        child: Text(AppStringsAr.backToLogin,
+                            style: TextStyle(color: scheme.onSurfaceVariant)),
                       ),
                     ],
                   ),

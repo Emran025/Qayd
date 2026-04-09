@@ -25,31 +25,37 @@ final class ListInboxNotificationsUseCase {
       final notifications = <InboxNotification>[];
 
       for (final msg in messages) {
-        final senderName = await _getAccountName(AccountId(msg.counterpartyAccountId));
-        
+        final senderName =
+            await _getAccountName(AccountId(msg.counterpartyAccountId));
+
         String title = 'إشعار جديد';
         String actionRoute = '/chat/${msg.counterpartyAccountId}';
 
         if (msg.channel == 'tripartite_event') {
           title = 'طلب إنشاء حوالة';
           try {
-            final Map<String, dynamic> payload = jsonDecode(msg.rawPayloadJson!);
+            final Map<String, dynamic> payload =
+                jsonDecode(msg.rawPayloadJson!);
             final destId = payload['destAccountId'];
             final amount = payload['amountMinorUnits'];
             final cur = payload['currencyCode'];
-            actionRoute = '/tripartite/create?sourceAccountId=${msg.counterpartyAccountId}&destAccountId=$destId&amount=$amount&currency=$cur';
+            actionRoute =
+                '/tripartite/create?sourceAccountId=${msg.counterpartyAccountId}&destAccountId=$destId&amount=$amount&currency=$cur';
           } catch (_) {}
-        } else if (msg.channel == 'voucher_event' || msg.channel == 'conflict') {
-          final Map<String, dynamic> payload = jsonDecode(msg.rawPayloadJson ?? '{}');
+        } else if (msg.channel == 'voucher_event' ||
+            msg.channel == 'conflict') {
+          final Map<String, dynamic> payload =
+              jsonDecode(msg.rawPayloadJson ?? '{}');
           final eventType = payload['event_type'] as String?;
           final hasTripartite = payload['has_tripartite_meta'] == true;
-          
+
           switch (eventType) {
             case 'claim':
               if (hasTripartite) {
                 title = 'حوالة وساطة جديدة';
               } else {
-                title = msg.channel == 'conflict' ? 'تعارض في السندات' : 'سند جديد';
+                title =
+                    msg.channel == 'conflict' ? 'تعارض في السندات' : 'سند جديد';
               }
               break;
             case 'acceptance':

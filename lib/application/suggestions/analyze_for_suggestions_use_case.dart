@@ -1,1 +1,3 @@
-class AnalyzeForSuggestionsUseCase { const AnalyzeForSuggestionsUseCase(); }
+class AnalyzeForSuggestionsUseCase {
+  const AnalyzeForSuggestionsUseCase();
+}

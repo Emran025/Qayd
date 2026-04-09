@@ -11,7 +11,7 @@ import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 
 /// Matches an incoming signed QR payload to a local draft voucher.
-/// 
+///
 /// Implements the hierarchical key verification requested:
 /// 1. Try currently active public key for the party.
 /// 2. If it fails, try historical (rotated) keys.
@@ -46,17 +46,20 @@ class MatchSignatureToVoucherUseCase {
       if (lookup != null) {
         // Try all authorized keys for this identity
         final keysToTry = lookup.allAuthorizedKeys;
-        
+
         bool isAuthorized = false;
         for (final authKey in keysToTry) {
-           final digitalSignature = DigitalSignature.fromHex(
+          final digitalSignature = DigitalSignature.fromHex(
             signatureHex: signatureHex,
             signerPublicKeyHex: authKey, // Verify against authorized key
-            payloadHashHex: _signingService.hashPayload(incomingReceipt.canonicalPayload)
-                .map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+            payloadHashHex: _signingService
+                .hashPayload(incomingReceipt.canonicalPayload)
+                .map((b) => b.toRadixString(16).padLeft(2, '0'))
+                .join(),
           );
 
-          if (_signingService.verifyReceiptSignature(incomingReceipt, digitalSignature)) {
+          if (_signingService.verifyReceiptSignature(
+              incomingReceipt, digitalSignature)) {
             isAuthorized = true;
             finalSignerKey = authKey;
             break;
@@ -80,17 +83,21 @@ class MatchSignatureToVoucherUseCase {
       );
 
       if (draftsResult.isFailure) {
-        return FailureResult(DatabaseFailure(messageAr: 'تعذر البحث عن الإيصالات المسودة.'));
+        return FailureResult(
+            DatabaseFailure(messageAr: 'تعذر البحث عن الإيصالات المسودة.'));
       }
 
       final drafts = draftsResult.valueOrNull!;
-      final matchingDrafts = drafts.where((v) =>
-          v.amount.minorUnits == incomingReceipt.amountMinor &&
-          v.date.toIso8601String().startsWith(incomingReceipt.dateIso)).toList();
+      final matchingDrafts = drafts
+          .where((v) =>
+              v.amount.minorUnits == incomingReceipt.amountMinor &&
+              v.date.toIso8601String().startsWith(incomingReceipt.dateIso))
+          .toList();
 
       if (matchingDrafts.isEmpty) {
         return const FailureResult(ValidationFailure(
-          messageAr: 'لم يتم العثور على مسودة إيصال مطابقة لهذا الإجمالي والتاريخ.',
+          messageAr:
+              'لم يتم العثور على مسودة إيصال مطابقة لهذا الإجمالي والتاريخ.',
           code: 'no_match',
         ));
       }
@@ -108,7 +115,8 @@ class MatchSignatureToVoucherUseCase {
 
       final saveResult = await _voucherRepository.save(updatedVoucher);
       if (saveResult.isFailure) {
-        return FailureResult(DatabaseFailure(messageAr: 'تعذر حفظ الإيصال المحدث.'));
+        return FailureResult(
+            DatabaseFailure(messageAr: 'تعذر حفظ الإيصال المحدث.'));
       }
 
       return Success(updatedVoucher);

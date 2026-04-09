@@ -14,7 +14,8 @@ String accountSectionTitleAr(AccountSummaryDto representative) {
       representative.standardClassificationKind!,
     );
   }
-  return representative.customClassificationName ?? AppStringsAr.classificationOther;
+  return representative.customClassificationName ??
+      AppStringsAr.classificationOther;
 }
 
 int _sectionRank(String key) {
@@ -43,7 +44,8 @@ int compareSectionKeys(String a, String b) {
 }
 
 /// Ordered sections: each tuple is (section key, title, rows).
-List<({String key, String title, List<AccountSummaryDto> rows})> buildAccountSections(
+List<({String key, String title, List<AccountSummaryDto> rows})>
+    buildAccountSections(
   List<AccountSummaryDto> filtered,
 ) {
   final map = <String, List<AccountSummaryDto>>{};

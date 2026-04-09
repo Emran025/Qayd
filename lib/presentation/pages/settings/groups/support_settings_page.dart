@@ -59,7 +59,6 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: QaydAppBar(title: AppStringsAr.settingsGroupSupport),
-
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
@@ -233,76 +232,79 @@ class _DocumentViewerState extends State<_DocumentViewer> {
                     child: CircularProgressIndicator(color: scheme.primary),
                   )
                 : _clauses.isNotEmpty
-                ? ListView.separated(
-                    padding: const EdgeInsets.all(SpacingTokens.lg),
-                    itemCount: _clauses.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: SpacingTokens.lg),
-                    itemBuilder: (context, index) {
-                      final clause = _clauses[index];
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: scheme.surfaceContainer,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: custom.subtleBorder.withValues(alpha: 0.3),
+                    ? ListView.separated(
+                        padding: const EdgeInsets.all(SpacingTokens.lg),
+                        itemCount: _clauses.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: SpacingTokens.lg),
+                        itemBuilder: (context, index) {
+                          final clause = _clauses[index];
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainer,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color:
+                                    custom.subtleBorder.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            padding: const EdgeInsets.all(SpacingTokens.md),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  clause.title,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    color: scheme.tertiary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: SpacingTokens.sm),
+                                ...clause.details.map(
+                                  (detail) => Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '•',
+                                          style: TextStyle(
+                                            color: scheme.primary,
+                                            fontSize: 16,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            detail,
+                                            style:
+                                                textTheme.bodyMedium?.copyWith(
+                                              color: scheme.onSurface,
+                                              height: 1.6,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(SpacingTokens.lg),
+                        child: Text(
+                          _fallbackContent,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface,
+                            height: 1.6,
                           ),
                         ),
-                        padding: const EdgeInsets.all(SpacingTokens.md),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              clause.title,
-                              style: textTheme.titleMedium?.copyWith(
-                                color: scheme.tertiary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: SpacingTokens.sm),
-                            ...clause.details.map(
-                              (detail) => Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '•',
-                                      style: TextStyle(
-                                        color: scheme.primary,
-                                        fontSize: 16,
-                                        height: 1.2,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        detail,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          color: scheme.onSurface,
-                                          height: 1.6,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  )
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(SpacingTokens.lg),
-                    child: Text(
-                      _fallbackContent,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface,
-                        height: 1.6,
                       ),
-                    ),
-                  ),
           ),
         ],
       ),

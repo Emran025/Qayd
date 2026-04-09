@@ -74,6 +74,5 @@ final class SignableReceipt {
   }
 
   @override
-  String toString() =>
-      'SignableReceipt($amountMinor $currencyCode, $dateIso)';
+  String toString() => 'SignableReceipt($amountMinor $currencyCode, $dateIso)';
 }

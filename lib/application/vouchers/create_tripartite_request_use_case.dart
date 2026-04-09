@@ -15,10 +15,10 @@ class CreateTripartiteRequestInput {
 
   /// The account ID of the mediator who will execute the transfer (B)
   final String mediatorAccountId;
-  
+
   /// The account ID of the ultimate receiver (C)
   final String destinationAccountId;
-  
+
   final int amountMinorUnits;
   final String currencyCode;
 }
@@ -69,4 +69,3 @@ class CreateTripartiteRequestUseCase {
     }
   }
 }
-

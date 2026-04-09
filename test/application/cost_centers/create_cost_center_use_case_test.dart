@@ -51,7 +51,7 @@ void main() {
       expect(center.currencyCode, 'USD');
       expect(center.description, 'Main cost center');
       expect(center.budgetMinorUnits, 1000);
-      
+
       verify(() => mockIdGenerator.next()).called(1);
       verify(() => mockRepo.save(any())).called(1);
     });
@@ -65,13 +65,15 @@ void main() {
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, isA<ValidationFailure>());
-      expect((result.failureOrNull as ValidationFailure).code, 'cost_center_name_required');
-      
+      expect((result.failureOrNull as ValidationFailure).code,
+          'cost_center_name_required');
+
       verifyNever(() => mockIdGenerator.next());
       verifyNever(() => mockRepo.save(any()));
     });
 
-    test('Should return repository failure if the database operation fails', () async {
+    test('Should return repository failure if the database operation fails',
+        () async {
       when(() => mockIdGenerator.next()).thenReturn('cc-456');
       final failure = DatabaseFailure(messageAr: 'DB Error');
       when(() => mockRepo.save(any()))
@@ -85,7 +87,7 @@ void main() {
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, equals(failure));
-      
+
       verify(() => mockIdGenerator.next()).called(1);
       verify(() => mockRepo.save(any())).called(1);
     });

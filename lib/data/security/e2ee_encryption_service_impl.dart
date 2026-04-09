@@ -35,6 +35,6 @@ class E2EEEncryptionServiceImpl implements E2EEEncryptionService {
     required DigitalSignature signature,
   }) {
     // Placeholder verification
-    return true; 
+    return true;
   }
 }

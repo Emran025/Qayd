@@ -114,7 +114,7 @@ class _NumericInputFormatter extends TextInputFormatter {
     pattern += r'$';
 
     final regExp = RegExp(pattern);
-    
+
     // Normalize comma to dot for decimal inputs
     String text = newValue.text;
     if (isDecimal) {

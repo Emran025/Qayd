@@ -37,7 +37,8 @@ class ListVouchersUseCase {
         affectedAccountId: mappedFilter?.affectedAccountId,
         costCenterId: mappedFilter?.costCenterId,
         involvedRootAccountId: mappedFilter?.involvedRootAccountId,
-        involvedCounterRootAccountId: mappedFilter?.involvedCounterRootAccountId,
+        involvedCounterRootAccountId:
+            mappedFilter?.involvedCounterRootAccountId,
         isInternalOnly: mappedFilter?.isInternalOnly,
         excludeTripartite: input.excludeTripartite,
         onlyTripartite: input.onlyTripartite,
@@ -73,11 +74,10 @@ class ListVouchersUseCase {
                   currencySymbol: v.currency.symbol,
                   currencyDigits: v.currency.fractionalDigits,
                   counterpartyAccountId: v.counterpartyId.value,
-                  counterpartyName:
-                      nameById[v.counterpartyId.value] ?? v.counterpartyId.value,
+                  counterpartyName: nameById[v.counterpartyId.value] ??
+                      v.counterpartyId.value,
                   affectedAccountId: v.affectedAccountId.value,
-                  affectedName:
-                      nameById[v.affectedAccountId.value] ??
+                  affectedName: nameById[v.affectedAccountId.value] ??
                       v.affectedAccountId.value,
                   isTripartite: v.isTripartite,
                   transferGroupId: v.tripartiteMeta?.transferGroupId,

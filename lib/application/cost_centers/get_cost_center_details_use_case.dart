@@ -41,8 +41,7 @@ final class GetCostCenterDetailsUseCase {
         final breakdownResult = await _repository.getDimensionBreakdown(id);
 
         final dims = dimsResult.fold((_) => <dynamic>[], (d) => d);
-        final totals =
-            totalsResult.fold((_) => <String, int>{}, (t) => t);
+        final totals = totalsResult.fold((_) => <String, int>{}, (t) => t);
         final voucherIds = voucherIdsResult.fold((_) => <String>[], (v) => v);
         final rawTrend = trendResult.fold(
           (_) => <Map<String, dynamic>>[],

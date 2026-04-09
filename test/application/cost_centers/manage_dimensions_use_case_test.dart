@@ -14,7 +14,8 @@ class MockIdGenerator extends Mock implements IdGenerator {}
 
 class FakeCostCenterDimension extends Fake implements CostCenterDimension {}
 
-class FakeCostCenterDimensionCategory extends Fake implements CostCenterDimensionCategory {}
+class FakeCostCenterDimensionCategory extends Fake
+    implements CostCenterDimensionCategory {}
 
 void main() {
   setUpAll(() {
@@ -52,7 +53,7 @@ void main() {
       expect(dim.name, 'Project A');
       expect(dim.category, category);
       expect(dim.costCenterId, 'cc-1');
-      
+
       verify(() => mockIdGenerator.next()).called(1);
       verify(() => mockRepo.saveDimension(any())).called(1);
     });
@@ -65,12 +66,13 @@ void main() {
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, isA<ValidationFailure>());
-      expect((result.failureOrNull as ValidationFailure).code, 'dimension_name_required');
-      
+      expect((result.failureOrNull as ValidationFailure).code,
+          'dimension_name_required');
+
       verifyNever(() => mockIdGenerator.next());
       verifyNever(() => mockRepo.saveDimension(any()));
     });
-    
+
     test('Should return repository failure if save fails', () async {
       when(() => mockIdGenerator.next()).thenReturn('dim-456');
       final failure = DatabaseFailure(messageAr: 'DB Error');
@@ -103,7 +105,7 @@ void main() {
       expect(cat.id, 'cat-123');
       expect(cat.name, 'Region');
       expect(cat.iconName, 'map');
-      
+
       verify(() => mockIdGenerator.next()).called(1);
       verify(() => mockRepo.saveCategory(any())).called(1);
     });
@@ -115,8 +117,9 @@ void main() {
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, isA<ValidationFailure>());
-      expect((result.failureOrNull as ValidationFailure).code, 'category_name_required');
-      
+      expect((result.failureOrNull as ValidationFailure).code,
+          'category_name_required');
+
       verifyNever(() => mockIdGenerator.next());
       verifyNever(() => mockRepo.saveCategory(any()));
     });
@@ -125,7 +128,7 @@ void main() {
   group('ManageDimensionsUseCase - attachVoucherToCenter', () {
     test('Should attach successfully', () async {
       when(() => mockRepo.attachVoucher(
-          voucherId: 'v-1', costCenterId: 'cc-1', dimensionIds: ['dim-1']))
+              voucherId: 'v-1', costCenterId: 'cc-1', dimensionIds: ['dim-1']))
           .thenAnswer((_) async => const Success(null));
 
       final result = await useCase.attachVoucherToCenter(
@@ -136,7 +139,9 @@ void main() {
 
       expect(result.isSuccess, isTrue);
       verify(() => mockRepo.attachVoucher(
-          voucherId: 'v-1', costCenterId: 'cc-1', dimensionIds: ['dim-1'])).called(1);
+          voucherId: 'v-1',
+          costCenterId: 'cc-1',
+          dimensionIds: ['dim-1'])).called(1);
     });
   });
 }

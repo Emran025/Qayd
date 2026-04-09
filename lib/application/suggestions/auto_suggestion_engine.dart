@@ -16,9 +16,8 @@ abstract final class AutoSuggestionEngine {
       );
       // Only suggest if we successfully extracted a matching amount
       if (ex.amountMinorUnits == null) continue;
-      final completeness = 3.0 +
-          (ex.date != null ? 2.0 : 0) +
-          (ex.direction != null ? 2.0 : 0);
+      final completeness =
+          3.0 + (ex.date != null ? 2.0 : 0) + (ex.direction != null ? 2.0 : 0);
       final ageDays = now.difference(m.createdAt).inDays.clamp(0, 730);
       final recency = 12.0 / (1 + ageDays * 0.15);
       final score = completeness * 6.0 + recency;

@@ -81,9 +81,8 @@ class P2PSyncService {
       final outboxResult = await outboxDao.listPendingForCounterparty(
         counterpartyAccountId,
       );
-      final pendingItems = outboxResult.isSuccess
-          ? outboxResult.valueOrNull!
-          : <OutboxEntry>[];
+      final pendingItems =
+          outboxResult.isSuccess ? outboxResult.valueOrNull! : <OutboxEntry>[];
 
       // 3. Connect to peer
       await transportAdapter!.connect(counterpartyAccountId, peerPublicKey);
@@ -121,9 +120,8 @@ class P2PSyncService {
 
         if (msgType == 'ack') {
           // Peer acknowledges receipt of our items
-          final ackedIds = (msg['item_ids'] as List?)
-              ?.map((e) => e as String)
-              .toList();
+          final ackedIds =
+              (msg['item_ids'] as List?)?.map((e) => e as String).toList();
           if (ackedIds != null) {
             deliveredIds.addAll(ackedIds);
           }

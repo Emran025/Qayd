@@ -26,7 +26,7 @@ final class Ed25519IdentityService implements CryptoIdentityService {
   CryptoKeyPair deriveKeyPair(MnemonicPhrase mnemonic) {
     // Derives a 64-byte seed from the mnemonic via PBKDF2-SHA512 (BIP39 standard).
     final fullSeed = bip39.mnemonicToSeed(mnemonic.phrase);
-    
+
     // Ed25519 only needs 32 bytes for the seed scalar.
     final seed32 = fullSeed.sublist(0, 32);
 

@@ -88,20 +88,22 @@ class StatementChatFilterInput {
     bool clearAmountMax = false,
   }) {
     return StatementChatFilterInput(
-      agreementStatus:
-          clearAgreementStatus ? null : (agreementStatus ?? this.agreementStatus),
+      agreementStatus: clearAgreementStatus
+          ? null
+          : (agreementStatus ?? this.agreementStatus),
       type: clearType ? null : (type ?? this.type),
       fromDate: clearFromDate ? null : (fromDate ?? this.fromDate),
       toDate: clearToDate ? null : (toDate ?? this.toDate),
       searchQuery: clearSearchQuery ? null : (searchQuery ?? this.searchQuery),
-      amountMinMinorUnits:
-          clearAmountMin ? null : (amountMinMinorUnits ?? this.amountMinMinorUnits),
-      amountMaxMinorUnits:
-          clearAmountMax ? null : (amountMaxMinorUnits ?? this.amountMaxMinorUnits),
+      amountMinMinorUnits: clearAmountMin
+          ? null
+          : (amountMinMinorUnits ?? this.amountMinMinorUnits),
+      amountMaxMinorUnits: clearAmountMax
+          ? null
+          : (amountMaxMinorUnits ?? this.amountMaxMinorUnits),
       includePreviousBalance:
           includePreviousBalance ?? this.includePreviousBalance,
       viewMode: viewMode ?? this.viewMode,
     );
   }
 }
-

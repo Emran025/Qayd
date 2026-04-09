@@ -123,7 +123,7 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
+        SnackBar(
           content: Text(AppStringsAr.driveBackupUploadSuccess),
         ),
       );

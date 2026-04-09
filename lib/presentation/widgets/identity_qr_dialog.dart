@@ -61,7 +61,8 @@ class IdentityQrDialog extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
                 child: Text(
                   AppStringsAr.identityQrShowSubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(

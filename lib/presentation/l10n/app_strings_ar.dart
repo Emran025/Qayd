@@ -653,7 +653,8 @@ abstract final class AppStringsAr {
       'يعرض جميع سندات القبض والصرف المرتبطة بهذا المركز في واجهة محادثة.';
   // Create page
   static const String costCenterTypeSelectorLabel = 'نوع المركز';
-  static const String costCenterDimensionSelectorLabel = 'الأبعاد الحياتية المرتبطة';
+  static const String costCenterDimensionSelectorLabel =
+      'الأبعاد الحياتية المرتبطة';
   static const String costCenterNameHint = 'اسم المركز *';
   static const String costCenterNameValidator = 'يرجى إدخال الاسم.';
   static const String costCenterDescHint = 'الوصف (اختياري)';

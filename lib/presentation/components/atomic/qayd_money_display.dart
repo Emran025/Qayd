@@ -22,6 +22,7 @@ class QaydMoneyDisplay extends StatelessWidget {
     this.locale = 'ar',
     this.textAlign = TextAlign.start,
     this.semanticsLabel,
+    this.fontWeight,
   });
 
   final Money money;
@@ -31,6 +32,7 @@ class QaydMoneyDisplay extends StatelessWidget {
   final String locale;
   final TextAlign textAlign;
   final String? semanticsLabel;
+  final FontWeight? fontWeight;
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +61,10 @@ class QaydMoneyDisplay extends StatelessWidget {
 
     final displayText = displayNegative ? '($formatted)' : formatted;
     final color = displayNegative ? scheme.error : null;
-    final style = color != null ? textStyle.copyWith(color: color) : textStyle;
+    var style = color != null ? textStyle.copyWith(color: color) : textStyle;
+    if (fontWeight != null) {
+      style = style.copyWith(fontWeight: fontWeight);
+    }
 
     return Text(
       displayText,

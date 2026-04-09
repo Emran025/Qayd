@@ -67,7 +67,7 @@ class CollateralDetailDialog extends StatelessWidget {
       backgroundColor: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420, maxHeight: 600),
+        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 600),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(SpacingTokens.lg),
           child: Column(
@@ -105,8 +105,7 @@ class CollateralDetailDialog extends StatelessWidget {
               _InfoRow(
                 icon: Icons.attach_money_rounded,
                 label: 'القيمة التقديرية',
-                value:
-                    '$valueStr ${collateral.currency.code}',
+                value: '$valueStr ${collateral.currency.code}',
               ),
               const SizedBox(height: SpacingTokens.md),
 
@@ -115,14 +114,13 @@ class CollateralDetailDialog extends StatelessWidget {
                 _InfoRow(
                   icon: Icons.event_rounded,
                   label: 'تاريخ الاستحقاق',
-                  value: DateFormat.yMMMd('ar')
-                      .format(collateral.expiryDate!),
-                  valueColor: collateral.isExpired ? theme.colorScheme.error : null,
+                  value: DateFormat.yMMMd('ar').format(collateral.expiryDate!),
+                  valueColor:
+                      collateral.isExpired ? theme.colorScheme.error : null,
                 ),
                 if (collateral.isExpired)
                   Padding(
-                    padding:
-                        const EdgeInsets.only(top: SpacingTokens.xs),
+                    padding: const EdgeInsets.only(top: SpacingTokens.xs),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -136,7 +134,8 @@ class CollateralDetailDialog extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.warning_rounded,
-                              size: 16, color: theme.colorScheme.onErrorContainer),
+                              size: 16,
+                              color: theme.colorScheme.onErrorContainer),
                           const SizedBox(width: 6),
                           Text(
                             'منتهي الصلاحية',
@@ -216,8 +215,7 @@ class CollateralDetailDialog extends StatelessWidget {
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: gold.withValues(alpha: 0.5)),
                         ),
-                        icon: Icon(Icons.edit_rounded,
-                            size: 18, color: gold),
+                        icon: Icon(Icons.edit_rounded, size: 18, color: gold),
                         label: Text(
                           'إعادة تقييم',
                           style: TextStyle(color: gold),
@@ -264,6 +262,7 @@ class _InfoRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
 
+  @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Row(
@@ -321,7 +320,8 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
+        style:
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -334,15 +334,14 @@ class _RevaluationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final oldVal = NumberFormat.decimalPattern('ar')
-        .format(reval.oldValueMinor / 100);
-    final newVal = NumberFormat.decimalPattern('ar')
-        .format(reval.newValueMinor / 100);
+    final oldVal =
+        NumberFormat.decimalPattern('ar').format(reval.oldValueMinor / 100);
+    final newVal =
+        NumberFormat.decimalPattern('ar').format(reval.newValueMinor / 100);
     final delta = reval.valueDelta;
     final scheme = Theme.of(context).colorScheme;
     final deltaStr = delta >= 0 ? '+${delta / 100}' : '${delta / 100}';
-    final deltaColor =
-        delta >= 0 ? Colors.green : scheme.error;
+    final deltaColor = delta >= 0 ? Colors.green : scheme.error;
     final dateStr = DateFormat.yMMMd('ar').format(reval.evaluatedAt);
 
     return Container(

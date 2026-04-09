@@ -121,10 +121,13 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                       onChanged: _onSearchChanged,
                       decoration: InputDecoration(
                         hintText: "ابحث عن الدولة (بالعربية أو الإنجليزية)",
-                        prefixIcon: Icon(Icons.search, color: theme.colorScheme.onSurfaceVariant),
+                        prefixIcon: Icon(Icons.search,
+                            color: theme.colorScheme.onSurfaceVariant),
                         filled: true,
-                        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        fillColor: theme.colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.3),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(RadiusTokens.md),
                           borderSide: BorderSide.none,
@@ -138,7 +141,8 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                         child: ListView.separated(
                           itemCount: _filtered.length,
                           separatorBuilder: (_, __) => Divider(
-                            color: theme.colorScheme.outline.withValues(alpha: 0.1),
+                            color: theme.colorScheme.outline
+                                .withValues(alpha: 0.1),
                             height: 1,
                           ),
                           itemBuilder: (_, i) {
@@ -148,12 +152,17 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                               value: country,
                               groupValue: _tempSelected,
                               activeColor: accentColor,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
                               title: Text(
                                 country.arabicName,
                                 style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  color: isSelected ? accentColor : theme.colorScheme.onSurface,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? accentColor
+                                      : theme.colorScheme.onSurface,
                                 ),
                               ),
                               subtitle: Text(
@@ -169,9 +178,15 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                                     Text(
                                       "+${country.countryCallingCode}",
                                       textDirection: TextDirection.ltr,
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: isSelected ? accentColor : theme.colorScheme.onSurfaceVariant,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      style:
+                                          theme.textTheme.bodyMedium?.copyWith(
+                                        color: isSelected
+                                            ? accentColor
+                                            : theme
+                                                .colorScheme.onSurfaceVariant,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
                                       ),
                                     ),
                                   const SizedBox(width: 8),
@@ -229,4 +244,3 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
     );
   }
 }
-

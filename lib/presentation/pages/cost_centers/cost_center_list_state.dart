@@ -44,12 +44,12 @@ final class CostCenterListReady extends CostCenterListState {
 
   @override
   List<Object?> get props => [
-    allCenters,
-    filteredCenters,
-    typeFilter,
-    showSuspended,
-    searchQuery,
-  ];
+        allCenters,
+        filteredCenters,
+        typeFilter,
+        showSuspended,
+        searchQuery,
+      ];
 
   CostCenterListReady copyWith({
     List<CostCenter>? allCenters,

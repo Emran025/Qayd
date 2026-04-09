@@ -100,12 +100,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
 
     return QaydScaffold(
       appBar: QaydAppBar(
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        showNotifications: true,
         title: AppStringsAr.navTripartiteTab,
         actions: [
           IconButton(
@@ -171,8 +166,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
               if (!showChips) {
                 return const SizedBox.shrink();
               }
-              final chipWidgets =
-                  _filterChips(context, cubit, state);
+              final chipWidgets = _filterChips(context, cubit, state);
               return Padding(
                 padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
                 child: SizedBox(
@@ -253,8 +247,8 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                         return Padding(
                           padding:
                               const EdgeInsets.only(bottom: SpacingTokens.sm),
-                          child:
-                              _TransferSummaryCard(transfer: state.transfers[i]),
+                          child: _TransferSummaryCard(
+                              transfer: state.transfers[i]),
                         );
                       },
                     ),
@@ -404,8 +398,7 @@ class _TransferSummaryCard extends StatelessWidget {
     final dateStr = DateFormat.yMMMd('ar').format(date);
 
     // Check if the transfer is still pending
-    final isPending =
-        transfer.receiptVoucher?.receiverStatusCode !=
+    final isPending = transfer.receiptVoucher?.receiverStatusCode !=
             AgreementStatus.accepted.name ||
         transfer.paymentVoucher?.receiverStatusCode !=
             AgreementStatus.accepted.name;

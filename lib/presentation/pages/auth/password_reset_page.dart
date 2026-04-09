@@ -63,7 +63,8 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
     } on AuthException catch (e) {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
-      if (mounted) setState(() => _errorAr = 'تعذر إرسال الطلب. تحقق من الاتصال.');
+      if (mounted)
+        setState(() => _errorAr = 'تعذر إرسال الطلب. تحقق من الاتصال.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -95,8 +96,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
       if (mounted) {
-        setState(
-            () => _errorAr = 'تعذر تغيير كلمة المرور. حاول مرة أخرى.');
+        setState(() => _errorAr = 'تعذر تغيير كلمة المرور. حاول مرة أخرى.');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -112,8 +112,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
             // Top bar
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: SpacingTokens.md,
-                  vertical: SpacingTokens.sm),
+                  horizontal: SpacingTokens.md, vertical: SpacingTokens.sm),
               child: Row(
                 children: [
                   IconButton(
@@ -135,8 +134,8 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
             // Body
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: SpacingTokens.lg),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
                 child: Column(
                   children: [
                     const SizedBox(height: SpacingTokens.md),
@@ -168,9 +167,8 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                         subtitle: _step == 0
                             ? AppStringsAr.passwordResetSubtitle
                             : AppStringsAr.passwordResetEmailSent,
-                        subtitleColor: _step == 1
-                            ? ColorTokens.emerald400
-                            : null,
+                        subtitleColor:
+                            _step == 1 ? ColorTokens.emerald400 : null,
                       ),
                     ),
                     const SizedBox(height: SpacingTokens.lg),
@@ -335,9 +333,8 @@ class _Step1Form extends StatelessWidget {
           obscureText: obscureConfirm,
           suffixIcon: PasswordToggleIcon(
               obscure: obscureConfirm, onToggle: onToggleConfirm),
-          validator: (v) => (v != passwordCtrl.text)
-              ? AppStringsAr.passwordMismatch
-              : null,
+          validator: (v) =>
+              (v != passwordCtrl.text) ? AppStringsAr.passwordMismatch : null,
         ),
         if (errorAr != null) ...[
           const SizedBox(height: SpacingTokens.sm),

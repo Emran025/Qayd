@@ -18,7 +18,9 @@ class FakeSecurityState extends Fake implements SecurityState {
 }
 
 void main() {
-  test('Dummy widget test placeholder to pass since widget test lacks providers context', () {
+  test(
+      'Dummy widget test placeholder to pass since widget test lacks providers context',
+      () {
     expect(true, isTrue);
   });
 }
@@ -32,7 +34,7 @@ void ignored_main() {
     final mockCubit = MockSecurityCubit();
     when(() => mockCubit.state).thenReturn(FakeSecurityState());
     when(() => mockCubit.stream).thenAnswer((_) => const Stream.empty());
-    
+
     await tester.pumpWidget(
       MultiBlocProvider(
         providers: [

@@ -71,21 +71,19 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
     _to = i.toDate;
     final cp = i.counterpartyAccountId?.trim();
     _cpId = (cp == null || cp.isEmpty) ? null : cp;
-    _cpName = _cpId != null
-        ? (widget.accountNamesById[_cpId!] ?? _cpId)
-        : null;
+    _cpName = _cpId != null ? (widget.accountNamesById[_cpId!] ?? _cpId) : null;
     final aff = i.affectedAccountId?.trim();
     _affId = (aff == null || aff.isEmpty) ? null : aff;
-    _affName = _affId != null
-        ? (widget.accountNamesById[_affId!] ?? _affId)
-        : null;
+    _affName =
+        _affId != null ? (widget.accountNamesById[_affId!] ?? _affId) : null;
     _ccId = i.costCenterId;
     _loadCostCenterName();
   }
 
   Future<void> _loadCostCenterName() async {
     if (_ccId == null) return;
-    final res = await InjectionContainer.getCostCenterDetailsUseCase.call(_ccId!);
+    final res =
+        await InjectionContainer.getCostCenterDetailsUseCase.call(_ccId!);
     res.fold(
       (_) {},
       (dto) {
@@ -136,7 +134,8 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
 
   Widget _sectionTitle(String text) {
     return Padding(
-      padding: const EdgeInsets.only(top: SpacingTokens.md, bottom: SpacingTokens.xs),
+      padding: const EdgeInsets.only(
+          top: SpacingTokens.md, bottom: SpacingTokens.xs),
       child: QaydText(
         text,
         slot: QaydTextStyleSlot.labelLarge,
@@ -157,14 +156,12 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
         FilterChip(
           label: Text(AppStringsAr.voucherTypeReceipt),
           selected: _type == VoucherType.receipt,
-          onSelected: (_) =>
-              setState(() => _type = VoucherType.receipt),
+          onSelected: (_) => setState(() => _type = VoucherType.receipt),
         ),
         FilterChip(
           label: Text(AppStringsAr.voucherTypePayment),
           selected: _type == VoucherType.payment,
-          onSelected: (_) =>
-              setState(() => _type = VoucherType.payment),
+          onSelected: (_) => setState(() => _type = VoucherType.payment),
         ),
       ],
     );
@@ -183,20 +180,17 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
         FilterChip(
           label: Text(AppStringsAr.voucherStateDraft),
           selected: _state == VoucherState.draft,
-          onSelected: (_) =>
-              setState(() => _state = VoucherState.draft),
+          onSelected: (_) => setState(() => _state = VoucherState.draft),
         ),
         FilterChip(
           label: Text(AppStringsAr.voucherStateConfirmed),
           selected: _state == VoucherState.confirmed,
-          onSelected: (_) =>
-              setState(() => _state = VoucherState.confirmed),
+          onSelected: (_) => setState(() => _state = VoucherState.confirmed),
         ),
         FilterChip(
           label: Text(AppStringsAr.voucherStateSettled),
           selected: _state == VoucherState.settled,
-          onSelected: (_) =>
-              setState(() => _state = VoucherState.settled),
+          onSelected: (_) => setState(() => _state = VoucherState.settled),
         ),
       ],
     );
@@ -241,10 +235,13 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
-                      _from != null ? df.format(_from!) : AppStringsAr.voucherFilterDateNotSet,
+                      _from != null
+                          ? df.format(_from!)
+                          : AppStringsAr.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
-                    trailing: const Icon(Icons.calendar_month_rounded, size: 20),
+                    trailing:
+                        const Icon(Icons.calendar_month_rounded, size: 20),
                     onTap: () => _pickDate(isFrom: true),
                   ),
                 ),
@@ -257,10 +254,13 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
-                      _to != null ? df.format(_to!) : AppStringsAr.voucherFilterDateNotSet,
+                      _to != null
+                          ? df.format(_to!)
+                          : AppStringsAr.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
-                    trailing: const Icon(Icons.calendar_month_rounded, size: 20),
+                    trailing:
+                        const Icon(Icons.calendar_month_rounded, size: 20),
                     onTap: () => _pickDate(isFrom: false),
                   ),
                 ),
@@ -280,7 +280,9 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: Icon(
-                _cpId != null ? Icons.check_circle_rounded : Icons.chevron_left_rounded,
+                _cpId != null
+                    ? Icons.check_circle_rounded
+                    : Icons.chevron_left_rounded,
                 color: _cpId != null ? ColorTokens.emerald600 : null,
               ),
               onTap: () async {
@@ -310,7 +312,9 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 overflow: TextOverflow.ellipsis,
               ),
               trailing: Icon(
-                _affId != null ? Icons.check_circle_rounded : Icons.chevron_left_rounded,
+                _affId != null
+                    ? Icons.check_circle_rounded
+                    : Icons.chevron_left_rounded,
                 color: _affId != null ? ColorTokens.emerald600 : null,
               ),
               onTap: () async {
@@ -339,11 +343,14 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 slot: QaydTextStyleSlot.bodySmall,
               ),
               trailing: Icon(
-                _ccId != null ? Icons.check_circle_rounded : Icons.chevron_left_rounded,
+                _ccId != null
+                    ? Icons.check_circle_rounded
+                    : Icons.chevron_left_rounded,
                 color: _ccId != null ? ColorTokens.emerald600 : null,
               ),
               onTap: () async {
-                final res = await InjectionContainer.listCostCentersUseCase.call();
+                final res =
+                    await InjectionContainer.listCostCentersUseCase.call();
                 res.fold(
                   (_) {},
                   (centers) async {
@@ -355,11 +362,13 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const QaydText('اختر مركز التكلفة', slot: QaydTextStyleSlot.titleMedium),
+                            const QaydText('اختر مركز التكلفة',
+                                slot: QaydTextStyleSlot.titleMedium),
                             const SizedBox(height: SpacingTokens.md),
                             ...centers.map((c) => ListTile(
                                   title: Text(c.name),
-                                  leading: const Icon(Icons.pie_chart_outline_rounded),
+                                  leading: const Icon(
+                                      Icons.pie_chart_outline_rounded),
                                   onTap: () => Navigator.pop(ctx, c),
                                 )),
                             const SizedBox(height: SpacingTokens.xl),
@@ -406,8 +415,7 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                       backgroundColor: gold,
                       foregroundColor: ColorTokens.navy950,
                     ),
-                    onPressed: () =>
-                        Navigator.of(context).pop(_buildResult()),
+                    onPressed: () => Navigator.of(context).pop(_buildResult()),
                     child: Text(AppStringsAr.voucherFilterApply),
                   ),
                 ),

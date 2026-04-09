@@ -19,9 +19,8 @@ class InternalVoucherTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isReceipt = dto.typeCode == 'receipt';
-    final icon = isReceipt
-        ? Icons.south_west_rounded
-        : Icons.north_east_rounded;
+    final icon =
+        isReceipt ? Icons.south_west_rounded : Icons.north_east_rounded;
     final iconBg = isReceipt
         ? ColorTokens.emerald600.withValues(alpha: 0.2)
         : ColorTokens.goldAccent.withValues(alpha: 0.22);
@@ -72,7 +71,8 @@ class InternalVoucherTile extends StatelessWidget {
                           dto.counterpartyName,
                           slot: QaydTextStyleSlot.titleMedium,
                         ),
-                        if (dto.description != null && dto.description!.isNotEmpty)
+                        if (dto.description != null &&
+                            dto.description!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
                             child: QaydText(

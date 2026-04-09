@@ -114,12 +114,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
 
     return QaydScaffold(
       appBar: QaydAppBar(
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        showNotifications: true,
         title: AppStringsAr.chartOfAccountsTitle,
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -159,12 +154,10 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
           BlocBuilder<AccountListCubit, AccountListState>(
             builder: (context, state) {
               final ready = state is AccountListReady;
-              final natureFilter = ready
-                  ? state.natureFilter
-                  : AccountNatureFilter.all;
-              final typeFilter = ready
-                  ? state.typeFilter
-                  : AccountTypeFilter.child;
+              final natureFilter =
+                  ready ? state.natureFilter : AccountNatureFilter.all;
+              final typeFilter =
+                  ready ? state.typeFilter : AccountTypeFilter.child;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(
@@ -240,29 +233,29 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                 return switch (state) {
                   AccountListInitial() => const SizedBox.shrink(),
                   AccountListLoading() => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                      child: CircularProgressIndicator(),
+                    ),
                   AccountListFailure(:final failure) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(SpacingTokens.lg),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          QaydText(
-                            failure.messageAr,
-                            slot: QaydTextStyleSlot.bodyLarge,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: SpacingTokens.md),
-                          FilledButton.tonal(
-                            onPressed: () =>
-                                context.read<AccountListCubit>().load(),
-                            child: Text(AppStringsAr.retryAction),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(SpacingTokens.lg),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            QaydText(
+                              failure.messageAr,
+                              slot: QaydTextStyleSlot.bodyLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: SpacingTokens.md),
+                            FilledButton.tonal(
+                              onPressed: () =>
+                                  context.read<AccountListCubit>().load(),
+                              child: Text(AppStringsAr.retryAction),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                   AccountListReady(
                     :final allAccounts,
                     :final filteredAccounts,
@@ -323,23 +316,23 @@ class _AccountListBody extends StatelessWidget {
         final item = flat[index];
         return switch (item) {
           _HeaderRow(:final title) => Padding(
-            padding: const EdgeInsets.only(
-              top: SpacingTokens.md,
-              bottom: SpacingTokens.sm,
+              padding: const EdgeInsets.only(
+                top: SpacingTokens.md,
+                bottom: SpacingTokens.sm,
+              ),
+              child: QaydText(
+                title,
+                slot: QaydTextStyleSlot.titleMedium,
+                color: Theme.of(
+                  context,
+                ).extension<QaydCustomColors>()!.goldAccent,
+              ),
             ),
-            child: QaydText(
-              title,
-              slot: QaydTextStyleSlot.titleMedium,
-              color: Theme.of(
-                context,
-              ).extension<QaydCustomColors>()!.goldAccent,
-            ),
-          ),
           _DataRow(:final dto) => _AccountCard(
-            dto: dto,
-            onTap: () => onChat(dto.id),
-            onChat: () => onChat(dto.id),
-          ),
+              dto: dto,
+              onTap: () => onChat(dto.id),
+              onChat: () => onChat(dto.id),
+            ),
         };
       },
     );
@@ -491,14 +484,13 @@ class _AccountCard extends StatelessWidget {
                         // For Credit accounts: positive = Credit, negative = Debit
                         final isDebitSide =
                             (dto.natureCode == 'debit' && minor >= 0) ||
-                            (dto.natureCode == 'credit' && minor < 0);
+                                (dto.natureCode == 'credit' && minor < 0);
 
                         final sideLabel = isDebitSide
                             ? AppStringsAr.natureDebitShort
                             : AppStringsAr.natureCreditShort;
-                        final sideColor = isDebitSide
-                            ? custom.debit
-                            : custom.credit;
+                        final sideColor =
+                            isDebitSide ? custom.debit : custom.credit;
 
                         return TableRow(
                           children: [

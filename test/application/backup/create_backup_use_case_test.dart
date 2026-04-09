@@ -30,7 +30,8 @@ void main() {
       when(() => mockBackupService.shareDatabaseBackup())
           .thenAnswer((_) async => const Success(null));
 
-      final result = await useCase(const BackupOptions(target: BackupTarget.share));
+      final result =
+          await useCase(const BackupOptions(target: BackupTarget.share));
 
       expect(result.isSuccess, isTrue);
       verify(() => mockBackupService.shareDatabaseBackup()).called(1);
@@ -47,10 +48,12 @@ void main() {
 
       expect(result.isSuccess, isTrue);
       expect(result.valueOrNull, '/backup/path');
-      verify(() => mockBackupService.saveBackupCopyToPath('/backup/path')).called(1);
+      verify(() => mockBackupService.saveBackupCopyToPath('/backup/path'))
+          .called(1);
     });
 
-    test('Should return success with null path if saveToPath lacks destination', () async {
+    test('Should return success with null path if saveToPath lacks destination',
+        () async {
       final result = await useCase(const BackupOptions(
         target: BackupTarget.saveToPath,
       ));
@@ -64,7 +67,8 @@ void main() {
       when(() => mockAutoBackupService.saveToExternalStorage())
           .thenAnswer((_) async => const Success('/external/path'));
 
-      final result = await useCase(const BackupOptions(target: BackupTarget.externalStorage));
+      final result = await useCase(
+          const BackupOptions(target: BackupTarget.externalStorage));
 
       expect(result.isSuccess, isTrue);
       expect(result.valueOrNull, '/external/path');
@@ -75,7 +79,8 @@ void main() {
       when(() => mockAutoBackupService.runNow())
           .thenAnswer((_) async => const Success(null));
 
-      final result = await useCase(const BackupOptions(target: BackupTarget.autoBackup));
+      final result =
+          await useCase(const BackupOptions(target: BackupTarget.autoBackup));
 
       expect(result.isSuccess, isTrue);
       verify(() => mockAutoBackupService.runNow()).called(1);
@@ -86,7 +91,8 @@ void main() {
       when(() => mockBackupService.shareDatabaseBackup())
           .thenAnswer((_) async => FailureResult(failure));
 
-      final result = await useCase(const BackupOptions(target: BackupTarget.share));
+      final result =
+          await useCase(const BackupOptions(target: BackupTarget.share));
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, equals(failure));

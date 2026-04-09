@@ -64,10 +64,10 @@ class RestoreCubit extends Cubit<RestoreState> {
 
   Future<void> checkBackups() async {
     emit(RestoreChecking());
-    
+
     // 1. Check local
     final local = await _autoBackupService.latestLocalBackup();
-    
+
     // 2. Check Drive (if signed in)
     DriveBackupInfo? driveInfo;
     if (_driveService.isSignedIn) {
@@ -106,9 +106,10 @@ class RestoreCubit extends Cubit<RestoreState> {
 
     // Try to find key file alongside backup
     final keyString = await _autoBackupService.findKeyForBackup(File(path));
-    
+
     // Validate first
-    final validation = await _restoreUseCase.validate(path, customKey: keyString);
+    final validation =
+        await _restoreUseCase.validate(path, customKey: keyString);
     if (validation.isFailure) {
       // If validation failed because of key, ask for Primary Key
       emit(RestoreNeedsPrimaryKey(backupPath: path, isDrive: fromDrive));
@@ -131,11 +132,14 @@ class RestoreCubit extends Cubit<RestoreState> {
     emit(RestoreInProgess());
 
     try {
-      final customKey = await _keyProvider.deriveKeyFromMnemonic(mnemonicPhrase);
-      
-      final validation = await _restoreUseCase.validate(path, customKey: customKey);
+      final customKey =
+          await _keyProvider.deriveKeyFromMnemonic(mnemonicPhrase);
+
+      final validation =
+          await _restoreUseCase.validate(path, customKey: customKey);
       if (validation.isFailure) {
-        emit(RestoreFailure('المفتاح الأساسي غير صحيح أو لا ينتمي لهذه النسخة.'));
+        emit(RestoreFailure(
+            'المفتاح الأساسي غير صحيح أو لا ينتمي لهذه النسخة.'));
         return;
       }
 
@@ -143,10 +147,12 @@ class RestoreCubit extends Cubit<RestoreState> {
       if (result.isSuccess) {
         await _keyProvider.updateCachedKey(customKey);
         // Save the mnemonic so identity is also restored
-        await _mnemonicVault.writeMnemonic(MnemonicPhrase.fromPhrase(mnemonicPhrase));
+        await _mnemonicVault
+            .writeMnemonic(MnemonicPhrase.fromPhrase(mnemonicPhrase));
         emit(RestoreSuccess());
       } else {
-        emit(RestoreFailure('فشل استبدال قاعدة البيانات باستخدام المفتاح الأساسي.'));
+        emit(RestoreFailure(
+            'فشل استبدال قاعدة البيانات باستخدام المفتاح الأساسي.'));
       }
     } catch (e) {
       emit(RestoreFailure('خطأ في معالجة المفتاح الأساسي: $e'));

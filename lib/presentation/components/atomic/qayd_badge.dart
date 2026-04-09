@@ -21,16 +21,30 @@ class QaydBadge extends StatelessWidget {
   final Color fgColor;
   final bool isDashed;
 
-  factory QaydBadge({required VoucherState state, required BuildContext context}) {
+  factory QaydBadge(
+      {required VoucherState state, required BuildContext context}) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
     final (bg, fg, dashed) = switch (state) {
       VoucherState.draft => (custom.draftState, custom.badgeOnDraft, true),
-      VoucherState.confirmed => (custom.confirmedState, custom.badgeOnConfirmed, false),
-      VoucherState.settled => (custom.settledState, custom.badgeOnSettled, false),
-      VoucherState.withdrawn => (ColorTokens.errorSoft.withValues(alpha: 0.2), ColorTokens.errorDeep, false),
+      VoucherState.confirmed => (
+          custom.confirmedState,
+          custom.badgeOnConfirmed,
+          false
+        ),
+      VoucherState.settled => (
+          custom.settledState,
+          custom.badgeOnSettled,
+          false
+        ),
+      VoucherState.withdrawn => (
+          ColorTokens.errorSoft.withValues(alpha: 0.2),
+          ColorTokens.errorDeep,
+          false
+        ),
     };
     final label = _stateLabel(state);
-    return QaydBadge._(label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
+    return QaydBadge._(
+        label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
   }
 
   factory QaydBadge.agreement({
@@ -40,14 +54,31 @@ class QaydBadge extends StatelessWidget {
   }) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
     final (bg, fg, dashed) = switch (status) {
-      AgreementStatus.underRequest => (custom.draftState.withValues(alpha: 0.1), custom.draftState, true),
-      AgreementStatus.accepted => (custom.confirmedState.withValues(alpha: 0.1), custom.confirmedState, false),
-      AgreementStatus.rejected => (ColorTokens.errorSoft.withValues(alpha: 0.2), ColorTokens.errorDeep, false),
-      AgreementStatus.unverified => (custom.draftState.withValues(alpha: 0.1), custom.badgeOnDraft, true),
+      AgreementStatus.underRequest => (
+          custom.draftState.withValues(alpha: 0.1),
+          custom.draftState,
+          true
+        ),
+      AgreementStatus.accepted => (
+          custom.confirmedState.withValues(alpha: 0.1),
+          custom.confirmedState,
+          false
+        ),
+      AgreementStatus.rejected => (
+          ColorTokens.errorSoft.withValues(alpha: 0.2),
+          ColorTokens.errorDeep,
+          false
+        ),
+      AgreementStatus.unverified => (
+          custom.draftState.withValues(alpha: 0.1),
+          custom.badgeOnDraft,
+          true
+        ),
     };
     final statusLabel = _agreementLabel(status);
     final finalLabel = label != null ? '$label: $statusLabel' : statusLabel;
-    return QaydBadge._(label: finalLabel, bgColor: bg, fgColor: fg, isDashed: dashed);
+    return QaydBadge._(
+        label: finalLabel, bgColor: bg, fgColor: fg, isDashed: dashed);
   }
 
   static String _stateLabel(VoucherState state) {
@@ -114,7 +145,8 @@ class _DashedRoundedRectPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final r = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
+    final r =
+        RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius));
     final path = Path()..addRRect(r);
     const dash = 3.0;
     const gap = 2.0;
@@ -122,12 +154,18 @@ class _DashedRoundedRectPainter extends CustomPainter {
       var d = 0.0;
       while (d < metric.length) {
         final end = (d + dash).clamp(0.0, metric.length);
-        canvas.drawPath(metric.extractPath(d, end), Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 1.0);
+        canvas.drawPath(
+            metric.extractPath(d, end),
+            Paint()
+              ..color = color
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.0);
         d += dash + gap;
       }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _DashedRoundedRectPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _DashedRoundedRectPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

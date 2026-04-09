@@ -156,4 +156,3 @@ CREATE TABLE voucher_dimension_tags (
     });
   }
 }
-

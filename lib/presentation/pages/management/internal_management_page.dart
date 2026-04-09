@@ -61,9 +61,11 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
               _expensesRootId = a.id;
             } else if (a.standardClassificationKind == 'personalRevenues') {
               _revenuesRootId = a.id;
-            } else if (a.standardClassificationKind == 'fixedDepreciableAssets') {
+            } else if (a.standardClassificationKind ==
+                'fixedDepreciableAssets') {
               _depreciableAssetsRootId = a.id;
-            } else if (a.standardClassificationKind == 'fixedProfitableAssets') {
+            } else if (a.standardClassificationKind ==
+                'fixedProfitableAssets') {
               _profitableAssetsRootId = a.id;
             }
           }
@@ -122,7 +124,8 @@ class _InternalManagementView extends StatefulWidget {
       _InternalManagementViewState();
 }
 
-class _InternalManagementViewState extends State<_InternalManagementView> with TickerProviderStateMixin {
+class _InternalManagementViewState extends State<_InternalManagementView>
+    with TickerProviderStateMixin {
   final _searchController = TextEditingController();
   late TabController _tabController;
 
@@ -160,7 +163,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
     } else {
       String? parentId;
       String? parentKind;
-      
+
       if (_tabController.index == 1) {
         // Assets are typically added under depreciable assets by default here
         parentId = widget.depreciableAssetsRootId;
@@ -178,7 +181,8 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
         isScrollControlled: true,
         useSafeArea: true,
         builder: (_) => ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+          constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9),
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             child: AccountCreatePage(
@@ -214,12 +218,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
 
     return QaydScaffold(
       appBar: QaydAppBar(
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
+        showNotifications: true,
         title: AppStringsAr.managementTitle,
         bottom: TabBar(
           controller: _tabController,
@@ -240,7 +239,9 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreate(context),
-        icon: Icon(_tabController.index == 0 ? Icons.add_rounded : Icons.plus_one_rounded),
+        icon: Icon(_tabController.index == 0
+            ? Icons.add_rounded
+            : Icons.plus_one_rounded),
         label: Text(_getFabLabel()),
         backgroundColor: gold,
         foregroundColor: Colors.black,
@@ -253,7 +254,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
             builder: (context, state) {
               return Column(
                 children: [
-                   _buildControlPanel(context, state, scheme, gold),
+                  _buildControlPanel(context, state, scheme, gold),
                   const Divider(height: 1),
                   _buildFilterChips(context, state, gold),
                   Expanded(
@@ -288,11 +289,16 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
 
   String _getFabLabel() {
     switch (_tabController.index) {
-      case 0: return AppStringsAr.addInternalVoucherFab;
-      case 1: return 'إضافة أصل جديد';
-      case 2: return 'إضافة مصدر دخل';
-      case 3: return 'إضافة مصروف جديد';
-      default: return AppStringsAr.addInternalVoucherFab;
+      case 0:
+        return AppStringsAr.addInternalVoucherFab;
+      case 1:
+        return 'إضافة أصل جديد';
+      case 2:
+        return 'إضافة مصدر دخل';
+      case 3:
+        return 'إضافة مصروف جديد';
+      default:
+        return AppStringsAr.addInternalVoucherFab;
     }
   }
 
@@ -368,15 +374,17 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
               ),
               child: Row(
                 children: [
-                   const Icon(Icons.event_repeat_rounded, color: ColorTokens.warningAmber),
-                   const SizedBox(width: SpacingTokens.md),
-                   const Expanded(
-                     child: Text(
-                       'إدارة الالتزامات الدورية',
-                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                     ),
-                   ),
-                   const Icon(Icons.chevron_left_rounded, color: Colors.white54),
+                  const Icon(Icons.event_repeat_rounded,
+                      color: ColorTokens.warningAmber),
+                  const SizedBox(width: SpacingTokens.md),
+                  const Expanded(
+                    child: Text(
+                      'إدارة الالتزامات الدورية',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const Icon(Icons.chevron_left_rounded, color: Colors.white54),
                 ],
               ),
             ),
@@ -435,10 +443,13 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_rounded, size: 48, color: Theme.of(context).colorScheme.outline),
+            Icon(Icons.inbox_rounded,
+                size: 48, color: Theme.of(context).colorScheme.outline),
             const SizedBox(height: SpacingTokens.md),
             QaydText(
-              state.searchQuery.isNotEmpty ? 'لا توجد نتائج لبحثك' : AppStringsAr.vouchersEmpty,
+              state.searchQuery.isNotEmpty
+                  ? 'لا توجد نتائج لبحثك'
+                  : AppStringsAr.vouchersEmpty,
               slot: QaydTextStyleSlot.bodyLarge,
               color: Theme.of(context).colorScheme.outline,
             ),
@@ -447,7 +458,8 @@ class _InternalManagementViewState extends State<_InternalManagementView> with T
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(SpacingTokens.md, 0, SpacingTokens.md, 80),
+      padding:
+          const EdgeInsets.fromLTRB(SpacingTokens.md, 0, SpacingTokens.md, 80),
       itemCount: list.length,
       itemBuilder: (context, i) {
         final v = list[i];
@@ -491,10 +503,13 @@ class _StatCard extends StatelessWidget {
             Row(children: [
               Icon(icon, size: 14, color: color),
               const SizedBox(width: 4),
-              QaydText(label, slot: QaydTextStyleSlot.labelSmall, color: scheme.onSurfaceVariant),
+              QaydText(label,
+                  slot: QaydTextStyleSlot.labelSmall,
+                  color: scheme.onSurfaceVariant),
             ]),
             const SizedBox(height: 4),
-            QaydText(amount.toStringAsFixed(2), slot: QaydTextStyleSlot.titleMedium),
+            QaydText(amount.toStringAsFixed(2),
+                slot: QaydTextStyleSlot.titleMedium),
           ],
         ),
       ),

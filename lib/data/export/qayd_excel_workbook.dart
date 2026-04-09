@@ -31,7 +31,6 @@ abstract final class QaydExcelWorkbook {
         verticalAlign: VerticalAlign.Center,
       );
 
-
   static CellStyle _tableHeaderStyle() => CellStyle(
         bold: true,
         fontSize: 10,
@@ -295,8 +294,7 @@ abstract final class QaydExcelWorkbook {
 
     // Period row
     if (periodFrom != null || periodTo != null) {
-      final periodStr =
-          '${periodFrom ?? '…'} — ${periodTo ?? '…'}';
+      final periodStr = '${periodFrom ?? '…'} — ${periodTo ?? '…'}';
       _writeInfoPair(currentRow, 'الفترة:', periodStr, 0);
     }
     currentRow++;
@@ -439,7 +437,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
       );
-      labelC.value =  TextCellValue('إجمالي الدائن');
+      labelC.value = TextCellValue('إجمالي الدائن');
       labelC.cellStyle = _totalsLabelStyle();
 
       sheet.merge(
@@ -459,7 +457,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
       );
-      labelC.value =  TextCellValue('الرصيد الصافي');
+      labelC.value = TextCellValue('الرصيد الصافي');
       labelC.cellStyle = _totalRowLabelStyle();
 
       sheet.merge(
@@ -485,7 +483,7 @@ abstract final class QaydExcelWorkbook {
     final noteCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
     );
-    noteCell.value =  TextCellValue(
+    noteCell.value = TextCellValue(
       '* في حال وجود عملات متعددة، يتم عرض الإجماليات بشكل منفصل لكل عملة.',
     );
     noteCell.cellStyle = _noteStyle();
@@ -502,7 +500,7 @@ abstract final class QaydExcelWorkbook {
     final footerCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
-    footerCell.value =  TextCellValue(
+    footerCell.value = TextCellValue(
       'تم إنشاء هذا الكشف بواسطة تطبيق قيد — Qayd App',
     );
     footerCell.cellStyle = CellStyle(

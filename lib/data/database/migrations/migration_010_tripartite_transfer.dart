@@ -20,7 +20,8 @@ final class Migration010TripartiteTransfer implements SchemaMigration {
     await db.addColumnIfNotExists('vouchers', 'transfer_group_id', 'TEXT');
     await db.addColumnIfNotExists('vouchers', 'tripartite_role', 'TEXT');
     await db.addColumnIfNotExists('vouchers', 'linked_party_id', 'TEXT');
-    await db.addColumnIfNotExists('vouchers', 'is_contingent', 'INTEGER NOT NULL',
+    await db.addColumnIfNotExists(
+        'vouchers', 'is_contingent', 'INTEGER NOT NULL',
         defaultValue: '0');
 
     // Index for fast lookup of paired vouchers within a transfer group.

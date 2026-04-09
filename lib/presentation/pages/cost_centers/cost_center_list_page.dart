@@ -182,35 +182,36 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
             child: BlocBuilder<CostCenterListCubit, CostCenterListState>(
               builder: (context, state) {
                 return switch (state) {
-                  CostCenterListInitial() || CostCenterListLoading() =>
+                  CostCenterListInitial() ||
+                  CostCenterListLoading() =>
                     const Center(child: CircularProgressIndicator()),
                   CostCenterListFailure(:final failure) => Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(SpacingTokens.lg),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.error_outline_rounded,
-                            size: 48,
-                            color: custom.subtleBorder,
-                          ),
-                          const SizedBox(height: SpacingTokens.md),
-                          QaydText(
-                            failure.messageAr,
-                            slot: QaydTextStyleSlot.bodyLarge,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: SpacingTokens.md),
-                          FilledButton.tonal(
-                            onPressed: () =>
-                                context.read<CostCenterListCubit>().load(),
-                            child: Text(AppStringsAr.retryAction),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(SpacingTokens.lg),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              size: 48,
+                              color: custom.subtleBorder,
+                            ),
+                            const SizedBox(height: SpacingTokens.md),
+                            QaydText(
+                              failure.messageAr,
+                              slot: QaydTextStyleSlot.bodyLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: SpacingTokens.md),
+                            FilledButton.tonal(
+                              onPressed: () =>
+                                  context.read<CostCenterListCubit>().load(),
+                              child: Text(AppStringsAr.retryAction),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                   CostCenterListReady(:final filteredCenters) =>
                     filteredCenters.isEmpty
                         ? Center(
@@ -320,7 +321,9 @@ class _CostCenterCard extends StatelessWidget {
                         children: [
                           Text(
                             center.name,
-                            style: Theme.of(context).textTheme.titleMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -341,7 +344,9 @@ class _CostCenterCard extends StatelessWidget {
                                 ),
                                 child: Text(
                                   center.type.labelAr,
-                                  style: Theme.of(context).textTheme.labelSmall
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
                                       ?.copyWith(
                                         color: typeColor,
                                         fontWeight: FontWeight.bold,
@@ -423,8 +428,8 @@ class _CostCenterCard extends StatelessWidget {
                   Text(
                     center.description!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                          color: scheme.onSurfaceVariant,
+                        ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -446,8 +451,8 @@ class _CostCenterCard extends StatelessWidget {
                       Text(
                         '${AppStringsAr.costCenterBudgetPrefix} ${center.budgetMinorUnits ~/ 100} ${center.currencyCode}',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: custom.goldAccent,
-                        ),
+                              color: custom.goldAccent,
+                            ),
                       ),
                     ],
                   ),

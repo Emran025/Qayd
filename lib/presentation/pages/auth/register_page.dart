@@ -55,7 +55,8 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_loading) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreedToTerms) {
-      setState(() => _errorAr = 'يجب الموافقة على شروط الاستخدام وسياسة الخصوصية');
+      setState(
+          () => _errorAr = 'يجب الموافقة على شروط الاستخدام وسياسة الخصوصية');
       return;
     }
     setState(() {
@@ -70,7 +71,9 @@ class _RegisterPageState extends State<RegisterPage> {
       final result = await InjectionContainer.authRepository.register(
         name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
-        phone: (_zoneCtrl.text + _phoneCtrl.text).replaceAll(' ', '').replaceAll('+', ''),
+        phone: (_zoneCtrl.text + _phoneCtrl.text)
+            .replaceAll(' ', '')
+            .replaceAll('+', ''),
         password: _passwordCtrl.text,
         deviceId: hardwareId,
       );
@@ -94,8 +97,8 @@ class _RegisterPageState extends State<RegisterPage> {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
       if (mounted) {
-        setState(
-            () => _errorAr = 'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.');
+        setState(() =>
+            _errorAr = 'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -122,8 +125,8 @@ class _RegisterPageState extends State<RegisterPage> {
             // Body
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: SpacingTokens.lg),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -163,7 +166,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           if (v == null || v.trim().isEmpty) {
                             return AppStringsAr.activationFieldRequired;
                           }
-                          if (!v.contains('@')) return AppStringsAr.invalidEmail;
+                          if (!v.contains('@'))
+                            return AppStringsAr.invalidEmail;
                           return null;
                         },
                       ),
@@ -209,7 +213,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ? AppStringsAr.passwordMismatch
                             : null,
                       ),
-                      
+
                       // Terms and Privacy Checkbox
                       const SizedBox(height: SpacingTokens.md),
                       Row(
@@ -230,10 +234,30 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: Text.rich(
                                 TextSpan(
                                   children: [
-                                    const TextSpan(text: 'أوافق على ', style: TextStyle(color: ColorTokens.slate400, fontSize: 13)),
-                                    TextSpan(text: 'شروط الاستخدام', style: const TextStyle(color: ColorTokens.goldAccent, fontSize: 13, decoration: TextDecoration.underline)),
-                                    const TextSpan(text: ' و', style: TextStyle(color: ColorTokens.slate400, fontSize: 13)),
-                                    TextSpan(text: 'سياسة الخصوصية', style: const TextStyle(color: ColorTokens.goldAccent, fontSize: 13, decoration: TextDecoration.underline)),
+                                    const TextSpan(
+                                        text: 'أوافق على ',
+                                        style: TextStyle(
+                                            color: ColorTokens.slate400,
+                                            fontSize: 13)),
+                                    TextSpan(
+                                        text: 'شروط الاستخدام',
+                                        style: const TextStyle(
+                                            color: ColorTokens.goldAccent,
+                                            fontSize: 13,
+                                            decoration:
+                                                TextDecoration.underline)),
+                                    const TextSpan(
+                                        text: ' و',
+                                        style: TextStyle(
+                                            color: ColorTokens.slate400,
+                                            fontSize: 13)),
+                                    TextSpan(
+                                        text: 'سياسة الخصوصية',
+                                        style: const TextStyle(
+                                            color: ColorTokens.goldAccent,
+                                            fontSize: 13,
+                                            decoration:
+                                                TextDecoration.underline)),
                                   ],
                                 ),
                               ),
@@ -280,10 +304,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
 class _DocumentBottomSheetDialog extends StatefulWidget {
   @override
-  State<_DocumentBottomSheetDialog> createState() => _DocumentBottomSheetDialogState();
+  State<_DocumentBottomSheetDialog> createState() =>
+      _DocumentBottomSheetDialogState();
 }
 
-class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> {
+class _DocumentBottomSheetDialogState
+    extends State<_DocumentBottomSheetDialog> {
   bool _loading = true;
   List<DocumentClause> _termsClauses = [];
   List<DocumentClause> _privacyClauses = [];
@@ -304,7 +330,8 @@ class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> 
           setState(() {
             _loading = false;
             _termsFallback = 'تعذر تحميل شروط الاستخدام. يرجى المحاولة لاحقاً.';
-            _privacyFallback = 'تعذر تحميل سياسة الخصوصية. يرجى المحاولة لاحقاً.';
+            _privacyFallback =
+                'تعذر تحميل سياسة الخصوصية. يرجى المحاولة لاحقاً.';
           });
         }
       },
@@ -314,17 +341,21 @@ class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> 
             _loading = false;
             final tDoc = docs['terms_of_use'];
             final pDoc = docs['privacy_policy'];
-            
+
             if (tDoc != null) {
               _termsClauses = tDoc.clauses;
-              _termsFallback = tDoc.content.isNotEmpty ? tDoc.content : 'لا يوجد شروط استخدام حالياً.';
+              _termsFallback = tDoc.content.isNotEmpty
+                  ? tDoc.content
+                  : 'لا يوجد شروط استخدام حالياً.';
             } else {
               _termsFallback = 'لا يوجد شروط استخدام حالياً.';
             }
 
             if (pDoc != null) {
               _privacyClauses = pDoc.clauses;
-              _privacyFallback = pDoc.content.isNotEmpty ? pDoc.content : 'لا يوجد سياسة خصوصية حالياً.';
+              _privacyFallback = pDoc.content.isNotEmpty
+                  ? pDoc.content
+                  : 'لا يوجد سياسة خصوصية حالياً.';
             } else {
               _privacyFallback = 'لا يوجد سياسة خصوصية حالياً.';
             }
@@ -334,7 +365,8 @@ class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> 
     );
   }
 
-  Widget _buildClausesSection(String sectionTitle, List<DocumentClause> clauses, String fallback) {
+  Widget _buildClausesSection(
+      String sectionTitle, List<DocumentClause> clauses, String fallback) {
     if (clauses.isEmpty && fallback.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -376,7 +408,10 @@ class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> 
                             children: [
                               const Text(
                                 '•',
-                                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 16, height: 1.2),
+                                style: TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontSize: 16,
+                                    height: 1.2),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -413,7 +448,7 @@ class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
-        color:  Color(0xFF0F172A),
+        color: Color(0xFF0F172A),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -451,14 +486,17 @@ class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> 
           Expanded(
             child: _loading
                 ? const Center(
-                    child: CircularProgressIndicator(color: ColorTokens.goldAccent),
+                    child: CircularProgressIndicator(
+                        color: ColorTokens.goldAccent),
                   )
                 : ListView(
                     padding: const EdgeInsets.all(SpacingTokens.lg),
                     children: [
-                      _buildClausesSection('شروط الاستخدام', _termsClauses, _termsFallback),
+                      _buildClausesSection(
+                          'شروط الاستخدام', _termsClauses, _termsFallback),
                       const SizedBox(height: SpacingTokens.xl),
-                      _buildClausesSection('سياسة الخصوصية', _privacyClauses, _privacyFallback),
+                      _buildClausesSection(
+                          'سياسة الخصوصية', _privacyClauses, _privacyFallback),
                       const SizedBox(height: SpacingTokens.xxl),
                     ],
                   ),
@@ -468,4 +506,3 @@ class _DocumentBottomSheetDialogState extends State<_DocumentBottomSheetDialog> 
     );
   }
 }
-

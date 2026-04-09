@@ -34,7 +34,8 @@ final class GovernanceStatus {
   }
 
   @override
-  int get hashCode => Object.hash(kind, ownerAccountNumber, expiryDate, messageAr);
+  int get hashCode =>
+      Object.hash(kind, ownerAccountNumber, expiryDate, messageAr);
 }
 
 enum GovernanceStatusKind {

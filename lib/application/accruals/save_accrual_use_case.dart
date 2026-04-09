@@ -42,7 +42,8 @@ final class SaveAccrualUseCase {
     );
 
     if (component.name.isEmpty) {
-      return const FailureResult(ValidationFailure(messageAr: 'يرجى إدخال اسم الالتزام.'));
+      return const FailureResult(
+          ValidationFailure(messageAr: 'يرجى إدخال اسم الالتزام.'));
     }
 
     final result = await _repository.save(component);

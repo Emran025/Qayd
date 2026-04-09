@@ -17,7 +17,8 @@ final class GovernanceRepositoryImpl implements GovernanceRepository {
   DateTime? _cachedAt;
 
   @override
-  Future<Result<GovernanceStatus>> getStatus({bool forceRefresh = false}) async {
+  Future<Result<GovernanceStatus>> getStatus(
+      {bool forceRefresh = false}) async {
     try {
       final now = DateTime.now();
       if (!forceRefresh &&

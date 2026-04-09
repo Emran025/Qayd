@@ -1,1 +1,3 @@
-class ExportToExcelUseCase { const ExportToExcelUseCase(); }
+class ExportToExcelUseCase {
+  const ExportToExcelUseCase();
+}

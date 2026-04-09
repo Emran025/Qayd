@@ -1,4 +1,3 @@
-
 import 'package:qayd/data/models/country_model.dart';
 
 List<CountryModel> countries = [
@@ -30,7 +29,6 @@ List<CountryModel> countries = [
     arabicName: "ألبانيا",
     countryCallingCode: "355",
   ),
-
   CountryModel(
     id: "4",
     name: "Algeria",

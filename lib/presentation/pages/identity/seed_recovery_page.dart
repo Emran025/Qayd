@@ -17,7 +17,8 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
   bool _isLoading = false;
   String? _error;
 
-  final SetupIdentityUseCase _setupUseCase = InjectionContainer.setupIdentityUseCase;
+  final SetupIdentityUseCase _setupUseCase =
+      InjectionContainer.setupIdentityUseCase;
 
   @override
   void dispose() {
@@ -37,13 +38,13 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
         setState(() => _error = 'الرجاء إدخال عبارة الاسترداد');
         return;
       }
-      
+
       final phrase = MnemonicPhrase.fromPhrase(text);
       await _setupUseCase.recoverFromMnemonic(phrase);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text(AppStringsAr.seedRecoverySuccess)),
+          const SnackBar(content: Text(AppStringsAr.seedRecoverySuccess)),
         );
         Navigator.of(context).pop(true);
       }
@@ -65,7 +66,8 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(AppStringsAr.seedRecoveryBody, style: theme.textTheme.bodyLarge),
+            Text(AppStringsAr.seedRecoveryBody,
+                style: theme.textTheme.bodyLarge),
             const SizedBox(height: 24),
             TextField(
               controller: _phraseController,
@@ -81,9 +83,12 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _isLoading ? null : _recover,
-              child: _isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text(AppStringsAr.seedRecoveryAction),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text(AppStringsAr.seedRecoveryAction),
             ),
           ],
         ),

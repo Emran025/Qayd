@@ -1,4 +1,3 @@
-
 /// Formats minor units as a decimal string for amount fields (e.g. "12.50").
 String formatMinorAmountForField(int minorUnits, {int fractionalDigits = 2}) {
   num divisor = 1;

@@ -67,14 +67,19 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
       // Load Custom Brand Texts & Labels
       final prefs = InjectionContainer.sharedPreferences;
-      final customHeaderTitle = prefs.getString('pdf_header_title') ?? 'قيد — المحاسبة الشخصية';
-      final customHeaderSubtitle = prefs.getString('pdf_header_subtitle') ?? 'نظام السندات المالية المشفّرة';
-      final customFooterText = prefs.getString('pdf_footer_text') ?? 'المصدر: تطبيق قيد للمحاسبة الشخصية';
-      
-      final labelVoucherNo = prefs.getString('pdf_label_voucher_no') ?? 'رقم السند:';
+      final customHeaderTitle =
+          prefs.getString('pdf_header_title') ?? 'قيد — المحاسبة الشخصية';
+      final customHeaderSubtitle = prefs.getString('pdf_header_subtitle') ??
+          'نظام السندات المالية المشفّرة';
+      final customFooterText = prefs.getString('pdf_footer_text') ??
+          'المصدر: تطبيق قيد للمحاسبة الشخصية';
+
+      final labelVoucherNo =
+          prefs.getString('pdf_label_voucher_no') ?? 'رقم السند:';
       final labelDate = prefs.getString('pdf_label_date') ?? 'التاريخ:';
       final labelFrom = prefs.getString('pdf_label_from') ?? 'من حساب العميل:';
-      final labelDescription = prefs.getString('pdf_label_description') ?? 'البيان التفصيلي:';
+      final labelDescription =
+          prefs.getString('pdf_label_description') ?? 'البيان التفصيلي:';
 
       // Title logic
       final titleAr = _buildTitle(report, typeAr);
@@ -109,10 +114,12 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
                   // ── HEADER BAR ──────────────────────────────────────────
-                  _buildHeaderBar(font, logoImage, customHeaderTitle, customHeaderSubtitle),
+                  _buildHeaderBar(
+                      font, logoImage, customHeaderTitle, customHeaderSubtitle),
 
                   // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
-                  _buildTitleRow(font, report, titleAr, dateStr, accent, labelVoucherNo, labelDate),
+                  _buildTitleRow(font, report, titleAr, dateStr, accent,
+                      labelVoucherNo, labelDate),
 
                   pw.SizedBox(height: 6),
 
@@ -155,7 +162,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                         pw.SizedBox(height: 14),
 
                         // ── FOOTER ─────────────────────────────────────────
-                        _buildFooter(font, report, createdStr, qrPayload, customFooterText),
+                        _buildFooter(font, report, createdStr, qrPayload,
+                            customFooterText),
                       ],
                     ),
                   ),
@@ -178,7 +186,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   // ── HEADER BAR (Company-style) ─────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildHeaderBar(pw.Font font, pw.ImageProvider? logoImage, String title, String subtitle) {
+  pw.Widget _buildHeaderBar(pw.Font font, pw.ImageProvider? logoImage,
+      String title, String subtitle) {
     return pw.Container(
       color: _headerBg,
       padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 14),

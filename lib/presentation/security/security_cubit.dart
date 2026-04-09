@@ -29,21 +29,21 @@ class SecurityCubit extends Cubit<SecurityState> {
     required SyncIdentityToInternalAccountsUseCase syncIdentityUseCase,
     LocalAuthentication? localAuth,
     Duration lockAfterBackground = const Duration(minutes: 5),
-  }) : _pinStorage = pinStorage,
-       _licenseVault = licenseVault,
-       _hardwareIdService = hardwareIdService,
-       _clockGuard = clockGuard,
-       _panicWipeService = panicWipeService,
-       _authRepository = authRepository,
-       _syncIdentityUseCase = syncIdentityUseCase,
-       _localAuth = localAuth ?? LocalAuthentication(),
-       _lockAfterBackground = lockAfterBackground,
-       super(
-         const SecurityUnlocked(
-           licenseStatus: LicenseStatus.pending,
-           trialDaysRemaining: LicenseVault.trialDurationDays,
-         ),
-       );
+  })  : _pinStorage = pinStorage,
+        _licenseVault = licenseVault,
+        _hardwareIdService = hardwareIdService,
+        _clockGuard = clockGuard,
+        _panicWipeService = panicWipeService,
+        _authRepository = authRepository,
+        _syncIdentityUseCase = syncIdentityUseCase,
+        _localAuth = localAuth ?? LocalAuthentication(),
+        _lockAfterBackground = lockAfterBackground,
+        super(
+          const SecurityUnlocked(
+            licenseStatus: LicenseStatus.pending,
+            trialDaysRemaining: LicenseVault.trialDurationDays,
+          ),
+        );
 
   final AppPinStorage _pinStorage;
   final LicenseVault _licenseVault;

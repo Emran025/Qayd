@@ -43,15 +43,16 @@ class ConfirmVoucherUseCase {
         return FailureResult(loaded.failureOrNull!);
       }
       final draft = loaded.valueOrNull!;
-      
+
       // 2. Enforce signature agreement before ledger confirmation.
       // Policy: Recording in the local ledger requires the user's own signature.
       // We don't block local accounting just because the counterparty hasn't signed yet.
-      if (draft.senderStatus != AgreementStatus.accepted && 
+      if (draft.senderStatus != AgreementStatus.accepted &&
           draft.receiverStatus != AgreementStatus.accepted) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن تأكيد السند حتى يتم توقيعه من قبلك أو من قبل الطرف الآخر.',
+            messageAr:
+                'لا يمكن تأكيد السند حتى يتم توقيعه من قبلك أو من قبل الطرف الآخر.',
             code: 'voucher_not_signed',
           ),
         );

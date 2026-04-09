@@ -53,12 +53,14 @@ class AcceptVoucherUseCase {
     try {
       final loaded = await voucherRepository.getById(VoucherId(voucherId));
       if (loaded.isFailure || loaded.valueOrNull == null) {
-        return const FailureResult(ValidationFailure(messageAr: 'السند غير موجود.'));
+        return const FailureResult(
+            ValidationFailure(messageAr: 'السند غير موجود.'));
       }
       final draft = loaded.valueOrNull!;
 
       if (draft.receiverStatus == AgreementStatus.accepted) {
-        return const FailureResult(ValidationFailure(messageAr: 'السند مقبول مسبقاً.'));
+        return const FailureResult(
+            ValidationFailure(messageAr: 'السند مقبول مسبقاً.'));
       }
 
       // Resolve current user's phone from license data.
@@ -156,8 +158,8 @@ class AcceptVoucherUseCase {
         'receiver_signature_hex': signatureHex,
         'receiver_public_key_hex': signerPublicKeyHex,
         'signer_phone': signerPhone,
-        'sender_status': 'accepted', 
-        'receiver_status': 'accepted', 
+        'sender_status': 'accepted',
+        'receiver_status': 'accepted',
       };
 
       final encrypted = await e2eeEncryptionService.encryptPayload(

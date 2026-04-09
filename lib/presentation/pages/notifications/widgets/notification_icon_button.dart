@@ -26,7 +26,8 @@ class NotificationIconButton extends StatelessWidget {
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                    MaterialPageRoute(
+                        builder: (_) => const NotificationsPage()),
                   );
                 },
               ),
@@ -37,7 +38,9 @@ class NotificationIconButton extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).extension<QaydCustomColors>()!.goldAccent,
+                      color: Theme.of(context)
+                          .extension<QaydCustomColors>()!
+                          .goldAccent,
                       shape: BoxShape.circle,
                     ),
                     constraints: const BoxConstraints(

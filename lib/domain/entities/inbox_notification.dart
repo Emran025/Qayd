@@ -14,10 +14,10 @@ class InboxNotification {
 
   /// Internal local ID after decryption
   final String id;
-  
+
   /// Counterpart Account Name
   final String senderName;
-  
+
   /// e.g. "New Claim", "Voucher Accepted"
   final String title;
 

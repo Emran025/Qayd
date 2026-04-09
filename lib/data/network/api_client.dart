@@ -160,8 +160,7 @@ final class _ErrorInterceptor extends Interceptor {
 
   String _resolveArabicMessage(DioException err) {
     // Server responded with a 4xx/5xx and a message field.
-    final serverMessage =
-        err.response?.data?['message'] as String?;
+    final serverMessage = err.response?.data?['message'] as String?;
 
     if (err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.sendTimeout ||

@@ -13,9 +13,7 @@ class VoucherQrService {
   String generateQrData(Voucher voucher, [String? ownerPhone]) {
     final map = <String, dynamic>{
       // v3 includes tripartite support, v2 includes signature support.
-      'v': voucher.tripartiteMeta != null
-          ? 3
-          : (voucher.hasSignature ? 2 : 1),
+      'v': voucher.tripartiteMeta != null ? 3 : (voucher.hasSignature ? 2 : 1),
       't': voucher.type == VoucherType.payment ? 'P' : 'R',
       'a': voucher.amount.minorUnits,
       'c': voucher.currency.code,
@@ -76,7 +74,8 @@ class VoucherQrService {
         result['signerPublicKeyHex'] = map['pk'] as String?;
         result['signerPhone'] = map['sp'] as String?;
         result['agreementStatus'] = (map['sig'] != null)
-            ? AgreementStatus.accepted.name // matches v.senderStatus re-hydration
+            ? AgreementStatus
+                .accepted.name // matches v.senderStatus re-hydration
             : AgreementStatus.underRequest.name;
       }
 

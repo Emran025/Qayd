@@ -1,6 +1,5 @@
-
 /// Represents the high-level lifecycle of a financial voucher.
-/// 
+///
 /// This status is derived from the internal state and the dual-party agreement statuses.
 enum VoucherLifecycle {
   /// (مسودة) - Created locally, not yet shared or confirmed.
@@ -30,11 +29,11 @@ enum VoucherLifecycle {
 
   /// Human readable label in Arabic.
   String get labelAr => switch (this) {
-    VoucherLifecycle.draft => 'مسودة',
-    VoucherLifecycle.pending => 'بانتظار الطرف الآخر',
-    VoucherLifecycle.rejected => 'مرفوض',
-    VoucherLifecycle.withdrawn => 'مسحوب',
-    VoucherLifecycle.confirmed => 'مكتمل',
-    VoucherLifecycle.settled => 'تمت التسوية',
-  };
+        VoucherLifecycle.draft => 'مسودة',
+        VoucherLifecycle.pending => 'بانتظار الطرف الآخر',
+        VoucherLifecycle.rejected => 'مرفوض',
+        VoucherLifecycle.withdrawn => 'مسحوب',
+        VoucherLifecycle.confirmed => 'مكتمل',
+        VoucherLifecycle.settled => 'تمت التسوية',
+      };
 }

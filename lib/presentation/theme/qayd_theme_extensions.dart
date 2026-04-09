@@ -97,7 +97,8 @@ final class QaydCustomColors extends ThemeExtension<QaydCustomColors> {
       confirmedState: Color.lerp(confirmedState, other.confirmedState, t)!,
       settledState: Color.lerp(settledState, other.settledState, t)!,
       badgeOnDraft: Color.lerp(badgeOnDraft, other.badgeOnDraft, t)!,
-      badgeOnConfirmed: Color.lerp(badgeOnConfirmed, other.badgeOnConfirmed, t)!,
+      badgeOnConfirmed:
+          Color.lerp(badgeOnConfirmed, other.badgeOnConfirmed, t)!,
       badgeOnSettled: Color.lerp(badgeOnSettled, other.badgeOnSettled, t)!,
       subtleBorder: Color.lerp(subtleBorder, other.subtleBorder, t)!,
       surfaceElevated: Color.lerp(surfaceElevated, other.surfaceElevated, t)!,

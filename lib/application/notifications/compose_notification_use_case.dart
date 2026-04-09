@@ -1,1 +1,3 @@
-class ComposeNotificationUseCase { const ComposeNotificationUseCase(); }
+class ComposeNotificationUseCase {
+  const ComposeNotificationUseCase();
+}

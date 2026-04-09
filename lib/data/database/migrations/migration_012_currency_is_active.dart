@@ -8,8 +8,7 @@ final class Migration012CurrencyIsActive implements SchemaMigration {
 
   @override
   Future<void> up(Database db) async {
-    await db.addColumnIfNotExists(
-        'currencies', 'is_active', 'INTEGER NOT NULL',
+    await db.addColumnIfNotExists('currencies', 'is_active', 'INTEGER NOT NULL',
         defaultValue: '1');
     await db.execute(
       "UPDATE currencies SET is_active = 0 WHERE code NOT IN ('SAR', 'YER', 'USD')",

@@ -15,7 +15,7 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:uuid/uuid.dart';
 
 /// Orchestrates secure storage of voucher images.
-/// 
+///
 /// Responsibilities:
 /// - Encrypts raw images using the database encryption key.
 /// - Stores encrypted blobs in the persistent media directory.
@@ -40,11 +40,12 @@ class AttachmentStorageService {
   ) async {
     final imagesDir = await _fileManager.externalImagesDir();
     final encryptionKeyHex = await _keyProvider.obtainKey();
-    
+
     // Derive AES key/IV from the DB passphrase
     final rawKey = _hexToBytes(encryptionKeyHex);
     final aesKey = Uint8List.fromList(sha256.convert(rawKey).bytes);
-    final aesIv = Uint8List.fromList(sha256.convert(utf8.encode('attachment_iv')).bytes.sublist(0, 16));
+    final aesIv = Uint8List.fromList(
+        sha256.convert(utf8.encode('attachment_iv')).bytes.sublist(0, 16));
 
     final id = const Uuid().v4();
     final ext = p.extension(source.path);
@@ -80,16 +81,18 @@ class AttachmentStorageService {
     final encryptionKeyHex = await _keyProvider.obtainKey();
     final rawKey = _hexToBytes(encryptionKeyHex);
     final aesKey = Uint8List.fromList(sha256.convert(rawKey).bytes);
-    final aesIv = Uint8List.fromList(sha256.convert(utf8.encode('attachment_iv')).bytes.sublist(0, 16));
+    final aesIv = Uint8List.fromList(
+        sha256.convert(utf8.encode('attachment_iv')).bytes.sublist(0, 16));
 
     final encryptedBytes = await File(attachment.storagePath).readAsBytes();
-    return _encryptor.decrypt(Uint8List.fromList(encryptedBytes), aesKey, aesIv);
+    return _encryptor.decrypt(
+        Uint8List.fromList(encryptedBytes), aesKey, aesIv);
   }
 
   Uint8List _hexToBytes(String hex) {
     var result = Uint8List(hex.length ~/ 2);
     for (var i = 0; i < result.length; i++) {
-        result[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);
+      result[i] = int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16);
     }
     return result;
   }

@@ -63,15 +63,18 @@ class StatementChatCubit extends Cubit<StatementChatState> {
     _isFund = cp.standardClassificationKind ==
         StandardAccountClassificationKind.liquidAssets.name;
 
-    // Pick the "my" account. 
-    // If provided initially, use it. 
+    // Pick the "my" account.
+    // If provided initially, use it.
     // Otherwise, prioritize the "Fund" account (liquidAssets).
     if (_initialMyAccountId != null) {
       _myAccountId = _initialMyAccountId!;
     } else {
       // Find the first liquidAssets account that isn't the counterparty
       final fundAccount = accounts.firstWhere(
-        (a) => a.standardClassificationKind == StandardAccountClassificationKind.liquidAssets.name && a.id != cp.id,
+        (a) =>
+            a.standardClassificationKind ==
+                StandardAccountClassificationKind.liquidAssets.name &&
+            a.id != cp.id,
         orElse: () => accounts.firstWhere(
           (a) => a.id != cp.id,
           orElse: () => accounts.first,
@@ -115,7 +118,6 @@ class StatementChatCubit extends Cubit<StatementChatState> {
     _searchDebounce?.cancel();
     _fetch();
   }
-
 
   Future<void> reload() => _fetch();
 

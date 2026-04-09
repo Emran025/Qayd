@@ -3,7 +3,7 @@ import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 /// Schema v22: Personal Economy upgrade.
-/// 
+///
 /// - Adds [metadata] column to [accounts].
 /// - Creates [accrual_components] table.
 /// - Seeds 11 Life Dimension categories.

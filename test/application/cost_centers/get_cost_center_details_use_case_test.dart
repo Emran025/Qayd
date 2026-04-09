@@ -28,10 +28,12 @@ void main() {
       createdAt: DateTime(2023),
     );
 
-    test('Should return details successfully when cost center exists', () async {
+    test('Should return details successfully when cost center exists',
+        () async {
       when(() => mockRepo.getById('cc-1'))
           .thenAnswer((_) async => Success(center));
-      when(() => mockRepo.getAllDimensions(costCenterId: 'cc-1', activeOnly: true))
+      when(() =>
+              mockRepo.getAllDimensions(costCenterId: 'cc-1', activeOnly: true))
           .thenAnswer((_) async => const Success(<CostCenterDimension>[]));
       when(() => mockRepo.getTotalsByCenter('cc-1'))
           .thenAnswer((_) async => const Success({'USD': 1500}));
@@ -54,7 +56,8 @@ void main() {
       expect(details.voucherCount, 2);
     });
 
-    test('Should return validation failure if cost center does not exist', () async {
+    test('Should return validation failure if cost center does not exist',
+        () async {
       when(() => mockRepo.getById('cc-missing'))
           .thenAnswer((_) async => const Success(null));
 
@@ -62,9 +65,12 @@ void main() {
 
       expect(result.isFailure, isTrue);
       expect(result.failureOrNull, isA<ValidationFailure>());
-      expect((result.failureOrNull as ValidationFailure).code, 'cost_center_not_found');
-      
-      verifyNever(() => mockRepo.getAllDimensions(costCenterId: any(named: 'costCenterId'), activeOnly: any(named: 'activeOnly')));
+      expect((result.failureOrNull as ValidationFailure).code,
+          'cost_center_not_found');
+
+      verifyNever(() => mockRepo.getAllDimensions(
+          costCenterId: any(named: 'costCenterId'),
+          activeOnly: any(named: 'activeOnly')));
     });
 
     test('Should return repository failure if getById fails', () async {

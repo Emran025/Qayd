@@ -21,12 +21,9 @@ final class Migration008VoucherSignatures implements SchemaMigration {
         defaultValue: "'under_request'");
 
     // 3. Dual signatures and public keys
-    await db.addColumnIfNotExists(
-        'vouchers', 'sender_signature_hex', 'TEXT');
-    await db.addColumnIfNotExists(
-        'vouchers', 'receiver_signature_hex', 'TEXT');
-    await db.addColumnIfNotExists(
-        'vouchers', 'sender_public_key_hex', 'TEXT');
+    await db.addColumnIfNotExists('vouchers', 'sender_signature_hex', 'TEXT');
+    await db.addColumnIfNotExists('vouchers', 'receiver_signature_hex', 'TEXT');
+    await db.addColumnIfNotExists('vouchers', 'sender_public_key_hex', 'TEXT');
     await db.addColumnIfNotExists(
         'vouchers', 'receiver_public_key_hex', 'TEXT');
 

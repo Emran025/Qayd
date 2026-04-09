@@ -10,7 +10,7 @@ final class Migration011DefaultAccounts implements SchemaMigration {
   @override
   Future<void> up(Database db) async {
     final now = DateTime.now().toIso8601String();
-    
+
     // Simple fast UUID v4 equivalent for SQLite insertion since we don't need cryptographic randomness for default account IDs here.
     String uuid() {
       final r = Random();

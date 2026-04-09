@@ -16,7 +16,7 @@ class Migration013TransactionFees implements SchemaMigration {
         created_at TEXT NOT NULL
       )
     ''');
-    
+
     // Add index for fast querying of active fee
     await db.execute('''
       CREATE INDEX idx_transaction_fees_active ON transaction_fees(is_active)

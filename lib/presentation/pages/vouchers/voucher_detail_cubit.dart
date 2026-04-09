@@ -129,12 +129,12 @@ class VoucherDetailCubit extends Cubit<VoucherDetailState> {
   Future<void> withdraw() async {
     final s = state;
     if (s is! VoucherDetailReady || s.confirming) return;
-    
+
     emit(VoucherDetailReady(s.data, confirming: true));
     final result = await _withdraw(voucherId: s.data.id);
-    
+
     if (isClosed) return;
-    
+
     if (result.isFailure) {
       emit(VoucherDetailReady(
         s.data,

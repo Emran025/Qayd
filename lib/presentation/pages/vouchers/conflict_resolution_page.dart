@@ -62,7 +62,8 @@ class ConflictResolutionPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, ConflictResolutionState state, Color gold) {
+  Widget _buildBody(
+      BuildContext context, ConflictResolutionState state, Color gold) {
     if (state is ConflictResolutionLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -75,19 +76,16 @@ class ConflictResolutionPage extends StatelessWidget {
             slot: QaydTextStyleSlot.bodyMedium,
           ),
           const SizedBox(height: SpacingTokens.lg),
-          
           _ComparisonCard(
             title: 'سجلك المحلي (مسودة)',
             icon: Icons.file_present_rounded,
             color: ColorTokens.navy800,
             voucher: state.localVoucher,
           ),
-          
           const Padding(
             padding: EdgeInsets.symmetric(vertical: SpacingTokens.md),
             child: Icon(Icons.sync_alt_rounded, color: Colors.grey),
           ),
-          
           _InboundComparisonCard(
             title: 'السند الوارد (مزامنة)',
             icon: Icons.cloud_sync_rounded,
@@ -95,31 +93,38 @@ class ConflictResolutionPage extends StatelessWidget {
             payload: state.inboundPayload,
             currencyDigits: state.localVoucher.currencyDigits,
           ),
-          
           const SizedBox(height: SpacingTokens.xl),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: state.isResolving 
-                      ? null 
-                      : () => context.read<ConflictResolutionCubit>().resolve(merge: false),
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.redAccent),
+                  onPressed: state.isResolving
+                      ? null
+                      : () => context
+                          .read<ConflictResolutionCubit>()
+                          .resolve(merge: false),
+                  style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.redAccent),
                   child: const Text('تجاهل الوارد (مكرر)'),
                 ),
               ),
               const SizedBox(width: SpacingTokens.md),
               Expanded(
                 child: FilledButton(
-                  onPressed: state.isResolving 
-                      ? null 
-                      : () => context.read<ConflictResolutionCubit>().resolve(merge: true),
+                  onPressed: state.isResolving
+                      ? null
+                      : () => context
+                          .read<ConflictResolutionCubit>()
+                          .resolve(merge: true),
                   style: FilledButton.styleFrom(
                     backgroundColor: gold,
                     foregroundColor: ColorTokens.navy950,
                   ),
                   child: state.isResolving
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Text('دمج وتأكيد المحلي'),
                 ),
               ),
@@ -182,13 +187,15 @@ class _ComparisonCard extends StatelessWidget {
               ),
               QaydText(
                 voucher.typeCode == 'receipt' ? 'قبض' : 'صرف',
-                color: voucher.typeCode == 'receipt' ? Colors.greenAccent : Colors.orangeAccent,
+                color: voucher.typeCode == 'receipt'
+                    ? Colors.greenAccent
+                    : Colors.orangeAccent,
               ),
             ],
           ),
           const SizedBox(height: 8),
           QaydText(
-             DateFormat.yMMMd('ar').format(DateTime.parse(voucher.dateIso)),
+            DateFormat.yMMMd('ar').format(DateTime.parse(voucher.dateIso)),
             slot: QaydTextStyleSlot.bodySmall,
             color: Colors.white60,
           ),
@@ -256,13 +263,15 @@ class _InboundComparisonCard extends StatelessWidget {
               ),
               QaydText(
                 type == 'receipt' ? 'قبض' : 'صرف',
-                color: type == 'receipt' ? Colors.greenAccent : Colors.orangeAccent,
+                color: type == 'receipt'
+                    ? Colors.greenAccent
+                    : Colors.orangeAccent,
               ),
             ],
           ),
           const SizedBox(height: 8),
           QaydText(
-             DateFormat.yMMMd('ar').format(date),
+            DateFormat.yMMMd('ar').format(date),
             slot: QaydTextStyleSlot.bodySmall,
             color: Colors.white60,
           ),

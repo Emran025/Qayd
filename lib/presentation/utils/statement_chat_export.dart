@@ -41,7 +41,9 @@ Future<void> shareStatementChatAsPdf(
   final lines = <AccountStatementLineReportDto>[];
 
   // Add Brought Forward Balance
-  if (filter.includePreviousBalance && broughtForwardMinorUnits != 0 && filter.fromDate != null) {
+  if (filter.includePreviousBalance &&
+      broughtForwardMinorUnits != 0 &&
+      filter.fromDate != null) {
     bool isPositive = broughtForwardMinorUnits >= 0;
     lines.add(
       AccountStatementLineReportDto(
@@ -71,14 +73,16 @@ Future<void> shareStatementChatAsPdf(
   final dto = AccountStatementReportDto(
     accountId: accountId,
     accountName: accountName,
-    natureCode: 'credit', // In chat context, usually context-dependent, but 'credit' is safe fallback
+    natureCode:
+        'credit', // In chat context, usually context-dependent, but 'credit' is safe fallback
     generatedAtIso: now,
     periodFromIso: filter.fromDate?.toIso8601String(),
     periodToIso: filter.toDate?.toIso8601String(),
     lines: lines,
   );
 
-  final pdfR = await InjectionContainer.accountStatementPdfGenerator.buildStatementPdf(dto);
+  final pdfR = await InjectionContainer.accountStatementPdfGenerator
+      .buildStatementPdf(dto);
 
   if (!context.mounted) return;
   Navigator.of(context, rootNavigator: true).pop(); // dismiss loading
@@ -137,7 +141,9 @@ Future<void> shareStatementChatAsExcel(
     int totalCreditMinor = 0;
 
     // Brought Forward
-    if (filter.includePreviousBalance && broughtForwardMinorUnits != 0 && filter.fromDate != null) {
+    if (filter.includePreviousBalance &&
+        broughtForwardMinorUnits != 0 &&
+        filter.fromDate != null) {
       final isPositive = broughtForwardMinorUnits >= 0;
       final bfMinorAbs = broughtForwardMinorUnits.abs() / divisor;
       final balance = broughtForwardMinorUnits / divisor;
@@ -223,9 +229,8 @@ Future<void> shareStatementChatAsExcel(
       rows: rows,
       counterpartyName: accountName,
       statementDate: stmtDate,
-      referenceNumber: accountId.length > 12
-          ? accountId.substring(0, 12)
-          : accountId,
+      referenceNumber:
+          accountId.length > 12 ? accountId.substring(0, 12) : accountId,
       openingBalance: broughtForwardMinorUnits != 0
           ? _fmtNum(broughtForwardMinorUnits / divisor, currencyDigits)
           : null,
@@ -244,7 +249,11 @@ Future<void> shareStatementChatAsExcel(
     await file.writeAsBytes(bytes, flush: true);
 
     await Share.shareXFiles(
-      [XFile(path, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')],
+      [
+        XFile(path,
+            mimeType:
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      ],
     );
   } catch (_) {
     messenger.showSnackBar(

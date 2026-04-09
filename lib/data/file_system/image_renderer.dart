@@ -1,1 +1,3 @@
-class ImageRenderer { const ImageRenderer(); }
+class ImageRenderer {
+  const ImageRenderer();
+}

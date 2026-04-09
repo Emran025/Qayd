@@ -110,8 +110,9 @@ final class VoucherMapper {
       confirmedAt: model.confirmedAtIso != null
           ? DateTime.parse(model.confirmedAtIso!)
           : null,
-      settledAt:
-          model.settledAtIso != null ? DateTime.parse(model.settledAtIso!) : null,
+      settledAt: model.settledAtIso != null
+          ? DateTime.parse(model.settledAtIso!)
+          : null,
       senderStatus: _parseAgreementStatus(model.senderStatus),
       receiverStatus: _parseAgreementStatus(model.receiverStatus),
       senderSignatureHex: model.senderSignatureHex,
@@ -149,7 +150,8 @@ final class VoucherMapper {
   }
 
   /// Reconstructs [TripartiteMeta] from model fields; returns null if absent.
-  static TripartiteMeta? _parseTripartiteMeta(VoucherModel model, CurrencyCode currency) {
+  static TripartiteMeta? _parseTripartiteMeta(
+      VoucherModel model, CurrencyCode currency) {
     if (model.transferGroupId == null || model.tripartiteRole == null) {
       return null;
     }
@@ -159,10 +161,10 @@ final class VoucherMapper {
       transferGroupId: model.transferGroupId!,
       role: role,
       linkedPartyId: AccountId(model.linkedPartyId ?? ''),
-      mediatorAccountId: model.mediatorAccountId != null 
-          ? AccountId(model.mediatorAccountId!) 
+      mediatorAccountId: model.mediatorAccountId != null
+          ? AccountId(model.mediatorAccountId!)
           : null,
-      feeAmount: model.feeAmountMinor != null 
+      feeAmount: model.feeAmountMinor != null
           ? Money.positiveAmount(model.feeAmountMinor!, currency)
           : null,
       isContingent: model.isContingent,

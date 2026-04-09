@@ -11,7 +11,8 @@ final class GetAutoSuggestionsUseCase {
   final NotificationMessageRepository _repo;
   final VoucherRepository _voucherRepo;
 
-  Future<Result<List<ScoredSuggestionDto>>> call(String counterpartyAccountId) async {
+  Future<Result<List<ScoredSuggestionDto>>> call(
+      String counterpartyAccountId) async {
     final r = await _repo.listUnprocessedForCounterparty(
       counterpartyAccountId: counterpartyAccountId,
       limit: 50,
@@ -31,7 +32,7 @@ final class GetAutoSuggestionsUseCase {
         final amount = v.amount.minorUnits;
         frequencyMap[amount] = (frequencyMap[amount] ?? 0) + 1;
       }
-      
+
       final frequentAmounts = frequencyMap.entries
           .where((e) => e.value >= 2)
           .map((e) => e.key)

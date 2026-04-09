@@ -97,7 +97,7 @@ class CreateAccountUseCase {
         final partyDetails = PartyDetails(
           accountId: id,
           phoneNumber: input.phoneNumber,
-          email: input.email, 
+          email: input.email,
           whatsappNumber: input.whatsappNumber,
           bankAccountInfo: input.bankAccountInfo,
           partyType: input.partyType,
@@ -132,8 +132,7 @@ class CreateAccountUseCase {
         'يجب اختيار تصنيف قياسي أو تصنيف مخصص للحساب الجذر.',
       );
     }
-    if (hasCustom &&
-        input.customClassificationName!.trim().isEmpty) {
+    if (hasCustom && input.customClassificationName!.trim().isEmpty) {
       throw ArgumentError('اسم التصنيف المخصص مطلوب.');
     }
   }

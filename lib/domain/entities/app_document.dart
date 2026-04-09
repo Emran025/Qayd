@@ -12,7 +12,8 @@ class DocumentClause {
   factory DocumentClause.fromJson(Map<String, dynamic> json) {
     return DocumentClause(
       title: json['title'] as String,
-      details: (json['details'] as List<dynamic>).map((e) => e as String).toList(),
+      details:
+          (json['details'] as List<dynamic>).map((e) => e as String).toList(),
     );
   }
 
@@ -26,10 +27,11 @@ class DocumentClause {
 
 class AppDocument {
   final String type;
+
   /// If the API hasn't updated its seeder, it might return a plain string.
   /// we keep `content` just in case, but rely mostly on `clauses` which parses
   /// structured JSON.
-  final String content; 
+  final String content;
   final List<DocumentClause> clauses;
   final String version;
 
@@ -48,7 +50,9 @@ class AppDocument {
     try {
       final decodedList = jsonDecode(rawContent);
       if (decodedList is List) {
-        parsedClauses = decodedList.map((e) => DocumentClause.fromJson(e as Map<String, dynamic>)).toList();
+        parsedClauses = decodedList
+            .map((e) => DocumentClause.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {
       // If parsing fails, it's just raw text format.

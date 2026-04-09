@@ -7,7 +7,8 @@ import 'package:qayd/domain/repositories/message_template_repository.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-final class SqliteMessageTemplateRepository implements MessageTemplateRepository {
+final class SqliteMessageTemplateRepository
+    implements MessageTemplateRepository {
   SqliteMessageTemplateRepository(this._db);
 
   final Database _db;
@@ -23,7 +24,8 @@ final class SqliteMessageTemplateRepository implements MessageTemplateRepository
       );
       return Success(
         rows
-            .map((m) => MessageTemplateMapper.toEntity(MessageTemplateModel.fromMap(m)))
+            .map((m) =>
+                MessageTemplateMapper.toEntity(MessageTemplateModel.fromMap(m)))
             .toList(growable: false),
       );
     } catch (_) {
@@ -46,7 +48,8 @@ final class SqliteMessageTemplateRepository implements MessageTemplateRepository
       );
       return Success(
         rows
-            .map((m) => MessageTemplateMapper.toEntity(MessageTemplateModel.fromMap(m)))
+            .map((m) =>
+                MessageTemplateMapper.toEntity(MessageTemplateModel.fromMap(m)))
             .toList(growable: false),
       );
     } catch (_) {
@@ -74,7 +77,8 @@ final class SqliteMessageTemplateRepository implements MessageTemplateRepository
         );
       }
       return Success(
-        MessageTemplateMapper.toEntity(MessageTemplateModel.fromMap(rows.first)),
+        MessageTemplateMapper.toEntity(
+            MessageTemplateModel.fromMap(rows.first)),
       );
     } catch (_) {
       return const FailureResult(

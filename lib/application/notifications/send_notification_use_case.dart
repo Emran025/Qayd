@@ -1,1 +1,3 @@
-class SendNotificationUseCase { const SendNotificationUseCase(); }
+class SendNotificationUseCase {
+  const SendNotificationUseCase();
+}
