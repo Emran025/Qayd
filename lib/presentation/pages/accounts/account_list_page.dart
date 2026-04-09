@@ -5,6 +5,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -71,6 +72,12 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
             parentName: parentName,
             parentStandardKind: parentStandardKind,
             forcedIsChild: isChild,
+            allowedStandardKinds: const [
+              StandardAccountClassificationKind.liquidAssets,
+              StandardAccountClassificationKind.receivables,
+              StandardAccountClassificationKind.payables,
+              StandardAccountClassificationKind.settlements,
+            ],
           ),
         ),
       ),

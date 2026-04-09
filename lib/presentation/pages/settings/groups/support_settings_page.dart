@@ -190,6 +190,7 @@ class _DocumentViewerState extends State<_DocumentViewer> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
+      width: double.infinity,
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -361,16 +362,21 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
       title: Text(widget.typeTitle),
-      content: TextField(
-        controller: _msgCtrl,
-        maxLines: 4,
-        decoration: InputDecoration(
-          hintText: 'اكتب تفاصيل الرسالة هنا...',
-          border: const OutlineInputBorder(),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.primary,
+      content: SizedBox(
+        // Set a large width that will be bounded by the screen size minus insets
+        width: 500,
+        child: TextField(
+          controller: _msgCtrl,
+          maxLines: 5,
+          decoration: InputDecoration(
+            hintText: 'اكتب تفاصيل الرسالة هنا...',
+            border: const OutlineInputBorder(),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
         ),

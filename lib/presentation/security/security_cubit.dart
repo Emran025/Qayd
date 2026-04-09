@@ -40,7 +40,7 @@ class SecurityCubit extends Cubit<SecurityState> {
         _lockAfterBackground = lockAfterBackground,
         super(
           const SecurityUnlocked(
-            licenseStatus: LicenseStatus.pending,
+            licenseStatus: LicenseStatus.booting,
             trialDaysRemaining: LicenseVault.trialDurationDays,
           ),
         );

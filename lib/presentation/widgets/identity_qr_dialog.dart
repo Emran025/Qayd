@@ -23,12 +23,14 @@ class IdentityQrDialog extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      clipBehavior: Clip.antiAlias,
       child: FutureBuilder<String?>(
         future: _generateQrData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SizedBox(
               height: 300,
+              width: 320,
               child: Center(child: CircularProgressIndicator()),
             );
           }
@@ -41,71 +43,90 @@ class IdentityQrDialog extends StatelessWidget {
             );
           }
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  SpacingTokens.lg,
-                  SpacingTokens.lg,
-                  SpacingTokens.lg,
-                  SpacingTokens.sm,
-                ),
-                child: Text(
-                  AppStringsAr.identityQrShowTitle,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: gold,
+          return ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: 360,
+              maxWidth: 420,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    SpacingTokens.lg,
+                    SpacingTokens.lg,
+                    SpacingTokens.lg,
+                    SpacingTokens.sm,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
-                child: Text(
-                  AppStringsAr.identityQrShowSubtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: SpacingTokens.md),
-              Container(
-                padding: const EdgeInsets.all(SpacingTokens.md),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: QrImageView(
-                  data: qrData,
-                  version: QrVersions.auto,
-                  size: 240.0,
-                  eyeStyle: QrEyeStyle(
-                    eyeShape: QrEyeShape.square,
-                    color: scheme.primary,
-                  ),
-                  dataModuleStyle: QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: scheme.onSurface,
+                  child: Text(
+                    AppStringsAr.identityQrShowTitle,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: gold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-              ),
-              const SizedBox(height: SpacingTokens.lg),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  SpacingTokens.md,
-                  0,
-                  SpacingTokens.md,
-                  SpacingTokens.md,
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
+                  child: Text(
+                    AppStringsAr.identityQrShowSubtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(AppStringsAr.qrCloseAction),
+                const SizedBox(height: SpacingTokens.md),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(SpacingTokens.md),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: QrImageView(
+                      data: qrData,
+                      version: QrVersions.auto,
+                      size: 260.0, // Slightly larger QR
+                      eyeStyle: QrEyeStyle(
+                        eyeShape: QrEyeShape.square,
+                        color: scheme.primary,
+                      ),
+                      dataModuleStyle: QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: SpacingTokens.lg),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    SpacingTokens.md,
+                    0,
+                    SpacingTokens.md,
+                    SpacingTokens.md,
+                  ),
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      AppStringsAr.qrCloseAction,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),

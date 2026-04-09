@@ -186,7 +186,7 @@ abstract final class AppTheme {
           vertical: SpacingTokens.sm,
         ),
         insetPadding: const EdgeInsets.symmetric(
-          horizontal: 24.0, // Reduced from default 40.0 for slightly more width
+          horizontal: 16.0, // Reduced from 24.0 for more width
           vertical: 24.0,
         ),
       ),

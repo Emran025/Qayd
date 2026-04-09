@@ -4,6 +4,7 @@ import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -14,6 +15,7 @@ import 'package:qayd/presentation/pages/management/widgets/internal_voucher_tile
 import 'package:qayd/presentation/pages/management/widgets/personal_accounts_list_view.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
@@ -185,10 +187,31 @@ class _InternalManagementViewState extends State<_InternalManagementView>
               maxHeight: MediaQuery.of(context).size.height * 0.9),
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: AccountCreatePage(
-              forcedIsChild: true,
-              parentAccountId: parentId,
-              parentStandardKind: parentKind,
+            child: BlocProvider(
+              create: (_) => AccountCreateCubit(
+                InjectionContainer.createAccountUseCase,
+              ),
+              child: AccountCreatePage(
+                forcedIsChild: true,
+                parentAccountId: parentId,
+                parentStandardKind: parentKind,
+                allowedStandardKinds: _tabController.index == 1
+                    ? const [
+                        StandardAccountClassificationKind
+                            .fixedDepreciableAssets,
+                        StandardAccountClassificationKind.fixedProfitableAssets,
+                      ]
+                    : _tabController.index == 2
+                        ? const [
+                            StandardAccountClassificationKind.personalRevenues
+                          ]
+                        : _tabController.index == 3
+                            ? const [
+                                StandardAccountClassificationKind
+                                    .personalExpenses
+                              ]
+                            : null,
+              ),
             ),
           ),
         ),

@@ -1,5 +1,8 @@
 /// License lifecycle state.
 enum LicenseStatus {
+  /// App is checking license/auth status (startup).
+  booting,
+
   /// Not yet provisioned — first run, needs API login.
   pending,
 

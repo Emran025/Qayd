@@ -26,12 +26,14 @@ class AccountCreatePage extends StatefulWidget {
     this.parentName,
     this.parentStandardKind,
     this.forcedIsChild = false,
+    this.allowedStandardKinds,
   });
 
   final String? parentAccountId;
   final String? parentName;
   final String? parentStandardKind;
   final bool forcedIsChild;
+  final List<StandardAccountClassificationKind>? allowedStandardKinds;
 
   bool get isChild => forcedIsChild || parentAccountId != null;
 
@@ -86,6 +88,11 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     _parentId = widget.parentAccountId;
     _parentName = widget.parentName;
     _parentStandardKind = widget.parentStandardKind;
+
+    if (widget.allowedStandardKinds != null &&
+        widget.allowedStandardKinds!.isNotEmpty) {
+      _standardKind = widget.allowedStandardKinds!.first;
+    }
   }
 
   StandardAccountClassificationKind _standardKind =
@@ -300,6 +307,10 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                                   rootAllowed: true,
                                   onlyRoots: true,
                                   hideSterileRoots: true,
+                                  allowedClassifications: widget
+                                      .allowedStandardKinds
+                                      ?.map((k) => k.name)
+                                      .toList(),
                                 );
                                 if (root != null && mounted) {
                                   setState(() {
@@ -384,6 +395,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     if (!_useCustomRootClassification)
                       _StandardKindSelector(
                         selected: _standardKind,
+                        allowedKinds: widget.allowedStandardKinds,
                         onChanged: (k) => setState(() => _standardKind = k),
                       )
                     else ...[
@@ -540,14 +552,16 @@ class _StandardKindSelector extends StatelessWidget {
   const _StandardKindSelector({
     required this.selected,
     required this.onChanged,
+    this.allowedKinds,
   });
 
   final StandardAccountClassificationKind selected;
+  final List<StandardAccountClassificationKind>? allowedKinds;
   final ValueChanged<StandardAccountClassificationKind> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final kinds = StandardAccountClassificationKind.values;
+    final kinds = allowedKinds ?? StandardAccountClassificationKind.values;
     return Wrap(
       spacing: SpacingTokens.sm,
       runSpacing: SpacingTokens.sm,

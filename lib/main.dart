@@ -89,6 +89,24 @@ class QaydApp extends StatelessWidget {
       home: BlocBuilder<SecurityCubit, SecurityState>(
         buildWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
         builder: (context, state) {
+          if (state.licenseStatus == LicenseStatus.booting) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      width: 150,
+                      height: 150,
+                    ),
+                    const SizedBox(height: 24),
+                    const CircularProgressIndicator(),
+                  ],
+                ),
+              ),
+            );
+          }
           if (state.licenseStatus == LicenseStatus.pending) {
             return const LoginPage();
           }
