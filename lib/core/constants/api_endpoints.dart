@@ -31,6 +31,10 @@ abstract final class ApiEndpoints {
   static const String passwordEmail = '$v1/auth/password/email';
   static const String passwordReset = '$v1/auth/password/reset';
 
+  // ── Email verification ────────────────────────────────────────────────────
+  static const String verificationSend = '$v1/auth/email/verification-notification';
+  static const String verificationVerifyOtp = '$v1/auth/email/verify-otp';
+
   // ── License ───────────────────────────────────────────────────────────────
   static const String licenseVerify = '$v1/license/verify';
   static const String licenseRefresh = '$v1/license/refresh';

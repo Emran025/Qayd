@@ -63,8 +63,9 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
     } on AuthException catch (e) {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
-      if (mounted)
-        setState(() => _errorAr = 'تعذر إرسال الطلب. تحقق من الاتصال.');
+      if (mounted) {
+        setState(() => _errorAr = AppStringsAr.passwordResetError);
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -96,7 +97,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
       if (mounted) {
-        setState(() => _errorAr = 'تعذر تغيير كلمة المرور. حاول مرة أخرى.');
+        setState(() => _errorAr = AppStringsAr.passwordChangeError);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -239,6 +240,40 @@ class _Step0Form extends StatelessWidget {
     return Form(
       key: formKey,
       child: Column(children: [
+        // Method Selector Unit
+        Container(
+          padding: const EdgeInsets.all(SpacingTokens.sm),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.08)),
+          ),
+          child: Column(
+            children: [
+              _buildMethodOption(
+                icon: Icons.alternate_email_rounded,
+                title: AppStringsAr.verificationMethodEmailTitle,
+                subtitle: AppStringsAr.verificationMethodEmailSubtitle,
+                selected: true,
+                onTap: () {},
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Divider(color: Colors.white10, height: 1),
+              ),
+              _buildMethodOption(
+                icon: Icons.sms_rounded,
+                title: AppStringsAr.verificationMethodPhoneTitle,
+                subtitle: AppStringsAr.verificationMethodPhoneSubtitle,
+                selected: false,
+                enabled: false,
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: SpacingTokens.lg),
+
         AuthField(
           controller: emailCtrl,
           hint: AppStringsAr.vaultEmailHint,
@@ -262,6 +297,78 @@ class _Step0Form extends StatelessWidget {
           onPressed: onSubmit,
         ),
       ]),
+    );
+  }
+
+  Widget _buildMethodOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool selected,
+    bool enabled = true,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: selected
+                    ? ColorTokens.emerald500.withOpacity(0.15)
+                    : Colors.white10,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon,
+                  color:
+                      selected ? ColorTokens.emerald500 : ColorTokens.slate400,
+                  size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: enabled ? Colors.white : ColorTokens.slate400,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: ColorTokens.slate400,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected)
+              const Icon(Icons.check_circle_rounded,
+                  color: ColorTokens.emerald500, size: 24),
+            if (!enabled)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white10,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(AppStringsAr.comingSoonBadge,
+                    style:
+                        TextStyle(color: ColorTokens.slate400, fontSize: 10)),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -321,7 +428,7 @@ class _Step1Form extends StatelessWidget {
               return AppStringsAr.activationFieldRequired;
             }
             if (v.length < 8) {
-              return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.';
+              return AppStringsAr.passwordTooShort;
             }
             return null;
           },

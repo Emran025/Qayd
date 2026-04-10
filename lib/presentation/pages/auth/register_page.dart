@@ -14,6 +14,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/phone_zone.dart';
+import 'package:qayd/presentation/pages/auth/email_verification_otp_page.dart';
 
 /// Admin-only account provisioning screen.
 class RegisterPage extends StatefulWidget {
@@ -56,7 +57,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreedToTerms) {
       setState(
-          () => _errorAr = 'يجب الموافقة على شروط الاستخدام وسياسة الخصوصية');
+          () => _errorAr = AppStringsAr.agreeToTermsRequired);
       return;
     }
     setState(() {
@@ -91,14 +92,19 @@ class _RegisterPageState extends State<RegisterPage> {
           .writeTrialStart(DateTime.now().toUtc());
 
       if (!mounted) return;
-      await InjectionContainer.securityCubit.bootCheck();
-      if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+      // Navigate to OTP verification page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
+        ),
+      );
     } on AuthException catch (e) {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
       if (mounted) {
         setState(() =>
-            _errorAr = 'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.');
+            _errorAr = AppStringsAr.serverConnectionError);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -166,8 +172,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           if (v == null || v.trim().isEmpty) {
                             return AppStringsAr.activationFieldRequired;
                           }
-                          if (!v.contains('@'))
+                          if (!v.contains('@')) {
                             return AppStringsAr.invalidEmail;
+                          }
                           return null;
                         },
                       ),
@@ -175,7 +182,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       PhoneZoneForm(
                         zoneController: _zoneCtrl,
                         phoneController: _phoneCtrl,
-                        label: 'رقم الهاتف',
+                        label: AppStringsAr.partyPhoneLabel,
                       ),
                       const SizedBox(height: SpacingTokens.sm),
                       AuthField(
@@ -193,7 +200,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             return AppStringsAr.activationFieldRequired;
                           }
                           if (v.length < 8) {
-                            return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.';
+                            return AppStringsAr.passwordTooShort;
                           }
                           return null;
                         },
@@ -235,24 +242,24 @@ class _RegisterPageState extends State<RegisterPage> {
                                 TextSpan(
                                   children: [
                                     const TextSpan(
-                                        text: 'أوافق على ',
+                                        text: AppStringsAr.iAgreeTo,
                                         style: TextStyle(
                                             color: ColorTokens.slate400,
                                             fontSize: 13)),
                                     TextSpan(
-                                        text: 'شروط الاستخدام',
+                                        text: AppStringsAr.termsOfUseLabel,
                                         style: const TextStyle(
                                             color: ColorTokens.goldAccent,
                                             fontSize: 13,
                                             decoration:
                                                 TextDecoration.underline)),
                                     const TextSpan(
-                                        text: ' و',
+                                        text: AppStringsAr.andLabel,
                                         style: TextStyle(
                                             color: ColorTokens.slate400,
                                             fontSize: 13)),
                                     TextSpan(
-                                        text: 'سياسة الخصوصية',
+                                        text: AppStringsAr.privacyPolicyLabel,
                                         style: const TextStyle(
                                             color: ColorTokens.goldAccent,
                                             fontSize: 13,
@@ -313,8 +320,8 @@ class _DocumentBottomSheetDialogState
   bool _loading = true;
   List<DocumentClause> _termsClauses = [];
   List<DocumentClause> _privacyClauses = [];
-  String _termsFallback = 'جاري التحميل...';
-  String _privacyFallback = 'جاري التحميل...';
+  String _termsFallback = AppStringsAr.loadingLabel;
+  String _privacyFallback = AppStringsAr.loadingLabel;
 
   @override
   void initState() {
@@ -329,9 +336,8 @@ class _DocumentBottomSheetDialogState
         if (mounted) {
           setState(() {
             _loading = false;
-            _termsFallback = 'تعذر تحميل شروط الاستخدام. يرجى المحاولة لاحقاً.';
-            _privacyFallback =
-                'تعذر تحميل سياسة الخصوصية. يرجى المحاولة لاحقاً.';
+            _termsFallback = AppStringsAr.termsLoadingError;
+            _privacyFallback = AppStringsAr.privacyLoadingError;
           });
         }
       },
@@ -346,18 +352,18 @@ class _DocumentBottomSheetDialogState
               _termsClauses = tDoc.clauses;
               _termsFallback = tDoc.content.isNotEmpty
                   ? tDoc.content
-                  : 'لا يوجد شروط استخدام حالياً.';
+                  : AppStringsAr.noTermsFound;
             } else {
-              _termsFallback = 'لا يوجد شروط استخدام حالياً.';
+              _termsFallback = AppStringsAr.noTermsFound;
             }
 
             if (pDoc != null) {
               _privacyClauses = pDoc.clauses;
               _privacyFallback = pDoc.content.isNotEmpty
                   ? pDoc.content
-                  : 'لا يوجد سياسة خصوصية حالياً.';
+                  : AppStringsAr.noPrivacyFound;
             } else {
-              _privacyFallback = 'لا يوجد سياسة خصوصية حالياً.';
+              _privacyFallback = AppStringsAr.noPrivacyFound;
             }
           });
         }
@@ -468,7 +474,7 @@ class _DocumentBottomSheetDialogState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'سياسة الخصوصية وشروط الاستخدام',
+                  AppStringsAr.privacyTermsHeader,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -493,10 +499,10 @@ class _DocumentBottomSheetDialogState
                     padding: const EdgeInsets.all(SpacingTokens.lg),
                     children: [
                       _buildClausesSection(
-                          'شروط الاستخدام', _termsClauses, _termsFallback),
+                          AppStringsAr.termsOfUseLabel, _termsClauses, _termsFallback),
                       const SizedBox(height: SpacingTokens.xl),
                       _buildClausesSection(
-                          'سياسة الخصوصية', _privacyClauses, _privacyFallback),
+                          AppStringsAr.privacyPolicyLabel, _privacyClauses, _privacyFallback),
                       const SizedBox(height: SpacingTokens.xxl),
                     ],
                   ),

@@ -40,4 +40,11 @@ abstract interface class AuthRepository {
     required String token,
     required String newPassword,
   });
+
+  /// Sends or resends the email verification code.
+  /// returns the [nextRetryDelay] in seconds.
+  Future<int> sendVerificationEmail();
+
+  /// Verifies the account using a 6-digit [code].
+  Future<bool> verifyEmailOtp(String code);
 }

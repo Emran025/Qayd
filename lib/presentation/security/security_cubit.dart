@@ -267,6 +267,9 @@ class SecurityCubit extends Cubit<SecurityState> {
 
       // Start trial clock if no license status found.
       final status = result.licenseData['status'] as String? ?? '';
+      final emailVerifiedAt = result.licenseData['email_verified_at'];
+      final emailUnverified = emailVerifiedAt == null;
+
       if (status.isEmpty || status == 'trial') {
         final trialStart = await _licenseVault.readTrialStart();
         if (trialStart == null) {
@@ -274,18 +277,21 @@ class SecurityCubit extends Cubit<SecurityState> {
         }
       }
 
-      final licenseStatus = await _resolveLicenseStatus();
-      final trialDays = await trialDaysRemaining();
-      emit(
-        SecurityUnlocked(
-          licenseStatus: licenseStatus,
-          trialDaysRemaining: trialDays,
-        ),
-      );
+      if (!emailUnverified) {
+        final licenseStatus = await _resolveLicenseStatus();
+        final trialDays = await trialDaysRemaining();
+        emit(
+          SecurityUnlocked(
+            licenseStatus: licenseStatus,
+            trialDaysRemaining: trialDays,
+          ),
+        );
+      }
+
       // Sync identity to internal accounts after successful provision
       _syncIdentityUseCase.call().ignore();
 
-      return ProvisioningResult.success();
+      return ProvisioningResult.success(emailUnverified: emailUnverified);
     } on AuthException catch (e) {
       return ProvisioningResult.failure(e.messageAr);
     } catch (_) {
@@ -363,14 +369,19 @@ class SecurityCubit extends Cubit<SecurityState> {
 
 /// Result of a provisioning (API login) attempt.
 final class ProvisioningResult {
-  const ProvisioningResult._({required this.success, this.errorAr});
+  const ProvisioningResult._({
+    required this.success,
+    this.emailUnverified = false,
+    this.errorAr,
+  });
 
-  factory ProvisioningResult.success() =>
-      const ProvisioningResult._(success: true);
+  factory ProvisioningResult.success({bool emailUnverified = false}) =>
+      ProvisioningResult._(success: true, emailUnverified: emailUnverified);
 
   factory ProvisioningResult.failure(String messageAr) =>
       ProvisioningResult._(success: false, errorAr: messageAr);
 
   final bool success;
+  final bool emailUnverified;
   final String? errorAr;
 }

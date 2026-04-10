@@ -10,6 +10,7 @@ import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/components/auth/password_toggle_icon.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/pages/auth/email_verification_otp_page.dart';
 import 'package:qayd/presentation/pages/auth/password_reset_page.dart';
 import 'package:qayd/presentation/pages/auth/register_page.dart';
 import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
@@ -62,6 +63,18 @@ class _LoginPageState extends State<LoginPage> {
         );
 
     if (!mounted) return;
+
+    if (result.success && result.emailUnverified) {
+      // Redirect to OTP page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
+        ),
+      );
+      setState(() => _loading = false);
+      return;
+    }
 
     if (result.success) {
       // Provisioning success — now check for backups before BLoC emission swaps the UI.

@@ -409,6 +409,42 @@ abstract final class AppStringsAr {
   static const String passwordResetConfirmAction = 'تعيين كلمة المرور الجديدة';
   static const String passwordResetSuccess = 'تم تغيير كلمة المرور بنجاح';
   static const String backToLogin = 'العودة إلى تسجيل الدخول';
+  static const String passwordResetError = 'تعذر إرسال الطلب. تحقق من الاتصال.';
+  static const String passwordChangeError = 'تعذر تغيير كلمة المرور. حاول مرة أخرى.';
+  static const String passwordTooShort = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.';
+  static const String agreeToTermsRequired = 'يجب الموافقة على شروط الاستخدام وسياسة الخصوصية';
+  static const String serverConnectionError = 'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.';
+  static const String termsOfUseLabel = 'شروط الاستخدام';
+  static const String privacyPolicyLabel = 'سياسة الخصوصية';
+  static const String iAgreeTo = 'أوافق على ';
+  static const String andLabel = ' و';
+  static const String loadingLabel = 'جاري التحميل...';
+  static const String termsLoadingError = 'تعذر تحميل شروط الاستخدام. يرجى المحاولة لاحقاً.';
+  static const String privacyLoadingError = 'تعذر تحميل سياسة الخصوصية. يرجى المحاولة لاحقاً.';
+  static const String noTermsFound = 'لا يوجد شروط استخدام حالياً.';
+  static const String noPrivacyFound = 'لا يوجد سياسة خصوصية حالياً.';
+  static const String privacyTermsHeader = 'سياسة الخصوصية وشروط الاستخدام';
+
+  // Email Verification
+  static const String verificationTitle = 'تحقق من بريدك';
+  static const String verificationSubtitle = 'أرسلنا رمز التحقق إلى';
+  static const String verifyAction = 'تحقق الآن';
+  static const String resendPrompt = 'لم يصلك الرمز؟ ';
+  static const String resendTimerPrefix = 'إعادة الإرسال خلال ';
+  static const String resendTimerSuffix = ' ثانية';
+  static const String resendAction = 'إعادة إرسال الرمز';
+  static const String resending = 'جاري الإرسال...';
+  static const String returnToLogin = 'العودة لتسجيل الدخول';
+  static const String otpVerifyError = 'رمز التحقق غير صحيح أو منتهي الصلاحية.';
+  static const String otpSendError = 'تعذر إرسال الرمز. حاول مجدداً.';
+
+  // Password Reset Methods
+  static const String verificationMethodSelectorTitle = 'طريقة التحقق';
+  static const String verificationMethodEmailTitle = 'عبر البريد الإلكتروني';
+  static const String verificationMethodEmailSubtitle = 'إرسال رابط استعادة لبريدك المسجل';
+  static const String verificationMethodPhoneTitle = 'عبر رقم الهاتف';
+  static const String verificationMethodPhoneSubtitle = 'قريباً: إرسال رمز SMS لهاتفك';
+  static const String comingSoonBadge = 'قريباً';
 
   static String standardClassificationLabel(String kind) {
     switch (kind) {

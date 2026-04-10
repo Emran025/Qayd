@@ -25,9 +25,13 @@ class SyncSocketService {
   Timer? _pingTimer;
 
   final _nodeStreamController = StreamController<SyncNode>.broadcast();
+  final _eventStreamController = StreamController<Map<String, dynamic>>.broadcast();
 
   /// Stream of instantly pushed encrypted event nodes from counterparts
   Stream<SyncNode> get incomingNodes => _nodeStreamController.stream;
+
+  /// Stream of all raw socket events for external listening (e.g. EmailVerified)
+  Stream<Map<String, dynamic>> get socketEvents => _eventStreamController.stream;
 
   /// Connects to the Laravel WebSocket socket (Using Reverb/Custom port).
   Future<void> connect(int currentUserId) async {
@@ -97,14 +101,19 @@ class SyncSocketService {
               }
             }
 
-            // 2. Handle actual data events
+            final data = payload['data']; // The SyncNode payload
+            // Laravel sometimes double encodes the data if sent via Event
+            final dataMap = data is String ? jsonDecode(data) : data;
+
+            _eventStreamController.add({
+              'event': eventName,
+              'data': dataMap,
+              'channel': payload['channel'],
+            });
+
+            // Handle SyncNode events
             if (eventName == 'sync.node.dispatched' ||
                 eventName == 'App\\Events\\SyncNodeDispatched') {
-              final data = payload['data']; // The SyncNode payload
-              // Laravel sometimes double encodes the data if sent via Event
-              final dataMap = data is String ? jsonDecode(data) : data;
-
-              // Use 'node' or direct payload depending on backend format
               final nodeData = dataMap['node'] ?? dataMap;
               final node = SyncNode.fromJson(nodeData);
               _nodeStreamController.add(node);

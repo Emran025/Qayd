@@ -102,6 +102,33 @@ final class RemoteAuthRepository implements AuthRepository {
     }
   }
 
+  @override
+  Future<int> sendVerificationEmail() async {
+    try {
+      final data = await _client.post(ApiEndpoints.verificationSend);
+      return (data['next_retry_delay'] as num?)?.toInt() ?? 60;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
+    }
+  }
+
+  @override
+  Future<bool> verifyEmailOtp(String code) async {
+    try {
+      await _client.post(
+        ApiEndpoints.verificationVerifyOtp,
+        body: {'code': code},
+      );
+      return true;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
+    }
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   ({String jwt, Map<String, dynamic> licenseData, String serverSalt})
