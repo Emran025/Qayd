@@ -483,9 +483,7 @@ abstract final class QaydExcelWorkbook {
     final noteCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
     );
-    noteCell.value = TextCellValue(
-      '* في حال وجود عملات متعددة، يتم عرض الإجماليات بشكل منفصل لكل عملة.',
-    );
+    
     noteCell.cellStyle = _noteStyle();
     currentRow++;
 

@@ -35,7 +35,6 @@ final class CairoAccountStatementPdfGenerator
   static final PdfColor _headerBlue = PdfColor.fromInt(0xFF8FAADC);
   static final PdfColor _slate50 = PdfColor.fromInt(0xFFF8FAFC);
   static final PdfColor _slate100 = PdfColor.fromInt(0xFFF1F5F9);
-  static final PdfColor _errorRed = PdfColor.fromInt(0xFFD32F2F);
   static final PdfColor _border = PdfColor.fromInt(0xFFCBD5E1);
 
   @override
@@ -128,23 +127,6 @@ final class CairoAccountStatementPdfGenerator
                       totalDebit: totalDebit,
                       totalCredit: totalCredit,
                       netBalance: netBalance,
-                    ),
-
-                    pw.SizedBox(height: 12),
-
-                    // ── Currency Note ────────────────────────────────────────────
-                    pw.Align(
-                      alignment: pw.Alignment.centerLeft,
-                      child: pw.Text(
-                        '* في حال وجود عملات متعددة، يتم عرض الإجماليات بشكل منفصل لكل عملة.',
-                        style: pw.TextStyle(
-                          font: font,
-                          fontSize: 7,
-                          color: _errorRed,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                        textAlign: pw.TextAlign.left,
-                      ),
                     ),
                   ],
                 ),

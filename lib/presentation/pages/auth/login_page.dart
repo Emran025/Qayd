@@ -13,6 +13,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/auth/password_reset_page.dart';
 import 'package:qayd/presentation/pages/auth/register_page.dart';
 import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
+import 'package:qayd/presentation/pages/identity/seed_recovery_page.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -84,13 +85,89 @@ class _LoginPageState extends State<LoginPage> {
         if (restored == true) {
           // Re-open DB with restored file
           await InjectionContainer.reopenDatabaseAfterRestore();
+        } else {
+          // If they skipped restore, check if they have a registered identity on server
+          await _checkAndRecoverIdentityIfNecessary();
         }
+      } else {
+        // No backup found — still check if they have an identity on server
+        await _checkAndRecoverIdentityIfNecessary();
       }
     }
 
     if (!mounted) return;
     setState(() => _loading = false);
     if (!result.success) setState(() => _errorAr = result.errorAr);
+  }
+
+  Future<void> _checkAndRecoverIdentityIfNecessary() async {
+    if (!mounted) return;
+
+    final email = _emailCtrl.text.trim();
+    final hasLocalIdentity =
+        await InjectionContainer.mnemonicVault.hasIdentity();
+
+    if (hasLocalIdentity) return;
+
+    // Check server for existing public key
+    final lookup =
+        await InjectionContainer.identityRepository.lookupByEmail(email: email);
+
+    if (lookup != null && mounted) {
+      // Identity exists on server but not locally — prompt for recovery
+      final recovered = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF0F172A), // Slate 900
+          title: const Text(
+            AppStringsAr.identityRecoveryRequiredTitle,
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                AppStringsAr.identityRecoveryRequiredBody,
+                style: TextStyle(color: ColorTokens.slate400),
+              ),
+              const SizedBox(height: SpacingTokens.md),
+              const Text(
+                AppStringsAr.identityRecoveryBypassWarning,
+                style: TextStyle(
+                  color: ColorTokens.goldAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text(
+                AppStringsAr.identityRecoveryBypassAction,
+                style: TextStyle(color: ColorTokens.slate400),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorTokens.emerald600,
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(AppStringsAr.identityRecoveryEnterKeyAction),
+            ),
+          ],
+        ),
+      );
+
+      if (recovered == true && mounted) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SeedRecoveryPage()),
+        );
+      }
+    }
   }
 
   @override

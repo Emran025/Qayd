@@ -454,6 +454,17 @@ abstract final class AppStringsAr {
       'عبارة استرداد قيد — سري للغاية';
   static const String identityPublicKeyCopy = 'نسخ المفتاح العام';
   static const String identityPublicKeyCopied = 'تم نسخ المفتاح العام.';
+  static const String identityRecoveryRequiredTitle = 'هوية مسجلة سابقاً';
+  static const String identityRecoveryRequiredBody =
+      'وجدنا هوية رقمية مسجلة مسبقاً لهذا الحساب. للمتابعة، يجب إدخال المفتاح الأساسي (عبارة الـ 24 كلمة) لاسترداد هويتك وتوقيع العمليات.';
+  static const String identityRecoveryBypassWarning =
+      'تحذير: تجاوز هذه الخطوة سيعطل قدرتك على التعامل مع السندات الموقعة بهويتك السابقة.';
+  static const String identityRecoveryBypassAction = 'تجاوز (غير مستحسن)';
+  static const String identityRecoveryEnterKeyAction = 'أدخل المفتاح الأساسي';
+  static const String identityRecoveryHint =
+      'المفتاح الأساسي هو عبارة عن 24 كلمة قمت بحفظها عند إنشاء هويتك لأول مرة.';
+  static const String identityRecoveryInputRequired =
+      'الرجاء إدخال عبارة الاسترداد';
 
   // ── Auto backup ─────────────────────────────────────────────────────────
   static const String settingsSectionAutoBackup = 'النسخ الاحتياطي التلقائي';
