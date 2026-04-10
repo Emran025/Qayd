@@ -62,6 +62,7 @@ class SyncCoordinatorService {
         await nativeNotificationService.showImportantNotification(
           title: 'طلب جديد',
           body: 'تم استلام طلب سند جديد من شريكك.',
+          payload: 'voucher_chat:${node.senderId}',
         );
         await notificationMessageRepository.insert(
           id: node.id,
@@ -74,6 +75,7 @@ class SyncCoordinatorService {
         await nativeNotificationService.showLocalNotification(
           title: 'تم الاعتماد',
           body: 'تم قبول السند الخاص بك ومزامنته.',
+          payload: 'voucher_chat:${node.senderId}',
         );
         await notificationMessageRepository.insert(
           id: node.id,

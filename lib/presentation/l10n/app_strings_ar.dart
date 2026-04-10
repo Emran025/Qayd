@@ -205,6 +205,12 @@ abstract final class AppStringsAr {
   static String get qrScannerHint => 'ضع الرمز داخل المربع';
   static String get qrCloseAction => 'إغلاق';
 
+  static String get permissionCameraMissingTitle => 'صلاحية الكاميرا مفقودة';
+  static String get permissionCameraMissingBodyQr =>
+      'نحتاج للوصول إلى الكاميرا لقراءة رمز الاستجابة السريعة (QR Code). يرجى السماح بذلك من الإعدادات.';
+  static String get actionCancel => 'إلغاء';
+  static String get actionOpenSettings => 'فتح الإعدادات';
+
   // --- Identity QR Exchange (§3) ---
   static String get identityQrShowTitle => 'هويتي الرقمية (QR)';
   static String get identityQrShowSubtitle =>

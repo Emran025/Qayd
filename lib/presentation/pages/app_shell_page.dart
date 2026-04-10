@@ -10,6 +10,8 @@ import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_page.dart';
 import 'package:qayd/presentation/pages/management/internal_management_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_page.dart';
+import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
+import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -32,6 +34,41 @@ class _AppShellPageState extends State<AppShellPage> {
   void initState() {
     super.initState();
     _checkEmptyDb();
+    _listenToNotifications();
+  }
+
+  void _listenToNotifications() {
+    InjectionContainer.nativeNotificationService.onNotificationTap.listen((payload) {
+      if (payload == null || !mounted) return;
+      
+      try {
+        // Implementation note: In a real app, use a proper router or deep link handler.
+        // For 'Qayd', we parse a simple string or JSON for navigation.
+        if (payload.startsWith('voucher_chat:')) {
+          final cpId = payload.split(':')[1];
+          _navigateToChat(cpId);
+        }
+      } catch (e) {
+        debugPrint('Error handling notification tap: $e');
+      }
+    });
+  }
+
+  void _navigateToChat(String cpId) {
+    if (!mounted) return;
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => BlocProvider(
+          create: (_) => StatementChatCubit(
+            listStatement: InjectionContainer.listAccountStatementChatUseCase,
+            listAccounts: InjectionContainer.listAccountsUseCase,
+            counterpartyAccountId: cpId,
+          )..load(),
+          child: AccountStatementChatPage(counterpartyAccountId: cpId),
+        ),
+      ),
+    );
   }
 
   Future<void> _checkEmptyDb() async {

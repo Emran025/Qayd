@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 
@@ -14,6 +15,57 @@ class CounterpartyQrScannerPage extends StatefulWidget {
 class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
   final MobileScannerController _controller = MobileScannerController();
   bool _found = false;
+
+  bool _hasPermission = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermission();
+  }
+
+  Future<void> _checkPermission() async {
+    final status = await Permission.camera.request();
+    if (status.isPermanentlyDenied || status.isDenied) {
+      if (mounted) {
+        _showPermissionDialog();
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _hasPermission = true;
+        });
+      }
+    }
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStringsAr.permissionCameraMissingTitle),
+        content: Text(AppStringsAr.permissionCameraMissingBodyQr),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pop(); // الرجوع للصفحة السابقة
+            },
+            child: Text(AppStringsAr.actionCancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              openAppSettings();
+              Navigator.of(context).pop();
+            },
+            child: Text(AppStringsAr.actionOpenSettings),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -36,7 +88,8 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
       ),
       body: Stack(
         children: [
-          MobileScanner(
+          if (_hasPermission)
+            MobileScanner(
             controller: _controller,
             onDetect: (capture) {
               if (_found) return;

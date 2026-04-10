@@ -15,4 +15,7 @@ abstract interface class NativeNotificationService {
 
   /// Initialize native notification channels and permissions.
   Future<void> initialize();
+
+  /// Stream of payloads emitted when a user taps a notification.
+  Stream<String?> get onNotificationTap;
 }
