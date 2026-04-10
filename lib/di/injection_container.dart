@@ -353,7 +353,7 @@ abstract final class InjectionContainer {
     governanceWriteGuard = GovernanceWriteGuard(checkGovernanceStatusUseCase);
 
     // ── Native Notifications & E2EE Service ──────────────────────────────────
-    nativeNotificationService = LocalNotificationServiceImpl();
+    nativeNotificationService = LocalNotificationServiceImpl(sharedPreferences);
     await nativeNotificationService.initialize();
     e2eeService = const E2EEEncryptionServiceImpl();
     counterpartyQrService = const CounterpartyQrService();

@@ -483,6 +483,9 @@ abstract final class AppStringsAr {
   static const String seedBackupConfirmBody =
       'اكتب الكلمات التالية للتأكد من حفظك لعبارة الاسترداد.';
   static const String seedBackupConfirmed = 'تم تأكيد النسخ الاحتياطي بنجاح.';
+  static const String seedBackupConfirmAction = 'لقد قمت بحفظ الكلمات بأمان';
+  static const String seedBackupSkipAction = 'المتابعة لاحقاً (غير مستحسن)';
+
   static const String seedRecoveryTitle = 'استعادة الهوية الرقمية';
   static const String seedRecoveryBody =
       'أدخل عبارة الاسترداد المكونة من 24 كلمة لاستعادة مفتاح التوقيع.';
@@ -660,6 +663,7 @@ abstract final class AppStringsAr {
   static const String settingsContactSupport = 'التواصل مع الدعم الفني';
   static const String settingsReportIssue = 'الإبلاغ عن مشكلة أو اقتراح';
   static const String settingsVersionInfo = 'معلومات الإصدار';
+  static const String settingsGroupNotifications = 'تفضيلات الإشعارات';
 
   // ── Profile Management ──────────────────────────────────────────────────
   static const String profileDetailsSection = 'بيانات الحساب والنشاط';
@@ -672,6 +676,26 @@ abstract final class AppStringsAr {
       'تم تحديث بيانات ملفك الشخصي بنجاح.';
   static const String profileImageUpload = 'تغيير الصورة';
   static const String profileLogoUpload = 'تغيير الشعار';
+
+  // ── Notification Settings ──────────────────────────────────────────────
+  static const String notifPeerActivityTitle = 'أنشطة الطرف الآخر';
+  static const String notifPeerActivityDesc = 'استلام إشعارات السندات، الحوالات، وطلبات الحوالة القادمة من الآخرين.';
+  static const String notifSelfActivityTitle = 'أنشطتي العملياتية';
+  static const String notifSelfActivityDesc = 'إظهار إشعارات وتنبيهات صوتية للعمليات التي أقوم بها بنفسي.';
+  static const String notifSoundEnabled = 'تفعيل أصوات التنبيه';
+  static const String notifVibrationEnabled = 'تفعيل الاهتزاز';
+  static const String notifDirectCategories = 'الفئات المباشرة';
+  static const String notifMediaAlerts = 'التنبيهات والوسائط';
+  static const String notifSoundDesc = 'تشغيل نغمة عند وصول إشعار جديد.';
+  static const String notifVibrationDesc = 'اهتزاز الهاتف عند وصول إشعارات هامة.';
+
+  // ── Notification Channels ──────────────────────────────────────────────
+  static const String channelImportantTitle = 'إشعارات قيد الهامة';
+  static const String channelImportantDesc = 'تنبيهات الحوالات والسندات المباشرة';
+  static const String channelImportantSummary = 'تنبيه مالي';
+  static const String channelDefaultTitle = 'إشعارات قيد العامة';
+  static const String channelDefaultDesc = 'تحديثات النظام والمزامنة في الخلفية';
+
 
   // ── Threaded Financial Interactions ──────────────────────────────────────
   static const String voucherWithdrawAction = 'سحب السند';

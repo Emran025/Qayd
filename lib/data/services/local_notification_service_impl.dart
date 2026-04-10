@@ -3,11 +3,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 
 /// Concrete implementation for Android/iOS local notifications.
 class LocalNotificationServiceImpl implements NativeNotificationService {
-  LocalNotificationServiceImpl();
+  final SharedPreferences _prefs;
+  LocalNotificationServiceImpl(this._prefs);
+
+  static const _kPeerActivity = 'notif_peer_activity';
+  static const _kSelfActivity = 'notif_self_activity';
+  static const _kSoundEnabled = 'notif_sound_enabled';
+  static const _kVibrationEnabled = 'notif_vibration_enabled';
 
   final _plugin = FlutterLocalNotificationsPlugin();
   final _tapController = StreamController<String?>.broadcast();
@@ -54,12 +62,19 @@ class LocalNotificationServiceImpl implements NativeNotificationService {
     required String body,
     String? payload,
   }) async {
+    // Check global preference for peer activity (claims, transfers, etc)
+    final allowed = _prefs.getBool(_kPeerActivity) ?? true;
+    if (!allowed) return;
+
     debugPrint('Native IMPORTANT Notification: $title - $body');
+
+    final sound = _prefs.getBool(_kSoundEnabled) ?? true;
+    final vibration = _prefs.getBool(_kVibrationEnabled) ?? true;
 
     final androidDetails = AndroidNotificationDetails(
       'qayd_important_channel',
-      'إشعارات قيد الهامة',
-      channelDescription: 'تنبيهات الحوالات والسندات المباشرة',
+      AppStringsAr.channelImportantTitle,
+      channelDescription: AppStringsAr.channelImportantDesc,
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
@@ -67,16 +82,16 @@ class LocalNotificationServiceImpl implements NativeNotificationService {
       styleInformation: BigTextStyleInformation(
         body,
         contentTitle: title,
-        summaryText: 'تنبيه مالي',
+        summaryText: AppStringsAr.channelImportantSummary,
       ),
-      playSound: true,
-      enableVibration: true,
+      playSound: sound,
+      enableVibration: vibration,
     );
 
-    const iosDetails = DarwinNotificationDetails(
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
-      presentSound: true,
+      presentSound: sound,
       interruptionLevel: InterruptionLevel.timeSensitive,
     );
 
@@ -97,19 +112,31 @@ class LocalNotificationServiceImpl implements NativeNotificationService {
     required String body,
     String? payload,
   }) async {
+    // Local notifications are usually self-activities or background confirmations
+    final allowed = _prefs.getBool(_kSelfActivity) ?? true;
+    if (!allowed) return;
+
     debugPrint('Native Local Notification: $title - $body');
+
+    final sound = _prefs.getBool(_kSoundEnabled) ?? true;
+    final vibration = _prefs.getBool(_kVibrationEnabled) ?? true;
 
     final androidDetails = AndroidNotificationDetails(
       'qayd_default_channel',
-      'إشعارات قيد العامة',
-      channelDescription: 'تحديثات النظام والمزامنة في الخلفية',
+      AppStringsAr.channelDefaultTitle,
+      channelDescription: AppStringsAr.channelDefaultDesc,
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
       color: const Color(0xFF1E293B), // Dark Slate
       styleInformation: BigTextStyleInformation(body),
+      playSound: sound,
+      enableVibration: vibration,
     );
 
-    const iosDetails = DarwinNotificationDetails();
+    final iosDetails = DarwinNotificationDetails(
+      presentSound: sound,
+    );
+
     final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
     await _plugin.show(
@@ -121,5 +148,3 @@ class LocalNotificationServiceImpl implements NativeNotificationService {
     );
   }
 }
-
-

@@ -7,6 +7,7 @@ import 'package:qayd/presentation/pages/settings/groups/profile_settings_page.da
 import 'package:qayd/presentation/pages/settings/groups/security_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/support_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/groups/notification_settings_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/identity_qr_dialog.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_list_page.dart';
@@ -114,6 +115,11 @@ class SettingsSidebar extends StatelessWidget {
                   icon: Icons.security_rounded,
                   title: AppStringsAr.settingsGroupSecurity,
                   onTap: () => _navTo(context, const SecuritySettingsPage()),
+                ),
+                _DrawerTile(
+                  icon: Icons.notifications_active_outlined,
+                  title: AppStringsAr.settingsGroupNotifications,
+                  onTap: () => _navTo(context, const NotificationSettingsPage()),
                 ),
                 _DrawerTile(
                   icon: Icons.pie_chart_outline_rounded,
