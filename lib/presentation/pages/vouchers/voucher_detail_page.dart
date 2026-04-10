@@ -25,6 +25,8 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/presentation/widgets/voucher_qr_dialog.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
 import '../../../di/injection_container.dart';
 
 class VoucherDetailPage extends StatefulWidget {
@@ -280,18 +282,34 @@ class _VoucherDetailBody extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).push(
                             QaydPageRoute.slideFromStart(
-                              builder: (ctx) => VoucherCreatePage(
-                                initialQrData: {
-                                  'type': data.typeCode == 'payment'
-                                      ? VoucherType.payment
-                                      : VoucherType.receipt,
-                                  'date': DateTime.parse(data.dateIso),
-                                  'amountMinorUnits': data.amountMinorUnits,
-                                  'description': data.description,
-                                  'counterpartyAccountId':
-                                      data.counterpartyAccountId,
-                                  'originVoucherId': data.id,
-                                },
+                              builder: (ctx) => MultiBlocProvider(
+                                providers: [
+                                  BlocProvider<VoucherCreateCubit>(
+                                    create: (_) => VoucherCreateCubit(
+                                      InjectionContainer.createVoucherUseCase,
+                                      InjectionContainer.createTripartiteTransferUseCase,
+                                    ),
+                                  ),
+                                  BlocProvider<VoucherSuggestionsCubit>(
+                                    create: (_) => VoucherSuggestionsCubit(
+                                      InjectionContainer.getAutoSuggestionsUseCase,
+                                      InjectionContainer.markNotificationMessageProcessedUseCase,
+                                    ),
+                                  ),
+                                ],
+                                child: VoucherCreatePage(
+                                  initialQrData: {
+                                    'type': data.typeCode == 'payment'
+                                        ? VoucherType.payment
+                                        : VoucherType.receipt,
+                                    'date': DateTime.parse(data.dateIso),
+                                    'amountMinorUnits': data.amountMinorUnits,
+                                    'description': data.description,
+                                    'counterpartyAccountId':
+                                        data.counterpartyAccountId,
+                                    'originVoucherId': data.id,
+                                  },
+                                ),
                               ),
                             ),
                           );

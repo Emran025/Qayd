@@ -112,9 +112,15 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 
   void _applyFromQr(Map<String, dynamic> data) {
-    _type = data['type'] as VoucherType;
-    _date = data['date'] as DateTime;
-    _currencyCode = data['currencyCode'] as String;
+    if (data['type'] != null) {
+      _type = data['type'] as VoucherType;
+    }
+    if (data['date'] != null) {
+      _date = data['date'] as DateTime;
+    }
+    if (data['currencyCode'] != null) {
+      _currencyCode = data['currencyCode'] as String;
+    }
     if (data['amountMinorUnits'] != null) {
       _amountController.text =
           formatMinorAmountForField(data['amountMinorUnits'] as int);
@@ -306,6 +312,34 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       return;
     }
 
+    final initialCounterparty = widget.initialQrData?['counterpartyAccountId'] as String?;
+    final initialDate = widget.initialQrData?['date'] as DateTime?;
+    final isEdit = widget.initialQrData?['originVoucherId'] != null;
+
+    if (isEdit && initialCounterparty != null && initialDate != null) {
+      final initialDateMidnight = DateTime(initialDate.year, initialDate.month, initialDate.day);
+      if (_counterparty!.id != initialCounterparty || _voucherDate.compareTo(initialDateMidnight) != 0) {
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text(AppStringsAr.warningImportant),
+            content: const Text(AppStringsAr.voucherEditDateOrPartyWarning),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(AppStringsAr.templateEditCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text(AppStringsAr.actionProceedAndConfirm),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true) return;
+      }
+    }
+
     final input = CreateVoucherInput(
       type: _type,
       date: _voucherDate,
@@ -322,7 +356,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       isContingent: _hiddenIsContingent,
       attachments: _pickedImages,
       confirm: confirm,
-      originVoucherId: widget.initialQrData?['receiptUuid'] as String?,
+      originVoucherId: widget.initialQrData?['originVoucherId'] as String?,
       costCenterTags: _costCenterTags,
     );
 
@@ -372,7 +406,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
           if (state is VoucherCreateSuccess) {
             final msg = state.stateCode == 'draft'
                 ? AppStringsAr.voucherCreatedDraft
-                : 'تم تأكيد السند وإرساله للمزامنة';
+                : AppStringsAr.voucherConfirmedAndSentSuccess;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(msg),
@@ -442,12 +476,12 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       contentPadding: EdgeInsets.zero,
                       title: QaydText(
                         _type == VoucherType.payment
-                            ? 'صرف من حساب'
-                            : 'قبض إلى حساب',
+                            ? AppStringsAr.voucherAffectedAccountPaymentTitle
+                            : AppStringsAr.voucherAffectedAccountReceiptTitle,
                         slot: QaydTextStyleSlot.labelLarge,
                       ),
                       subtitle: QaydText(
-                        _affected?.name ?? 'اختر الحساب (الصندوق/المصروفات)',
+                        _affected?.name ?? AppStringsAr.voucherAffectedAccountHint,
                         slot: QaydTextStyleSlot.bodyLarge,
                         color: _affected == null
                             ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -493,7 +527,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                   icon: Icon(Icons.attach_file_rounded,
                                       size: 18, color: gold),
                                   label: Text(
-                                    'إرفاق صور',
+                                    AppStringsAr.voucherAttachImages,
                                     style: TextStyle(color: gold),
                                   ),
                                   style: OutlinedButton.styleFrom(
@@ -509,7 +543,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                   icon: Icon(Icons.shield_rounded,
                                       size: 18, color: gold),
                                   label: Text(
-                                    'إضافة رهن',
+                                    AppStringsAr.voucherAddCollateral,
                                     style: TextStyle(color: gold),
                                   ),
                                   style: OutlinedButton.styleFrom(
@@ -606,7 +640,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                               ),
                                         ),
                                         Text(
-                                          'القيمة: ${(_collateralInput!.estimatedValueMinor / 100).toStringAsFixed(2)} $_currencyCode',
+                                          '${AppStringsAr.voucherCollateralValuePrefix}${(_collateralInput!.estimatedValueMinor / 100).toStringAsFixed(2)} $_currencyCode',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall
@@ -664,7 +698,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                             color: Colors.black,
                                           ),
                                         )
-                                      : const Text('تأكيد وإرسال'),
+                                      : const Text(AppStringsAr.voucherConfirmAndSend),
                                 ),
                               ),
                             ],

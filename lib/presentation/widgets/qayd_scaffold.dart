@@ -10,7 +10,7 @@ class QaydScaffold extends StatelessWidget {
     required this.body,
     this.floatingActionButton,
     this.bottomNavigationBar,
-    this.showDrawer = true,
+    this.showDrawer = false,
     this.resizeToAvoidBottomInset,
   });
 

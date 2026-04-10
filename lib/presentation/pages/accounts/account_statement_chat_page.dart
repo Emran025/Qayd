@@ -13,6 +13,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/atomic/qayd_snackbar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
@@ -21,6 +22,8 @@ import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_filter_sheet.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
 import 'package:qayd/presentation/widgets/request_tripartite_sheet.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -79,12 +82,19 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         ConfirmVoucherInput(voucherId: voucherId),
       );
       if (r.isFailure && mounted) {
-        ScaffoldMessenger.of(
+        QaydSnackBar.show(
           context,
-        ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
+          r.failureOrNull!.messageAr,
+          type: QaydSnackBarType.error,
+        );
         return;
       }
       if (mounted) {
+        QaydSnackBar.show(
+          context,
+          AppStringsAr.voucherAcceptedSuccess,
+          type: QaydSnackBarType.success,
+        );
         context.read<StatementChatCubit>().reload();
       }
     } finally {
@@ -100,12 +110,19 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         voucherId: voucherId,
       );
       if (r.isFailure && mounted) {
-        ScaffoldMessenger.of(
+        QaydSnackBar.show(
           context,
-        ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
+          r.failureOrNull!.messageAr,
+          type: QaydSnackBarType.error,
+        );
         return;
       }
       if (mounted) {
+        QaydSnackBar.show(
+          context,
+          AppStringsAr.voucherRejectedSuccess,
+          type: QaydSnackBarType.success,
+        );
         context.read<StatementChatCubit>().reload();
       }
     } finally {
@@ -125,17 +142,33 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     Navigator.of(context)
         .push(
           QaydPageRoute.slideFromStart(
-            builder: (ctx) => VoucherCreatePage(
-              initialQrData: {
-                'type': msg.typeCode == 'payment'
-                    ? VoucherType.payment
-                    : VoucherType.receipt,
-                'date': DateTime.parse(msg.dateIso),
-                'amountMinorUnits': msg.amountMinorUnits,
-                'description': msg.description,
-                'counterpartyAccountId': msg.otherPartyId,
-                'originVoucherId': msg.voucherId,
-              },
+            builder: (ctx) => MultiBlocProvider(
+              providers: [
+                BlocProvider<VoucherCreateCubit>(
+                  create: (_) => VoucherCreateCubit(
+                    InjectionContainer.createVoucherUseCase,
+                    InjectionContainer.createTripartiteTransferUseCase,
+                  ),
+                ),
+                BlocProvider<VoucherSuggestionsCubit>(
+                  create: (_) => VoucherSuggestionsCubit(
+                    InjectionContainer.getAutoSuggestionsUseCase,
+                    InjectionContainer.markNotificationMessageProcessedUseCase,
+                  ),
+                ),
+              ],
+              child: VoucherCreatePage(
+                initialQrData: {
+                  'type': msg.typeCode == 'payment'
+                      ? VoucherType.payment
+                      : VoucherType.receipt,
+                  'date': DateTime.parse(msg.dateIso),
+                  'amountMinorUnits': msg.amountMinorUnits,
+                  'description': msg.description,
+                  'counterpartyAccountId': msg.otherPartyId,
+                  'originVoucherId': msg.voucherId,
+                },
+              ),
             ),
           ),
         )
@@ -162,12 +195,12 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
           // 2. Withdraw/Delete
           TextButton(
             onPressed: () => Navigator.pop(ctx, 'withdraw'),
-            child: const Text('حذف أو سحب السند'),
+            child: Text(AppStringsAr.voucherDeleteOrWithdraw),
           ),
           // 3. Redirect
           FilledButton(
             onPressed: () => Navigator.pop(ctx, 'edit_others'),
-            child: const Text('تحويله لطرف آخر'),
+            child: Text(AppStringsAr.voucherRedirectToOthers),
           ),
         ],
       ),
@@ -181,27 +214,43 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       setState(() => _mutating = false);
 
       result.fold(
-        (f) => ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(f.messageAr))),
-        (_) => cubit.reload(),
+        (f) => QaydSnackBar.show(context, f.messageAr, type: QaydSnackBarType.error),
+        (_) {
+          QaydSnackBar.show(context, AppStringsAr.voucherWithdrawalSuccess, type: QaydSnackBarType.success);
+          cubit.reload();
+        },
       );
     } else if (action == 'edit_others') {
-      // Navigate to create page with account selection cleared
       Navigator.of(context)
           .push(
             QaydPageRoute.slideFromStart(
-              builder: (ctx) => VoucherCreatePage(
-                initialQrData: {
-                  'type': msg.typeCode == 'payment'
-                      ? VoucherType.payment
-                      : VoucherType.receipt,
-                  'date': DateTime.parse(msg.dateIso),
-                  'amountMinorUnits': msg.amountMinorUnits,
-                  'description': msg.description,
-                  // 'counterpartyAccountId' is intentionally null to pick someone else
-                  'originVoucherId': msg.voucherId,
-                },
+              builder: (ctx) => MultiBlocProvider(
+                providers: [
+                  BlocProvider<VoucherCreateCubit>(
+                    create: (_) => VoucherCreateCubit(
+                      InjectionContainer.createVoucherUseCase,
+                      InjectionContainer.createTripartiteTransferUseCase,
+                    ),
+                  ),
+                  BlocProvider<VoucherSuggestionsCubit>(
+                    create: (_) => VoucherSuggestionsCubit(
+                      InjectionContainer.getAutoSuggestionsUseCase,
+                      InjectionContainer.markNotificationMessageProcessedUseCase,
+                    ),
+                  ),
+                ],
+                child: VoucherCreatePage(
+                  initialQrData: {
+                    'type': msg.typeCode == 'payment'
+                        ? VoucherType.payment
+                        : VoucherType.receipt,
+                    'date': DateTime.parse(msg.dateIso),
+                    'amountMinorUnits': msg.amountMinorUnits,
+                    'description': msg.description,
+                    'counterpartyAccountId': msg.otherPartyId,
+                    'originVoucherId': msg.voucherId,
+                  },
+                ),
               ),
             ),
           )
@@ -292,9 +341,28 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
               padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
               child: Row(
                 children: [
+                  if (msg.direction == 'outgoing' && msg.signatureStatusCode == AgreementStatus.rejected.name)
+                    _ActionButton(
+                      icon: Icons.edit_rounded,
+                      label: AppStringsAr.voucherEditAction,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _resubmitVoucher(context, msg.voucherId);
+                      },
+                    ),
+                  if (msg.direction == 'outgoing' && !AgreementStatus.values.byName(msg.signatureStatusCode).isAccepted)
+                    _ActionButton(
+                      icon: Icons.undo_rounded,
+                      label: AppStringsAr.statementChatWithdraw,
+                      color: ColorTokens.errorDeep,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _withdrawVoucher(context, msg.voucherId);
+                      },
+                    ),
                   _ActionButton(
                     icon: Icons.description_outlined,
-                    label: 'تفاصيل السند',
+                    label: AppStringsAr.actionDetails,
                     onTap: () {
                       Navigator.pop(ctx);
                       VoucherDetailPage.show(context, msg.voucherId);
@@ -303,22 +371,20 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   if (msg.mediatorAccountId != null)
                     _ActionButton(
                       icon: Icons.support_agent_rounded,
-                      label: 'محادثة الوسيط',
+                      label: AppStringsAr.tripartiteMediatorLabel,
                       color: custom.goldAccent,
                       onTap: () {
                         Navigator.pop(ctx);
                         _navigateToCounterpartyChat(
                           context,
                           msg.mediatorAccountId!,
-                          // In AccountStatementChatPage, myAccountId is available from the widget.
-                          // But we are in _AccountStatementChatPageState here, so we can access widget.
                           widget.myAccountId ?? widget.counterpartyAccountId,
                         );
                       },
                     ),
                   _ActionButton(
                     icon: Icons.copy_rounded,
-                    label: 'نسخ النص',
+                    label: AppStringsAr.actionCopy,
                     onTap: () {
                       Navigator.pop(ctx);
                       // Add copy logic
@@ -326,15 +392,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   ),
                   _ActionButton(
                     icon: Icons.share_rounded,
-                    label: 'مشاركة',
-                    onTap: () {
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                  _ActionButton(
-                    icon: Icons.delete_outline_rounded,
-                    label: 'حذف',
-                    color: ColorTokens.errorDeep,
+                    label: AppStringsAr.actionShare,
                     onTap: () {
                       Navigator.pop(ctx);
                     },
@@ -450,12 +508,12 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
               },
               // Swap positions: Text on right, Icon on left (in RTL)
               icon: null,
-              label: const Row(
+              label: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('طلب حوالة'),
-                  SizedBox(width: 8),
-                  Icon(Icons.send_rounded),
+                  Text(AppStringsAr.tripartiteRequestFunds),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.send_rounded),
                 ],
               ),
               backgroundColor: custom.goldAccent,
@@ -604,7 +662,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                           msg.otherPartyId,
                                           data.counterpartyAccountId,
                                         )
-                                      : _showVoucherActions(context, msg),
+                                      : VoucherDetailPage.show(context, msg.voucherId),
+                                  onLongPress: () => _showVoucherActions(context, msg),
                                 );
 
                                 final itemWidget = Column(
@@ -739,7 +798,7 @@ class _ChatHeader extends StatelessWidget {
                             ),
                             Text(
                               isUnified
-                                  ? 'سجل السندات (موحد)'
+                                  ? AppStringsAr.statementUnifiedTitle
                                   : '$messageCount ${AppStringsAr.statementVoucherCount}',
                               style: Theme.of(context)
                                   .textTheme
@@ -1076,7 +1135,7 @@ class _UnreadSessionDivider extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'رسائل جديدة غير مقروءة',
+                  AppStringsAr.statementUnreadMessages,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: custom.goldAccent,
                         fontWeight: FontWeight.w600,
@@ -1352,6 +1411,7 @@ class _MessageBubble extends StatelessWidget {
     required this.onWithdraw,
     required this.onResubmit,
     required this.onTap,
+    required this.onLongPress,
   });
 
   final AccountStatementChatMessageDto msg;
@@ -1362,6 +1422,7 @@ class _MessageBubble extends StatelessWidget {
   final Future<void> Function(String voucherId) onWithdraw;
   final Future<void> Function(String voucherId) onResubmit;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   bool get _isIncoming => msg.direction == 'incoming';
   bool get _isOutgoing => msg.direction == 'outgoing';
@@ -1442,6 +1503,7 @@ class _MessageBubble extends StatelessWidget {
       alignment: alignment,
       child: GestureDetector(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: MediaQuery.sizeOf(context).width * 0.82,
@@ -1675,7 +1737,7 @@ class _MessageBubble extends StatelessWidget {
                                   const SizedBox(width: SpacingTokens.xs),
                                   Expanded(
                                     child: Text(
-                                      'حوالة عبر الوسيط: ${msg.mediatorName}',
+                                      '${AppStringsAr.statementMediatorPrefix}${msg.mediatorName}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelSmall
@@ -1696,7 +1758,7 @@ class _MessageBubble extends StatelessWidget {
                                           horizontal: SpacingTokens.xs),
                                     ),
                                     Text(
-                                      'الرسوم: ',
+                                      AppStringsAr.statementFeePrefix,
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelSmall

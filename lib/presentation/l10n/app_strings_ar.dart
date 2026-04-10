@@ -177,6 +177,26 @@ abstract final class AppStringsAr {
   static const String affectedAccountSection = 'الحساب المتأثر';
   static const String counterpartySection = 'الطرف المقابل';
   static const String voucherCurrencyLabel = 'عملة السند';
+  static const String voucherAcceptedSuccess = 'تم الموافقة على السند بنجاح';
+  static const String voucherRejectedSuccess = 'تم رفض السند بنجاح';
+  static const String voucherWithdrawalSuccess = 'تم سحب السند بنجاح';
+  static const String voucherDeleteOrWithdraw = 'حذف أو سحب السند';
+  static const String voucherRedirectToOthers = 'تحويله لطرف آخر';
+  static const String voucherEditAction = 'تعديل السند';
+  static const String actionDetails = 'تفاصيل';
+  static const String actionCopy = 'نسخ';
+  static const String actionShare = 'مشاركة';
+  static const String voucherAttachImages = 'إرفاق صور';
+  static const String voucherAddCollateral = 'إضافة رهن';
+  static const String voucherConfirmAndSend = 'تأكيد وإرسال';
+  static const String warningImportant = 'تنبيه هام';
+  static const String voucherEditDateOrPartyWarning = 'لقد قمت بتغيير الطرف (العميل/المورد) أو التاريخ.\n\nسيتم سحب السند من الطرف السابق وإضافته كقيد جديد.\nهل تود المتابعة؟';
+  static const String actionProceedAndConfirm = 'متابعة والتأكيد';
+  static const String voucherAffectedAccountPaymentTitle = 'صرف من حساب';
+  static const String voucherAffectedAccountReceiptTitle = 'قبض إلى حساب';
+  static const String voucherAffectedAccountHint = 'اختر الحساب (الصندوق/المصروفات)';
+  static const String voucherCollateralValuePrefix = 'القيمة: ';
+  static const String voucherConfirmedAndSentSuccess = 'تم تأكيد السند وإرساله للمزامنة';
 
   // --- QR Exchange ---
   static String get qrCodeDisplayTitle => 'تبادل السند عبر QR';
@@ -525,6 +545,8 @@ abstract final class AppStringsAr {
 
   // ── Tripartite Intermediary Transfer ────────────────────────────────────
   static const String tripartiteToggleLabel = 'تحويل وسيط';
+  static const String tripartiteRequestFunds = 'طلب حوالة';
+  static const String tripartiteMediatorLabel = 'وسيط';
   static const String tripartiteToggleSubtitle =
       'تحويل مبلغ بين طرفين عبر حسابك كوسيط';
   static const String tripartiteSourceLabel = 'المصدر (من)';
@@ -561,6 +583,10 @@ abstract final class AppStringsAr {
   static const String statementStatusReceipt = 'سند قبض (أزرق)';
   static const String statementStatusPending = 'بانتظار الموافقة (برتقالي)';
   static const String statementStatusRejected = 'مرفوض (أحمر)';
+  static const String statementUnifiedTitle = 'سجل السندات (موحد)';
+  static const String statementUnreadMessages = 'رسائل جديدة غير مقروءة';
+  static const String statementMediatorPrefix = 'حوالة عبر الوسيط: ';
+  static const String statementFeePrefix = 'الرسوم: ';
   static const String statementDateThisMonth = 'هذا الشهر';
   static const String statementDateLastQuarter = 'الربع السابق';
   static const String statementDateThisYear = 'هذه السنة';

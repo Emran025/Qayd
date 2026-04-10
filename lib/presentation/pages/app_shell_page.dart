@@ -25,6 +25,7 @@ class AppShellPage extends StatefulWidget {
 
 class _AppShellPageState extends State<AppShellPage> {
   int _index = 0;
+  int _reportKeyId = 0;
   bool _showRestorePrompt = false;
 
   @override
@@ -70,16 +71,17 @@ class _AppShellPageState extends State<AppShellPage> {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     return QaydScaffold(
+      showDrawer: true,
       body: Stack(
         children: [
           IndexedStack(
             index: _index,
-            children: const [
-              VoucherListPage(),
-              TripartiteListPage(),
-              AccountListPage(),
-              TrialBalancePage(),
-              InternalManagementPage(),
+            children: [
+              const VoucherListPage(),
+              const TripartiteListPage(),
+              const AccountListPage(),
+              TrialBalancePage(key: ValueKey('reports_$_reportKeyId')),
+              const InternalManagementPage(),
             ],
           ),
           Positioned(
@@ -108,7 +110,12 @@ class _AppShellPageState extends State<AppShellPage> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         indicatorColor: gold.withValues(alpha: 0.35),
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: (i) {
+          if (i == 3 && _index != 3) {
+            _reportKeyId++;
+          }
+          setState(() => _index = i);
+        },
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.receipt_long_outlined),

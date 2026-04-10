@@ -63,8 +63,54 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
       );
     }
 
+    Widget? effectiveLeading = leading;
+    if (effectiveLeading == null) {
+      final ModalRoute<dynamic>? parentRoute = ModalRoute.of(context);
+      final bool canPop = parentRoute?.canPop ?? false;
+      
+      if (!canPop) {
+        effectiveLeading = Builder(
+          builder: (builderContext) {
+            bool foundDrawer = false;
+            builderContext.visitAncestorElements((element) {
+              if (element.widget is Scaffold) {
+                final state = (element as StatefulElement).state as ScaffoldState;
+                if (state.hasDrawer) {
+                  foundDrawer = true;
+                  return false; // Found
+                }
+              }
+              return true; // Keep searching
+            });
+
+            if (foundDrawer) {
+              return IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                onPressed: () {
+                  ScaffoldState? targetScaffold;
+                  builderContext.visitAncestorElements((element) {
+                    if (element.widget is Scaffold) {
+                      final state = (element as StatefulElement).state as ScaffoldState;
+                      if (state.hasDrawer) {
+                        targetScaffold = state;
+                        return false;
+                      }
+                    }
+                    return true;
+                  });
+                  targetScaffold?.openDrawer();
+                },
+                tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        );
+      }
+    }
+
     return AppBar(
-      leading: leading,
+      leading: effectiveLeading,
       title: QaydText(
         title,
         slot: QaydTextStyleSlot.titleLarge,
