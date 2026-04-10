@@ -3,8 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
-import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
+import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
+import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
+import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -18,7 +22,6 @@ class SeedSetupPage extends StatefulWidget {
 class _SeedSetupPageState extends State<SeedSetupPage> {
   MnemonicPhrase? _mnemonic;
   bool _isLoading = false;
-  bool _backupConfirmed = false;
 
   final SetupIdentityUseCase _setupUseCase =
       InjectionContainer.setupIdentityUseCase;
@@ -37,13 +40,16 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
         final phrase = await _setupUseCase.generateAndRegister();
         setState(() => _mnemonic = phrase);
       } else {
-        // If they already have an identity, we shouldn't show the setup page
-        // but maybe just let them copy the phrase if they haven't confirmed
-        // For simplicity, let's just mark confirmed.
-        setState(() => _backupConfirmed = true);
+        // If they already have an identity but are here, something is odd, 
+        // but let's just proceed or re-show.
+        // For now, let's assume we need to generate if they are in this flow.
+        final phrase = await _setupUseCase.generateAndRegister();
+        setState(() => _mnemonic = phrase);
       }
+    } catch (e) {
+      debugPrint('Seed generation error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -52,7 +58,11 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     await Clipboard.setData(ClipboardData(text: _mnemonic!.phrase));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text(AppStringsAr.identitySeedCopied)),
+      const SnackBar(
+        content: Text(AppStringsAr.identitySeedCopied),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: ColorTokens.emerald600,
+      ),
     );
   }
 
@@ -65,137 +75,196 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   }
 
   void _confirmBackup() async {
-    await _setupUseCase.confirmBackup();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.seedBackupConfirmed)),
-      );
-      Navigator.of(context).pop();
+    setState(() => _isLoading = true);
+    try {
+      await _setupUseCase.confirmBackup();
+      await InjectionContainer.securityCubit.bootCheck();
+      if (mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (_backupConfirmed) {
-      return Scaffold(
-        appBar: QaydAppBar(title: AppStringsAr.seedSetupTitle),
-        body: const Center(child: Text(AppStringsAr.seedBackupConfirmed)),
+    if (_isLoading && _mnemonic == null) {
+      return const AuthGradientScaffold(
+        child: Center(child: CircularProgressIndicator(color: ColorTokens.emerald500)),
       );
     }
 
     final words = _mnemonic?.words ?? [];
 
-    return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.seedSetupTitle),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(AppStringsAr.seedSetupBody, style: theme.textTheme.bodyLarge),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(8),
+    return AuthGradientScaffold(
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.lg,
+            vertical: SpacingTokens.xl,
+          ),
+          child: Column(
+            children: [
+              const AuthAnimatedIcon(
+                iconData: Icons.vignette_rounded, // Identity/Seed icon
+                iconColor: ColorTokens.emerald500,
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    size: 20,
-                    color: theme.colorScheme.onErrorContainer,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      AppStringsAr.seedBackupWarning,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onErrorContainer,
-                        fontWeight: FontWeight.bold,
+              const SizedBox(height: SpacingTokens.lg),
+
+              AuthTitleBlock(
+                title: AppStringsAr.seedSetupTitle,
+                subtitle: AppStringsAr.seedSetupBody,
+              ),
+              const SizedBox(height: SpacingTokens.xl),
+
+              // Warning Box
+              Container(
+                padding: const EdgeInsets.all(SpacingTokens.md),
+                decoration: BoxDecoration(
+                  color: ColorTokens.errorDeep.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: ColorTokens.errorSoft.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded,
+                        color: ColorTokens.errorSoft, size: 24),
+                    const SizedBox(width: SpacingTokens.md),
+                    Expanded(
+                      child: Text(
+                        AppStringsAr.seedBackupWarning,
+                        style: const TextStyle(
+                          color: ColorTokens.errorSoft,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: SpacingTokens.xl),
+
+              // Seed Words Grid
+              Container(
+                padding: const EdgeInsets.all(SpacingTokens.md),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: words.asMap().entries.map((entry) {
+                    return _buildWordCard(entry.key + 1, entry.value);
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: SpacingTokens.xl),
+
+              // Actions
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActionBtn(
+                      icon: Icons.copy_rounded,
+                      label: AppStringsAr.identitySeedCopy,
+                      onTap: _copyPhrase,
+                    ),
+                  ),
+                  const SizedBox(width: SpacingTokens.md),
+                  Expanded(
+                    child: _buildActionBtn(
+                      icon: Icons.ios_share_rounded,
+                      label: AppStringsAr.identitySeedShare,
+                      onTap: _sharePhrase,
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 32),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 12.0,
-              children: words.asMap().entries.map((entry) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${entry.key + 1}.',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        entry.value,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: SpacingTokens.xxl),
 
-            // ── Copy & Share actions ──────────────────────────────────────
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _copyPhrase,
-                    icon: const Icon(Icons.copy_outlined, size: 18),
-                    label: const Text(AppStringsAr.identitySeedCopy),
-                  ),
-                ),
-                const SizedBox(width: SpacingTokens.sm),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _sharePhrase,
-                    icon: const Icon(Icons.share_outlined, size: 18),
-                    label: const Text(AppStringsAr.identitySeedShare),
-                  ),
-                ),
-              ],
-            ),
+              AuthSubmitButton(
+                label: AppStringsAr.seedBackupConfirmAction,
+                loading: _isLoading,
+                onPressed: _confirmBackup,
+              ),
+              const SizedBox(height: SpacingTokens.lg),
 
-            const SizedBox(height: 48),
-            ElevatedButton(
-              onPressed: _confirmBackup,
-              child: const Text('أكّدت حفظ العبارة'),
+              TextButton(
+                onPressed: () => _confirmBackup(), // Skip/Later for now leads to same boot check
+                child: Text(
+                  AppStringsAr.seedBackupSkipAction,
+                  style: TextStyle(color: ColorTokens.slate400.withOpacity(0.7), fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWordCard(int index, String word) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      constraints: const BoxConstraints(minWidth: 80),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$index.',
+            style: const TextStyle(
+              color: ColorTokens.emerald500,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('لاحقاً (غير مستحسن)'),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            word,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionBtn({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white70, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
             ),
           ],
         ),

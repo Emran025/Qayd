@@ -8,6 +8,7 @@ import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/pages/identity/seed_setup_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -58,8 +59,9 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
       if (event['event'] == 'EmailVerified') {
         // Bypass page!
         if (mounted) {
-          await InjectionContainer.securityCubit.bootCheck();
-          if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const SeedSetupPage()),
+          );
         }
       }
     });
@@ -143,10 +145,8 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
           await InjectionContainer.authRepository.verifyEmailOtp(code);
       if (success && mounted) {
         // Success! Now we can proceed to boot check to enter the app.
-        await InjectionContainer.securityCubit.bootCheck();
-        if (mounted) {
-          Navigator.of(context).popUntil((r) => r.isFirst);
-        }
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const SeedSetupPage()));
       }
     } on AuthException catch (e) {
       setState(() => _errorAr = e.messageAr);
