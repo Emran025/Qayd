@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
+import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/domain/entities/sync_node.dart';
@@ -51,6 +52,7 @@ class SyncPayloadProcessor {
     required this.collateralRepository,
     required this.voucherKeyService,
     required this.notificationMessageRepository,
+    required this.notificationFilterService,
     this.onDecryptionFailure,
   });
 
@@ -66,6 +68,7 @@ class SyncPayloadProcessor {
   final AttachmentRepository attachmentRepository;
   final CollateralRepository collateralRepository;
   final VoucherKeyService voucherKeyService;
+  final NotificationFilterService notificationFilterService;
   final void Function(String nodeId)? onDecryptionFailure;
 
   /// Ingests a list of pushed/pulled encrypted sync nodes
@@ -292,34 +295,38 @@ class SyncPayloadProcessor {
       channel = 'conflict';
 
       // We still use voucher_event as base but keep the conflict logic
-      await notificationMessageRepository.insert(
-        id: nodeId, // Use the sync node ID to prevent duplicates
-        bodyText: bodyText,
-        counterpartyAccountId: counterpartyId.value,
-        createdAtIso: DateTime.now().toIso8601String(),
-        channel: channel,
-        rawPayloadJson: json.encode({
-          'event_type': 'claim',
-          'voucher_id': voucherIdStr,
-          'local_voucher_id': localMatch.id.value,
-          'inbound_payload': payload,
-          'has_tripartite_meta': tripartiteMeta != null,
-        }),
-      );
+      if (notificationFilterService.isPeerActivityEnabled) {
+        await notificationMessageRepository.insert(
+          id: nodeId, // Use the sync node ID to prevent duplicates
+          bodyText: bodyText,
+          counterpartyAccountId: counterpartyId.value,
+          createdAtIso: DateTime.now().toIso8601String(),
+          channel: channel,
+          rawPayloadJson: json.encode({
+            'event_type': 'claim',
+            'voucher_id': voucherIdStr,
+            'local_voucher_id': localMatch.id.value,
+            'inbound_payload': payload,
+            'has_tripartite_meta': tripartiteMeta != null,
+          }),
+        );
+      }
     } else {
-      await notificationMessageRepository.insert(
-        id: nodeId,
-        bodyText: bodyText,
-        counterpartyAccountId: counterpartyId.value,
-        createdAtIso: DateTime.now().toIso8601String(),
-        channel: channel,
-        rawPayloadJson: json.encode({
-          'event_type': 'claim',
-          'voucher_id': voucherIdStr,
-          'inbound_payload': payload,
-          'has_tripartite_meta': tripartiteMeta != null,
-        }),
-      );
+      if (notificationFilterService.isPeerActivityEnabled) {
+        await notificationMessageRepository.insert(
+          id: nodeId,
+          bodyText: bodyText,
+          counterpartyAccountId: counterpartyId.value,
+          createdAtIso: DateTime.now().toIso8601String(),
+          channel: channel,
+          rawPayloadJson: json.encode({
+            'event_type': 'claim',
+            'voucher_id': voucherIdStr,
+            'inbound_payload': payload,
+            'has_tripartite_meta': tripartiteMeta != null,
+          }),
+        );
+      }
     }
   }
 
@@ -448,17 +455,19 @@ class SyncPayloadProcessor {
       );
 
       // Create notification for acceptance
-      await notificationMessageRepository.insert(
-        id: nodeId,
-        bodyText: 'تم اعتماد السند من قبل الطرف الآخر',
-        counterpartyAccountId: senderId,
-        createdAtIso: DateTime.now().toIso8601String(),
-        channel: 'voucher_event',
-        rawPayloadJson: json.encode({
-          'event_type': 'acceptance',
-          'voucher_id': voucherIdStr,
-        }),
-      );
+      if (notificationFilterService.isPeerActivityEnabled) {
+        await notificationMessageRepository.insert(
+          id: nodeId,
+          bodyText: 'تم اعتماد السند من قبل الطرف الآخر',
+          counterpartyAccountId: senderId,
+          createdAtIso: DateTime.now().toIso8601String(),
+          channel: 'voucher_event',
+          rawPayloadJson: json.encode({
+            'event_type': 'acceptance',
+            'voucher_id': voucherIdStr,
+          }),
+        );
+      }
     } else {
       // §5.6 Failure: Suspended as unapproved claim.
       final suspendedVoucher = draft.attachSignature(
@@ -494,18 +503,20 @@ class SyncPayloadProcessor {
     await voucherRepository.save(rejectedVoucher);
 
     // Create notification for rejection
-    await notificationMessageRepository.insert(
-      id: nodeId,
-      bodyText: 'تم رفض السند: ${payload['rejection_reason'] ?? ''}',
-      counterpartyAccountId: senderId,
-      createdAtIso: DateTime.now().toIso8601String(),
-      channel: 'voucher_event',
-      rawPayloadJson: json.encode({
-        'event_type': 'rejection',
-        'voucher_id': voucherIdStr,
-        'reason': payload['rejection_reason'],
-      }),
-    );
+    if (notificationFilterService.isPeerActivityEnabled) {
+      await notificationMessageRepository.insert(
+        id: nodeId,
+        bodyText: 'تم رفض السند: ${payload['rejection_reason'] ?? ''}',
+        counterpartyAccountId: senderId,
+        createdAtIso: DateTime.now().toIso8601String(),
+        channel: 'voucher_event',
+        rawPayloadJson: json.encode({
+          'event_type': 'rejection',
+          'voucher_id': voucherIdStr,
+          'reason': payload['rejection_reason'],
+        }),
+      );
+    }
   }
 
   Future<void> _inboundJournalEntryMirrored(
@@ -682,17 +693,19 @@ class SyncPayloadProcessor {
       debugPrint('VoucherWithdrawal [$voucherIdStr]: local copy withdrawn.');
 
       // Create notification for withdrawal
-      await notificationMessageRepository.insert(
-        id: nodeId,
-        bodyText: 'تم سحب السند من قبل صاحب السند',
-        counterpartyAccountId: senderId,
-        createdAtIso: DateTime.now().toIso8601String(),
-        channel: 'voucher_event',
-        rawPayloadJson: json.encode({
-          'event_type': 'withdrawal',
-          'voucher_id': voucherIdStr,
-        }),
-      );
+      if (notificationFilterService.isPeerActivityEnabled) {
+        await notificationMessageRepository.insert(
+          id: nodeId,
+          bodyText: 'تم سحب السند من قبل صاحب السند',
+          counterpartyAccountId: senderId,
+          createdAtIso: DateTime.now().toIso8601String(),
+          channel: 'voucher_event',
+          rawPayloadJson: json.encode({
+            'event_type': 'withdrawal',
+            'voucher_id': voucherIdStr,
+          }),
+        );
+      }
     } else {
       debugPrint(
         'VoucherWithdrawal [$voucherIdStr]: cannot withdraw — '
@@ -729,17 +742,19 @@ class SyncPayloadProcessor {
       debugPrint('VoucherSettlement [$voucherIdStr]: marked as settled.');
 
       // Create notification for settlement
-      await notificationMessageRepository.insert(
-        id: nodeId,
-        bodyText: 'تم سداد السند بالكامل',
-        counterpartyAccountId: senderId,
-        createdAtIso: DateTime.now().toIso8601String(),
-        channel: 'voucher_event',
-        rawPayloadJson: json.encode({
-          'event_type': 'settlement',
-          'voucher_id': voucherIdStr,
-        }),
-      );
+      if (notificationFilterService.isPeerActivityEnabled) {
+        await notificationMessageRepository.insert(
+          id: nodeId,
+          bodyText: 'تم سداد السند بالكامل',
+          counterpartyAccountId: senderId,
+          createdAtIso: DateTime.now().toIso8601String(),
+          channel: 'voucher_event',
+          rawPayloadJson: json.encode({
+            'event_type': 'settlement',
+            'voucher_id': voucherIdStr,
+          }),
+        );
+      }
     } else {
       debugPrint(
         'VoucherSettlement [$voucherIdStr]: cannot settle — '
@@ -761,14 +776,16 @@ class SyncPayloadProcessor {
     final accountResult = await accountRepository.getById(AccountId(senderId));
     final senderName = accountResult.valueOrNull?.name ?? 'المُرسل';
 
-    await notificationMessageRepository.insert(
-      id: nodeId, // Consistent use of sync node ID
-      counterpartyAccountId: senderId,
-      bodyText: 'طلب حوالة جديدة من $senderName',
-      channel: 'tripartite_event',
-      createdAtIso: now.toIso8601String(),
-      rawPayloadJson: jsonEncode(payload),
-    );
+    if (notificationFilterService.isPeerActivityEnabled) {
+      await notificationMessageRepository.insert(
+        id: nodeId, // Consistent use of sync node ID
+        counterpartyAccountId: senderId,
+        bodyText: 'طلب حوالة جديدة من $senderName',
+        channel: 'tripartite_event',
+        createdAtIso: now.toIso8601String(),
+        rawPayloadJson: jsonEncode(payload),
+      );
+    }
 
     debugPrint('TripartiteRequest [$senderName -> B]: Ingested and stored.');
   }

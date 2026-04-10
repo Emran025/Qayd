@@ -5,10 +5,12 @@ import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
+import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/data/repositories/outbox_dao.dart';
 import 'package:qayd/data/repositories/sync_watermark_dao.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/core/result/result.dart';
 
 /// Manages multi-tiered polling and live WS connection for Real-Time Synchronization.
@@ -20,6 +22,7 @@ class SyncCoordinatorService {
     required this.socketService,
     required this.payloadProcessor,
     required this.nativeNotificationService,
+    required this.notificationFilterService,
     required this.notificationMessageRepository,
     required this.outboxDao,
     required this.watermarkDao,
@@ -32,6 +35,7 @@ class SyncCoordinatorService {
   final SyncSocketService socketService;
   final SyncPayloadProcessor payloadProcessor;
   final NativeNotificationService nativeNotificationService;
+  final NotificationFilterService notificationFilterService;
   final NotificationMessageRepository notificationMessageRepository;
   final OutboxDao outboxDao;
   final SyncWatermarkDao watermarkDao;
@@ -58,33 +62,38 @@ class SyncCoordinatorService {
       await _acknowledge([node.id], 'delivered');
 
       // Trigger Native Notification and persist to inbox if it's an important event
+      // AND user has not disabled peer activity notifications.
       if (node.eventType == SyncEventType.claim) {
-        await nativeNotificationService.showImportantNotification(
-          title: 'طلب جديد',
-          body: 'تم استلام طلب سند جديد من شريكك.',
-          payload: 'voucher_chat:${node.senderId}',
-        );
-        await notificationMessageRepository.insert(
-          id: node.id,
-          bodyText: 'تم استلام طلب سند جديد من شريكك.',
-          counterpartyAccountId: node.senderId.toString(),
-          createdAtIso: DateTime.now().toIso8601String(),
-          channel: 'server',
-        );
+        if (notificationFilterService.isPeerActivityEnabled) {
+          await nativeNotificationService.showImportantNotification(
+            title: AppStringsAr.syncClaimTitle,
+            body: AppStringsAr.syncClaimBody,
+            payload: 'voucher_chat:${node.senderId}',
+          );
+          await notificationMessageRepository.insert(
+            id: node.id,
+            bodyText: AppStringsAr.syncClaimBody,
+            counterpartyAccountId: node.senderId.toString(),
+            createdAtIso: DateTime.now().toIso8601String(),
+            channel: 'server',
+          );
+        }
       } else if (node.eventType == SyncEventType.acceptance) {
-        await nativeNotificationService.showLocalNotification(
-          title: 'تم الاعتماد',
-          body: 'تم قبول السند الخاص بك ومزامنته.',
-          payload: 'voucher_chat:${node.senderId}',
-        );
-        await notificationMessageRepository.insert(
-          id: node.id,
-          bodyText:
-              'تم اعتماد سند الصرف الخاص بك (#${node.id.substring(0, 4)}).',
-          counterpartyAccountId: node.senderId.toString(),
-          createdAtIso: DateTime.now().toIso8601String(),
-          channel: 'server',
-        );
+        if (notificationFilterService.isSelfActivityEnabled) {
+          await nativeNotificationService.showLocalNotification(
+            title: 'تم الاعتماد',
+            body: 'تم قبول السند الخاص بك ومزامنته.',
+            payload: 'voucher_chat:${node.senderId}',
+          );
+          await notificationMessageRepository.insert(
+            id: node.id,
+            bodyText:
+                'تم اعتماد سند الصرف الخاص بك (#${node.id.substring(0, 4)}).',
+            counterpartyAccountId: node.senderId.toString(),
+            createdAtIso: DateTime.now().toIso8601String(),
+            channel: 'server',
+          );
+        }
       }
     });
 

@@ -705,6 +705,14 @@ abstract final class AppStringsAr {
   static const String notifPermissionGrantedBody =
       'تم تفعيل الإشعارات بنجاح. يمكنك الآن التحكم في نوع الإشعارات أدناه.';
 
+  // ── Sync Event Notifications ───────────────────────────────────────────
+  static const String syncClaimTitle = 'طلب جديد';
+  static const String syncClaimBody = 'تم استلام طلب سند جديد من شريكك.';
+  static const String syncAcceptanceTitle = 'تم الاعتماد';
+  static const String syncAcceptanceBody = 'تم قبول السند الخاص بك ومزامنته.';
+  static String syncAcceptanceInboxBody(String shortId) =>
+      'تم اعتماد سند الصرف الخاص بك (#$shortId).';
+
 
   // ── Threaded Financial Interactions ──────────────────────────────────────
   static const String voucherWithdrawAction = 'سحب السند';

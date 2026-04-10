@@ -102,6 +102,7 @@ import 'package:qayd/application/sync/sync_coordinator_service.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
+import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/data/services/local_notification_service_impl.dart';
 import 'package:qayd/data/repositories/api_sync_repository.dart';
 import 'package:qayd/data/security/e2ee_encryption_service_impl.dart';
@@ -252,6 +253,7 @@ abstract final class InjectionContainer {
   // ── Sync & Real-Time Components ──────────────────────────────────────────
 
   static late final NativeNotificationService nativeNotificationService;
+  static late final NotificationFilterService notificationFilterService;
   static late final SyncCoordinatorService syncCoordinatorService;
   static late final SyncSocketService syncSocketService;
   static late final SyncPayloadProcessor syncPayloadProcessor;
@@ -355,6 +357,7 @@ abstract final class InjectionContainer {
     // ── Native Notifications & E2EE Service ──────────────────────────────────
     nativeNotificationService = LocalNotificationServiceImpl(sharedPreferences);
     await nativeNotificationService.initialize();
+    notificationFilterService = NotificationFilterService(sharedPreferences);
     e2eeService = const E2EEEncryptionServiceImpl();
     counterpartyQrService = const CounterpartyQrService();
     syncRepository = ApiSyncRepository(apiClient);
@@ -468,6 +471,7 @@ abstract final class InjectionContainer {
       collateralRepository: collateralRepository,
       voucherKeyService: voucherKeyService,
       notificationMessageRepository: notificationMessageRepository,
+      notificationFilterService: notificationFilterService,
       onDecryptionFailure: (nodeId) =>
           syncStatusCubit.reportDecryptionfailure(nodeId),
     );
@@ -487,6 +491,7 @@ abstract final class InjectionContainer {
       socketService: syncSocketService,
       payloadProcessor: syncPayloadProcessor,
       nativeNotificationService: nativeNotificationService,
+      notificationFilterService: notificationFilterService,
       currentUserId: userId,
       collateralExpiryChecker: collateralExpiryChecker,
       notificationMessageRepository: notificationMessageRepository,
