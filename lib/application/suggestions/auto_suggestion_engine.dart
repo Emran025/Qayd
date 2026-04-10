@@ -30,6 +30,8 @@ abstract final class AutoSuggestionEngine {
           amountMinorUnits: ex.amountMinorUnits,
           date: ex.date,
           type: SuggestionPatternExtractor.toVoucherType(ex.direction),
+          signatureHex: ex.signatureHex,
+          publicKeyHex: ex.publicKeyHex,
         ),
       );
     }

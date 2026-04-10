@@ -4,6 +4,7 @@ import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
 import 'package:qayd/application/cost_centers/update_cost_center_use_case.dart';
 import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
+import 'package:qayd/application/suggestions/analyze_for_suggestions_use_case.dart';
 import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
@@ -290,6 +291,8 @@ abstract final class InjectionContainer {
   // ── Cost and Profit Centers ─────────────────────────────────────────────
   static late CostCenterRepository costCenterRepository;
   static late CreateCostCenterUseCase createCostCenterUseCase;
+  static late AnalyzeForSuggestionsUseCase analyzeForSuggestionsUseCase;
+
   static late ListCostCentersUseCase listCostCentersUseCase;
   static late SuspendCostCenterUseCase suspendCostCenterUseCase;
   static late ActivateCostCenterUseCase activateCostCenterUseCase;
@@ -677,6 +680,10 @@ abstract final class InjectionContainer {
     notificationLogRepository = SqliteNotificationLogRepository(database);
     notificationMessageRepository = SqliteNotificationMessageRepository(
       database,
+    );
+    analyzeForSuggestionsUseCase = AnalyzeForSuggestionsUseCase(
+      voucherRepository,
+      notificationMessageRepository,
     );
     listMessageTemplatesUseCase = ListMessageTemplatesUseCase(
       messageTemplateRepository,

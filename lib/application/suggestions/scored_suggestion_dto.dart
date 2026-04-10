@@ -10,6 +10,8 @@ final class ScoredSuggestionDto {
     this.amountMinorUnits,
     this.date,
     this.type,
+    this.signatureHex,
+    this.publicKeyHex,
   });
 
   final String messageId;
@@ -19,4 +21,6 @@ final class ScoredSuggestionDto {
   final int? amountMinorUnits;
   final DateTime? date;
   final VoucherType? type;
+  final String? signatureHex;
+  final String? publicKeyHex;
 }

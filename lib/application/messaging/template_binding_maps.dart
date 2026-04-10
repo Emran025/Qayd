@@ -31,11 +31,25 @@ abstract final class TemplateBindingMaps {
       'signature': d.senderSignatureHex ??
           d.receiverSignatureHex ??
           'مشمول بالتوقيع الإلكتروني',
-      'signature_verification': d.senderSignatureHex != null ||
-              d.receiverSignatureHex != null
-          ? 'تم التحقق رقمياً: ${d.senderSignatureHex ?? d.receiverSignatureHex}'
-          : 'مُصدّر آلياً وموثق رقمياً عبر نظام قيد',
+      'sender_signature': d.senderSignatureHex ?? '',
+      'receiver_signature': d.receiverSignatureHex ?? '',
+      'signature_verification': _buildSignatureVerificationString(d),
     };
+  }
+
+  static String _buildSignatureVerificationString(GetVoucherDetailsOutput d) {
+    if (d.senderSignatureHex == null && d.receiverSignatureHex == null) {
+      return 'مُصدّر آلياً وموثق رقمياً عبر نظام قيد';
+    }
+
+    final buffer = StringBuffer('تم التحقق رقمياً:');
+    if (d.senderSignatureHex != null) {
+      buffer.write('\n- توقيع المرسل: ${d.senderSignatureHex}');
+    }
+    if (d.receiverSignatureHex != null) {
+      buffer.write('\n- توقيع المستلم: ${d.receiverSignatureHex}');
+    }
+    return buffer.toString();
   }
 
   static Map<String, String> forAccount(GetAccountDetailsOutput d) {

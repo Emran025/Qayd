@@ -12,11 +12,15 @@ final class SuggestionExtract {
     this.amountMinorUnits,
     this.date,
     this.direction,
+    this.signatureHex,
+    this.publicKeyHex,
   });
 
   final int? amountMinorUnits;
   final DateTime? date;
   final SuggestionDirection? direction;
+  final String? signatureHex;
+  final String? publicKeyHex;
 }
 
 /// Deterministic pattern matching — no network / ML.
@@ -30,6 +34,14 @@ abstract final class SuggestionPatternExtractor {
   static final RegExp _number = RegExp(
     r'\d{1,3}(?:[,\u066C\s]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?',
   );
+  static final RegExp _hexSignature = RegExp(
+    r'(?:بصمة|توقيع|sig|signature)\s*[:=]?\s*([a-fA-F0-9]{32,128})',
+    caseSensitive: false,
+  );
+  static final RegExp _hexPublicKey = RegExp(
+    r'(?:مفتاح|pk|public_key)\s*[:=]?\s*([a-fA-F0-9]{32,128})',
+    caseSensitive: false,
+  );
 
   static SuggestionExtract extract(String raw, {DateTime? referenceNow}) {
     final now = referenceNow ?? DateTime.now();
@@ -41,7 +53,14 @@ abstract final class SuggestionPatternExtractor {
       amountMinorUnits: _extractAmountMinor(text),
       date: _extractDate(text, now),
       direction: _extractDirection(raw),
+      signatureHex: _extractHex(raw, _hexSignature),
+      publicKeyHex: _extractHex(raw, _hexPublicKey),
     );
+  }
+
+  static String? _extractHex(String text, RegExp pattern) {
+    final match = pattern.firstMatch(text);
+    return match?.group(1);
   }
 
   static String _normalizeDigits(String s) {

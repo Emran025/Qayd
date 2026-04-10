@@ -26,6 +26,9 @@ class VoucherQrService {
       if (voucher.senderSignatureHex != null) 'sig': voucher.senderSignatureHex,
       if (voucher.senderPublicKeyHex != null) 'pk': voucher.senderPublicKeyHex,
       if (voucher.signerPhone != null) 'sp': voucher.signerPhone,
+      // Additional signature fields (receiver).
+      if (voucher.receiverSignatureHex != null) 'rsig': voucher.receiverSignatureHex,
+      if (voucher.receiverPublicKeyHex != null) 'rpk': voucher.receiverPublicKeyHex,
       // v3 tripartite fields.
       if (voucher.tripartiteMeta != null) ...{
         'tgid': voucher.tripartiteMeta!.transferGroupId,
@@ -73,9 +76,10 @@ class VoucherQrService {
         result['signatureHex'] = map['sig'] as String?;
         result['signerPublicKeyHex'] = map['pk'] as String?;
         result['signerPhone'] = map['sp'] as String?;
+        result['receiverSignatureHex'] = map['rsig'] as String?;
+        result['receiverPublicKeyHex'] = map['rpk'] as String?;
         result['agreementStatus'] = (map['sig'] != null)
-            ? AgreementStatus
-                .accepted.name // matches v.senderStatus re-hydration
+            ? AgreementStatus.accepted.name
             : AgreementStatus.underRequest.name;
       }
 

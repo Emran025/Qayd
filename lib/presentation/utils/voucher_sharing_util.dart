@@ -40,9 +40,11 @@ Future<void> shareVoucherAsText(
     }
     buffer.writeln('\n--');
     buffer.writeln('مُصدّر آلياً وموثق رقمياً عبر نظام قيد');
-    if (data.senderSignatureHex != null || data.receiverSignatureHex != null) {
-      buffer.writeln(
-          'بصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}');
+    if (data.senderSignatureHex != null) {
+      buffer.writeln('توقيع المرسل: ${data.senderSignatureHex}');
+    }
+    if (data.receiverSignatureHex != null) {
+      buffer.writeln('توقيع المستلم: ${data.receiverSignatureHex}');
     }
     shareText = buffer.toString();
   }

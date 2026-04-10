@@ -733,10 +733,19 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 height: 64,
                 drawText: false,
               ),
-              pw.SizedBox(height: 3),
               pw.Text(
-                'تحقق من السند',
-                style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
+                'امسح للمراجعة أو التوقيع',
+                style: pw.TextStyle(
+                  font: font,
+                  fontSize: 7,
+                  color: _navy,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 1),
+              pw.Text(
+                'عبر تطبيق قيد',
+                style: pw.TextStyle(font: font, fontSize: 6, color: _muted),
               ),
             ],
           ),

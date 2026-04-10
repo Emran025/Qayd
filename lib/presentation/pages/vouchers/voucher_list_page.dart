@@ -140,6 +140,12 @@ class _VoucherListViewState extends State<_VoucherListView> {
         return;
       }
 
+      // Smart Navigation: If this QR belongs to an existing voucher, go to Detail directly.
+      if (data['id'] != null) {
+        await _openDetail(context, data['id'] as String);
+        return;
+      }
+
       final newId = await Navigator.of(context).push<String?>(
         QaydPageRoute.slideFromStart<String?>(
           builder: (ctx) => MultiBlocProvider(
