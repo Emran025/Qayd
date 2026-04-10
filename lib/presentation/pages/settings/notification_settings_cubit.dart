@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationSettingsState {
@@ -6,12 +7,14 @@ class NotificationSettingsState {
   final bool selfActivity;
   final bool soundEnabled;
   final bool vibrationEnabled;
+  final bool osPermissionGranted;
 
   const NotificationSettingsState({
     this.peerActivity = true,
     this.selfActivity = true,
     this.soundEnabled = true,
     this.vibrationEnabled = true,
+    this.osPermissionGranted = true,
   });
 
   NotificationSettingsState copyWith({
@@ -19,12 +22,14 @@ class NotificationSettingsState {
     bool? selfActivity,
     bool? soundEnabled,
     bool? vibrationEnabled,
+    bool? osPermissionGranted,
   }) {
     return NotificationSettingsState(
       peerActivity: peerActivity ?? this.peerActivity,
       selfActivity: selfActivity ?? this.selfActivity,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      osPermissionGranted: osPermissionGranted ?? this.osPermissionGranted,
     );
   }
 }
@@ -48,6 +53,13 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
       soundEnabled: _prefs.getBool(_kSoundEnabled) ?? true,
       vibrationEnabled: _prefs.getBool(_kVibrationEnabled) ?? true,
     ));
+    checkOsPermission();
+  }
+
+  /// Checks the current OS-level notification permission status.
+  Future<void> checkOsPermission() async {
+    final status = await Permission.notification.status;
+    emit(state.copyWith(osPermissionGranted: status.isGranted));
   }
 
   Future<void> togglePeerActivity(bool value) async {

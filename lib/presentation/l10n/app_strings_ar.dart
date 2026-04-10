@@ -696,6 +696,15 @@ abstract final class AppStringsAr {
   static const String channelDefaultTitle = 'إشعارات قيد العامة';
   static const String channelDefaultDesc = 'تحديثات النظام والمزامنة في الخلفية';
 
+  // ── Notification Permission ────────────────────────────────────────────
+  static const String notifPermissionDeniedTitle = 'الإشعارات معطّلة';
+  static const String notifPermissionDeniedBody =
+      'لقد رفضت إذن الإشعارات سابقاً. لتفعيلها، يجب منح الإذن يدوياً من إعدادات النظام.';
+  static const String notifPermissionOpenSettings = 'فتح إعدادات التطبيق';
+  static const String notifPermissionGranted = 'الإشعارات مفعّلة';
+  static const String notifPermissionGrantedBody =
+      'تم تفعيل الإشعارات بنجاح. يمكنك الآن التحكم في نوع الإشعارات أدناه.';
+
 
   // ── Threaded Financial Interactions ──────────────────────────────────────
   static const String voucherWithdrawAction = 'سحب السند';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/settings/notification_settings_cubit.dart';
@@ -19,8 +20,34 @@ class NotificationSettingsPage extends StatelessWidget {
   }
 }
 
-class _NotificationSettingsView extends StatelessWidget {
+class _NotificationSettingsView extends StatefulWidget {
   const _NotificationSettingsView();
+
+  @override
+  State<_NotificationSettingsView> createState() => _NotificationSettingsViewState();
+}
+
+class _NotificationSettingsViewState extends State<_NotificationSettingsView>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Re-check permission when user returns from system settings.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<NotificationSettingsCubit>().checkOsPermission();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +60,13 @@ class _NotificationSettingsView extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.all(SpacingTokens.lg),
             children: [
+              // ── OS Permission Banner ──────────────────────────────────
+              if (!state.osPermissionGranted) _buildPermissionDeniedBanner(context),
+              if (state.osPermissionGranted) _buildPermissionGrantedBanner(context),
+
+              const SizedBox(height: SpacingTokens.md),
+
+              // ── Categories ────────────────────────────────────────────
               _buildSectionHeader(context, AppStringsAr.notifDirectCategories),
               _buildSwitchTile(
                 context,
@@ -40,19 +74,20 @@ class _NotificationSettingsView extends StatelessWidget {
                 subtitle: AppStringsAr.notifPeerActivityDesc,
                 value: state.peerActivity,
                 icon: Icons.people_outline_rounded,
-                onChanged: cubit.togglePeerActivity,
+                onChanged: state.osPermissionGranted ? cubit.togglePeerActivity : null,
               ),
-              const SizedBox(height: SpacingTokens.md),
+              const SizedBox(height: SpacingTokens.sm),
               _buildSwitchTile(
                 context,
                 title: AppStringsAr.notifSelfActivityTitle,
                 subtitle: AppStringsAr.notifSelfActivityDesc,
                 value: state.selfActivity,
                 icon: Icons.my_location_rounded,
-                onChanged: cubit.toggleSelfActivity,
+                onChanged: state.osPermissionGranted ? cubit.toggleSelfActivity : null,
               ),
-              const SizedBox(height: SpacingTokens.xl),
+              const SizedBox(height: SpacingTokens.lg),
 
+              // ── Media ─────────────────────────────────────────────────
               _buildSectionHeader(context, AppStringsAr.notifMediaAlerts),
               _buildSwitchTile(
                 context,
@@ -60,16 +95,16 @@ class _NotificationSettingsView extends StatelessWidget {
                 subtitle: AppStringsAr.notifSoundDesc,
                 value: state.soundEnabled,
                 icon: Icons.volume_up_rounded,
-                onChanged: cubit.toggleSound,
+                onChanged: state.osPermissionGranted ? cubit.toggleSound : null,
               ),
-              const SizedBox(height: SpacingTokens.md),
+              const SizedBox(height: SpacingTokens.sm),
               _buildSwitchTile(
                 context,
                 title: AppStringsAr.notifVibrationEnabled,
                 subtitle: AppStringsAr.notifVibrationDesc,
                 value: state.vibrationEnabled,
                 icon: Icons.vibration_rounded,
-                onChanged: cubit.toggleVibration,
+                onChanged: state.osPermissionGranted ? cubit.toggleVibration : null,
               ),
             ],
           );
@@ -78,20 +113,169 @@ class _NotificationSettingsView extends StatelessWidget {
     );
   }
 
+  // ── Permission Denied Banner ────────────────────────────────────────────
+
+  Widget _buildPermissionDeniedBanner(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            ColorTokens.errorDeep.withOpacity(0.12),
+            ColorTokens.errorSoft.withOpacity(0.06),
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ColorTokens.errorSoft.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: ColorTokens.errorSoft.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.notifications_off_rounded,
+                  color: ColorTokens.errorSoft,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: SpacingTokens.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStringsAr.notifPermissionDeniedTitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: ColorTokens.errorSoft,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      AppStringsAr.notifPermissionDeniedBody,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
+                        fontSize: 11,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () => openAppSettings(),
+              icon: const Icon(Icons.settings_rounded, size: 16),
+              label: Text(
+                AppStringsAr.notifPermissionOpenSettings,
+                style: const TextStyle(fontSize: 13),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: ColorTokens.errorSoft,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Permission Granted Banner ───────────────────────────────────────────
+
+  Widget _buildPermissionGrantedBanner(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.sm + 2,
+      ),
+      decoration: BoxDecoration(
+        color: ColorTokens.goldAccent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: ColorTokens.goldAccent.withOpacity(0.15)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: ColorTokens.goldAccent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: const Icon(
+              Icons.notifications_active_rounded,
+              color: ColorTokens.goldAccent,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: SpacingTokens.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStringsAr.notifPermissionGranted,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: ColorTokens.goldAccent,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  AppStringsAr.notifPermissionGrantedBody,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.hintColor,
+                    fontSize: 10.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Section Header ──────────────────────────────────────────────────────
+
   Widget _buildSectionHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: SpacingTokens.md, right: 4),
+      padding: const EdgeInsets.only(bottom: SpacingTokens.sm, right: 4),
       child: Text(
         title,
-        style: theme.textTheme.titleSmall?.copyWith(
+        style: theme.textTheme.bodySmall?.copyWith(
           color: theme.colorScheme.primary,
           fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
+          fontSize: 12,
+          letterSpacing: 0.3,
         ),
       ),
     );
   }
+
+  // ── Switch Tile ─────────────────────────────────────────────────────────
 
   Widget _buildSwitchTile(
     BuildContext context, {
@@ -99,37 +283,49 @@ class _NotificationSettingsView extends StatelessWidget {
     required String subtitle,
     required bool value,
     required IconData icon,
-    required Function(bool) onChanged,
+    required Function(bool)? onChanged,
   }) {
     final theme = Theme.of(context);
+    final disabled = onChanged == null;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.05)),
-      ),
-      child: SwitchListTile.adaptive(
-        value: value,
-        onChanged: onChanged,
-        secondary: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 250),
+      opacity: disabled ? 0.45 : 1.0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.dividerColor.withOpacity(0.05)),
+        ),
+        child: SwitchListTile.adaptive(
+          value: value,
+          onChanged: onChanged,
+          secondary: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: theme.colorScheme.primary, size: 19),
           ),
-          child: Icon(icon, color: theme.colorScheme.primary, size: 22),
+          title: Text(
+            title,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.hintColor,
+              fontSize: 11,
+            ),
+          ),
+          activeColor: ColorTokens.goldAccent,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          dense: true,
         ),
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
-        ),
-        activeColor: ColorTokens.emerald500,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }
