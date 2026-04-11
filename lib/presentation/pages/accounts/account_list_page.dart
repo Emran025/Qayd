@@ -28,20 +28,24 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class AccountListPage extends StatelessWidget {
-  const AccountListPage({super.key});
+  const AccountListPage({super.key, this.isRootMode = false});
+  final bool isRootMode;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          AccountListCubit(InjectionContainer.listAccountsUseCase)..load(),
-      child: const _AccountListScaffold(),
+      create: (_) => AccountListCubit(InjectionContainer.listAccountsUseCase,
+          initialTypeFilter:
+              isRootMode ? AccountTypeFilter.root : AccountTypeFilter.child)
+        ..load(),
+      child: _AccountListScaffold(isRootMode: isRootMode),
     );
   }
 }
 
 class _AccountListScaffold extends StatefulWidget {
-  const _AccountListScaffold();
+  const _AccountListScaffold({required this.isRootMode});
+  final bool isRootMode;
 
   @override
   State<_AccountListScaffold> createState() => _AccountListScaffoldState();
@@ -98,6 +102,9 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
         ),
       ),
     );
+    if (mounted) {
+      context.read<AccountListCubit>().load();
+    }
   }
 
   Future<void> _openChat(String accountId) async {
@@ -113,6 +120,9 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
         ),
       ),
     );
+    if (mounted) {
+      context.read<AccountListCubit>().load();
+    }
   }
 
   @override
@@ -122,7 +132,9 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
     return QaydScaffold(
       appBar: QaydAppBar(
         showNotifications: true,
-        title: AppStringsAr.chartOfAccountsTitle,
+        title: widget.isRootMode
+            ? AppStringsAr.chartOfAccountsTitle
+            : AppStringsAr.navAccountsTab,
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_account_list',
@@ -163,8 +175,6 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
               final ready = state is AccountListReady;
               final natureFilter =
                   ready ? state.natureFilter : AccountNatureFilter.all;
-              final typeFilter =
-                  ready ? state.typeFilter : AccountTypeFilter.child;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(
@@ -203,31 +213,6 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                         ],
                       ),
                       const SizedBox.shrink(),
-                      Container(
-                        width: 1,
-                        height: 24,
-                        color: Theme.of(
-                          context,
-                        ).dividerColor.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(width: SpacingTokens.sm),
-                      SegmentedButton<AccountTypeFilter>(
-                        segments: const [
-                          ButtonSegment(
-                            value: AccountTypeFilter.child,
-                            label: Text(AppStringsAr.accountTypeChild),
-                          ),
-                          ButtonSegment(
-                            value: AccountTypeFilter.root,
-                            label: Text(AppStringsAr.accountTypeRoot),
-                          ),
-                        ],
-                        selected: {typeFilter},
-                        onSelectionChanged: (s) => context
-                            .read<AccountListCubit>()
-                            .setTypeFilter(s.first),
-                        showSelectedIcon: false,
-                      ),
                     ],
                   ),
                 ),
@@ -321,26 +306,14 @@ class _AccountListBody extends StatelessWidget {
       itemCount: flat.length,
       itemBuilder: (context, index) {
         final item = flat[index];
-        return switch (item) {
-          _HeaderRow(:final title) => Padding(
-              padding: const EdgeInsets.only(
-                top: SpacingTokens.md,
-                bottom: SpacingTokens.sm,
-              ),
-              child: QaydText(
-                title,
-                slot: QaydTextStyleSlot.titleMedium,
-                color: Theme.of(
-                  context,
-                ).extension<QaydCustomColors>()!.goldAccent,
-              ),
-            ),
-          _DataRow(:final dto) => _AccountCard(
-              dto: dto,
-              onTap: () => onChat(dto.id),
-              onChat: () => onChat(dto.id),
-            ),
-        };
+        return (item is _DataRow)
+            ? _AccountCard(
+                key: ValueKey(item.dto.id),
+                dto: item.dto,
+                onDetail: () => onTap(item.dto.id),
+                onChat: () => onChat(item.dto.id),
+              )
+            : Center();
       },
     );
   }
@@ -375,13 +348,14 @@ List<_FlatItem> _flatten(
 
 class _AccountCard extends StatelessWidget {
   const _AccountCard({
+    super.key,
     required this.dto,
-    required this.onTap,
+    required this.onDetail,
     required this.onChat,
   });
 
   final AccountSummaryDto dto;
-  final VoidCallback onTap;
+  final VoidCallback onDetail;
   final VoidCallback onChat;
 
   @override
@@ -390,183 +364,378 @@ class _AccountCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final natureDebit = dto.natureCode == 'debit';
     final natureColor = natureDebit ? custom.debit : custom.credit;
-    final natureLabel = natureDebit
-        ? AppStringsAr.natureDebitShort
-        : AppStringsAr.natureCreditShort;
+    final iconData =
+        _getAccountIcon(dto.standardClassificationKind);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: const EdgeInsets.all(SpacingTokens.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: EdgeInsetsDirectional.only(
-                                start: dto.isRoot ? 0 : SpacingTokens.md,
-                              ),
-                              child: QaydText(
-                                dto.name,
-                                slot: QaydTextStyleSlot.titleSmall,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(height: SpacingTokens.xs),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: SpacingTokens.sm,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: natureColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(
-                                  RadiusTokens.xs,
-                                ),
-                                border: Border.all(
-                                  color: natureColor.withValues(alpha: 0.2),
-                                ),
-                              ),
-                              child: QaydText(
-                                natureLabel,
-                                slot: QaydTextStyleSlot.labelSmall,
-                                color: natureColor,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            tooltip: AppStringsAr.statementChatTitle,
-                            icon: Icon(
-                              Icons.forum_outlined,
-                              size: 22,
-                              color: custom.debit.withValues(alpha: 0.8),
-                            ),
-                            onPressed: onChat,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ],
-                      ),
+      padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(RadiusTokens.lg),
+          boxShadow: [
+            BoxShadow(
+              color: natureColor.withValues(alpha: 0.06),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: scheme.shadow.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(RadiusTokens.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Top Accent Gradient ──
+              Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      natureColor,
+                      natureColor.withValues(alpha: 0.3),
                     ],
                   ),
-                  if (dto.balancesMinorUnits.isNotEmpty) ...[
-                    const SizedBox(height: SpacingTokens.sm),
-                    const Divider(height: 1, thickness: 0.5),
-                    const SizedBox(height: SpacingTokens.sm),
-                    Table(
-                      columnWidths: const {
-                        0: IntrinsicColumnWidth(), // Currency
-                        1: FlexColumnWidth(), // Amount
-                        2: IntrinsicColumnWidth(), // Side
-                      },
-                      defaultVerticalAlignment:
-                          TableCellVerticalAlignment.middle,
-                      children: dto.balancesMinorUnits.entries.map((e) {
-                        final code = e.key;
-                        final minor = e.value;
-
-                        // Side determination:
-                        // For Debit accounts: positive = Debit, negative = Credit
-                        // For Credit accounts: positive = Credit, negative = Debit
-                        final isDebitSide =
-                            (dto.natureCode == 'debit' && minor >= 0) ||
-                                (dto.natureCode == 'credit' && minor < 0);
-
-                        final sideLabel = isDebitSide
-                            ? AppStringsAr.natureDebitShort
-                            : AppStringsAr.natureCreditShort;
-                        final sideColor =
-                            isDebitSide ? custom.debit : custom.credit;
-
-                        return TableRow(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: QaydText(
-                                code,
-                                slot: QaydTextStyleSlot.labelMedium,
-                                color: scheme.onSurfaceVariant,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // ── Card Body ──
+              Container(
+                decoration: BoxDecoration(
+                  color: scheme.surface,
+                  border: Border(
+                    left: BorderSide(
+                      color: scheme.outlineVariant.withValues(alpha: 0.35),
+                      width: 0.5,
+                    ),
+                    right: BorderSide(
+                      color: scheme.outlineVariant.withValues(alpha: 0.35),
+                      width: 0.5,
+                    ),
+                    bottom: BorderSide(
+                      color: scheme.outlineVariant.withValues(alpha: 0.35),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onChat,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        SpacingTokens.md,
+                        14,
+                        SpacingTokens.md,
+                        SpacingTokens.md,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // ── Header Row ──
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Icon Avatar
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: natureColor.withValues(alpha: 0.1),
+                                  borderRadius:
+                                      BorderRadius.circular(RadiusTokens.md),
+                                ),
+                                child: Icon(
+                                  iconData,
+                                  size: 20,
+                                  color: natureColor,
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: SpacingTokens.md,
+                              const SizedBox(width: SpacingTokens.sm + 4),
+                              // Name & Classification
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    QaydText(
+                                      dto.name,
+                                      slot: QaydTextStyleSlot.titleMedium,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.2,
+                                        letterSpacing: -0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    // Classification badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: scheme.surfaceContainerHighest
+                                            .withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(
+                                            RadiusTokens.xs),
+                                      ),
+                                      child: QaydText(
+                                        _getClassificationLabel(dto),
+                                        slot: QaydTextStyleSlot.labelSmall,
+                                        color: scheme.onSurfaceVariant,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.2,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              child: QaydMoneyDisplay(
-                                money: Money.nonNegative(
-                                  minor.abs(),
-                                  PredefinedCurrencies.all.firstWhere(
-                                    (c) => c.code == code,
-                                    orElse: () => CurrencyCode(
-                                      code: code,
-                                      nameAr: code,
-                                      symbol: code,
+                              const SizedBox(width: SpacingTokens.sm),
+                              // Detail navigation button
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: onDetail,
+                                  borderRadius:
+                                      BorderRadius.circular(RadiusTokens.sm),
+                                  child: Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: scheme.outlineVariant
+                                            .withValues(alpha: 0.5),
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(
+                                          RadiusTokens.sm),
+                                    ),
+                                    child: Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 13,
+                                      color: scheme.onSurfaceVariant
+                                          .withValues(alpha: 0.7),
                                     ),
                                   ),
                                 ),
-                                displayNegative:
-                                    false, // Handled by Side column
-                                size: QaydMoneyDisplaySize.small,
+                              ),
+                            ],
+                          ),
+
+                          // ── Separator ──
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(
+                              height: 1,
+                              thickness: 0.5,
+                              color: scheme.outlineVariant
+                                  .withValues(alpha: 0.3),
+                            ),
+                          ),
+
+                          // ── Balance Section ──
+                          if (dto.balancesMinorUnits.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: scheme.surfaceContainerLow
+                                    .withValues(alpha: 0.7),
+                                borderRadius:
+                                    BorderRadius.circular(RadiusTokens.md),
+                                border: Border.all(
+                                  color: scheme.outlineVariant
+                                      .withValues(alpha: 0.15),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Column(
+                                children: _buildBalanceRows(
+                                  dto,
+                                  custom,
+                                  scheme,
+                                ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsetsDirectional.only(
-                                start: SpacingTokens.md,
+                          ] else ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
                               ),
-                              child: QaydText(
-                                sideLabel,
-                                slot: QaydTextStyleSlot.labelSmall,
-                                color: sideColor,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                              decoration: BoxDecoration(
+                                color: scheme.surfaceContainerLow
+                                    .withValues(alpha: 0.4),
+                                borderRadius:
+                                    BorderRadius.circular(RadiusTokens.md),
+                              ),
+                              child: Align(
+                                alignment: AlignmentDirectional.centerEnd,
+                                child: QaydMoneyDisplay(
+                                  money:
+                                      Money.zero(PredefinedCurrencies.sar),
+                                  size: QaydMoneyDisplaySize.small,
+                                  fontWeight: FontWeight.w300,
                                 ),
-                                textAlign: TextAlign.end,
                               ),
                             ),
                           ],
-                        );
-                      }).toList(),
-                    ),
-                  ] else ...[
-                    const SizedBox(height: SpacingTokens.sm),
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: QaydMoneyDisplay(
-                        money: Money.zero(PredefinedCurrencies.sar),
-                        size: QaydMoneyDisplaySize.small,
+                        ],
                       ),
                     ),
-                  ],
-                ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _buildBalanceRows(
+    AccountSummaryDto dto,
+    QaydCustomColors custom,
+    ColorScheme scheme,
+  ) {
+    final entries = dto.balancesMinorUnits.entries.toList();
+    final widgets = <Widget>[];
+
+    for (var i = 0; i < entries.length; i++) {
+      final code = entries[i].key;
+      final minor = entries[i].value;
+
+      final isDebitSide = (dto.natureCode == 'debit' && minor >= 0) ||
+          (dto.natureCode == 'credit' && minor < 0);
+
+      final sideLabel = isDebitSide
+          ? AppStringsAr.natureDebitShort
+          : AppStringsAr.natureCreditShort;
+      final sideColor = isDebitSide ? custom.debit : custom.credit;
+
+      // Row separator (between rows only)
+      if (i > 0) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Divider(
+              height: 1,
+              thickness: 0.5,
+              color: scheme.outlineVariant.withValues(alpha: 0.15),
+            ),
+          ),
+        );
+      }
+
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            children: [
+              // Currency code badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: scheme.onSurface.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(RadiusTokens.xs),
+                ),
+                child: QaydText(
+                  code,
+                  slot: QaydTextStyleSlot.labelMedium,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                  ),
+                  color: scheme.onSurface.withValues(alpha: 0.75),
+                ),
+              ),
+              const Spacer(),
+              // Money amount
+              QaydMoneyDisplay(
+                money: Money.nonNegative(
+                  minor.abs(),
+                  PredefinedCurrencies.all.firstWhere(
+                    (c) => c.code == code,
+                    orElse: () => CurrencyCode(
+                      code: code,
+                      nameAr: code,
+                      symbol: code,
+                    ),
+                  ),
+                ),
+                displayNegative: false,
+                size: QaydMoneyDisplaySize.small,
+                fontWeight: FontWeight.w700,
+              ),
+              const SizedBox(width: 10),
+              // Side label badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: sideColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(RadiusTokens.xs),
+                  border: Border.all(
+                    color: sideColor.withValues(alpha: 0.25),
+                    width: 0.5,
+                  ),
+                ),
+                child: QaydText(
+                  sideLabel,
+                  slot: QaydTextStyleSlot.labelSmall,
+                  color: sideColor,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return widgets;
+  }
+
+  IconData _getAccountIcon(String? kind) {
+    if (kind == null) return Icons.account_balance_wallet_rounded;
+    return switch (kind) {
+      'liquidAssets' => Icons.account_balance_rounded,
+      'receivables' => Icons.trending_up_rounded,
+      'payables' => Icons.trending_down_rounded,
+      'settlements' => Icons.handshake_rounded,
+      'equity' => Icons.pie_chart_rounded,
+      'revenues' => Icons.monetization_on_rounded,
+      'expenses' => Icons.receipt_long_rounded,
+      _ => Icons.folder_rounded,
+    };
+  }
+
+  String _getClassificationLabel(AccountSummaryDto dto) {
+    final nature = dto.natureCode == 'debit'
+        ? AppStringsAr.natureDebitShort
+        : AppStringsAr.natureCreditShort;
+
+    if (dto.customClassificationName != null) {
+      return '${dto.customClassificationName} • $nature';
+    }
+    return nature;
   }
 }

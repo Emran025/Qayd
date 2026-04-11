@@ -46,8 +46,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
   Future<void> load() async {
     emit(const NotificationsLoading());
-
     final r = await _listInbox();
+    if (isClosed) return;
+
     if (r.isSuccess) {
       emit(NotificationsReady(r.valueOrNull!));
     } else {
@@ -56,6 +57,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void markAsRead(String id) {
+    if (isClosed) return;
     // Current simple implementation: change local state only.
     // In a full implementation, we'd persist this in a separate Inbox repository.
     final s = state;

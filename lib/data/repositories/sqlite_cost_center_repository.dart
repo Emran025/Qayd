@@ -326,7 +326,7 @@ SELECT v.currency_code, SUM(v.amount_minor) AS total
 FROM vouchers v
 INNER JOIN voucher_cost_centers vcc ON vcc.voucher_id = v.id
 WHERE vcc.cost_center_id = ?
-  AND v.state = 'confirmed'
+  AND v.state IN ('confirmed', 'settled')
 GROUP BY v.currency_code
 ''',
         [costCenterId],
@@ -362,7 +362,7 @@ SELECT strftime('%Y-%m', v.date) AS month_key,
 FROM vouchers v
 INNER JOIN voucher_cost_centers vcc ON vcc.voucher_id = v.id
 WHERE vcc.cost_center_id = ?
-  AND v.state = 'confirmed'
+  AND v.state IN ('confirmed', 'settled')
   AND v.date >= ?
 GROUP BY month_key
 ORDER BY month_key ASC
@@ -391,6 +391,7 @@ FROM vouchers v
 INNER JOIN voucher_cost_centers vcc ON vcc.voucher_id = v.id
 LEFT JOIN accounts a ON a.id = v.counterparty_id
 WHERE vcc.cost_center_id = ?
+  AND v.state <> 'withdrawn'
 ORDER BY v.date DESC, v.created_at DESC
 LIMIT ?
 ''',
@@ -446,7 +447,8 @@ SELECT d.id AS dimension_id,
        COUNT(DISTINCT vdt.voucher_id) AS voucher_count
 FROM cost_center_dimensions d
 INNER JOIN voucher_dimension_tags vdt ON vdt.dimension_id = d.id
-WHERE vdt.cost_center_id = ?
+INNER JOIN vouchers v ON v.id = vdt.voucher_id
+WHERE vdt.cost_center_id = ? AND v.state <> 'withdrawn'
 GROUP BY d.id
 ORDER BY voucher_count DESC
 LIMIT 8

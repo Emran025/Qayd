@@ -12,6 +12,11 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/identity_qr_dialog.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_list_page.dart';
 import 'package:qayd/presentation/pages/accruals/accrual_list_page.dart';
+import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/pages/settings/audit_log_page.dart';
+import 'package:qayd/presentation/pages/settings/audit_log_cubit.dart';
 
 class SettingsSidebar extends StatelessWidget {
   const SettingsSidebar({super.key});
@@ -97,6 +102,33 @@ class SettingsSidebar extends StatelessWidget {
                   thickness: 0.5,
                 ),
                 _DrawerTile(
+                  icon: Icons.account_tree_outlined,
+                  title: AppStringsAr.chartOfAccountsTitle,
+                  onTap: () =>
+                      _navTo(context, const AccountListPage(isRootMode: true)),
+                ),
+                _DrawerTile(
+                  icon: Icons.pie_chart_outline_rounded,
+                  title: AppStringsAr.costCentersTitle,
+                  onTap: () => _navTo(context, const CostCenterListPage()),
+                ),
+                _DrawerTile(
+                  icon: Icons.currency_exchange_rounded,
+                  title: AppStringsAr.settingsGroupCurrency,
+                  onTap: () => _navTo(context, const CurrencySettingsPage()),
+                ),
+                _DrawerTile(
+                  icon: Icons.event_repeat_rounded,
+                  title: "الاستحقاقات والالتزامات",
+                  onTap: () => _navTo(context, const AccrualListPage()),
+                ),
+                const Divider(
+                  indent: 20,
+                  endIndent: 20,
+                  height: 30,
+                  thickness: 0.5,
+                ),
+                _DrawerTile(
                   icon: Icons.cloud_done_outlined,
                   title: AppStringsAr.settingsGroupBackup,
                   onTap: () => _navTo(context, const BackupSettingsPage()),
@@ -106,10 +138,11 @@ class SettingsSidebar extends StatelessWidget {
                   title: AppStringsAr.settingsGroupTemplates,
                   onTap: () => _navTo(context, const TemplatesSettingsPage()),
                 ),
-                _DrawerTile(
-                  icon: Icons.currency_exchange_rounded,
-                  title: AppStringsAr.settingsGroupCurrency,
-                  onTap: () => _navTo(context, const CurrencySettingsPage()),
+                const Divider(
+                  indent: 20,
+                  endIndent: 20,
+                  height: 30,
+                  thickness: 0.5,
                 ),
                 _DrawerTile(
                   icon: Icons.security_rounded,
@@ -119,17 +152,19 @@ class SettingsSidebar extends StatelessWidget {
                 _DrawerTile(
                   icon: Icons.notifications_active_outlined,
                   title: AppStringsAr.settingsGroupNotifications,
-                  onTap: () => _navTo(context, const NotificationSettingsPage()),
+                  onTap: () =>
+                      _navTo(context, const NotificationSettingsPage()),
                 ),
                 _DrawerTile(
-                  icon: Icons.pie_chart_outline_rounded,
-                  title: AppStringsAr.costCentersTitle,
-                  onTap: () => _navTo(context, const CostCenterListPage()),
-                ),
-                _DrawerTile(
-                  icon: Icons.event_repeat_rounded,
-                  title: "الاستحقاقات والالتزامات",
-                  onTap: () => _navTo(context, const AccrualListPage()),
+                  icon: Icons.history_rounded,
+                  title: 'سجل التدقيق',
+                  onTap: () => _navTo(
+                    context,
+                    BlocProvider(
+                      create: (_) => AuditLogCubit(InjectionContainer.auditLogService)..load(),
+                      child: const AuditLogPage(),
+                    ),
+                  ),
                 ),
                 const Divider(
                   indent: 20,
@@ -145,18 +180,6 @@ class SettingsSidebar extends StatelessWidget {
               ],
             ),
           ),
-
-          // // الإصدار في الأسفل
-          // Padding(
-          //   padding: const EdgeInsets.all(SpacingTokens.lg),
-          //   child: Text(
-          //     'قيد v2.1.0',
-          //     style: theme.textTheme.bodySmall?.copyWith(
-          //       color: theme.hintColor.withValues(alpha: 0.6),
-          //       fontWeight: FontWeight.w600,
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );

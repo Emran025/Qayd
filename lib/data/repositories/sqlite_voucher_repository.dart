@@ -36,9 +36,14 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return;
     }
     final p = tablePrefix;
+
+    // Default: Exclude withdrawn vouchers from all general lists/searches unless specifically requested
     if (filter.state != null) {
       whereParts.add('${p}state = ?');
       args.add(filter.state!.name);
+    } else {
+      whereParts.add('${p}state <> ?');
+      args.add('withdrawn');
     }
     if (filter.type != null) {
       whereParts.add('${p}type = ?');
@@ -95,12 +100,12 @@ final class SqliteVoucherRepository implements VoucherRepository {
       }
     }
 
-    if (filter.isInternalOnly == true) {
+    if (filter.isInternalOnly != null) {
       final internalPart = '''
         SELECT id FROM (
           WITH RECURSIVE internal_accounts AS (
             SELECT id FROM accounts 
-            WHERE standard_classification IN ('liquidAssets', 'personalExpenses', 'personalRevenues', 'settlements')
+            WHERE standard_classification IN ('liquidAssets', 'personalExpenses', 'personalRevenues', 'settlements', 'fixedDepreciableAssets', 'fixedProfitableAssets')
             AND parent_id IS NULL
             UNION ALL
             SELECT a.id FROM accounts a
@@ -108,8 +113,13 @@ final class SqliteVoucherRepository implements VoucherRepository {
           ) SELECT id FROM internal_accounts
         )
       ''';
-      whereParts.add(
-          '${p}affected_account_id IN ($internalPart) AND ${p}counterparty_id IN ($internalPart)');
+      if (filter.isInternalOnly == true) {
+        whereParts.add(
+            '${p}affected_account_id IN ($internalPart) AND ${p}counterparty_id IN ($internalPart)');
+      } else {
+        whereParts.add(
+            'NOT (${p}affected_account_id IN ($internalPart) AND ${p}counterparty_id IN ($internalPart))');
+      }
     }
 
     if (filter.dateRange != null) {
@@ -193,8 +203,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       _appendFilterClauses(filter, '', whereParts, args);
       final where = whereParts.isEmpty ? null : whereParts.join(' AND ');
       var sql = 'SELECT *, '
-          '(SELECT COUNT(*) FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id) as reversal_count, '
-          '(SELECT id FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id ORDER BY created_at ASC LIMIT 1) as first_child_id '
+          '(SELECT COUNT(*) FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id AND c.state <> \'withdrawn\') as reversal_count, '
+          '(SELECT id FROM $_vouchers c WHERE c.origin_voucher_id = $_vouchers.id AND c.state <> \'withdrawn\' ORDER BY created_at ASC LIMIT 1) as first_child_id '
           'FROM $_vouchers${where != null ? ' WHERE $where' : ''} ORDER BY date DESC, created_at DESC';
       if (limit != null) {
         sql += ' LIMIT ?';
@@ -219,7 +229,10 @@ final class SqliteVoucherRepository implements VoucherRepository {
     DateRange? dateRange,
   }) async {
     try {
-      final whereParts = <String>['counterparty_id = ?'];
+      final whereParts = <String>[
+        'counterparty_id = ?',
+        "state <> 'withdrawn'"
+      ];
       final args = <Object>[counterpartyId.value];
       if (dateRange != null) {
         whereParts.add('date >= ? AND date <= ?');
@@ -245,13 +258,18 @@ final class SqliteVoucherRepository implements VoucherRepository {
   Future<Result<void>> save(Voucher voucher) async {
     try {
       final map = VoucherMapper.toModel(voucher).toMap();
-      await _db.insert(
+      final updateMap = Map.of(map)..remove('id');
+      final updated = await _db.update(
         _vouchers,
-        map,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        updateMap,
+        where: 'id = ?',
+        whereArgs: [voucher.id.value],
       );
+      if (updated == 0) {
+        await _db.insert(_vouchers, map);
+      }
       return const Success(null);
-    } catch (_) {
+    } catch (e) {
       return const FailureResult(
         DatabaseFailure(messageAr: 'تعذر حفظ السند.'),
       );
@@ -378,11 +396,17 @@ final class SqliteVoucherRepository implements VoucherRepository {
     }
     try {
       await _transactionRunner.run((txn) async {
-        await txn.insert(
+        final map = VoucherMapper.toModel(voucher).toMap();
+        final updateMap = Map.of(map)..remove('id');
+        final updated = await txn.update(
           _vouchers,
-          VoucherMapper.toModel(voucher).toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
+          updateMap,
+          where: 'id = ?',
+          whereArgs: [voucher.id.value],
         );
+        if (updated == 0) {
+          await txn.insert(_vouchers, map);
+        }
         for (final e in ledgerEntries) {
           await txn.insert(
             _ledger,
@@ -408,16 +432,17 @@ final class SqliteVoucherRepository implements VoucherRepository {
   }) async {
     try {
       await _transactionRunner.run((txn) async {
-        await txn.insert(
-          _vouchers,
-          VoucherMapper.toModel(receiptVoucher).toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-        await txn.insert(
-          _vouchers,
-          VoucherMapper.toModel(paymentVoucher).toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        final rMap = VoucherMapper.toModel(receiptVoucher).toMap();
+        final rUpdateMap = Map.of(rMap)..remove('id');
+        int updated = await txn.update(_vouchers, rUpdateMap,
+            where: 'id = ?', whereArgs: [receiptVoucher.id.value]);
+        if (updated == 0) await txn.insert(_vouchers, rMap);
+
+        final pMap = VoucherMapper.toModel(paymentVoucher).toMap();
+        final pUpdateMap = Map.of(pMap)..remove('id');
+        updated = await txn.update(_vouchers, pUpdateMap,
+            where: 'id = ?', whereArgs: [paymentVoucher.id.value]);
+        if (updated == 0) await txn.insert(_vouchers, pMap);
       });
       return const Success(null);
     } catch (_) {
@@ -436,8 +461,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
     try {
       final rows = await _db.query(
         _vouchers,
-        where: 'transfer_group_id = ?',
-        whereArgs: [transferGroupId],
+        where: 'transfer_group_id = ? AND state <> ?',
+        whereArgs: [transferGroupId, 'withdrawn'],
         orderBy: 'created_at ASC',
       );
       return Success(await _mapVoucherRows(rows));
@@ -457,8 +482,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
     try {
       final rows = await _db.query(
         _vouchers,
-        where: 'origin_voucher_id = ?',
-        whereArgs: [originId.value],
+        where: 'origin_voucher_id = ? AND state <> ?',
+        whereArgs: [originId.value, 'withdrawn'],
         orderBy: 'created_at ASC',
       );
       return Success(await _mapVoucherRows(rows));

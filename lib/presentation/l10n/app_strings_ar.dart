@@ -843,4 +843,38 @@ abstract final class AppStringsAr {
   static const String voucherSignatureStatusLabel = 'حالة التوقيعات';
   static const String voucherSenderLabel = 'المرسل';
   static const String voucherReceiverLabel = 'المستلم';
+
+  // ── Accruals (Financial Obligations) ────────────────────────────────────
+  static const String accrualCreateTitle = 'إضافة التزام مالي';
+  static const String accrualNameLabel = 'مسمى الالتزام';
+  static const String accrualNameHint = 'مثلاً: إيجار الشقة، اشتراك إنترنت';
+  static const String accrualNameRequired = 'يرجى إدخال مسمى الالتزام.';
+  static const String accrualAmountLabel = 'المبلغ التقديري';
+  static const String accrualAmountInvalid = 'يرجى إدخال مبلغ صالح أكبر من صفر.';
+  static const String accrualFrequencyLabel = 'تكرار الالتزام';
+  static const String accrualNextDueDateLabel = 'تاريخ الاستحقاق القادم';
+  static const String accrualSourceAccountLabel = 'حساب الدفع';
+  static const String accrualSourceAccountHint = 'اختر حساب الدفع (كاش، بنك…)';
+  static const String accrualDestAccountLabel = 'حساب الاستحقاق';
+  static const String accrualDestAccountHint = 'اختر حساب المصروف (سكن، غذاء…)';
+  static const String accrualDestAccountRequired = 'يرجى اختيار الحساب المستهدف.';
+  static const String accrualCategoryLabel = 'البعد الحياتي المرتبط';
+  static const String accrualDescriptionLabel = 'ملاحظات (اختياري)';
+  static const String accrualSaveAction = 'حفظ الالتزام';
+  static const String accrualSavedSuccess = 'تم حفظ الالتزام بنجاح.';
+
+  // Accrual list page
+  static const String accrualListTitle = 'الالتزامات والاستحقاقات';
+  static const String accrualAddFab = 'التزام جديد';
+  static const String accrualMonthlySummaryLabel = 'إجمالي الالتزامات الشهرية المقدرة';
+  static const String accrualActiveLabel = 'نشط';
+  static const String accrualDueSoonLabel = 'مستحق قريباً';
+  static const String accrualEmptyState = 'لا توجد التزامات مجدولة بعد.';
+  static const String accrualProcessConfirmTitle = 'تأكيد تنفيذ الالتزام';
+  static String accrualProcessConfirmBody(double amount, String currency) =>
+      'هل تود تسجيل مبلغ $amount $currency كعملية دفع حقيقية؟';
+  static const String accrualProcessConfirmAction = 'نعم، تم الدفع';
+  static const String accrualProcessedSuccess = 'تم تنفيذ الاستحقاق وتسجيل العملية بنجاح.';
+  static const String accrualNextDuePrefix = 'الاستحقاق القادم';
+  static const String accrualPayTooltip = 'تسجيل عملية دفع';
 }

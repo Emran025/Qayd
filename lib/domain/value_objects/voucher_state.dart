@@ -14,6 +14,4 @@ enum VoucherState {
 
   bool get isWithdrawn => this == VoucherState.withdrawn;
 
-  /// Whether the voucher can be withdrawn (only from draft, underRequest, or rejected states).
-  bool get canWithdraw => isDraft;
 }

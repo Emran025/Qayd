@@ -12,17 +12,21 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/core/error/failures.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
 
 class CreateAccountUseCase {
-  CreateAccountUseCase(
-    this._accountRepository,
-    this._idGenerator,
-    this._writeGuard,
-  );
-
   final AccountRepository _accountRepository;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final AuditLogService? _auditLogService;
+
+  CreateAccountUseCase(
+    this._accountRepository,
+    this._idGenerator,
+    this._writeGuard, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
 
   Future<Result<CreateAccountOutput>> call(CreateAccountInput input) async {
     try {
@@ -107,6 +111,17 @@ class CreateAccountUseCase {
         );
         await _accountRepository.savePartyDetails(partyDetails);
       }
+
+      await _auditLogService?.log(
+        entityType: 'account',
+        entityId: id.value,
+        action: AuditAction.create,
+        newData: {
+          'name': input.name,
+          'classification': account.classification.standardKind?.name ??
+              input.customClassificationName,
+        },
+      );
 
       return Success(
         CreateAccountOutput(

@@ -5,13 +5,24 @@ import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_page.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 
-class NotificationIconButton extends StatelessWidget {
+class NotificationIconButton extends StatefulWidget {
   const NotificationIconButton({super.key});
+
+  @override
+  State<NotificationIconButton> createState() => _NotificationIconButtonState();
+}
+
+class _NotificationIconButtonState extends State<NotificationIconButton> {
+  @override
+  void initState() {
+    super.initState();
+    InjectionContainer.notificationsCubit.load();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: InjectionContainer.notificationsCubit..load(),
+      value: InjectionContainer.notificationsCubit,
       child: BlocBuilder<NotificationsCubit, NotificationsState>(
         builder: (context, state) {
           int count = 0;

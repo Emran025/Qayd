@@ -40,6 +40,7 @@ class VoucherListPage extends StatelessWidget {
       create: (_) => VoucherListCubit(
         InjectionContainer.listVouchersUseCase,
         InjectionContainer.notificationMessageRepository,
+        isInternalOnly: false,
       )..load(),
       child: const _VoucherListView(),
     );

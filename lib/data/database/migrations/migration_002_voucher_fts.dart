@@ -27,18 +27,15 @@ END
 
     await db.execute('''
 CREATE TRIGGER IF NOT EXISTS vouchers_fts_ad AFTER DELETE ON vouchers BEGIN
-  INSERT INTO vouchers_fts(vouchers_fts, rowid, body) VALUES('delete', old.rowid, NULL);
+  DELETE FROM vouchers_fts WHERE rowid = old.rowid;
 END
 ''');
 
     await db.execute('''
 CREATE TRIGGER IF NOT EXISTS vouchers_fts_au AFTER UPDATE ON vouchers BEGIN
-  INSERT INTO vouchers_fts(vouchers_fts, rowid, body) VALUES('delete', old.rowid, NULL);
-  INSERT INTO vouchers_fts(rowid, body) VALUES (
-    new.rowid,
-    new.id || ' ' || ifnull(new.reference_number, '') || ' ' ||
+  UPDATE vouchers_fts SET body = new.id || ' ' || ifnull(new.reference_number, '') || ' ' ||
     ifnull(new.description, '') || ' ' || ifnull(new.notes, '')
-  );
+  WHERE rowid = old.rowid;
 END
 ''');
 

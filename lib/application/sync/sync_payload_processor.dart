@@ -686,7 +686,8 @@ class SyncPayloadProcessor {
     }
 
     final voucher = voucherResult.valueOrNull!;
-    if (voucher.state.isDraft) {
+    // Protocol §2.A: A withdrawal is only valid if we (the receiver) haven't accepted it yet.
+    if (voucher.state.isDraft && voucher.receiverStatus != AgreementStatus.accepted) {
       // Withdraw the local copy
       final withdrawn = voucher.withdraw(DateTime.now());
       await voucherRepository.save(withdrawn);

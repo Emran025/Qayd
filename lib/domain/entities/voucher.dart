@@ -148,6 +148,14 @@ class Voucher {
   bool get isReply => originVoucherId != null;
   bool get isWithdrawn => state == VoucherState.withdrawn;
 
+  /// Whether the voucher can be withdrawn by its creator.
+  /// Allowed if it's a draft, OR if it's confirmed but the counterparty hasn't accepted it yet.
+  bool get canWithdraw {
+    if (state.isSettled || state.isWithdrawn) return false;
+    if (state.isDraft) return true;
+    return receiverStatus != AgreementStatus.accepted;
+  }
+
   /// Rehydrates a voucher from persistence (data layer); not for new business creates.
   factory Voucher.restore({
     required VoucherId id,
@@ -324,9 +332,9 @@ class Voucher {
   /// Available only from Draft, UnderRequest, or Rejected agreement states.
   /// The record remains in the database for audit integrity.
   Voucher withdraw(DateTime withdrawnAt) {
-    if (!state.isDraft) {
+    if (!canWithdraw) {
       throw InvalidVoucherTransitionException(
-        messageAr: 'يمكن سحب السند من حالة المسودة فقط.',
+        messageAr: 'لا يمكن سحب السند بعد قبوله من الطرف الآخر أو تسويته.',
         from: state,
         to: VoucherState.withdrawn,
       );

@@ -3,6 +3,7 @@ import 'package:qayd/application/accounts/dtos/deactivate_account_output.dart';
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
@@ -10,18 +11,22 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 
+import 'package:qayd/application/governance/audit_log_service.dart';
+
 class DeactivateAccountUseCase {
   DeactivateAccountUseCase(
     this._accountRepository,
     this._ledgerRepository,
     this._balanceCalculator,
-    this._writeGuard,
-  );
+    this._writeGuard, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
 
   final AccountRepository _accountRepository;
   final LedgerRepository _ledgerRepository;
   final BalanceCalculator _balanceCalculator;
   final GovernanceWriteGuard _writeGuard;
+  final AuditLogService? _auditLogService;
 
   Future<Result<DeactivateAccountOutput>> call(
       DeactivateAccountInput input) async {
@@ -57,6 +62,20 @@ class DeactivateAccountUseCase {
       }
       final deactivated = account.deactivate(balance: balanceCheck);
       final saved = await _accountRepository.save(deactivated);
+
+      if (saved.isSuccess) {
+        await _auditLogService?.log(
+          entityType: 'account',
+          entityId: deactivated.id.value,
+          action: AuditAction.update,
+          oldData: {'is_active': true},
+          newData: {
+            'is_active': false,
+            'closing_balance': balanceCheck.minorUnits
+          },
+        );
+      }
+
       return saved.fold(
         (f) => FailureResult(f),
         (_) =>

@@ -5,24 +5,37 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_state.dart';
 
 class AccountListCubit extends Cubit<AccountListState> {
-  AccountListCubit(this._listAccounts) : super(const AccountListInitial());
+  AccountListCubit(this._listAccounts, {this.initialTypeFilter = AccountTypeFilter.child}) : super(const AccountListInitial());
 
   final ListAccountsUseCase _listAccounts;
+  final AccountTypeFilter initialTypeFilter;
 
   Future<void> load() async {
-    emit(const AccountListLoading());
+    final s = state;
+    if (s is! AccountListReady) {
+      emit(const AccountListLoading());
+    }
+
     final result =
         await _listAccounts(const ListAccountsInput(activeOnly: false));
+
     result.fold(
       (f) => emit(AccountListFailure(f)),
-      (out) => emit(
-        AccountListReady(
-          allAccounts: out.accounts,
-          searchQuery: '',
-          natureFilter: AccountNatureFilter.all,
-          typeFilter: AccountTypeFilter.child,
-        ),
-      ),
+      (out) {
+        final currentState = state;
+        if (currentState is AccountListReady) {
+          emit(currentState.copyWith(allAccounts: out.accounts));
+        } else {
+          emit(
+            AccountListReady(
+              allAccounts: out.accounts,
+              searchQuery: '',
+              natureFilter: AccountNatureFilter.all,
+              typeFilter: initialTypeFilter,
+            ),
+          );
+        }
+      },
     );
   }
 

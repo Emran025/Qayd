@@ -1,5 +1,6 @@
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_output.dart';
 import 'package:qayd/core/error/failures.dart';
@@ -14,7 +15,8 @@ import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
-import 'package:qayd/application/sync/sync_event_dispatcher.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
 
 class ConfirmVoucherUseCase {
   ConfirmVoucherUseCase(
@@ -23,13 +25,16 @@ class ConfirmVoucherUseCase {
     this._idGenerator,
     this._writeGuard, {
     SyncEventDispatcher? syncEventDispatcher,
-  }) : _syncEventDispatcher = syncEventDispatcher;
+    AuditLogService? auditLogService,
+  })  : _syncEventDispatcher = syncEventDispatcher,
+        _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final EntryGenerator _entryGenerator;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
   final SyncEventDispatcher? _syncEventDispatcher;
+  final AuditLogService? _auditLogService;
 
   Future<Result<ConfirmVoucherOutput>> call(ConfirmVoucherInput input) async {
     try {
@@ -89,6 +94,20 @@ class ConfirmVoucherUseCase {
       if (_syncEventDispatcher != null) {
         await _syncEventDispatcher!.dispatchVoucherAcceptance(confirmed);
       }
+
+      await _auditLogService?.log(
+        entityType: 'voucher',
+        entityId: confirmed.id.value,
+        action: AuditAction.update,
+        oldData: {
+          'state': draft.state.name,
+          'confirmed_at': draft.confirmedAt?.toIso8601String(),
+        },
+        newData: {
+          'state': confirmed.state.name,
+          'confirmed_at': confirmed.confirmedAt?.toIso8601String(),
+        },
+      );
 
       // ── Cascading release for tripartite transfers ─────────────────────
       // When confirming the receipt leg (A→C), automatically release

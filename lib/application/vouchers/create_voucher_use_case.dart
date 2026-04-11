@@ -29,6 +29,9 @@ import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/entry_id.dart';
 
+import 'package:qayd/domain/entities/audit_entry.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+
 class CreateVoucherUseCase {
   final VoucherRepository _voucherRepository;
   final CurrencyRepository _currencyRepository;
@@ -43,6 +46,7 @@ class CreateVoucherUseCase {
   final SyncEventDispatcher? _syncEventDispatcher;
   final CostCenterRepository? _costCenterRepository;
   final EntryGenerator? _entryGenerator;
+  final AuditLogService? _auditLogService;
 
   CreateVoucherUseCase(
     this._voucherRepository,
@@ -58,13 +62,15 @@ class CreateVoucherUseCase {
     SyncEventDispatcher? syncEventDispatcher,
     CostCenterRepository? costCenterRepository,
     EntryGenerator? entryGenerator,
+    AuditLogService? auditLogService,
   })  : _accountRepository = accountRepository,
         _signingService = signingService,
         _getKeyPair = getKeyPair,
         _licenseVault = licenseVault,
         _syncEventDispatcher = syncEventDispatcher,
         _costCenterRepository = costCenterRepository,
-        _entryGenerator = entryGenerator;
+        _entryGenerator = entryGenerator,
+        _auditLogService = auditLogService;
 
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
@@ -294,6 +300,20 @@ class CreateVoucherUseCase {
 
       if (saved.isSuccess && input.confirm && _syncEventDispatcher != null) {
         _syncEventDispatcher!.dispatchVoucherClaim(voucher).ignore();
+      }
+
+      if (saved.isSuccess) {
+        await _auditLogService?.log(
+          entityType: 'voucher',
+          entityId: voucher.id.value,
+          action: AuditAction.create,
+          newData: {
+            'type': voucher.type.name,
+            'amount': voucher.amount.minorUnits,
+            'currency': voucher.currency.code,
+            'state': voucher.state.name,
+          },
+        );
       }
 
       return saved.fold(

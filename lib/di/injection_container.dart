@@ -145,6 +145,9 @@ import 'package:qayd/application/cost_centers/manage_dimensions_use_case.dart';
 import 'package:qayd/application/cost_centers/suspend_cost_center_use_case.dart';
 import 'package:qayd/data/repositories/sqlite_cost_center_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
+import 'package:qayd/domain/repositories/audit_log_repository.dart';
+import 'package:qayd/data/repositories/sqlite_audit_log_repository.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -306,6 +309,8 @@ abstract final class InjectionContainer {
   static late ListAccrualsUseCase listAccrualsUseCase;
   static late SaveAccrualUseCase saveAccrualUseCase;
   static late ProcessAccrualUseCase processAccrualUseCase;
+  static late AuditLogRepository auditLogRepository;
+  static late AuditLogService auditLogService;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -544,6 +549,12 @@ abstract final class InjectionContainer {
 
     // ── Cost and Profit Centers ───────────────────────────────────────────
     costCenterRepository = SqliteCostCenterRepository(database);
+    auditLogRepository = SqliteAuditLogRepository(database);
+    auditLogService = AuditLogService(
+      auditRepo: auditLogRepository,
+      accountRepo: accountRepository,
+      voucherRepo: voucherRepository,
+    );
 
     transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(
       database,
@@ -568,6 +579,7 @@ abstract final class InjectionContainer {
       accountRepository,
       _idGenerator,
       governanceWriteGuard,
+      auditLogService: auditLogService,
     );
     batchImportAccountsFromCsvUseCase = BatchImportAccountsFromCsvUseCase(
       createAccountUseCase,
@@ -575,12 +587,14 @@ abstract final class InjectionContainer {
     updateAccountUseCase = UpdateAccountUseCase(
       accountRepository,
       governanceWriteGuard,
+      auditLogService: auditLogService,
     );
     deactivateAccountUseCase = DeactivateAccountUseCase(
       accountRepository,
       ledgerRepository,
       balanceCalculator,
       governanceWriteGuard,
+      auditLogService: auditLogService,
     );
     getAccountDetailsUseCase = GetAccountDetailsUseCase(
       accountRepository,
@@ -618,6 +632,7 @@ abstract final class InjectionContainer {
       syncEventDispatcher: syncEventDispatcher,
       costCenterRepository: costCenterRepository,
       entryGenerator: entryGenerator,
+      auditLogService: auditLogService,
     );
     createTripartiteTransferUseCase = CreateTripartiteTransferUseCase(
       voucherRepository,
@@ -638,6 +653,7 @@ abstract final class InjectionContainer {
       _idGenerator,
       governanceWriteGuard,
       syncEventDispatcher: syncEventDispatcher,
+      auditLogService: auditLogService,
     );
     rejectVoucherUseCase = RejectVoucherUseCase(
       voucherRepository,
@@ -765,6 +781,7 @@ abstract final class InjectionContainer {
       voucherRepository,
       governanceWriteGuard,
       syncEventDispatcher: syncEventDispatcher,
+      auditLogService: auditLogService,
     );
     createReversalVoucherUseCase = CreateReversalVoucherUseCase(
       voucherRepository,

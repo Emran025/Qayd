@@ -1,10 +1,12 @@
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
-import 'package:qayd/application/sync/sync_event_dispatcher.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
 
 /// Withdraws (سحب) a voucher — non-destructive retraction.
 ///
@@ -17,11 +19,14 @@ final class WithdrawVoucherUseCase {
     this._voucherRepository,
     this._writeGuard, {
     SyncEventDispatcher? syncEventDispatcher,
-  }) : _syncEventDispatcher = syncEventDispatcher;
+    AuditLogService? auditLogService,
+  })  : _syncEventDispatcher = syncEventDispatcher,
+        _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final GovernanceWriteGuard _writeGuard;
   final SyncEventDispatcher? _syncEventDispatcher;
+  final AuditLogService? _auditLogService;
 
   Future<Result<void>> call({required String voucherId}) async {
     try {
@@ -34,10 +39,10 @@ final class WithdrawVoucherUseCase {
       if (loaded.isFailure) return FailureResult(loaded.failureOrNull!);
       final v = loaded.valueOrNull!;
 
-      if (!v.state.canWithdraw) {
+      if (!v.canWithdraw) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن سحب سند مؤكد أو مسوّى.',
+            messageAr: 'لا يمكن سحب سند تم قبوله من الطرف الآخر أو تمت تسويته.',
             code: 'voucher_withdraw_not_allowed',
           ),
         );
@@ -48,6 +53,16 @@ final class WithdrawVoucherUseCase {
       final saved = await _voucherRepository.save(withdrawn);
       if (saved.isSuccess && _syncEventDispatcher != null) {
         await _syncEventDispatcher!.dispatchVoucherWithdrawal(withdrawn);
+      }
+
+      if (saved.isSuccess) {
+        await _auditLogService?.log(
+          entityType: 'voucher',
+          entityId: withdrawn.id.value,
+          action: AuditAction.delete, // Withdrawal is semantically a soft-delete
+          oldData: {'state': v.state.name},
+          newData: {'state': withdrawn.state.name},
+        );
       }
 
       // ── Cascade Withdrawal to Automated Internal Vouchers ──────────────

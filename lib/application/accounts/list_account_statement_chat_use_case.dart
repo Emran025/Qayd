@@ -118,23 +118,33 @@ final class ListAccountStatementChatUseCase {
             filter.viewMode == StatementChatViewMode.myAccounts;
         final targetId = isMyView ? myId : cpId;
 
-        // If the target party is the Sender, check if they accepted (signed).
+        // If the target party is the Sender, they originated it, so it's in their ledger (unless rejected by receiver and they withdrew it, but withdrawn is caught above).
         if (v.affectedAccountId == targetId) {
           return v.senderStatus != AgreementStatus.rejected;
         }
 
-        // If the target party is the Receiver, check if they accepted (signed).
+        // If the target party is the Receiver:
         if (v.counterpartyId == targetId) {
-          return v.receiverStatus != AgreementStatus.rejected;
+          if (isMyView) {
+            // My ledger view includes incoming pending requests so I can accept/reject them.
+            return v.receiverStatus != AgreementStatus.rejected;
+          } else {
+            // Other party's ledger ONLY includes it if they explicitly accepted it.
+            return v.receiverStatus == AgreementStatus.accepted;
+          }
         }
 
         // Handle Tripartite case where the targetId is the linked party.
         if (v.isTripartite && v.tripartiteMeta?.linkedPartyId == targetId) {
           if (v.type == VoucherType.receipt) {
-            // Receipt (Source -> M): Linked party is the Destination. Treat as checking receiver's acceptance.
-            return v.receiverStatus != AgreementStatus.rejected;
+            // Receipt (Source -> M): Linked party is Destination. (Target is Receiver).
+            if (isMyView) {
+              return v.receiverStatus != AgreementStatus.rejected;
+            } else {
+              return v.receiverStatus == AgreementStatus.accepted;
+            }
           } else if (v.type == VoucherType.payment) {
-            // Payment (M -> Dest): Linked party is the Source. Treat as checking sender's acceptance.
+            // Payment (M -> Dest): Linked party is Source. (Target is Sender).
             return v.senderStatus != AgreementStatus.rejected;
           }
         }

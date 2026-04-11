@@ -63,19 +63,21 @@ final class SqliteLedgerRepository implements LedgerRepository {
     DateRange? dateRange,
   }) async {
     try {
-      final where = StringBuffer('account_id = ?');
+      final query = StringBuffer('''
+        SELECT e.* 
+        FROM $_table e
+        JOIN vouchers v ON e.voucher_id = v.id
+        WHERE e.account_id = ? AND v.state <> 'withdrawn'
+      ''');
       final args = <Object>[accountId.value];
       if (dateRange != null) {
-        where.write(' AND date >= ? AND date <= ?');
+        query.write(' AND e.date >= ? AND e.date <= ?');
         args.add(dateRange.start.toIso8601String());
         args.add(dateRange.end.toIso8601String());
       }
-      final rows = await _db.query(
-        _table,
-        where: where.toString(),
-        whereArgs: args,
-        orderBy: 'date ASC, created_at ASC',
-      );
+      query.write(' ORDER BY e.date ASC, e.created_at ASC');
+      
+      final rows = await _db.rawQuery(query.toString(), args);
       return Success(await _mapEntryRows(rows));
     } catch (_) {
       return const FailureResult(
@@ -125,21 +127,21 @@ final class SqliteLedgerRepository implements LedgerRepository {
   Future<Result<List<LedgerEntry>>> getAllEntries(
       {DateRange? dateRange}) async {
     try {
-      String? where;
-      List<Object>? whereArgs;
+      final query = StringBuffer('''
+        SELECT e.* 
+        FROM $_table e
+        JOIN vouchers v ON e.voucher_id = v.id
+        WHERE v.state <> 'withdrawn'
+      ''');
+      final args = <Object>[];
       if (dateRange != null) {
-        where = 'date >= ? AND date <= ?';
-        whereArgs = [
-          dateRange.start.toIso8601String(),
-          dateRange.end.toIso8601String(),
-        ];
+        query.write(' AND e.date >= ? AND e.date <= ?');
+        args.add(dateRange.start.toIso8601String());
+        args.add(dateRange.end.toIso8601String());
       }
-      final rows = await _db.query(
-        _table,
-        where: where,
-        whereArgs: whereArgs,
-        orderBy: 'date ASC, created_at ASC',
-      );
+      query.write(' ORDER BY e.date ASC, e.created_at ASC');
+
+      final rows = await _db.rawQuery(query.toString(), args);
       return Success(await _mapEntryRows(rows));
     } catch (_) {
       return const FailureResult(

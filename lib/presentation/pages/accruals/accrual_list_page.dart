@@ -3,14 +3,14 @@ import 'package:intl/intl.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
-import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accruals/accrual_create_page.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_dashboard_widgets.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class AccrualListPage extends StatefulWidget {
   const AccrualListPage({super.key});
@@ -32,6 +32,7 @@ class _AccrualListPageState extends State<AccrualListPage> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final res = await InjectionContainer.listAccrualsUseCase();
+    if (!mounted) return;
     res.fold(
       (_) => setState(() => _loading = false),
       (data) => setState(() {
@@ -43,21 +44,22 @@ class _AccrualListPageState extends State<AccrualListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final totalMonthly = _calculateMonthlyTotal();
 
-    return QaydScaffold(
-      appBar: const QaydAppBar(
-        title: 'الالتزامات و الاستحقاقات',
-        leading: BackButton(),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppStringsAr.accrualListTitle),
+        leading: const BackButton(),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
               builder: (_) => AccrualCreatePage(onCreated: _load)),
         ),
-        label: const Text('إضافة التزام'),
+        label: Text(AppStringsAr.accrualAddFab),
         icon: const Icon(Icons.add_task_rounded),
-        backgroundColor: ColorTokens.warningAmber,
+        backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
       ),
       body: _loading
@@ -66,65 +68,22 @@ class _AccrualListPageState extends State<AccrualListPage> {
               slivers: [
                 // ── Hero Summary ───────────────────────────────────────────
                 SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.all(SpacingTokens.lg),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          ColorTokens.navy900,
-                          ColorTokens.navy800,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        const QaydText(
-                          'إجمالي الالتزامات الشهرية المقدرة',
-                          slot: QaydTextStyleSlot.labelMedium,
-                          color: Colors.white70,
-                        ),
-                        const SizedBox(height: SpacingTokens.xs),
-                        Text(
-                          '${NumberFormat.decimalPattern('en').format(totalMonthly)} SAR',
-                          style: const TextStyle(
-                            color: ColorTokens.warningAmber,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        const SizedBox(height: SpacingTokens.md),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _SummaryItem(
-                              label: 'نشط',
-                              value: _accruals
-                                  .where((e) => e.isActive)
-                                  .length
-                                  .toString(),
-                              icon: Icons.check_circle_outline_rounded,
-                              color: ColorTokens.emerald400,
-                            ),
-                            _SummaryItem(
-                              label: 'مستحق قريباً',
-                              value: _countDueSoon().toString(),
-                              icon: Icons.access_time_rounded,
-                              color: ColorTokens.warningAmber,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  child: _HeroSummary(
+                    totalMonthly: totalMonthly,
+                    activeCount:
+                        _accruals.where((e) => e.isActive).length,
+                    dueSoonCount: _countDueSoon(),
                   ),
                 ),
 
                 // ── List ───────────────────────────────────────────────────
                 if (_accruals.isEmpty)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     child: Center(
-                      child: QaydText('لا توجد التزامات مجدولة بعد.'),
+                      child: QaydText(
+                        AppStringsAr.accrualEmptyState,
+                        slot: QaydTextStyleSlot.bodyMedium,
+                      ),
                     ),
                   )
                 else
@@ -132,13 +91,10 @@ class _AccrualListPageState extends State<AccrualListPage> {
                     padding: const EdgeInsets.all(SpacingTokens.md),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final item = _accruals[index];
-                          return _AccrualCard(
-                            item: item,
-                            onProcessed: _load,
-                          );
-                        },
+                        (context, index) => _AccrualCard(
+                          item: _accruals[index],
+                          onProcessed: _load,
+                        ),
                         childCount: _accruals.length,
                       ),
                     ),
@@ -166,23 +122,96 @@ class _AccrualListPageState extends State<AccrualListPage> {
         case AccrualFrequency.yearly:
           total += a.amount / 12;
         case AccrualFrequency.once:
-          total += 0; // Not a recurring monthly cost in this context
+          total += 0;
       }
     }
     return total;
   }
 
   int _countDueSoon() {
-    final now = DateTime.now();
-    final soon = now.add(const Duration(days: 7));
+    final soon = DateTime.now().add(const Duration(days: 7));
     return _accruals
         .where((e) => e.isActive && e.nextDueDate.isBefore(soon))
         .length;
   }
 }
 
-class _SummaryItem extends StatelessWidget {
-  const _SummaryItem({
+// ─────────────────────────────────────────────────────────────────────────────
+// Hero Summary Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HeroSummary extends StatelessWidget {
+  const _HeroSummary({
+    required this.totalMonthly,
+    required this.activeCount,
+    required this.dueSoonCount,
+  });
+
+  final double totalMonthly;
+  final int activeCount;
+  final int dueSoonCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.lg,
+        vertical: SpacingTokens.md,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [ColorTokens.navy900, ColorTokens.navy800],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        children: [
+          QaydText(
+            AppStringsAr.accrualMonthlySummaryLabel,
+            slot: QaydTextStyleSlot.labelSmall,
+            color: Colors.white70,
+          ),
+          const SizedBox(height: SpacingTokens.xs),
+          Text(
+            '${NumberFormat.decimalPattern('en').format(totalMonthly)} SAR',
+            style: textTheme.displayMedium?.copyWith(
+              color: ColorTokens.goldAccent,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: SpacingTokens.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _KpiChip(
+                label: AppStringsAr.accrualActiveLabel,
+                value: activeCount.toString(),
+                icon: Icons.check_circle_outline_rounded,
+                color: ColorTokens.emerald400,
+              ),
+              _KpiChip(
+                label: AppStringsAr.accrualDueSoonLabel,
+                value: dueSoonCount.toString(),
+                icon: Icons.access_time_rounded,
+                color: ColorTokens.warningAmber,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KPI Chip (replaces _SummaryItem with theme-aligned typography)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _KpiChip extends StatelessWidget {
+  const _KpiChip({
     required this.label,
     required this.value,
     required this.icon,
@@ -196,26 +225,33 @@ class _SummaryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 4),
+        Icon(icon, color: color, size: 18),
+        const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: textTheme.titleSmall?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontWeight: FontWeight.w700,
           ),
         ),
         Text(
           label,
-          style: const TextStyle(color: Colors.white60, fontSize: 10),
+          style: textTheme.labelSmall?.copyWith(
+            color: Colors.white60,
+          ),
         ),
       ],
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Accrual Card
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _AccrualCard extends StatelessWidget {
   const _AccrualCard({required this.item, required this.onProcessed});
@@ -226,20 +262,25 @@ class _AccrualCard extends StatelessWidget {
     final scaffold = ScaffoldMessenger.of(context);
 
     final confirm = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-              title: const Text('تأكيد تنفيذ الالتزام'),
-              content: Text(
-                  'هل تود تسجيل مبلغ ${item.amount} ${item.currencyCode} كعملية دفع حقيقية؟'),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('إلغاء')),
-                FilledButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('نعم، تم الدفع')),
-              ],
-            ));
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStringsAr.accrualProcessConfirmTitle),
+        content: Text(
+          AppStringsAr.accrualProcessConfirmBody(
+              item.amount, item.currencyCode),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStringsAr.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStringsAr.accrualProcessConfirmAction),
+          ),
+        ],
+      ),
+    );
 
     if (confirm != true) return;
 
@@ -247,8 +288,9 @@ class _AccrualCard extends StatelessWidget {
     res.fold(
       (f) => scaffold.showSnackBar(SnackBar(content: Text(f.messageAr))),
       (_) {
-        scaffold.showSnackBar(const SnackBar(
-            content: Text('تم تنفيذ الاستحقاق وتسجيل العملية بنجاح.')));
+        scaffold.showSnackBar(
+          SnackBar(content: Text(AppStringsAr.accrualProcessedSuccess)),
+        );
         onProcessed();
       },
     );
@@ -257,25 +299,28 @@ class _AccrualCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final isDueSoon =
         item.nextDueDate.isBefore(DateTime.now().add(const Duration(days: 3)));
 
     return Container(
-      margin: const EdgeInsets.only(bottom: SpacingTokens.md),
+      margin: const EdgeInsets.only(bottom: SpacingTokens.sm),
       child: GlassCard(
         child: IntrinsicHeight(
           child: Row(
             children: [
-              // Indicator strip
+              // ── Indicator strip ──────────────────────────────────────────
               Container(
-                width: 4,
+                width: 3,
                 decoration: BoxDecoration(
                   color:
                       isDueSoon ? ColorTokens.errorSoft : ColorTokens.debitBlue,
                   borderRadius: BorderRadius.circular(RadiusTokens.pill),
                 ),
               ),
-              const SizedBox(width: SpacingTokens.md),
+              const SizedBox(width: SpacingTokens.sm),
+
+              // ── Content ──────────────────────────────────────────────────
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,48 +331,45 @@ class _AccrualCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             item.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                            style: textTheme.titleSmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Text(
                           '${item.amount} ${item.currencyCode}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
                             color: scheme.primary,
-                            fontSize: 16,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       item.frequency.labelAr,
-                      style: TextStyle(
+                      style: textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
-                        fontSize: 12,
                       ),
                     ),
                     const Spacer(),
-                    const SizedBox(height: SpacingTokens.sm),
+                    const SizedBox(height: SpacingTokens.xs),
                     Row(
                       children: [
                         Icon(
                           Icons.event_repeat_rounded,
-                          size: 14,
+                          size: 12,
                           color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'الاستحقاق القادم: ${DateFormat('yyyy-MM-dd', 'en').format(item.nextDueDate)}',
-                          style: TextStyle(
-                            fontSize: 11,
+                          '${AppStringsAr.accrualNextDuePrefix}: ${DateFormat('yyyy-MM-dd', 'en').format(item.nextDueDate)}',
+                          style: textTheme.labelSmall?.copyWith(
                             color: isDueSoon
                                 ? ColorTokens.errorSoft
                                 : scheme.onSurfaceVariant,
-                            fontWeight: isDueSoon ? FontWeight.bold : null,
+                            fontWeight:
+                                isDueSoon ? FontWeight.w600 : FontWeight.normal,
                           ),
                         ),
                       ],
@@ -335,14 +377,16 @@ class _AccrualCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: SpacingTokens.md),
+              const SizedBox(width: SpacingTokens.sm),
+
+              // ── Action ───────────────────────────────────────────────────
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton.filledTonal(
                     onPressed: () => _onPay(context),
-                    icon: const Icon(Icons.payments_rounded),
-                    tooltip: 'تسجيل عملية دفع',
+                    icon: const Icon(Icons.payments_rounded, size: 20),
+                    tooltip: AppStringsAr.accrualPayTooltip,
                     style: IconButton.styleFrom(
                       backgroundColor:
                           ColorTokens.emerald400.withValues(alpha: 0.1),

@@ -12,8 +12,11 @@ import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
 class VoucherListCubit extends Cubit<VoucherListState> {
   VoucherListCubit(
     this._listVouchers,
-    this._notificationRepo,
-  ) : super(const VoucherListInitial());
+    this._notificationRepo, {
+    bool? isInternalOnly,
+  }) : super(const VoucherListInitial()) {
+    _advancedFilter = AdvancedFilterInput(isInternalOnly: isInternalOnly);
+  }
 
   final ListVouchersUseCase _listVouchers;
   final NotificationMessageRepository _notificationRepo;
@@ -65,17 +68,18 @@ class VoucherListCubit extends Cubit<VoucherListState> {
 
   void clearAllFiltersAndSearch() {
     _searchQuery = '';
-    _advancedFilter = AdvancedFilterInput.empty;
+    _advancedFilter = AdvancedFilterInput(isInternalOnly: _advancedFilter.isInternalOnly);
     _searchDebounce?.cancel();
     _fetch();
   }
 
   Future<void> _fetch() async {
     emit(const VoucherListLoading());
+    final filter = _advancedFilter.hasAny ? _advancedFilter : AdvancedFilterInput.empty;
     final result = await _listVouchers(
       ListVouchersInput(
         searchQuery: _searchQuery,
-        advancedFilter: _advancedFilter.hasAny ? _advancedFilter : null,
+        advancedFilter: filter,
         excludeTripartite: true,
       ),
     );

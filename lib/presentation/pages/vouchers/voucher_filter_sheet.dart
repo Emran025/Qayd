@@ -101,6 +101,9 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
       counterpartyAccountId: _cpId,
       affectedAccountId: _affId,
       costCenterId: _ccId,
+      isInternalOnly: widget.initial.isInternalOnly,
+      involvedRootAccountId: widget.initial.involvedRootAccountId,
+      involvedCounterRootAccountId: widget.initial.involvedCounterRootAccountId,
     );
   }
 

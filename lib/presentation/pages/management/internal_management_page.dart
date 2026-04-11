@@ -85,8 +85,7 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
       );
     }
 
-    final filter = AdvancedFilterInput(
-      involvedRootAccountId: _fundRootId,
+    final filter = const AdvancedFilterInput(
       isInternalOnly: true,
     );
 
@@ -240,8 +239,8 @@ class _InternalManagementViewState extends State<_InternalManagementView>
           tabs: const [
             Tab(text: 'السجل المالي'),
             Tab(text: 'الأصول والممتلكات'),
-            Tab(text: 'مصادر الدخل'),
-            Tab(text: 'أبواب المصاريف'),
+            Tab(text: 'إيرادات الصندوق'),
+            Tab(text: 'مصاريف الصندوق'),
           ],
         ),
         actions: [
@@ -289,12 +288,12 @@ class _InternalManagementViewState extends State<_InternalManagementView>
           // ── Tab 3: Revenues
           const PersonalAccountsListView(
             kinds: ['personalRevenues'],
-            emptyText: 'لا تملك مصادر دخل (إيرادات) مسجلة حالياً.',
+            emptyText: 'لا تملك أي إيرادات داخلية مسجلة حالياً.',
           ),
           // ── Tab 4: Expenses
           const PersonalAccountsListView(
             kinds: ['personalExpenses'],
-            emptyText: 'لا تملك أبواب مصاريف مسجلة حالياً.',
+            emptyText: 'لا تملك أي مصاريف داخلية مسجلة حالياً.',
           ),
         ],
       ),
@@ -308,9 +307,9 @@ class _InternalManagementViewState extends State<_InternalManagementView>
       case 1:
         return 'إضافة أصل جديد';
       case 2:
-        return 'إضافة مصدر دخل';
+        return 'تسجيل إيراد داخلي';
       case 3:
-        return 'إضافة مصروف جديد';
+        return 'تسجيل مصروف داخلي';
       default:
         return AppStringsAr.addInternalVoucherFab;
     }

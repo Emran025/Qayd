@@ -5,12 +5,12 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
-import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 import 'package:intl/intl.dart';
 
 class AccrualCreatePage extends StatefulWidget {
@@ -81,7 +81,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_selectedDestAccountId == null) {
-      _showError('يرجى اختيار الحساب المستهدف (المصروف).');
+      _showError(AppStringsAr.accrualDestAccountRequired);
       return;
     }
 
@@ -103,6 +103,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
       nextDueDate: _nextDueDate,
     );
 
+    if (!mounted) return;
     setState(() => _saving = false);
 
     res.fold(
@@ -118,159 +119,251 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  // ── Shared compact input decoration ──────────────────────────────────────
+  InputDecoration _inputDeco({
+    String? labelText,
+    String? hintText,
+    IconData? icon,
+  }) {
+    final tt = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      isDense: true,
+      prefixIcon: icon != null ? Icon(icon, size: 18) : null,
+      prefixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.sm + 4,
+        vertical: SpacingTokens.sm,
+      ),
+      labelStyle: tt.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+      hintStyle: tt.bodySmall?.copyWith(
+        color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final scheme = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
 
-    return QaydScaffold(
-      appBar: const QaydAppBar(
-        title: 'إضافة التزام مالي',
-        leading: BackButton(),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(SpacingTokens.md),
-          children: [
-            // ── Name & Amount ─────────────────────────────────────────────
-            TextFormField(
-              controller: _nameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'مسمى الالتزام (مثلاً: إيجار الشقة)',
-                prefixIcon: Icon(Icons.title_rounded),
-              ),
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'هذا الحقل مطلوب' : null,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(AppStringsAr.accrualCreateTitle),
+          leading: const BackButton(),
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SpacingTokens.md,
+              vertical: SpacingTokens.sm,
             ),
-            const SizedBox(height: SpacingTokens.md),
-            TextFormField(
-              controller: _amountCtrl,
-              decoration: const InputDecoration(
-                labelText: 'المبلغ التقديري',
-                prefixIcon: Icon(Icons.account_balance_wallet_rounded),
-              ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              validator: (v) => (double.tryParse(v ?? '0') ?? 0) <= 0
-                  ? 'يرجى إدخال مبلغ صالح'
-                  : null,
-            ),
-            const SizedBox(height: SpacingTokens.md),
-
-            // ── Frequency ──────────────────────────────────────────────────
-            QaydText('تكرار الالتزام',
-                slot: QaydTextStyleSlot.labelLarge,
-                color: scheme.onSurfaceVariant),
-            const SizedBox(height: SpacingTokens.sm),
-            DropdownButtonFormField<AccrualFrequency>(
-              value: _frequency,
-              items: AccrualFrequency.values
-                  .map((f) => DropdownMenuItem(
-                        value: f,
-                        child: Text(f.labelAr),
-                      ))
-                  .toList(),
-              onChanged: (v) => setState(() => _frequency = v!),
-              decoration:
-                  const InputDecoration(prefixIcon: Icon(Icons.repeat_rounded)),
-            ),
-            const SizedBox(height: SpacingTokens.md),
-
-            // ── Next Due Date ──────────────────────────────────────────────
-            InkWell(
-              onTap: _pickDate,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'تاريخ الاستحقاق القادم',
-                  prefixIcon: Icon(Icons.calendar_today_rounded),
+            children: [
+              // ── Name ────────────────────────────────────────────────────
+              TextFormField(
+                controller: _nameCtrl,
+                style: tt.bodySmall,
+                decoration: _inputDeco(
+                  labelText: AppStringsAr.accrualNameLabel,
+                  hintText: AppStringsAr.accrualNameHint,
+                  icon: Icons.label_important_outline_rounded,
                 ),
-                child: Text(DateFormat('yyyy-MM-dd').format(_nextDueDate)),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? AppStringsAr.accrualNameRequired
+                    : null,
+                textInputAction: TextInputAction.next,
               ),
-            ),
-            const SizedBox(height: SpacingTokens.md),
+              const SizedBox(height: SpacingTokens.sm + 4),
 
-            // ── Source Account ─────────────────────────────────────────────
-            QaydText('حساب الدفع (منين؟)',
-                slot: QaydTextStyleSlot.labelLarge,
-                color: scheme.onSurfaceVariant),
-            const SizedBox(height: SpacingTokens.sm),
-            DropdownButtonFormField<String>(
-              value: _selectedSourceAccountId,
-              items: _accounts
-                  .map((a) => DropdownMenuItem(
-                        value: a.id,
-                        child: Text(a.name),
-                      ))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedSourceAccountId = v),
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.account_balance_rounded),
-                hintText: 'اختر حساب الدفع (كاش، بنك...)',
+              // ── Amount ──────────────────────────────────────────────────
+              TextFormField(
+                controller: _amountCtrl,
+                style: tt.bodySmall,
+                decoration: _inputDeco(
+                  labelText: AppStringsAr.accrualAmountLabel,
+                  icon: Icons.account_balance_wallet_outlined,
+                ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (v) => (double.tryParse(v ?? '0') ?? 0) <= 0
+                    ? AppStringsAr.accrualAmountInvalid
+                    : null,
+                textInputAction: TextInputAction.next,
               ),
-            ),
-            const SizedBox(height: SpacingTokens.md),
+              const SizedBox(height: SpacingTokens.sm + 4),
 
-            // ── Destination Account ────────────────────────────────────────
-            QaydText('حساب الاستحقاق (لفين؟)',
-                slot: QaydTextStyleSlot.labelLarge,
-                color: scheme.onSurfaceVariant),
-            const SizedBox(height: SpacingTokens.sm),
-            DropdownButtonFormField<String>(
-              value: _selectedDestAccountId,
-              items: _accounts
-                  .map((a) => DropdownMenuItem(
-                        value: a.id,
-                        child: Text(a.name),
-                      ))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedDestAccountId = v),
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.account_tree_rounded),
-                hintText: 'اختر حساب المصروف (سكن، غذاء...)',
+              // ── Frequency ───────────────────────────────────────────────
+              const _SectionLabel(AppStringsAr.accrualFrequencyLabel),
+              const SizedBox(height: SpacingTokens.xs),
+              DropdownButtonFormField<AccrualFrequency>(
+                value: _frequency,
+                isDense: true,
+                style: tt.bodySmall?.copyWith(color: scheme.onSurface),
+                items: AccrualFrequency.values
+                    .map((f) => DropdownMenuItem(
+                          value: f,
+                          child: Text(f.labelAr),
+                        ))
+                    .toList(),
+                onChanged: (v) => setState(() => _frequency = v!),
+                decoration: _inputDeco(icon: Icons.repeat_rounded),
               ),
-              validator: (v) =>
-                  v == null ? 'يرجى اختيار الحساب المستهدف' : null,
-            ),
-            const SizedBox(height: SpacingTokens.md),
+              const SizedBox(height: SpacingTokens.sm + 4),
 
-            // ── Categories (Dimensions) ───────────────────────────────────
-            QaydText('البعد الحياتي المرتبط',
-                slot: QaydTextStyleSlot.labelLarge,
-                color: scheme.onSurfaceVariant),
-            const SizedBox(height: SpacingTokens.sm),
-            Wrap(
-              spacing: SpacingTokens.xs,
-              runSpacing: SpacingTokens.xs,
-              children: CostCenterDimensionCategory.values.map((cat) {
-                final isSelected = _selectedCategoryId == cat.id;
-                return ChoiceChip(
-                  label: Text(cat.name),
-                  selected: isSelected,
-                  onSelected: (val) =>
-                      setState(() => _selectedCategoryId = val ? cat.id : null),
-                  selectedColor: gold.withValues(alpha: 0.2),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: SpacingTokens.xl),
-
-            // ── Save Button ───────────────────────────────────────────────
-            FilledButton.icon(
-              onPressed: _saving ? null : _save,
-              icon: _saving
-                  ? const CircularProgressIndicator()
-                  : const Icon(Icons.check_rounded),
-              label: const Text('حفظ الالتزام'),
-              style: FilledButton.styleFrom(
-                backgroundColor: ColorTokens.warningAmber,
-                foregroundColor: ColorTokens.navy950,
-                minimumSize: const Size.fromHeight(54),
+              // ── Next Due Date ───────────────────────────────────────────
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(RadiusTokens.md),
+                child: InputDecorator(
+                  decoration: _inputDeco(
+                    labelText: AppStringsAr.accrualNextDueDateLabel,
+                    icon: Icons.calendar_today_rounded,
+                  ),
+                  child: Text(
+                    DateFormat('yyyy-MM-dd').format(_nextDueDate),
+                    style: tt.bodySmall,
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: SpacingTokens.sm + 4),
+
+              // ── Source Account ──────────────────────────────────────────
+              const _SectionLabel(AppStringsAr.accrualSourceAccountLabel),
+              const SizedBox(height: SpacingTokens.xs),
+              DropdownButtonFormField<String>(
+                value: _selectedSourceAccountId,
+                isDense: true,
+                style: tt.bodySmall?.copyWith(color: scheme.onSurface),
+                items: _accounts
+                    .map((a) => DropdownMenuItem(
+                          value: a.id,
+                          child: Text(a.name),
+                        ))
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedSourceAccountId = v),
+                decoration: _inputDeco(
+                  hintText: AppStringsAr.accrualSourceAccountHint,
+                  icon: Icons.account_balance_rounded,
+                ),
+              ),
+              const SizedBox(height: SpacingTokens.sm + 4),
+
+              // ── Destination Account ─────────────────────────────────────
+              const _SectionLabel(AppStringsAr.accrualDestAccountLabel),
+              const SizedBox(height: SpacingTokens.xs),
+              DropdownButtonFormField<String>(
+                value: _selectedDestAccountId,
+                isDense: true,
+                style: tt.bodySmall?.copyWith(color: scheme.onSurface),
+                items: _accounts
+                    .map((a) => DropdownMenuItem(
+                          value: a.id,
+                          child: Text(a.name),
+                        ))
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedDestAccountId = v),
+                decoration: _inputDeco(
+                  hintText: AppStringsAr.accrualDestAccountHint,
+                  icon: Icons.account_tree_rounded,
+                ),
+                validator: (v) =>
+                    v == null ? AppStringsAr.accrualDestAccountRequired : null,
+              ),
+              const SizedBox(height: SpacingTokens.sm + 4),
+
+              // ── Description ─────────────────────────────────────────────
+              TextFormField(
+                controller: _descCtrl,
+                style: tt.bodySmall,
+                decoration: _inputDeco(
+                  labelText: AppStringsAr.accrualDescriptionLabel,
+                  icon: Icons.notes_rounded,
+                ),
+                maxLines: 2,
+                textInputAction: TextInputAction.done,
+              ),
+              const SizedBox(height: SpacingTokens.sm + 4),
+
+              // ── Categories (Dimensions) ────────────────────────────────
+              const _SectionLabel(AppStringsAr.accrualCategoryLabel),
+              const SizedBox(height: SpacingTokens.xs),
+              Wrap(
+                spacing: SpacingTokens.xs,
+                runSpacing: SpacingTokens.xs,
+                children: CostCenterDimensionCategory.values.map((cat) {
+                  final isSelected = _selectedCategoryId == cat.id;
+                  return ChoiceChip(
+                    label: Text(
+                      cat.name,
+                      style: tt.labelSmall?.copyWith(
+                        color: isSelected ? gold : scheme.onSurfaceVariant,
+                      ),
+                    ),
+                    selected: isSelected,
+                    onSelected: (val) => setState(
+                        () => _selectedCategoryId = val ? cat.id : null),
+                    selectedColor: gold.withValues(alpha: 0.15),
+                    checkmarkColor: gold,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: SpacingTokens.xs,
+                      vertical: 0,
+                    ),
+                    labelPadding: const EdgeInsets.symmetric(
+                      horizontal: SpacingTokens.xs,
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: SpacingTokens.lg),
+
+              // ── Save Button ─────────────────────────────────────────────
+              FilledButton.icon(
+                onPressed: _saving ? null : _save,
+                icon: _saving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.check_rounded, size: 18),
+                label: Text(AppStringsAr.accrualSaveAction),
+                style: FilledButton.styleFrom(
+                  backgroundColor: gold,
+                  foregroundColor: ColorTokens.navy950,
+                  minimumSize: const Size.fromHeight(48),
+                  textStyle: tt.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: SpacingTokens.md),
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+/// Compact section label matching the app's refined typography.
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return QaydText(
+      text,
+      slot: QaydTextStyleSlot.labelSmall,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
   }
 }
