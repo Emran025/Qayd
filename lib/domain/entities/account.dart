@@ -16,6 +16,7 @@ class Account {
     required this.isDefault,
     required this.createdAt,
     required this.isActive,
+    required this.isArchived,
     this.metadata = const {},
   });
 
@@ -27,6 +28,7 @@ class Account {
   final bool isDefault;
   final DateTime createdAt;
   final bool isActive;
+  final bool isArchived;
 
   /// Additional extensible data (e.g., asset serials, purchase dates).
   final Map<String, dynamic> metadata;
@@ -52,6 +54,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      isArchived: false,
       metadata: metadata,
     );
   }
@@ -66,6 +69,7 @@ class Account {
     required bool isDefault,
     required DateTime createdAt,
     required bool isActive,
+    required bool isArchived,
     Map<String, dynamic> metadata = const {},
   }) {
     return Account._(
@@ -77,6 +81,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      isArchived: isArchived,
       metadata: metadata,
     );
   }
@@ -100,6 +105,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      isArchived: false,
       metadata: metadata,
     );
   }
@@ -122,6 +128,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      isArchived: isArchived,
       metadata: metadata,
     );
   }
@@ -136,6 +143,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      isArchived: isArchived,
       metadata: {...metadata, ...newMetadata},
     );
   }
@@ -151,6 +159,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: true,
+      isArchived: isArchived,
       metadata: metadata,
     );
   }
@@ -179,6 +188,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: false,
+      isArchived: isArchived,
       metadata: metadata,
     );
   }
@@ -201,6 +211,7 @@ class Account {
       isDefault: isDefault,
       createdAt: createdAt,
       isActive: isActive,
+      isArchived: isArchived,
       metadata: metadata,
     );
   }
@@ -228,5 +239,51 @@ class Account {
         code: 'account_delete_children',
       );
     }
+  }
+
+  /// Archive an account that has been fully settled (balance == 0).
+  Account archive({required Money balance}) {
+    if (isDefault) {
+      throw const AccountDeletionException(
+        messageAr: 'لا يمكن أرشفة الحساب الافتراضي.',
+        code: 'account_archive_default',
+      );
+    }
+    if (!balance.isZero) {
+      throw const AccountDeletionException(
+        messageAr: 'لا يمكن أرشفة حساب له رصيد غير صفر. يجب تسوية الحساب أولاً.',
+        code: 'account_archive_balance',
+      );
+    }
+    if (isArchived) return this;
+    return Account._(
+      id: id,
+      name: name,
+      nature: nature,
+      classification: classification,
+      parentId: parentId,
+      isDefault: isDefault,
+      createdAt: createdAt,
+      isActive: isActive,
+      isArchived: true,
+      metadata: metadata,
+    );
+  }
+
+  /// Restore a previously archived account back to active status.
+  Account unarchive() {
+    if (!isArchived) return this;
+    return Account._(
+      id: id,
+      name: name,
+      nature: nature,
+      classification: classification,
+      parentId: parentId,
+      isDefault: isDefault,
+      createdAt: createdAt,
+      isActive: isActive,
+      isArchived: false,
+      metadata: metadata,
+    );
   }
 }

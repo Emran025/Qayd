@@ -157,7 +157,9 @@ class CreateTripartiteTransferUseCase {
         final feeSetting = feeRes.valueOrNull!;
 
         // Lookup or create 'Transaction Fees' revenue account
-        final accountsRes = await _accountRepository.getAll();
+        final accountsRes = await _accountRepository.getAll(
+          excludeArchived: true,
+        );
         Account? feeAccount;
         if (accountsRes.isSuccess) {
           feeAccount = accountsRes.valueOrNull!

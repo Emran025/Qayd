@@ -43,11 +43,20 @@ final class SqliteAccountRepository implements AccountRepository {
   }
 
   @override
-  Future<Result<List<Account>>> getAll({bool activeOnly = false}) async {
+  Future<Result<List<Account>>> getAll({
+    bool activeOnly = false,
+    bool excludeArchived = false,
+  }) async {
     try {
+      final conditions = <String>[];
+      if (activeOnly) conditions.add('is_active = 1');
+      if (excludeArchived) conditions.add('is_archived = 0');
+      
+      final whereClause = conditions.isEmpty ? null : conditions.join(' AND ');
+
       final rows = await _db.query(
         _table,
-        where: activeOnly ? 'is_active = 1' : null,
+        where: whereClause,
         orderBy: 'name COLLATE NOCASE',
       );
       return Success(
@@ -323,6 +332,78 @@ ORDER BY a.name COLLATE NOCASE
       return Success(rows.isNotEmpty);
     } catch (_) {
       return const Success(false);
+    }
+  }
+
+  // ── Archive operations ──────────────────────────────────────────────────
+
+  @override
+  Future<Result<void>> archiveAccount(AccountId id) async {
+    try {
+      final n = await _db.update(
+        _table,
+        {'is_archived': 1},
+        where: 'id = ?',
+        whereArgs: [id.value],
+      );
+      if (n == 0) {
+        return const FailureResult(
+          ValidationFailure(
+            messageAr: 'الحساب غير موجود.',
+            code: 'account_not_found',
+          ),
+        );
+      }
+      return const Success(null);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر أرشفة الحساب.'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> restoreAccount(AccountId id) async {
+    try {
+      final n = await _db.update(
+        _table,
+        {'is_archived': 0},
+        where: 'id = ?',
+        whereArgs: [id.value],
+      );
+      if (n == 0) {
+        return const FailureResult(
+          ValidationFailure(
+            messageAr: 'الحساب غير موجود.',
+            code: 'account_not_found',
+          ),
+        );
+      }
+      return const Success(null);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر استعادة الحساب من الأرشيف.'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<Account>>> getArchivedAccounts() async {
+    try {
+      final rows = await _db.query(
+        _table,
+        where: 'is_archived = 1',
+        orderBy: 'name COLLATE NOCASE',
+      );
+      return Success(
+        rows
+            .map((m) => AccountMapper.toEntity(AccountModel.fromMap(m)))
+            .toList(growable: false),
+      );
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر قراءة الحسابات المؤرشفة.'),
+      );
     }
   }
 

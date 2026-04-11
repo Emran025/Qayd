@@ -6,7 +6,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 /// Opens the encrypted SQLite database and applies migrations.
 abstract final class DatabaseProvider {
-  static const int schemaVersion = 24;
+  static const int schemaVersion = 25;
 
   static const String databaseFileName = 'qayd_finance.db';
 

@@ -12,6 +12,9 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/application/accounts/batch_import_accounts_from_csv_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
 import 'package:qayd/application/accounts/deactivate_account_use_case.dart';
+import 'package:qayd/application/accounts/archive_account_use_case.dart';
+import 'package:qayd/application/accounts/restore_account_use_case.dart';
+import 'package:qayd/application/accounts/list_archived_accounts_use_case.dart';
 import 'package:qayd/application/accounts/get_account_details_use_case.dart';
 import 'package:qayd/application/accounts/get_account_statement_use_case.dart';
 import 'package:qayd/application/accounts/list_account_statement_chat_use_case.dart';
@@ -214,6 +217,9 @@ abstract final class InjectionContainer {
   static late GetAccountDetailsUseCase getAccountDetailsUseCase;
   static late FindAccountByPhoneUseCase findAccountByPhoneUseCase;
   static late ListAccountsUseCase listAccountsUseCase;
+  static late ArchiveAccountUseCase archiveAccountUseCase;
+  static late RestoreAccountUseCase restoreAccountUseCase;
+  static late ListArchivedAccountsUseCase listArchivedAccountsUseCase;
   static late GetAccountStatementUseCase getAccountStatementUseCase;
   static late ListAccountStatementChatUseCase listAccountStatementChatUseCase;
   static late CreateVoucherUseCase createVoucherUseCase;
@@ -589,6 +595,19 @@ abstract final class InjectionContainer {
       governanceWriteGuard,
       auditLogService: auditLogService,
     );
+    archiveAccountUseCase = ArchiveAccountUseCase(
+      accountRepository,
+      ledgerRepository,
+      balanceCalculator,
+      governanceWriteGuard,
+      auditLogService: auditLogService,
+    );
+    restoreAccountUseCase = RestoreAccountUseCase(
+      accountRepository,
+      governanceWriteGuard,
+      auditLogService: auditLogService,
+    );
+    listArchivedAccountsUseCase = ListArchivedAccountsUseCase(accountRepository);
     deactivateAccountUseCase = DeactivateAccountUseCase(
       accountRepository,
       ledgerRepository,

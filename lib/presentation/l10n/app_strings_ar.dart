@@ -42,10 +42,10 @@ abstract final class AppStringsAr {
   static const String chartOfAccountsTitle = 'دليل الحسابات';
   static const String searchAccountsHint = 'بحث باسم الحساب…';
   static const String filterNatureAll = 'الكل';
-  static const String filterNatureDebit = 'مدين';
-  static const String filterNatureCredit = 'دائن';
-  static const String natureDebitShort = 'مدين';
-  static const String natureCreditShort = 'دائن';
+  static const String filterNatureDebit = 'مدين (لك)';
+  static const String filterNatureCredit = 'دائن (عليك)';
+  static const String natureDebitShort = 'مدين (لك)';
+  static const String natureCreditShort = 'دائن (عليك)';
   static const String accountBalanceLabel = 'الرصيد';
   static const String addAccountFab = 'حساب جديد';
   static const String retryAction = 'إعادة المحاولة';
@@ -67,6 +67,21 @@ abstract final class AppStringsAr {
   static const String statusActive = 'نشط';
   static const String statusInactive = 'موقوف';
   static const String createdAtLabel = 'تاريخ الإنشاء';
+  static const String archiveAccountAction = 'أرشفة الحساب';
+  static const String archiveAccountWarningText =
+      'هل أنت متأكد من أرشفة هذا الحساب؟\nلا يمكن أرشفة الحساب إلا إذا كان رصيده صفراً في جميع العملات، وسيتم إخفاؤه من جميع القوائم والتقارير.';
+  static const String archiveAccountConfirm = 'تأكيد الأرشفة';
+  static const String archiveAccountSuccess = 'تم أرشفة الحساب بنجاح';
+
+  // Archived Accounts
+  static const String archivedAccountsTitle = 'الحسابات المؤرشفة';
+  static const String archivedAccountsEmpty = 'لا توجد حسابات مؤرشفة حالياً';
+  static const String restoreAccountAction = 'استعادة';
+  static const String restoreAccountTitle = 'استعادة الحساب';
+  static String restoreAccountWarning(String accountName) =>
+      'هل أنت متأكد من رغبتك في استعادة الحساب "$accountName"؟ سيظهر الحساب في جميع القوائم والتقارير مجدداً.';
+  static const String restoreAccountConfirm = 'تأكيد الاستعادة';
+  static const String restoreAccountSuccess = 'تمت استعادة الحساب بنجاح';
 
   // Accounts — create
   static const String newRootAccountTitle = 'حساب جذر جديد';
@@ -190,13 +205,16 @@ abstract final class AppStringsAr {
   static const String voucherAddCollateral = 'إضافة رهن';
   static const String voucherConfirmAndSend = 'تأكيد وإرسال';
   static const String warningImportant = 'تنبيه هام';
-  static const String voucherEditDateOrPartyWarning = 'لقد قمت بتغيير الطرف (العميل/المورد) أو التاريخ.\n\nسيتم سحب السند من الطرف السابق وإضافته كقيد جديد.\nهل تود المتابعة؟';
+  static const String voucherEditDateOrPartyWarning =
+      'لقد قمت بتغيير الطرف (العميل/المورد) أو التاريخ.\n\nسيتم سحب السند من الطرف السابق وإضافته كقيد جديد.\nهل تود المتابعة؟';
   static const String actionProceedAndConfirm = 'متابعة والتأكيد';
   static const String voucherAffectedAccountPaymentTitle = 'صرف من حساب';
   static const String voucherAffectedAccountReceiptTitle = 'قبض إلى حساب';
-  static const String voucherAffectedAccountHint = 'اختر الحساب (الصندوق/المصروفات)';
+  static const String voucherAffectedAccountHint =
+      'اختر الحساب (الصندوق/المصروفات)';
   static const String voucherCollateralValuePrefix = 'القيمة: ';
-  static const String voucherConfirmedAndSentSuccess = 'تم تأكيد السند وإرساله للمزامنة';
+  static const String voucherConfirmedAndSentSuccess =
+      'تم تأكيد السند وإرساله للمزامنة';
 
   // --- QR Exchange ---
   static String get qrCodeDisplayTitle => 'تبادل السند عبر QR';
@@ -225,8 +243,8 @@ abstract final class AppStringsAr {
   // Trial balance
   static const String trialBalanceTitle = 'ميزان المراجعة';
   static const String trialBalanceColAccount = 'اسم الحساب';
-  static const String trialBalanceColDebit = 'إجمالي المدين';
-  static const String trialBalanceColCredit = 'إجمالي الدائن';
+  static const String trialBalanceColDebit = 'إجمالي المدين (لك)';
+  static const String trialBalanceColCredit = 'إجمالي الدائن (عليك)';
   static const String trialBalanceGrandTotal = 'الإجمالي';
   static const String trialBalanceBalanced =
       'متوازن — إجمالي المدين يساوي إجمالي الدائن';
@@ -410,17 +428,23 @@ abstract final class AppStringsAr {
   static const String passwordResetSuccess = 'تم تغيير كلمة المرور بنجاح';
   static const String backToLogin = 'العودة إلى تسجيل الدخول';
   static const String passwordResetError = 'تعذر إرسال الطلب. تحقق من الاتصال.';
-  static const String passwordChangeError = 'تعذر تغيير كلمة المرور. حاول مرة أخرى.';
-  static const String passwordTooShort = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل.';
-  static const String agreeToTermsRequired = 'يجب الموافقة على شروط الاستخدام وسياسة الخصوصية';
-  static const String serverConnectionError = 'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.';
+  static const String passwordChangeError =
+      'تعذر تغيير كلمة المرور. حاول مرة أخرى.';
+  static const String passwordTooShort =
+      'كلمة المرور يجب أن تكون 8 أحرف على الأقل.';
+  static const String agreeToTermsRequired =
+      'يجب الموافقة على شروط الاستخدام وسياسة الخصوصية';
+  static const String serverConnectionError =
+      'تعذر الاتصال بالخادم. تحقق من الاتصال وحاول مجدداً.';
   static const String termsOfUseLabel = 'شروط الاستخدام';
   static const String privacyPolicyLabel = 'سياسة الخصوصية';
   static const String iAgreeTo = 'أوافق على ';
   static const String andLabel = ' و';
   static const String loadingLabel = 'جاري التحميل...';
-  static const String termsLoadingError = 'تعذر تحميل شروط الاستخدام. يرجى المحاولة لاحقاً.';
-  static const String privacyLoadingError = 'تعذر تحميل سياسة الخصوصية. يرجى المحاولة لاحقاً.';
+  static const String termsLoadingError =
+      'تعذر تحميل شروط الاستخدام. يرجى المحاولة لاحقاً.';
+  static const String privacyLoadingError =
+      'تعذر تحميل سياسة الخصوصية. يرجى المحاولة لاحقاً.';
   static const String noTermsFound = 'لا يوجد شروط استخدام حالياً.';
   static const String noPrivacyFound = 'لا يوجد سياسة خصوصية حالياً.';
   static const String privacyTermsHeader = 'سياسة الخصوصية وشروط الاستخدام';
@@ -441,9 +465,11 @@ abstract final class AppStringsAr {
   // Password Reset Methods
   static const String verificationMethodSelectorTitle = 'طريقة التحقق';
   static const String verificationMethodEmailTitle = 'عبر البريد الإلكتروني';
-  static const String verificationMethodEmailSubtitle = 'إرسال رابط استعادة لبريدك المسجل';
+  static const String verificationMethodEmailSubtitle =
+      'إرسال رابط استعادة لبريدك المسجل';
   static const String verificationMethodPhoneTitle = 'عبر رقم الهاتف';
-  static const String verificationMethodPhoneSubtitle = 'قريباً: إرسال رمز SMS لهاتفك';
+  static const String verificationMethodPhoneSubtitle =
+      'قريباً: إرسال رمز SMS لهاتفك';
   static const String comingSoonBadge = 'قريباً';
 
   static String standardClassificationLabel(String kind) {
@@ -679,22 +705,27 @@ abstract final class AppStringsAr {
 
   // ── Notification Settings ──────────────────────────────────────────────
   static const String notifPeerActivityTitle = 'أنشطة الطرف الآخر';
-  static const String notifPeerActivityDesc = 'استلام إشعارات السندات، الحوالات، وطلبات الحوالة القادمة من الآخرين.';
+  static const String notifPeerActivityDesc =
+      'استلام إشعارات السندات، الحوالات، وطلبات الحوالة القادمة من الآخرين.';
   static const String notifSelfActivityTitle = 'أنشطتي العملياتية';
-  static const String notifSelfActivityDesc = 'إظهار إشعارات وتنبيهات صوتية للعمليات التي أقوم بها بنفسي.';
+  static const String notifSelfActivityDesc =
+      'إظهار إشعارات وتنبيهات صوتية للعمليات التي أقوم بها بنفسي.';
   static const String notifSoundEnabled = 'تفعيل أصوات التنبيه';
   static const String notifVibrationEnabled = 'تفعيل الاهتزاز';
   static const String notifDirectCategories = 'الفئات المباشرة';
   static const String notifMediaAlerts = 'التنبيهات والوسائط';
   static const String notifSoundDesc = 'تشغيل نغمة عند وصول إشعار جديد.';
-  static const String notifVibrationDesc = 'اهتزاز الهاتف عند وصول إشعارات هامة.';
+  static const String notifVibrationDesc =
+      'اهتزاز الهاتف عند وصول إشعارات هامة.';
 
   // ── Notification Channels ──────────────────────────────────────────────
   static const String channelImportantTitle = 'إشعارات قيد الهامة';
-  static const String channelImportantDesc = 'تنبيهات الحوالات والسندات المباشرة';
+  static const String channelImportantDesc =
+      'تنبيهات الحوالات والسندات المباشرة';
   static const String channelImportantSummary = 'تنبيه مالي';
   static const String channelDefaultTitle = 'إشعارات قيد العامة';
-  static const String channelDefaultDesc = 'تحديثات النظام والمزامنة في الخلفية';
+  static const String channelDefaultDesc =
+      'تحديثات النظام والمزامنة في الخلفية';
 
   // ── Notification Permission ────────────────────────────────────────────
   static const String notifPermissionDeniedTitle = 'الإشعارات معطّلة';
@@ -712,7 +743,6 @@ abstract final class AppStringsAr {
   static const String syncAcceptanceBody = 'تم قبول السند الخاص بك ومزامنته.';
   static String syncAcceptanceInboxBody(String shortId) =>
       'تم اعتماد سند الصرف الخاص بك (#$shortId).';
-
 
   // ── Threaded Financial Interactions ──────────────────────────────────────
   static const String voucherWithdrawAction = 'سحب السند';
@@ -850,14 +880,16 @@ abstract final class AppStringsAr {
   static const String accrualNameHint = 'مثلاً: إيجار الشقة، اشتراك إنترنت';
   static const String accrualNameRequired = 'يرجى إدخال مسمى الالتزام.';
   static const String accrualAmountLabel = 'المبلغ التقديري';
-  static const String accrualAmountInvalid = 'يرجى إدخال مبلغ صالح أكبر من صفر.';
+  static const String accrualAmountInvalid =
+      'يرجى إدخال مبلغ صالح أكبر من صفر.';
   static const String accrualFrequencyLabel = 'تكرار الالتزام';
   static const String accrualNextDueDateLabel = 'تاريخ الاستحقاق القادم';
   static const String accrualSourceAccountLabel = 'حساب الدفع';
   static const String accrualSourceAccountHint = 'اختر حساب الدفع (كاش، بنك…)';
   static const String accrualDestAccountLabel = 'حساب الاستحقاق';
   static const String accrualDestAccountHint = 'اختر حساب المصروف (سكن، غذاء…)';
-  static const String accrualDestAccountRequired = 'يرجى اختيار الحساب المستهدف.';
+  static const String accrualDestAccountRequired =
+      'يرجى اختيار الحساب المستهدف.';
   static const String accrualCategoryLabel = 'البعد الحياتي المرتبط';
   static const String accrualDescriptionLabel = 'ملاحظات (اختياري)';
   static const String accrualSaveAction = 'حفظ الالتزام';
@@ -866,7 +898,8 @@ abstract final class AppStringsAr {
   // Accrual list page
   static const String accrualListTitle = 'الالتزامات والاستحقاقات';
   static const String accrualAddFab = 'التزام جديد';
-  static const String accrualMonthlySummaryLabel = 'إجمالي الالتزامات الشهرية المقدرة';
+  static const String accrualMonthlySummaryLabel =
+      'إجمالي الالتزامات الشهرية المقدرة';
   static const String accrualActiveLabel = 'نشط';
   static const String accrualDueSoonLabel = 'مستحق قريباً';
   static const String accrualEmptyState = 'لا توجد التزامات مجدولة بعد.';
@@ -874,7 +907,8 @@ abstract final class AppStringsAr {
   static String accrualProcessConfirmBody(double amount, String currency) =>
       'هل تود تسجيل مبلغ $amount $currency كعملية دفع حقيقية؟';
   static const String accrualProcessConfirmAction = 'نعم، تم الدفع';
-  static const String accrualProcessedSuccess = 'تم تنفيذ الاستحقاق وتسجيل العملية بنجاح.';
+  static const String accrualProcessedSuccess =
+      'تم تنفيذ الاستحقاق وتسجيل العملية بنجاح.';
   static const String accrualNextDuePrefix = 'الاستحقاق القادم';
   static const String accrualPayTooltip = 'تسجيل عملية دفع';
 }

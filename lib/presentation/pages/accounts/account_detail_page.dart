@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
@@ -83,6 +84,11 @@ class AccountDetailPage extends StatelessWidget {
                   onPressed: () => context
                       .read<AccountDetailCubit>()
                       .load(state.data.accountId),
+                ),
+                IconButton(
+                  tooltip: AppStringsAr.archiveAccountAction,
+                  icon: const Icon(Icons.archive_outlined),
+                  onPressed: () => _confirmAndArchive(context, state.data),
                 ),
               ],
             ],
@@ -178,7 +184,7 @@ class _DetailBody extends StatelessWidget {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 if (data.balancesMinorUnits.isEmpty)
                   QaydText(
                     '---',
@@ -355,6 +361,46 @@ class _ActionRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+Future<void> _confirmAndArchive(
+    BuildContext context, GetAccountDetailsOutput data) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text(AppStringsAr.archiveAccountAction),
+      content: const Text(AppStringsAr.archiveAccountWarningText),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child:  Text(AppStringsAr.actionCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+          child: const Text(AppStringsAr.archiveAccountConfirm),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed != true || !context.mounted) return;
+
+  final result = await InjectionContainer.archiveAccountUseCase(data.accountId);
+  if (!context.mounted) return;
+
+  if (result.isSuccess) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(AppStringsAr.archiveAccountSuccess)),
+    );
+    Navigator.pop(context); // Go back to the previous List page
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.failureOrNull!.messageAr)),
     );
   }
 }

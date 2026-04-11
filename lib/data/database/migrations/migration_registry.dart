@@ -22,6 +22,7 @@ import 'package:qayd/data/database/migrations/migration_021_remittance.dart';
 import 'package:qayd/data/database/migrations/migration_022_personal_economy_upgrade.dart';
 import 'package:qayd/data/database/migrations/migration_023_fix_fts_triggers.dart';
 import 'package:qayd/data/database/migrations/migration_024_audit_logs.dart';
+import 'package:qayd/data/database/migrations/migration_025_account_archive.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -54,6 +55,7 @@ final class MigrationRegistry {
     Migration022PersonalEconomyUpgrade(),
     Migration023FixFtsTriggers(),
     Migration024AuditLogs(),
+    Migration025AccountArchive(),
   ];
 
   static List<SchemaMigration> get ordered {

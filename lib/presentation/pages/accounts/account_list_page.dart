@@ -21,6 +21,8 @@ import 'package:qayd/presentation/pages/accounts/account_list_grouping.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_state.dart';
+import 'package:qayd/presentation/pages/accounts/archived_accounts_page.dart';
+import 'package:qayd/presentation/pages/accounts/archived_accounts_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -135,6 +137,29 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
         title: widget.isRootMode
             ? AppStringsAr.chartOfAccountsTitle
             : AppStringsAr.navAccountsTab,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.inventory_2_outlined),
+            tooltip: AppStringsAr.archivedAccountsTitle,
+            onPressed: () async {
+              await Navigator.of(context).push<void>(
+                QaydPageRoute.slideFromStart<void>(
+                  builder: (ctx) => BlocProvider(
+                    create: (_) => ArchivedAccountsCubit(
+                      listArchivedAccounts:
+                          InjectionContainer.listArchivedAccountsUseCase,
+                      restoreAccount: InjectionContainer.restoreAccountUseCase,
+                    )..load(),
+                    child: const ArchivedAccountsPage(),
+                  ),
+                ),
+              );
+              if (context.mounted) {
+                context.read<AccountListCubit>().load();
+              }
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_account_list',
@@ -364,14 +389,13 @@ class _AccountCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final natureDebit = dto.natureCode == 'debit';
     final natureColor = natureDebit ? custom.debit : custom.credit;
-    final iconData =
-        _getAccountIcon(dto.standardClassificationKind);
+    final iconData = _getAccountIcon(dto.standardClassificationKind);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+      padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(RadiusTokens.lg),
+          borderRadius: BorderRadius.circular(RadiusTokens.md),
           boxShadow: [
             BoxShadow(
               color: natureColor.withValues(alpha: 0.06),
@@ -386,18 +410,18 @@ class _AccountCard extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(RadiusTokens.lg),
+          borderRadius: BorderRadius.circular(RadiusTokens.md),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── Top Accent Gradient ──
+              // ── Top Accent Line ──
               Container(
-                height: 4,
+                height: 3,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      natureColor,
-                      natureColor.withValues(alpha: 0.3),
+                      natureColor.withValues(alpha: 0.8),
+                      natureColor.withValues(alpha: 0.4),
                     ],
                   ),
                 ),
@@ -408,16 +432,16 @@ class _AccountCard extends StatelessWidget {
                   color: scheme.surface,
                   border: Border(
                     left: BorderSide(
-                      color: scheme.outlineVariant.withValues(alpha: 0.35),
-                      width: 0.5,
+                      color: scheme.outlineVariant.withValues(alpha: 0.6),
+                      width: 1,
                     ),
                     right: BorderSide(
-                      color: scheme.outlineVariant.withValues(alpha: 0.35),
-                      width: 0.5,
+                      color: scheme.outlineVariant.withValues(alpha: 0.6),
+                      width: 1,
                     ),
                     bottom: BorderSide(
-                      color: scheme.outlineVariant.withValues(alpha: 0.35),
-                      width: 0.5,
+                      color: scheme.outlineVariant.withValues(alpha: 0.6),
+                      width: 1,
                     ),
                   ),
                 ),
@@ -427,10 +451,10 @@ class _AccountCard extends StatelessWidget {
                     onTap: onChat,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
-                        SpacingTokens.md,
-                        14,
-                        SpacingTokens.md,
-                        SpacingTokens.md,
+                        SpacingTokens.sm,
+                        10,
+                        SpacingTokens.sm,
+                        SpacingTokens.sm,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -441,20 +465,21 @@ class _AccountCard extends StatelessWidget {
                             children: [
                               // Icon Avatar
                               Container(
-                                width: 42,
-                                height: 42,
+                                width: 36,
+                                height: 36,
                                 decoration: BoxDecoration(
-                                  color: natureColor.withValues(alpha: 0.1),
+                                  color: scheme.surfaceContainerHigh
+                                      .withValues(alpha: 0.5),
                                   borderRadius:
                                       BorderRadius.circular(RadiusTokens.md),
                                 ),
                                 child: Icon(
                                   iconData,
-                                  size: 20,
+                                  size: 18,
                                   color: natureColor,
                                 ),
                               ),
-                              const SizedBox(width: SpacingTokens.sm + 4),
+                              const SizedBox(width: SpacingTokens.sm),
                               // Name & Classification
                               Expanded(
                                 child: Column(
@@ -462,37 +487,20 @@ class _AccountCard extends StatelessWidget {
                                   children: [
                                     QaydText(
                                       dto.name,
-                                      slot: QaydTextStyleSlot.titleMedium,
+                                      slot: QaydTextStyleSlot.titleSmall,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
+                                        fontWeight: FontWeight.w700,
                                         height: 1.2,
-                                        letterSpacing: -0.2,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    // Classification badge
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: scheme.surfaceContainerHighest
-                                            .withValues(alpha: 0.6),
-                                        borderRadius: BorderRadius.circular(
-                                            RadiusTokens.xs),
-                                      ),
-                                      child: QaydText(
-                                        _getClassificationLabel(dto),
-                                        slot: QaydTextStyleSlot.labelSmall,
-                                        color: scheme.onSurfaceVariant,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.2,
-                                        ),
-                                      ),
+                                    const SizedBox(height: 2),
+                                    // Classification label
+                                    QaydText(
+                                      _getClassificationLabel(dto),
+                                      slot: QaydTextStyleSlot.labelSmall,
+                                      color: scheme.onSurfaceVariant,
                                     ),
                                   ],
                                 ),
@@ -529,33 +537,21 @@ class _AccountCard extends StatelessWidget {
                             ],
                           ),
 
-                          // ── Separator ──
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 12),
-                            child: Divider(
-                              height: 1,
-                              thickness: 0.5,
-                              color: scheme.outlineVariant
-                                  .withValues(alpha: 0.3),
-                            ),
-                          ),
-
                           // ── Balance Section ──
                           if (dto.balancesMinorUnits.isNotEmpty) ...[
+                            const SizedBox(height: SpacingTokens.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
+                                horizontal: SpacingTokens.md,
+                                vertical: SpacingTokens.xs,
                               ),
                               decoration: BoxDecoration(
-                                color: scheme.surfaceContainerLow
-                                    .withValues(alpha: 0.7),
+                                color: scheme.surfaceContainerLow,
                                 borderRadius:
-                                    BorderRadius.circular(RadiusTokens.md),
+                                    BorderRadius.circular(RadiusTokens.sm),
                                 border: Border.all(
                                   color: scheme.outlineVariant
-                                      .withValues(alpha: 0.15),
+                                      .withValues(alpha: 0.3),
                                   width: 0.5,
                                 ),
                               ),
@@ -567,29 +563,7 @@ class _AccountCard extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          ] else ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: scheme.surfaceContainerLow
-                                    .withValues(alpha: 0.4),
-                                borderRadius:
-                                    BorderRadius.circular(RadiusTokens.md),
-                              ),
-                              child: Align(
-                                alignment: AlignmentDirectional.centerEnd,
-                                child: QaydMoneyDisplay(
-                                  money:
-                                      Money.zero(PredefinedCurrencies.sar),
-                                  size: QaydMoneyDisplaySize.small,
-                                  fontWeight: FontWeight.w300,
-                                ),
-                              ),
-                            ),
-                          ],
+                          ]
                         ],
                       ),
                     ),
@@ -627,11 +601,11 @@ class _AccountCard extends StatelessWidget {
       if (i > 0) {
         widgets.add(
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 2),
             child: Divider(
               height: 1,
               thickness: 0.5,
-              color: scheme.outlineVariant.withValues(alpha: 0.15),
+              color: scheme.outlineVariant.withValues(alpha: 0.2),
             ),
           ),
         );
@@ -639,28 +613,15 @@ class _AccountCard extends StatelessWidget {
 
       widgets.add(
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5),
+          padding: const EdgeInsets.symmetric(vertical: 2),
           child: Row(
             children: [
-              // Currency code badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: scheme.onSurface.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(RadiusTokens.xs),
-                ),
-                child: QaydText(
-                  code,
-                  slot: QaydTextStyleSlot.labelMedium,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                  ),
-                  color: scheme.onSurface.withValues(alpha: 0.75),
-                ),
+              // Currency code
+              QaydText(
+                code,
+                slot: QaydTextStyleSlot.labelSmall,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+                color: scheme.onSurfaceVariant,
               ),
               const Spacer(),
               // Money amount
@@ -678,9 +639,9 @@ class _AccountCard extends StatelessWidget {
                 ),
                 displayNegative: false,
                 size: QaydMoneyDisplaySize.small,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 6),
               // Side label badge
               Container(
                 padding: const EdgeInsets.symmetric(

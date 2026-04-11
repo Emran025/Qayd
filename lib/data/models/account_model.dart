@@ -7,6 +7,7 @@ final class AccountModel {
     this.parentId,
     required this.isDefault,
     required this.isActive,
+    required this.isArchived,
     required this.createdAtIso,
     this.standardClassification,
     this.customClassificationName,
@@ -20,6 +21,7 @@ final class AccountModel {
   final String? parentId;
   final bool isDefault;
   final bool isActive;
+  final bool isArchived;
   final String createdAtIso;
   final String? standardClassification;
   final String? customClassificationName;
@@ -33,6 +35,7 @@ final class AccountModel {
         'parent_id': parentId,
         'is_default': isDefault ? 1 : 0,
         'is_active': isActive ? 1 : 0,
+        'is_archived': isArchived ? 1 : 0,
         'created_at': createdAtIso,
         'standard_classification': standardClassification,
         'custom_classification_name': customClassificationName,
@@ -48,6 +51,7 @@ final class AccountModel {
       parentId: map['parent_id'] as String?,
       isDefault: (map['is_default'] as int) == 1,
       isActive: (map['is_active'] as int) == 1,
+      isArchived: (map['is_archived'] as int?) == 1,
       createdAtIso: map['created_at']! as String,
       standardClassification: map['standard_classification'] as String?,
       customClassificationName: map['custom_classification_name'] as String?,

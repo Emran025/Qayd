@@ -16,6 +16,7 @@ final class AccountMapper {
       parentId: account.parentId?.value,
       isDefault: account.isDefault,
       isActive: account.isActive,
+      isArchived: account.isArchived,
       createdAtIso: account.createdAt.toIso8601String(),
       standardClassification: std?.name,
       customClassificationName: account.classification.customName,
@@ -43,6 +44,7 @@ final class AccountMapper {
       isDefault: model.isDefault,
       createdAt: DateTime.parse(model.createdAtIso),
       isActive: model.isActive,
+      isArchived: model.isArchived,
       metadata: metadata,
     );
   }

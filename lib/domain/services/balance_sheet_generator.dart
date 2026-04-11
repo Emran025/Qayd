@@ -96,6 +96,9 @@ final class BalanceSheetGenerator {
       if (balanceMap.isEmpty && !isParent) continue;
 
       for (final entry in balanceMap.entries) {
+        // Skip exactly zero balance to keep reports clean
+        if (entry.value == 0 && !isParent) continue;
+
         lines.add(BalanceSheetLine(
           accountId: account.id.value,
           accountCode: account.metadata['code']?.toString() ?? '',

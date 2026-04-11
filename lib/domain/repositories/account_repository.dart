@@ -7,7 +7,10 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 abstract interface class AccountRepository {
   Future<Result<Account>> getById(AccountId id);
 
-  Future<Result<List<Account>>> getAll({bool activeOnly = false});
+  Future<Result<List<Account>>> getAll({
+    bool activeOnly = false,
+    bool excludeArchived = false,
+  });
 
   Future<Result<List<Account>>> getChildrenOf(AccountId parentId);
 
@@ -32,4 +35,16 @@ abstract interface class AccountRepository {
   Future<Result<AccountId?>> findAccountByWhatsApp(String whatsapp);
 
   Future<Result<bool>> hasAnyAccounts();
+
+  // ── Archive operations ──────────────────────────────────────────────────
+
+  /// Marks an account as archived. The caller must have already validated
+  /// that the account balance is zero before calling this method.
+  Future<Result<void>> archiveAccount(AccountId id);
+
+  /// Restores a previously archived account to active status.
+  Future<Result<void>> restoreAccount(AccountId id);
+
+  /// Returns only accounts where `is_archived == 1`.
+  Future<Result<List<Account>>> getArchivedAccounts();
 }

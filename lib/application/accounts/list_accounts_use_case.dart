@@ -32,6 +32,7 @@ class ListAccountsUseCase {
       // 1. Fetch all accounts (we need the tree structure for aggregation)
       final accountsResult = await _accountRepository.getAll(
         activeOnly: input.activeOnly,
+        excludeArchived: input.excludeArchived,
       );
       if (accountsResult.isFailure) {
         return FailureResult(accountsResult.failureOrNull!);

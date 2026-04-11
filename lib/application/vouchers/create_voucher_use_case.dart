@@ -95,7 +95,10 @@ class CreateVoucherUseCase {
       bool isAutomatedExpensePosting = false;
 
       if (_accountRepository != null) {
-        final accountsRes = await _accountRepository!.getAll(activeOnly: false);
+        final accountsRes = await _accountRepository!.getAll(
+          activeOnly: false,
+          excludeArchived: true,
+        );
         if (accountsRes.isSuccess) {
           final accounts = accountsRes.valueOrNull!;
           final affected = accounts.firstWhere(

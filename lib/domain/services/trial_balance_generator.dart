@@ -91,6 +91,9 @@ final class TrialBalanceGenerator {
         final currency = entry.key;
         final a = entry.value;
 
+        // Skip accounts with no net balance (exactly ZERO closing balance) to keep report clean
+        if (a.closingDebit == 0 && a.closingCredit == 0 && !isParent) continue;
+
         lines.add(TrialBalanceLine(
           accountId: account.id,
           accountCode: account.metadata['code']?.toString() ?? '',
