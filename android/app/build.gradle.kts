@@ -8,7 +8,8 @@ plugins {
 android {
     namespace = "com.example.qayd"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "29.0.13599879"
+    ndkVersion = flutter.ndkVersion
+
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

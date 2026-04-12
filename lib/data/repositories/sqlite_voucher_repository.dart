@@ -105,7 +105,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
         SELECT id FROM (
           WITH RECURSIVE internal_accounts AS (
             SELECT id FROM accounts 
-            WHERE standard_classification IN ('liquidAssets', 'personalExpenses', 'personalRevenues', 'settlements', 'fixedDepreciableAssets', 'fixedProfitableAssets')
+            WHERE standard_classification IN ('liquidAssets', 'personalExpenses', 'personalRevenues', 'settlements', 'fixedDepreciableAssets', 'fixedProfitableAssets', 'clearingRemittances', 'remittanceFees')
             AND parent_id IS NULL
             UNION ALL
             SELECT a.id FROM accounts a

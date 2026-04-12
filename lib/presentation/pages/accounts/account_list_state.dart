@@ -42,9 +42,24 @@ final class AccountListReady extends AccountListState {
 
     // Filter by type
     if (typeFilter == AccountTypeFilter.root) {
-      list = list.where((a) => a.isRoot).toList();
+      // Exclude Internal Management root accounts from Chart of Accounts
+      list = list.where((a) {
+        final isExcluded = a.standardClassificationKind == 'personalExpenses' ||
+            a.standardClassificationKind == 'personalRevenues' ||
+            a.standardClassificationKind == 'fixedDepreciableAssets' ||
+            a.standardClassificationKind == 'fixedProfitableAssets';
+        return a.isRoot && !isExcluded;
+      }).toList();
     } else if (typeFilter == AccountTypeFilter.child) {
-      list = list.where((a) => !a.isRoot).toList();
+      // For children (main Accounts tab), exclude Internal Management accounts (Revenues/Expenses)
+      // to keep the list focused on counterparties and wallets.
+      list = list.where((a) {
+        final isExcluded = a.standardClassificationKind == 'personalExpenses' ||
+            a.standardClassificationKind == 'personalRevenues' ||
+            a.standardClassificationKind == 'fixedDepreciableAssets' ||
+            a.standardClassificationKind == 'fixedProfitableAssets';
+        return !a.isRoot && !isExcluded;
+      }).toList();
     }
 
     // Search query

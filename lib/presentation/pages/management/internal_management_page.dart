@@ -4,7 +4,6 @@ import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -12,16 +11,11 @@ import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/management/internal_voucher_create_page.dart';
 import 'package:qayd/presentation/pages/management/widgets/internal_voucher_tile.dart';
-import 'package:qayd/presentation/pages/management/widgets/personal_accounts_list_view.dart';
-import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
-import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
-import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
-import 'package:qayd/presentation/pages/accruals/accrual_list_page.dart';
-import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -35,11 +29,7 @@ class InternalManagementPage extends StatefulWidget {
 }
 
 class _InternalManagementPageState extends State<InternalManagementPage> {
-  String? _fundRootId;
-  String? _expensesRootId;
-  String? _revenuesRootId;
-  String? _depreciableAssetsRootId;
-  String? _profitableAssetsRootId;
+  final Map<String, String> _accountClassifications = {};
   bool _isLoadingRoots = true;
 
   @override
@@ -56,21 +46,7 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
       (_) => setState(() => _isLoadingRoots = false),
       (out) {
         for (final a in out.accounts) {
-          if (a.isRoot) {
-            if (a.standardClassificationKind == 'liquidAssets') {
-              _fundRootId = a.id;
-            } else if (a.standardClassificationKind == 'personalExpenses') {
-              _expensesRootId = a.id;
-            } else if (a.standardClassificationKind == 'personalRevenues') {
-              _revenuesRootId = a.id;
-            } else if (a.standardClassificationKind ==
-                'fixedDepreciableAssets') {
-              _depreciableAssetsRootId = a.id;
-            } else if (a.standardClassificationKind ==
-                'fixedProfitableAssets') {
-              _profitableAssetsRootId = a.id;
-            }
-          }
+          _accountClassifications[a.id] = a.standardClassificationKind ?? '';
         }
         setState(() => _isLoadingRoots = false);
       },
@@ -85,21 +61,13 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
       );
     }
 
-    final filter = const AdvancedFilterInput(
-      isInternalOnly: true,
-    );
-
     return BlocProvider(
       create: (_) => VoucherListCubit(
         InjectionContainer.listVouchersUseCase,
         InjectionContainer.notificationMessageRepository,
-      )..setAdvancedFilter(filter),
+      )..setAdvancedFilter(const AdvancedFilterInput(isInternalOnly: true)),
       child: _InternalManagementView(
-        fundRootId: _fundRootId,
-        expensesRootId: _expensesRootId,
-        revenuesRootId: _revenuesRootId,
-        depreciableAssetsRootId: _depreciableAssetsRootId,
-        profitableAssetsRootId: _profitableAssetsRootId,
+        accountClassifications: _accountClassifications,
       ),
     );
   }
@@ -107,106 +75,48 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
 
 class _InternalManagementView extends StatefulWidget {
   const _InternalManagementView({
-    required this.fundRootId,
-    required this.expensesRootId,
-    required this.revenuesRootId,
-    this.depreciableAssetsRootId,
-    this.profitableAssetsRootId,
+    required this.accountClassifications,
   });
 
-  final String? fundRootId;
-  final String? expensesRootId;
-  final String? revenuesRootId;
-  final String? depreciableAssetsRootId;
-  final String? profitableAssetsRootId;
+  final Map<String, String> accountClassifications;
 
   @override
   State<_InternalManagementView> createState() =>
       _InternalManagementViewState();
 }
 
-class _InternalManagementViewState extends State<_InternalManagementView>
-    with TickerProviderStateMixin {
+class _InternalManagementViewState extends State<_InternalManagementView> {
   final _searchController = TextEditingController();
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(() => setState(() {}));
-  }
+  String _flowFilter = 'all'; // 'all', 'revenues', 'expenses'
 
   Future<void> _openCreate(BuildContext context) async {
     final listCubit = context.read<VoucherListCubit>();
-    if (_tabController.index == 0 ||
-        _tabController.index == 2 ||
-        _tabController.index == 3) {
-      VoucherType? type;
-      if (_tabController.index == 2) type = VoucherType.receipt;
-      if (_tabController.index == 3) type = VoucherType.payment;
+    // Logic for creation based on current visual filter
+    VoucherType? type =
+        _flowFilter == 'revenues' ? VoucherType.receipt : VoucherType.payment;
 
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (_) => VoucherCreateCubit(
-                  InjectionContainer.createVoucherUseCase,
-                  InjectionContainer.createTripartiteTransferUseCase,
-                ),
-              ),
-              BlocProvider(
-                create: (_) => VoucherSuggestionsCubit(
-                  InjectionContainer.getAutoSuggestionsUseCase,
-                  InjectionContainer.markNotificationMessageProcessedUseCase,
-                ),
-              ),
-            ],
-            child: InternalVoucherCreatePage(initialType: type),
-          ),
-        ),
-      );
-    } else {
-      String? parentId;
-      String? parentKind;
-
-      if (_tabController.index == 1) {
-        // Assets are typically added under depreciable assets by default here
-        parentId = widget.depreciableAssetsRootId;
-        parentKind = 'fixedDepreciableAssets';
-      }
-
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (_) => ConstrainedBox(
-          constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.9),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            child: BlocProvider(
-              create: (_) => AccountCreateCubit(
-                InjectionContainer.createAccountUseCase,
-              ),
-              child: AccountCreatePage(
-                forcedIsChild: true,
-                parentAccountId: parentId,
-                parentStandardKind: parentKind,
-                allowedStandardKinds: _tabController.index == 1
-                    ? const [
-                        StandardAccountClassificationKind
-                            .fixedDepreciableAssets,
-                        StandardAccountClassificationKind.fixedProfitableAssets,
-                      ]
-                    : null,
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => VoucherCreateCubit(
+                InjectionContainer.createVoucherUseCase,
+                InjectionContainer.createTripartiteTransferUseCase,
               ),
             ),
-          ),
+            BlocProvider(
+              create: (_) => VoucherSuggestionsCubit(
+                InjectionContainer.getAutoSuggestionsUseCase,
+                InjectionContainer.markNotificationMessageProcessedUseCase,
+              ),
+            ),
+          ],
+          child: InternalVoucherCreatePage(initialType: type),
         ),
-      );
-    }
+      ),
+    );
+
     if (mounted) listCubit.load();
   }
 
@@ -219,7 +129,6 @@ class _InternalManagementViewState extends State<_InternalManagementView>
   @override
   void dispose() {
     _searchController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -232,225 +141,95 @@ class _InternalManagementViewState extends State<_InternalManagementView>
     return QaydScaffold(
       appBar: QaydAppBar(
         showNotifications: true,
-        title: AppStringsAr.managementTitle,
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: 'السجل المالي'),
-            Tab(text: 'الأصول والممتلكات'),
-            Tab(text: 'إيرادات الصندوق'),
-            Tab(text: 'مصاريف الصندوق'),
-          ],
-        ),
+        title: AppStringsAr.managementTabFundFlows,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => context.read<VoucherListCubit>().load(),
+            onPressed: () {
+              context.read<VoucherListCubit>().load();
+              setState(() {});
+            },
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreate(context),
-        icon: Icon(_tabController.index == 0
-            ? Icons.add_rounded
-            : Icons.plus_one_rounded),
-        label: Text(_getFabLabel()),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text(AppStringsAr.managementAddFlowFab),
         backgroundColor: gold,
         foregroundColor: Colors.black,
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // ── Tab 1: Financial Records
-          BlocBuilder<VoucherListCubit, VoucherListState>(
-            builder: (context, state) {
-              return Column(
-                children: [
-                  _buildControlPanel(context, state, scheme, gold),
-                  const Divider(height: 1),
-                  _buildFilterChips(context, state, gold),
-                  Expanded(
-                    child: state is VoucherListLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : _buildList(context, state),
-                  ),
-                ],
-              );
-            },
-          ),
-          // ── Tab 2: Assets
-          const PersonalAccountsListView(
-            kinds: ['fixedDepreciableAssets', 'fixedProfitableAssets'],
-            emptyText: 'لا تملك أي أصول مسجلة حالياً.',
-            showAssetDetails: true,
-          ),
-          // ── Tab 3: Revenues
-          const PersonalAccountsListView(
-            kinds: ['personalRevenues'],
-            emptyText: 'لا تملك أي إيرادات داخلية مسجلة حالياً.',
-          ),
-          // ── Tab 4: Expenses
-          const PersonalAccountsListView(
-            kinds: ['personalExpenses'],
-            emptyText: 'لا تملك أي مصاريف داخلية مسجلة حالياً.',
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getFabLabel() {
-    switch (_tabController.index) {
-      case 0:
-        return AppStringsAr.addInternalVoucherFab;
-      case 1:
-        return 'إضافة أصل جديد';
-      case 2:
-        return 'تسجيل إيراد داخلي';
-      case 3:
-        return 'تسجيل مصروف داخلي';
-      default:
-        return AppStringsAr.addInternalVoucherFab;
-    }
-  }
-
-  Widget _buildControlPanel(BuildContext context, VoucherListState state,
-      ColorScheme scheme, Color gold) {
-    final custom = Theme.of(context).extension<QaydCustomColors>()!;
-    double totalExpenses = 0;
-    double totalRevenues = 0;
-
-    if (state is VoucherListReady) {
-      for (final v in state.vouchers) {
-        if (v.typeCode == 'payment') totalExpenses += v.amountMinorUnits / 100;
-        if (v.typeCode == 'receipt') totalRevenues += v.amountMinorUnits / 100;
-      }
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(SpacingTokens.md),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-      ),
-      child: Column(
-        children: [
-          QaydTextField(
-            controller: _searchController,
-            hint: 'ابحث في السندات الداخلية...',
-            prefixIcon: const Icon(Icons.search_rounded),
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear_rounded),
-                    onPressed: () {
-                      _searchController.clear();
-                      context.read<VoucherListCubit>().clearSearch();
-                    },
-                  )
-                : null,
-            onChanged: (v) => context.read<VoucherListCubit>().setSearchText(v),
-          ),
-          const SizedBox(height: SpacingTokens.md),
-          Row(
+      body: BlocBuilder<VoucherListCubit, VoucherListState>(
+        builder: (context, state) {
+          return Column(
             children: [
-              _StatCard(
-                label: 'المصروفات',
-                amount: totalExpenses,
-                color: custom.debit,
-                icon: Icons.north_east_rounded,
-              ),
-              const SizedBox(width: SpacingTokens.md),
-              _StatCard(
-                label: 'الإيرادات',
-                amount: totalRevenues,
-                color: custom.credit,
-                icon: Icons.south_west_rounded,
-              ),
-            ],
-          ),
-          const SizedBox(height: SpacingTokens.md),
-          InkWell(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AccrualListPage()),
-            ),
-            borderRadius: BorderRadius.circular(RadiusTokens.lg),
-            child: Container(
-              padding: const EdgeInsets.all(SpacingTokens.md),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    ColorTokens.navy800,
-                    ColorTokens.navy700,
+              _buildControlPanel(context, state, scheme, gold),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.all(SpacingTokens.md),
+                child: Column(
+                  children: [
+                    QaydTextField(
+                      controller: _searchController,
+                      hint: AppStringsAr.managementSearchVouchersHint,
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      onChanged: (v) =>
+                          context.read<VoucherListCubit>().setSearchText(v),
+                    ),
+                    const SizedBox(height: SpacingTokens.sm),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          FilterChip(
+                            label: const Text(AppStringsAr.filterNatureAll),
+                            selected: _flowFilter == 'all',
+                            onSelected: (_) =>
+                                setState(() => _flowFilter = 'all'),
+                          ),
+                          const SizedBox(width: SpacingTokens.sm),
+                          FilterChip(
+                            label: const Text(AppStringsAr.managementLabelExpenses),
+                            selected: _flowFilter == 'expenses',
+                            onSelected: (_) =>
+                                setState(() => _flowFilter = 'expenses'),
+                          ),
+                          const SizedBox(width: SpacingTokens.sm),
+                          FilterChip(
+                            label: const Text(AppStringsAr.managementLabelRevenues),
+                            selected: _flowFilter == 'revenues',
+                            onSelected: (_) =>
+                                setState(() => _flowFilter = 'revenues'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(RadiusTokens.lg),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.event_repeat_rounded,
-                      color: ColorTokens.warningAmber),
-                  const SizedBox(width: SpacingTokens.md),
-                  const Expanded(
-                    child: Text(
-                      'إدارة الالتزامات الدورية',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const Icon(Icons.chevron_left_rounded, color: Colors.white54),
-                ],
+              const Divider(height: 1),
+              Expanded(
+                child: state is VoucherListLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildList(context, state),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChips(
-      BuildContext context, VoucherListState state, Color gold) {
-    if (state is! VoucherListReady) return const SizedBox.shrink();
-    final currentType = state.advancedFilter.type;
-    return SizedBox(
-      height: 54,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
-        children: [
-          FilterChip(
-            label: const Text('الكل'),
-            selected: currentType == null,
-            onSelected: (_) =>
-                context.read<VoucherListCubit>().patchAdvancedFilter(
-                      (f) => f.copyWith(type: null),
-                    ),
-          ),
-          const SizedBox(width: SpacingTokens.sm),
-          FilterChip(
-            label: const Text('المصروفات'),
-            selected: currentType == VoucherType.payment,
-            onSelected: (_) =>
-                context.read<VoucherListCubit>().patchAdvancedFilter(
-                      (f) => f.copyWith(type: VoucherType.payment),
-                    ),
-          ),
-          const SizedBox(width: SpacingTokens.sm),
-          FilterChip(
-            label: const Text('الإيرادات'),
-            selected: currentType == VoucherType.receipt,
-            onSelected: (_) =>
-                context.read<VoucherListCubit>().patchAdvancedFilter(
-                      (f) => f.copyWith(type: VoucherType.receipt),
-                    ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildList(BuildContext context, VoucherListState state) {
     if (state is! VoucherListReady) return const SizedBox.shrink();
-    final list = state.vouchers;
+
+    // Filter list locally based on _flowFilter
+    final list = state.vouchers.where((v) {
+      if (_flowFilter == 'expenses') return v.typeCode == 'payment';
+      if (_flowFilter == 'revenues') return v.typeCode == 'receipt';
+      return true;
+    }).toList();
+
     if (list.isEmpty) {
       return Center(
         child: Column(
@@ -461,7 +240,7 @@ class _InternalManagementViewState extends State<_InternalManagementView>
             const SizedBox(height: SpacingTokens.md),
             QaydText(
               state.searchQuery.isNotEmpty
-                  ? 'لا توجد نتائج لبحثك'
+                  ? AppStringsAr.managementSearchNoResults
                   : AppStringsAr.vouchersEmpty,
               slot: QaydTextStyleSlot.bodyLarge,
               color: Theme.of(context).colorScheme.outline,
@@ -483,18 +262,72 @@ class _InternalManagementViewState extends State<_InternalManagementView>
       },
     );
   }
+
+  Widget _buildControlPanel(BuildContext context, VoucherListState state,
+      ColorScheme scheme, Color gold) {
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+
+    // Multi-currency maps: Symbol -> Amount
+    final Map<String, double> expensesByCurrency = {};
+    final Map<String, double> revenuesByCurrency = {};
+
+    if (state is VoucherListReady) {
+      for (final v in state.vouchers) {
+        final classification =
+            widget.accountClassifications[v.counterpartyAccountId];
+        // Skip debt settlements
+        if (classification == 'payables' || classification == 'receivables') {
+          continue;
+        }
+
+        final symbol = v.currencySymbol;
+        final amount = v.amountMinorUnits / 100;
+
+        if (v.typeCode == 'payment') {
+          expensesByCurrency[symbol] =
+              (expensesByCurrency[symbol] ?? 0) + amount;
+        } else if (v.typeCode == 'receipt') {
+          revenuesByCurrency[symbol] =
+              (revenuesByCurrency[symbol] ?? 0) + amount;
+        }
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(color: scheme.surface),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _StatCard(
+            label: AppStringsAr.managementLabelExpenses,
+            balances: expensesByCurrency,
+            color: custom.debit,
+            icon: Icons.north_east_rounded,
+          ),
+          const SizedBox(width: SpacingTokens.md),
+          _StatCard(
+            label: AppStringsAr.managementLabelRevenues,
+            balances: revenuesByCurrency,
+            color: custom.credit,
+            icon: Icons.south_west_rounded,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.label,
-    required this.amount,
+    required this.balances,
     required this.color,
     required this.icon,
   });
 
   final String label;
-  final double amount;
+  final Map<String, double> balances;
   final Color color;
   final IconData icon;
 
@@ -502,6 +335,10 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+
+    // Default if empty
+    final displayBalances = balances.isEmpty ? {'': 0.0} : balances;
+
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(SpacingTokens.md),
@@ -520,9 +357,32 @@ class _StatCard extends StatelessWidget {
                   slot: QaydTextStyleSlot.labelSmall,
                   color: scheme.onSurfaceVariant),
             ]),
-            const SizedBox(height: 4),
-            QaydText(amount.toStringAsFixed(2),
-                slot: QaydTextStyleSlot.titleMedium),
+            const SizedBox(height: SpacingTokens.sm),
+            ...displayBalances.entries.map((e) {
+              final amountStr = e.value.toStringAsFixed(2);
+              final symbol = e.key;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: QaydText(
+                        amountStr,
+                        slot: QaydTextStyleSlot.titleMedium,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    QaydText(
+                      symbol,
+                      slot: QaydTextStyleSlot.labelSmall,
+                      color: color,
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),

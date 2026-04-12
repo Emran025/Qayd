@@ -150,9 +150,10 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                   ),
 
                 // --- Protocol §2: Withdrawal Action ---
-                if (state.data.stateCode == 'draft' ||
-                    state.data.receiverStatusCode == 'under_request' ||
-                    state.data.receiverStatusCode == 'rejected')
+                if (state.data.isCreator &&
+                    state.data.stateCode != 'settled' &&
+                    state.data.stateCode != 'withdrawn' &&
+                    state.data.receiverStatusCode != 'accepted')
                   PopupMenuButton<String>(
                     onSelected: (val) {
                       if (val == 'withdraw') {

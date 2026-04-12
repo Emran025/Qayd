@@ -214,9 +214,11 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       setState(() => _mutating = false);
 
       result.fold(
-        (f) => QaydSnackBar.show(context, f.messageAr, type: QaydSnackBarType.error),
+        (f) => QaydSnackBar.show(context, f.messageAr,
+            type: QaydSnackBarType.error),
         (_) {
-          QaydSnackBar.show(context, AppStringsAr.voucherWithdrawalSuccess, type: QaydSnackBarType.success);
+          QaydSnackBar.show(context, AppStringsAr.voucherWithdrawalSuccess,
+              type: QaydSnackBarType.success);
           cubit.reload();
         },
       );
@@ -235,7 +237,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   BlocProvider<VoucherSuggestionsCubit>(
                     create: (_) => VoucherSuggestionsCubit(
                       InjectionContainer.getAutoSuggestionsUseCase,
-                      InjectionContainer.markNotificationMessageProcessedUseCase,
+                      InjectionContainer
+                          .markNotificationMessageProcessedUseCase,
                     ),
                   ),
                 ],
@@ -341,7 +344,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
               padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
               child: Row(
                 children: [
-                  if (msg.direction == 'outgoing' && msg.signatureStatusCode == AgreementStatus.rejected.name)
+                  if (msg.isCreator &&
+                      msg.signatureStatusCode == AgreementStatus.rejected.name)
                     _ActionButton(
                       icon: Icons.edit_rounded,
                       label: AppStringsAr.voucherEditAction,
@@ -350,7 +354,10 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                         _resubmitVoucher(context, msg.voucherId);
                       },
                     ),
-                  if (msg.direction == 'outgoing' && !AgreementStatus.values.byName(msg.signatureStatusCode).isAccepted)
+                  if (msg.isCreator &&
+                      !AgreementStatus.values
+                          .byName(msg.signatureStatusCode)
+                          .isAccepted)
                     _ActionButton(
                       icon: Icons.undo_rounded,
                       label: AppStringsAr.statementChatWithdraw,
@@ -497,7 +504,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         return Scaffold(
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           floatingActionButton: Padding(
-            padding: const EdgeInsets.only(bottom: 40.0), // Lift it a bit higher
+            padding:
+                const EdgeInsets.only(bottom: 40.0), // Lift it a bit higher
             child: FloatingActionButton.extended(
               onPressed: () {
                 RequestTripartiteSheet.show(
@@ -639,7 +647,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                 left: SpacingTokens.sm,
                                 right: SpacingTokens.sm,
                                 top: SpacingTokens.sm,
-                                bottom: 110.0, // Extra padding so FAB doesn't cover numbers
+                                bottom:
+                                    110.0, // Extra padding so FAB doesn't cover numbers
                               ),
                               itemCount: data.messages.length,
                               itemBuilder: (context, i) {
@@ -662,8 +671,10 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                           msg.otherPartyId,
                                           data.counterpartyAccountId,
                                         )
-                                      : VoucherDetailPage.show(context, msg.voucherId),
-                                  onLongPress: () => _showVoucherActions(context, msg),
+                                      : VoucherDetailPage.show(
+                                          context, msg.voucherId),
+                                  onLongPress: () =>
+                                      _showVoucherActions(context, msg),
                                 );
 
                                 final itemWidget = Column(
@@ -1352,9 +1363,9 @@ class _ChronologySummaryTable extends StatelessWidget {
                       : custom.confirmedState;
 
               final label = isPositive
-                  ? 'لك'
+                  ? 'دائن (لك)'
                   : isNegative
-                      ? 'عليك'
+                      ? 'مدين (عليك)'
                       : 'متعادل';
 
               return Container(
@@ -1871,11 +1882,17 @@ class _MessageBubble extends StatelessWidget {
 
   Widget _actionArea(BuildContext context) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
-    final showAcceptReject = _isIncoming && _isDraft && !_isRejected;
-    // Protocol Update: Show buttons ONLY when Rejected (Corrective flow).
-    // If voucher is pending (at the counterparty), the user requested no buttons.
-    final showWithdraw = _isOutgoing && _isDraft && _isRejected;
-    final showResubmit = _isOutgoing && _isDraft && _isRejected;
+
+    // Only the Receiver (Counterparty) can Accept or Reject a pending voucher
+    final showAcceptReject = !msg.isCreator && _isDraft && !_isRejected;
+
+    // The Creator can withdraw their voucher as long as it is still a draft
+    // (meaning the counterparty hasn't accepted it yet)
+    final showWithdraw = msg.isCreator && _isDraft;
+
+    // The Creator can only run the Corrective Resubmission flow (Resubmit)
+    // if the counterparty explicitly rejected it
+    final showResubmit = msg.isCreator && _isDraft && _isRejected;
 
     if (isUnified) return const SizedBox.shrink();
     if (!showAcceptReject && !showWithdraw && !showResubmit) {

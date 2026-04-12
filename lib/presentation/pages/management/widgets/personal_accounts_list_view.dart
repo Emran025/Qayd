@@ -15,11 +15,13 @@ class PersonalAccountsListView extends StatefulWidget {
     required this.kinds,
     required this.emptyText,
     this.showAssetDetails = false,
+    this.searchText = '',
   });
 
   final List<String> kinds;
   final String emptyText;
   final bool showAssetDetails;
+  final String searchText;
 
   @override
   State<PersonalAccountsListView> createState() =>
@@ -36,6 +38,15 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
     _load();
   }
 
+  @override
+  void didUpdateWidget(PersonalAccountsListView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.kinds != widget.kinds ||
+        oldWidget.searchText != widget.searchText) {
+      _load();
+    }
+  }
+
   Future<void> _load() async {
     setState(() => _loading = true);
     final res = await InjectionContainer.listAccountsUseCase(
@@ -46,11 +57,13 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
       (data) {
         setState(() {
           _accounts = data.accounts.where((a) {
-            // Find children of these kinds, or the roots themselves if they match
-            // Actually, children inherit the standardClassificationKind from root!
-            return widget.kinds.contains(a.standardClassificationKind) &&
-                a.parentId != null;
-            // We explicitly only want children (the actual items), not the root buckets.
+            final matchesKind =
+                widget.kinds.contains(a.standardClassificationKind);
+            final isChild = a.parentId != null;
+            final matchesSearch = widget.searchText.isEmpty ||
+                a.name.toLowerCase().contains(widget.searchText.toLowerCase());
+
+            return matchesKind && isChild && matchesSearch;
           }).toList();
           _loading = false;
         });

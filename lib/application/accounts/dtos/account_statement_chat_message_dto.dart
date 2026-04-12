@@ -19,6 +19,7 @@ class AccountStatementChatMessageDto {
     this.mediatorAccountId,
     this.mediatorName,
     this.feeAmountMinorUnits,
+    required this.isCreator,
   });
 
   final String voucherId;
@@ -62,4 +63,7 @@ class AccountStatementChatMessageDto {
 
   /// (Remittance) Minor units of the fee amount if any.
   final int? feeAmountMinorUnits;
+
+  /// Indicates if the current user (perspective) is the creator of this voucher.
+  final bool isCreator;
 }

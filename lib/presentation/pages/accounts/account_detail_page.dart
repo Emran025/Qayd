@@ -6,6 +6,8 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
@@ -122,8 +124,9 @@ class _DetailBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final custom = theme.extension<QaydCustomColors>()!;
     final created =
         DateFormat.yMMMd('ar').format(DateTime.parse(data.createdAtIso));
 
@@ -138,189 +141,331 @@ class _DetailBody extends StatelessWidget {
         ? AppStringsAr.natureDebitShort
         : AppStringsAr.natureCreditShort;
 
+    final iconData = _getAccountIcon(data.standardClassificationKind);
+
     return ListView(
-      padding: const EdgeInsets.all(SpacingTokens.lg),
+      padding: const EdgeInsets.all(SpacingTokens.md),
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(SpacingTokens.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                QaydText(
-                  AppStringsAr.accountBalanceLabel,
-                  slot: QaydTextStyleSlot.labelMedium,
-                  color: scheme.onSurfaceVariant,
+        // ── 1. Clean Balance Header ──
+        Container(
+          margin: const EdgeInsets.only(bottom: SpacingTokens.lg),
+          padding: const EdgeInsets.all(SpacingTokens.xl),
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            borderRadius: BorderRadius.circular(RadiusTokens.lg),
+            border:
+                Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: natureColor.withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: natureColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(RadiusTokens.pill),
+                  border: Border.all(color: natureColor.withValues(alpha: 0.2)),
                 ),
-                const SizedBox(height: SpacingTokens.xs),
+                child: QaydText(
+                  natureLabel,
+                  slot: QaydTextStyleSlot.labelSmall,
+                  color: natureColor,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900, letterSpacing: 0.5),
+                ),
+              ),
+              const SizedBox(height: SpacingTokens.md),
+              if (data.balancesMinorUnits.isEmpty)
+                QaydMoneyDisplay(
+                  money: Money.zero(PredefinedCurrencies.sar),
+                  size: QaydMoneyDisplaySize.large,
+                )
+              else
                 ...data.balancesMinorUnits.entries.map((e) {
                   final code = e.key;
                   final minor = e.value;
-                  // For simplicity in UI, we fetch the symbol from PredefinedCurrencies
-                  // or fallback to the code itself.
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        QaydText(
-                          code,
-                          slot: QaydTextStyleSlot.bodySmall,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                        QaydMoneyDisplay(
-                          money: Money.nonNegative(
-                              minor.abs(),
-                              PredefinedCurrencies.all.firstWhere(
-                                  (c) => c.code == code,
-                                  orElse: () => CurrencyCode(
-                                      code: code, nameAr: code, symbol: code))),
-                          displayNegative: minor < 0,
-                          size: data.balancesMinorUnits.length > 1
-                              ? QaydMoneyDisplaySize.medium
-                              : QaydMoneyDisplaySize.large,
-                        ),
-                      ],
-                    ),
+                  return QaydMoneyDisplay(
+                    money: Money.nonNegative(
+                        minor.abs(),
+                        PredefinedCurrencies.all.firstWhere(
+                            (c) => c.code == code,
+                            orElse: () => CurrencyCode(
+                                code: code, nameAr: code, symbol: code))),
+                    displayNegative: minor < 0,
+                    size: QaydMoneyDisplaySize.large,
                   );
                 }),
-                if (data.balancesMinorUnits.isEmpty)
-                  QaydText(
-                    '---',
-                    slot: QaydTextStyleSlot.titleMedium,
-                    color: scheme.onSurfaceVariant,
+              const SizedBox(height: SpacingTokens.xs),
+              QaydText(
+                AppStringsAr.accountBalanceLabel,
+                slot: QaydTextStyleSlot.labelSmall,
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+              ),
+            ],
+          ),
+        ),
+
+        // ── 2. Information Cards ──
+        _SectionHeader(
+            title: 'هوية الحساب',
+            icon: Icons.fingerprint_rounded,
+            color: ColorTokens.emerald600),
+        const SizedBox(height: SpacingTokens.sm),
+        _CardWrapper(
+          child: Column(
+            children: [
+              _RichRow(
+                icon: iconData,
+                iconColor: ColorTokens.navy700,
+                label: AppStringsAr.classificationLabel,
+                value: classificationText,
+              ),
+              const _LineDivider(),
+              _RichRow(
+                icon: Icons.track_changes_rounded,
+                iconColor: natureColor,
+                label: AppStringsAr.natureLabel,
+                value: natureLabel,
+                valueColor: natureColor,
+              ),
+              const _LineDivider(),
+              _RichRow(
+                icon: Icons.verified_user_outlined,
+                iconColor: data.isActive ? Colors.green : Colors.grey,
+                label: AppStringsAr.statusLabel,
+                value: data.isActive
+                    ? AppStringsAr.statusActive
+                    : AppStringsAr.statusInactive,
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: SpacingTokens.lg),
+        _SectionHeader(
+            title: 'التسلسل الزمني والتبعية',
+            icon: Icons.account_tree_outlined,
+            color: ColorTokens.navy700),
+        const SizedBox(height: SpacingTokens.sm),
+        _CardWrapper(
+          child: Column(
+            children: [
+              _RichRow(
+                icon: Icons.layers_outlined,
+                iconColor: scheme.primary,
+                label: AppStringsAr.accountTypeLabel,
+                value: data.isRoot
+                    ? AppStringsAr.accountTypeRoot
+                    : AppStringsAr.accountTypeChild,
+              ),
+              if (data.parentId != null) ...[
+                const _LineDivider(),
+                _RichRow(
+                  icon: Icons.subdirectory_arrow_left_rounded,
+                  iconColor: Colors.deepPurple,
+                  label: AppStringsAr.parentAccountLabel,
+                  value: data.parentName ?? data.parentId!,
+                ),
+              ],
+              const _LineDivider(),
+              _RichRow(
+                icon: Icons.calendar_today_rounded,
+                iconColor: Colors.blueGrey,
+                label: AppStringsAr.createdAtLabel,
+                value: created,
+              ),
+            ],
+          ),
+        ),
+
+        // ── 3. Party Details Section ──
+        if (data.phoneNumber != null || data.whatsappNumber != null) ...[
+          const SizedBox(height: SpacingTokens.lg),
+          _SectionHeader(
+              title: AppStringsAr.partyDetailsSection,
+              icon: Icons.contact_mail_outlined,
+              color: ColorTokens.goldAccent),
+          const SizedBox(height: SpacingTokens.sm),
+          _CardWrapper(
+            child: Column(
+              children: [
+                if (data.partyType?.isNotEmpty == true &&
+                    data.partyType != null)
+                  _RichRow(
+                    icon: Icons.people_outline_rounded,
+                    iconColor: Colors.indigo,
+                    label: AppStringsAr.partyTypeLabel,
+                    value: data.partyType!,
+                  ),
+                if (data.phoneNumber?.isNotEmpty == true)
+                  _ActionRow(
+                    icon: Icons.phone_android_rounded,
+                    label: "+${data.phoneNumber!}",
+                    actionLabel: AppStringsAr.actionCall,
+                    color: Colors.blue.shade700,
+                    onTap: () =>
+                        launchUrl(Uri.parse('tel:+${data.phoneNumber}')),
+                  ),
+                if (data.whatsappNumber?.isNotEmpty == true)
+                  _ActionRow(
+                    icon: Icons.chat_rounded,
+                    label: "+${data.whatsappNumber!}",
+                    actionLabel: AppStringsAr.actionWhatsApp,
+                    color: const Color(0xFF25D366),
+                    onTap: () => launchUrl(
+                        Uri.parse('https://wa.me/+${data.whatsappNumber}')),
+                  ),
+                if (data.bankAccountInfo?.isNotEmpty == true &&
+                    data.bankAccountInfo != null)
+                  _ActionRow(
+                    icon: Icons.credit_card_rounded,
+                    label: data.bankAccountInfo!,
+                    actionLabel: AppStringsAr.actionCopyBank,
+                    color: ColorTokens.navy900,
+                    onTap: () {
+                      Clipboard.setData(
+                          ClipboardData(text: data.bankAccountInfo!));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(AppStringsAr.bankInfoCopied)),
+                      );
+                    },
                   ),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: SpacingTokens.md),
-        _MetaRow(
-          label: AppStringsAr.classificationLabel,
-          value: classificationText,
-        ),
-        _MetaRow(
-          label: AppStringsAr.natureLabel,
-          value: natureLabel,
-          valueColor: natureColor,
-        ),
-        _MetaRow(
-          label: AppStringsAr.accountTypeLabel,
-          value: data.isRoot
-              ? AppStringsAr.accountTypeRoot
-              : AppStringsAr.accountTypeChild,
-        ),
-        if (data.parentId != null)
-          _MetaRow(
-            label: AppStringsAr.parentAccountLabel,
-            value: data.parentName ?? data.parentId!,
-          ),
-        _MetaRow(
-          label: AppStringsAr.statusLabel,
-          value: data.isActive
-              ? AppStringsAr.statusActive
-              : AppStringsAr.statusInactive,
-        ),
-        _MetaRow(
-          label: AppStringsAr.createdAtLabel,
-          value: created,
-        ),
-        if (data.phoneNumber != null ||
-            data.whatsappNumber != null ||
-            data.bankAccountInfo != null ||
-            data.partyType != null) ...[
-          const SizedBox(height: SpacingTokens.lg),
-          QaydText(
-            AppStringsAr.partyDetailsSection,
-            slot: QaydTextStyleSlot.titleMedium,
-            color: scheme.primary,
-          ),
-          const SizedBox(height: SpacingTokens.sm),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(SpacingTokens.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (data.partyType?.isNotEmpty == true)
-                    _MetaRow(
-                        label: AppStringsAr.partyTypeLabel,
-                        value: data.partyType!),
-                  if (data.phoneNumber?.isNotEmpty == true)
-                    _ActionRow(
-                      icon: Icons.phone,
-                      label: data.phoneNumber!,
-                      actionLabel: AppStringsAr.actionCall,
-                      onTap: () =>
-                          launchUrl(Uri.parse('tel:${data.phoneNumber}')),
-                    ),
-                  if (data.whatsappNumber?.isNotEmpty == true)
-                    _ActionRow(
-                      icon: Icons.message_rounded,
-                      label: data.whatsappNumber!,
-                      actionLabel: AppStringsAr.actionWhatsApp,
-                      onTap: () => launchUrl(
-                          Uri.parse('https://wa.me/${data.whatsappNumber}')),
-                    ),
-                  if (data.bankAccountInfo?.isNotEmpty == true)
-                    _ActionRow(
-                      icon: Icons.account_balance_rounded,
-                      label: data.bankAccountInfo!,
-                      actionLabel: AppStringsAr.actionCopyBank,
-                      onTap: () {
-                        Clipboard.setData(
-                            ClipboardData(text: data.bankAccountInfo!));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(AppStringsAr.bankInfoCopied)),
-                        );
-                      },
-                    ),
-                ],
-              ),
-            ),
-          ),
         ],
+        const SizedBox(height: SpacingTokens.xl),
       ],
     );
   }
+
+  IconData _getAccountIcon(String? kind) {
+    if (kind == null) return Icons.account_balance_wallet_rounded;
+    return switch (kind) {
+      'liquidAssets' => Icons.account_balance_rounded,
+      'receivables' => Icons.trending_up_rounded,
+      'payables' => Icons.trending_down_rounded,
+      'settlements' => Icons.handshake_rounded,
+      'equity' => Icons.pie_chart_rounded,
+      'revenues' => Icons.monetization_on_rounded,
+      'expenses' => Icons.receipt_long_rounded,
+      _ => Icons.folder_rounded,
+    };
+  }
 }
 
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
-
-  final String label;
-  final String value;
-  final Color? valueColor;
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(
+      {required this.title, required this.icon, required this.color});
+  final String title;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          QaydText(
+            title,
+            slot: QaydTextStyleSlot.labelLarge,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CardWrapper extends StatelessWidget {
+  const _CardWrapper({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(RadiusTokens.md),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _LineDivider extends StatelessWidget {
+  const _LineDivider();
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      indent: 48,
+      endIndent: 16,
+      color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+    );
+  }
+}
+
+class _RichRow extends StatelessWidget {
+  const _RichRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueColor,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.sm + 2,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: iconColor ?? scheme.onSurfaceVariant),
+          const SizedBox(width: SpacingTokens.md),
           Expanded(
-            flex: 2,
             child: QaydText(
               label,
               slot: QaydTextStyleSlot.bodyMedium,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: scheme.onSurfaceVariant,
             ),
           ),
-          Expanded(
-            flex: 3,
-            child: QaydText(
-              value,
-              slot: QaydTextStyleSlot.bodyLarge,
-              color: valueColor,
-              textAlign: TextAlign.end,
-            ),
+          QaydText(
+            value,
+            slot: QaydTextStyleSlot.labelLarge,
+            color: valueColor ?? scheme.onSurface,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -334,32 +479,53 @@ class _ActionRow extends StatelessWidget {
     required this.label,
     required this.actionLabel,
     required this.onTap,
+    this.color,
   });
 
   final IconData icon;
   final String label;
   final String actionLabel;
   final VoidCallback onTap;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: SpacingTokens.md),
-          Expanded(
-            child: QaydText(
-              label,
-              slot: QaydTextStyleSlot.bodyMedium,
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: SpacingTokens.md,
+          vertical: SpacingTokens.sm + 2,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: color ?? scheme.primary),
+            const SizedBox(width: SpacingTokens.md),
+            Expanded(
+              child: QaydText(
+                label,
+                slot: QaydTextStyleSlot.bodyMedium,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ),
-          ),
-          TextButton(
-            onPressed: onTap,
-            child: Text(actionLabel),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: (color ?? scheme.primary).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(RadiusTokens.md),
+              ),
+              child: Text(
+                actionLabel,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: color ?? scheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -375,7 +541,7 @@ Future<void> _confirmAndArchive(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child:  Text(AppStringsAr.actionCancel),
+          child: Text(AppStringsAr.actionCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, true),

@@ -44,6 +44,7 @@ class GetVoucherDetailsOutput {
     this.collateralSettlementVoucherIds = const [],
     this.successorVoucherId,
     this.costCenters = const [],
+    this.isCreator = true,
   });
 
   final String id;
@@ -104,6 +105,9 @@ class GetVoucherDetailsOutput {
 
   // Cost / Profit Centers
   final List<CostCenterSummary> costCenters;
+
+  /// Whether the current user is the creator of this voucher
+  final bool isCreator;
 }
 
 /// Lightweight summary of an attachment for display in the detail view.

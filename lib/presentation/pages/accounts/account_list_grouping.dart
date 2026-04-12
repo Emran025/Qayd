@@ -20,18 +20,35 @@ String accountSectionTitleAr(AccountSummaryDto representative) {
 
 int _sectionRank(String key) {
   if (key.startsWith('std:')) {
-    const order = [
-      'assets',
-      'liabilities',
-      'equity',
-      'income',
-      'expenses',
-    ];
     final name = key.substring(4);
-    final i = order.indexOf(name);
-    return i >= 0 ? i : 50;
+    switch (name) {
+      case 'liquidAssets':
+        return 0;
+      case 'receivables':
+        return 10;
+      case 'payables':
+        return 20;
+      case 'settlements':
+        return 30;
+      case 'equity':
+        return 40;
+      case 'personalRevenues':
+        return 50;
+      case 'personalExpenses':
+        return 60;
+      case 'fixedDepreciableAssets':
+        return 70;
+      case 'fixedProfitableAssets':
+        return 80;
+      case 'clearingRemittances':
+        return 90;
+      case 'remittanceFees':
+        return 100;
+      default:
+        return 110;
+    }
   }
-  return 100;
+  return 200;
 }
 
 int compareSectionKeys(String a, String b) {

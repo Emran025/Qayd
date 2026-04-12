@@ -372,7 +372,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
             builder: (context, state) {
               final cubit = context.read<VoucherListCubit>();
               final showChips = cubit.searchQuery.trim().isNotEmpty ||
-                  cubit.advancedFilter.hasAny;
+                  cubit.advancedFilter.hasDisplayableFilters;
               if (!showChips) {
                 return const SizedBox.shrink();
               }

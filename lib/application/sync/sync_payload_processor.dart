@@ -686,6 +686,19 @@ class SyncPayloadProcessor {
     }
 
     final voucher = voucherResult.valueOrNull!;
+
+    // ── Protocol Guard: Prevent Withdrawal if Already Accepted ────────────────
+    // If the voucher has already been accepted by both parties, we drop the
+    // withdrawal request silently to prevent state corruption across nodes.
+    if (voucher.receiverStatus == AgreementStatus.accepted ||
+        voucher.state.isSettled) {
+      debugPrint(
+        'VoucherWithdrawal [$voucherIdStr]: Dropped silently because the '
+        'voucher is already fully accepted or settled.',
+      );
+      return;
+    }
+
     // Protocol §2.A: A withdrawal is only valid if we (the receiver) haven't accepted it yet.
     if (voucher.state.isDraft && voucher.receiverStatus != AgreementStatus.accepted) {
       // Withdraw the local copy

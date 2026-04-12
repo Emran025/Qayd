@@ -394,6 +394,9 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
                           const SizedBox(height: SpacingTokens.md),
 
                           CostCenterTagSelector(
+                            label: _type == VoucherType.receipt
+                                ? AppStringsAr.managementAssetLinkRevenue
+                                : AppStringsAr.managementAssetLinkExpense,
                             onChanged: (tags) =>
                                 setState(() => _costCenterTags = tags),
                           ),

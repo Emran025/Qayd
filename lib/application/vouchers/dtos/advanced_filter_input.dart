@@ -38,7 +38,16 @@ class AdvancedFilterInput {
       (affectedAccountId != null && affectedAccountId!.isNotEmpty) ||
       (costCenterId != null && costCenterId!.isNotEmpty) ||
       (involvedRootAccountId != null && involvedRootAccountId!.isNotEmpty) ||
-      isInternalOnly == true;
+      isInternalOnly != null;
+
+  bool get hasDisplayableFilters =>
+      type != null ||
+      state != null ||
+      fromDate != null ||
+      toDate != null ||
+      (counterpartyAccountId != null && counterpartyAccountId!.isNotEmpty) ||
+      (affectedAccountId != null && affectedAccountId!.isNotEmpty) ||
+      (costCenterId != null && costCenterId!.isNotEmpty);
 
   AdvancedFilterInput clearType() => AdvancedFilterInput(
         state: state,
@@ -47,6 +56,9 @@ class AdvancedFilterInput {
         counterpartyAccountId: counterpartyAccountId,
         affectedAccountId: affectedAccountId,
         costCenterId: costCenterId,
+        involvedRootAccountId: involvedRootAccountId,
+        involvedCounterRootAccountId: involvedCounterRootAccountId,
+        isInternalOnly: isInternalOnly,
       );
 
   AdvancedFilterInput clearState() => AdvancedFilterInput(
@@ -56,6 +68,9 @@ class AdvancedFilterInput {
         counterpartyAccountId: counterpartyAccountId,
         affectedAccountId: affectedAccountId,
         costCenterId: costCenterId,
+        involvedRootAccountId: involvedRootAccountId,
+        involvedCounterRootAccountId: involvedCounterRootAccountId,
+        isInternalOnly: isInternalOnly,
       );
 
   AdvancedFilterInput clearDateRange() => AdvancedFilterInput(
@@ -64,6 +79,9 @@ class AdvancedFilterInput {
         counterpartyAccountId: counterpartyAccountId,
         affectedAccountId: affectedAccountId,
         costCenterId: costCenterId,
+        involvedRootAccountId: involvedRootAccountId,
+        involvedCounterRootAccountId: involvedCounterRootAccountId,
+        isInternalOnly: isInternalOnly,
       );
 
   AdvancedFilterInput clearCounterparty() => AdvancedFilterInput(
@@ -73,6 +91,9 @@ class AdvancedFilterInput {
         toDate: toDate,
         affectedAccountId: affectedAccountId,
         costCenterId: costCenterId,
+        involvedRootAccountId: involvedRootAccountId,
+        involvedCounterRootAccountId: involvedCounterRootAccountId,
+        isInternalOnly: isInternalOnly,
       );
 
   AdvancedFilterInput clearAffected() => AdvancedFilterInput(
@@ -82,6 +103,9 @@ class AdvancedFilterInput {
         toDate: toDate,
         counterpartyAccountId: counterpartyAccountId,
         costCenterId: costCenterId,
+        involvedRootAccountId: involvedRootAccountId,
+        involvedCounterRootAccountId: involvedCounterRootAccountId,
+        isInternalOnly: isInternalOnly,
       );
 
   AdvancedFilterInput clearCostCenter() => AdvancedFilterInput(
@@ -91,6 +115,9 @@ class AdvancedFilterInput {
         toDate: toDate,
         counterpartyAccountId: counterpartyAccountId,
         affectedAccountId: affectedAccountId,
+        involvedRootAccountId: involvedRootAccountId,
+        involvedCounterRootAccountId: involvedCounterRootAccountId,
+        isInternalOnly: isInternalOnly,
       );
 
   AdvancedFilterInput copyWith({

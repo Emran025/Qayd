@@ -221,6 +221,7 @@ class GetVoucherDetailsUseCase {
           collateralSettlementVoucherIds: collateralSettlementVoucherIds,
           successorVoucherId: successorVoucherId,
           costCenters: costCenters,
+          isCreator: isMeSender,
         ),
       );
     } catch (e) {

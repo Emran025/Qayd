@@ -42,10 +42,10 @@ abstract final class AppStringsAr {
   static const String chartOfAccountsTitle = 'دليل الحسابات';
   static const String searchAccountsHint = 'بحث باسم الحساب…';
   static const String filterNatureAll = 'الكل';
-  static const String filterNatureDebit = 'مدين (لك)';
-  static const String filterNatureCredit = 'دائن (عليك)';
-  static const String natureDebitShort = 'مدين (لك)';
-  static const String natureCreditShort = 'دائن (عليك)';
+  static const String filterNatureDebit = 'مدين (عليك)';
+  static const String filterNatureCredit = 'دائن (لك)';
+  static const String natureDebitShort = 'مدين (عليك)';
+  static const String natureCreditShort = 'دائن (لك)';
   static const String accountBalanceLabel = 'الرصيد';
   static const String addAccountFab = 'حساب جديد';
   static const String retryAction = 'إعادة المحاولة';
@@ -126,6 +126,34 @@ abstract final class AppStringsAr {
   static const String internalVoucherTypeReceipt = 'إيراد شخصي';
   static const String internalVoucherTypePayment = 'مصروف شخصي';
   static const String internalVoucherFundAccount = 'الصندوق';
+  static const String managementTabFinancialRecords = 'السجل المالي';
+  static const String managementTabAssets = 'الأصول والممتلكات';
+  static const String managementTabFundFlows = 'تدفقات الصندوق';
+  static const String managementTabRevenues = 'إيرادات الصندوق';
+  static const String managementTabExpenses = 'مصاريف الصندوق';
+  static const String managementAddAssetFab = 'إضافة أصل جديد';
+  static const String managementAddRevenueFab = 'تسجيل إيراد داخلي';
+  static const String managementAddExpenseFab = 'تسجيل مصروف داخلي';
+  static const String managementSearchHint = 'ابحث في السندات الداخلية...';
+  static const String managementLabelExpenses = 'المصروفات';
+  static const String managementLabelRevenues = 'الإيرادات';
+  static const String managementManageAccruals = 'إدارة الالتزامات الدورية';
+  static const String managementFilterAll = 'الكل';
+  static const String managementAddFlowFab = 'إضافة حركة (دخل/مصرف)';
+  static const String managementSearchVouchersHint = 'ابحث في السجلات...';
+  static const String managementAssetsEmpty = 'لا توجد أصول مسجلة حالياً.';
+  static const String managementAssetValueLabel = 'قيمة الأصل الاستراتيجية';
+  static const String managementAssetYieldLabel = 'العائد الناتج';
+  static const String managementSearchNoResults = 'لا توجد نتائج لبحثك';
+  static const String managementInvestmentAssets =
+      'الأصول الاستثمارية (المدرة)';
+  static const String managementPersonalPossessions =
+      'المقتنيات الشخصية (الثابتة)';
+  static const String assetWizardInvestmentTitle = 'إضافة أصل استثماري';
+  static const String assetWizardPossessionTitle = 'إضافة مقتنى شخصي';
+  static const String assetWizardIncomeSourceLabel = 'هل يدر دخلاً دورياً؟';
+  static const String managementAssetLinkRevenue = 'الأصل/المشروع المرتبط (مصدر الدخل)';
+  static const String managementAssetLinkExpense = 'مركز التكلفة / المصلحة (جهة الصرف)';
 
   // Governance / activation (Phase 2)
   static const String activationSubtitle =
@@ -668,7 +696,7 @@ abstract final class AppStringsAr {
   static const String statementBroughtForward = 'رصيد مرحّل';
   static const String statementFinalBalance = 'الرصيد النهائي';
   static const String statementBalanceForYou = 'لصالحك';
-  static const String statementBalanceAgainstYou = 'عليك';
+  static const String statementBalanceAgainstYou = 'مدين (عليك)';
   static const String statementBalanceSettled = 'مسوّى';
   static const String statementRunningBalance = 'الرصيد';
   static const String statementVoucherCount = 'سند';

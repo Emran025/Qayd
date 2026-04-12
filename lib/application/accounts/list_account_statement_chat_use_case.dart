@@ -278,6 +278,9 @@ final class ListAccountStatementChatUseCase {
 
         final mergedDescription = (v.description ?? v.notes ?? '').trim();
 
+        // Check if the current perspective account is the one that created the voucher
+        final bool isCreator = v.affectedAccountId == subjectId;
+
         // Find the "Other" party
         final otherId = v.affectedAccountId == subjectId
             ? v.counterpartyId.value
@@ -305,6 +308,7 @@ final class ListAccountStatementChatUseCase {
               ? accountNamesLookup[v.tripartiteMeta!.mediatorAccountId!.value]
               : null,
           feeAmountMinorUnits: v.tripartiteMeta?.feeAmount?.minorUnits,
+          isCreator: isCreator,
         ));
       }
 

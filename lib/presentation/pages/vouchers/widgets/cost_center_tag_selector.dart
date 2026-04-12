@@ -14,10 +14,12 @@ class CostCenterTagSelector extends StatefulWidget {
     super.key,
     required this.onChanged,
     this.initialTags = const [],
+    this.label,
   });
 
   final ValueChanged<List<CostCenterTagInput>> onChanged;
   final List<CostCenterTagInput> initialTags;
+  final String? label;
 
   @override
   State<CostCenterTagSelector> createState() => _CostCenterTagSelectorState();
@@ -110,7 +112,7 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             QaydText(
-              'مراكز التكلفة والأبعاد', // Should move to AppStringsAr
+              widget.label ?? 'مراكز التكلفة والأبعاد',
               slot: QaydTextStyleSlot.labelLarge,
             ),
             TextButton.icon(

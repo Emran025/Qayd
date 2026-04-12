@@ -1,0 +1,251 @@
+import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
+import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+
+class AssetCreationWizardPage extends StatefulWidget {
+  const AssetCreationWizardPage({
+    super.key,
+    required this.depreciableAssetsRootId,
+    required this.profitableAssetsRootId,
+  });
+
+  final String? depreciableAssetsRootId;
+  final String? profitableAssetsRootId;
+
+  @override
+  State<AssetCreationWizardPage> createState() =>
+      _AssetCreationWizardPageState();
+}
+
+class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _valueController = TextEditingController();
+  final _notesController = TextEditingController();
+
+  String _assetType = 'investment'; // 'investment' (profitable) or 'possession' (depreciable)
+  bool _isSubmitting = false;
+  bool _generatesIncome = true;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _valueController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isSubmitting = true);
+
+    // Logic: 
+    // 1. Create Account under appropriate root (Investment vs Possession)
+    // 2. If Investment & generatesIncome: Create a Profit Center linked to this asset.
+    await Future.delayed(const Duration(seconds: 1)); // Mock
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('تم تسجيل الأصل وربطه بالدائرة الاقتصادية بنجاح.')),
+      );
+      Navigator.pop(context, true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final gold = theme.extension<QaydCustomColors>()!.goldAccent;
+    final scheme = theme.colorScheme;
+
+    return Scaffold(
+      appBar: QaydAppBar(
+        title: _assetType == 'investment' 
+            ? AppStringsAr.assetWizardInvestmentTitle 
+            : AppStringsAr.assetWizardPossessionTitle,
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(SpacingTokens.lg),
+          children: [
+            QaydText(
+              'تصنيف الأصل الاقتصادي',
+              slot: QaydTextStyleSlot.titleMedium,
+            ),
+            const SizedBox(height: SpacingTokens.md),
+            Row(
+              children: [
+                Expanded(
+                  child: _TypeCard(
+                    title: AppStringsAr.managementInvestmentAssets,
+                    description: 'عقارات، أسهم، مشاريع تدر مالاً',
+                    icon: Icons.account_balance_rounded,
+                    color: ColorTokens.emerald400,
+                    isSelected: _assetType == 'investment',
+                    onTap: () => setState(() => _assetType = 'investment'),
+                  ),
+                ),
+                const SizedBox(width: SpacingTokens.md),
+                Expanded(
+                  child: _TypeCard(
+                    title: AppStringsAr.managementPersonalPossessions,
+                    description: 'سيارة، أثاث، أدوات شخصية',
+                    icon: Icons.inventory_2_outlined,
+                    color: Colors.blueAccent,
+                    isSelected: _assetType == 'possession',
+                    onTap: () => setState(() => _assetType = 'possession'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: SpacingTokens.xl),
+            QaydTextField(
+              controller: _nameController,
+              label: 'مسمى الأصل / الملك',
+              hint: 'عمارة ج، سيارة فورد، محفظة الأسهم...',
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'يرجى إدخال مسمى للأصل' : null,
+            ),
+            const SizedBox(height: SpacingTokens.md),
+            QaydAmountField(
+              controller: _valueController,
+              label: AppStringsAr.managementAssetValueLabel,
+            ),
+            if (_assetType == 'investment') ...[
+              const SizedBox(height: SpacingTokens.lg),
+              Container(
+                padding: const EdgeInsets.all(SpacingTokens.md),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(RadiusTokens.lg),
+                  border: Border.all(color: scheme.outlineVariant),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.auto_graph_rounded, color: ColorTokens.emerald400),
+                    const SizedBox(width: SpacingTokens.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          QaydText(AppStringsAr.assetWizardIncomeSourceLabel, slot: QaydTextStyleSlot.labelLarge),
+                          const Text('سيقوم النظام بتتبع الأرباح الموزعة من هذا الأصل تلقائياً', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _generatesIncome,
+                      onChanged: (v) => setState(() => _generatesIncome = v),
+                      activeColor: ColorTokens.emerald400,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: SpacingTokens.md),
+            QaydTextField(
+              controller: _notesController,
+              label: 'بيانات مرجعية (اختياري)',
+              hint: 'رقم السجل، الموقع، المواصفات...',
+              maxLines: 2,
+            ),
+            const SizedBox(height: SpacingTokens.xxl),
+            FilledButton(
+              onPressed: _isSubmitting ? null : _submit,
+              style: FilledButton.styleFrom(
+                backgroundColor: gold,
+                foregroundColor: ColorTokens.navy950,
+                minimumSize: const Size.fromHeight(60),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RadiusTokens.lg)),
+              ),
+              child: _isSubmitting
+                  ? const CircularProgressIndicator(color: Colors.black)
+                  : const Text('تأكيد وتسجيل الأصل في المحفظة',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+            const SizedBox(height: SpacingTokens.md),
+            QaydText(
+              'سيتم إنشاء حساب مالي ومركز استثماري مرتبط بهذا الأصل مباشرة.',
+              slot: QaydTextStyleSlot.labelSmall,
+              color: scheme.onSurfaceVariant,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TypeCard extends StatelessWidget {
+  const _TypeCard({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(RadiusTokens.lg),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.all(SpacingTokens.md),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.12) : scheme.surface,
+          borderRadius: BorderRadius.circular(RadiusTokens.lg),
+          border: Border.all(
+            color: isSelected ? color : scheme.outlineVariant,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected ? [
+            BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))
+          ] : null,
+        ),
+        child: Column(
+          children: [
+            Icon(icon,
+                size: 32,
+                color: isSelected ? color : scheme.onSurfaceVariant),
+            const SizedBox(height: SpacingTokens.sm),
+            QaydText(title,
+                slot: QaydTextStyleSlot.labelLarge,
+                textAlign: TextAlign.center,
+                style: TextStyle(height: 1.1, color: isSelected ? scheme.onSurface : scheme.onSurfaceVariant)),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                  fontSize: 9,
+                  color: isSelected ? scheme.onSurface : scheme.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

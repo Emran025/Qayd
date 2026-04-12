@@ -5,6 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -153,9 +154,9 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(AppStringsAr.accrualCreateTitle),
-          leading: const BackButton(),
+        appBar: QaydAppBar(
+          title: AppStringsAr.accrualCreateTitle
+          // leading: const BackButton(),
         ),
         body: Form(
           key: _formKey,

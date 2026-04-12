@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 abstract final class MessagingIntentLauncher {
   static Future<bool> openSmsWithBody(String text, {String? phoneNumber}) {
     final uriStr = phoneNumber != null && phoneNumber.trim().isNotEmpty
-        ? 'sms:${phoneNumber.trim()}?body=${Uri.encodeComponent(text)}'
+        ? 'sms:+${phoneNumber.trim()}?body=${Uri.encodeComponent(text)}'
         : 'sms:?body=${Uri.encodeComponent(text)}';
     final uri = Uri.parse(uriStr);
     return launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -19,7 +19,7 @@ abstract final class MessagingIntentLauncher {
     }
 
     final uriStr = formattedPhone.isNotEmpty
-        ? 'https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}'
+        ? 'https://wa.me/+$formattedPhone?text=${Uri.encodeComponent(text)}'
         : 'https://wa.me/?text=${Uri.encodeComponent(text)}';
     final uri = Uri.parse(
       uriStr,

@@ -190,6 +190,14 @@ abstract final class AppTheme {
           vertical: 24.0,
         ),
       ),
+      tabBarTheme: TabBarThemeData(
+        indicatorColor: ColorTokens.goldAccent,
+        labelColor: scheme.onSurface,
+        unselectedLabelColor: scheme.onSurfaceVariant,
+        labelStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+        unselectedLabelStyle: textTheme.labelLarge,
+        indicatorSize: TabBarIndicatorSize.label,
+      ),
     );
   }
 }
