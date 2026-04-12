@@ -12,9 +12,10 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 /// Adapts its visual style and KPI indicators based on the
 /// `income_source_type` stored in the account metadata.
 class IncomeStreamCard extends StatelessWidget {
-  const IncomeStreamCard({super.key, required this.account});
+  const IncomeStreamCard({super.key, required this.account, this.onTap});
 
   final AccountSummaryDto account;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -49,153 +50,159 @@ class IncomeStreamCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Top accent
-          Container(
-            height: 3,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(RadiusTokens.lg),
-              ),
-              gradient: LinearGradient(
-                colors: [
-                  typeInfo.color.withValues(alpha: 0.8),
-                  typeInfo.color.withValues(alpha: 0.3),
-                ],
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(RadiusTokens.lg),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            // Top accent
+            Container(
+              height: 3,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(RadiusTokens.lg),
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    typeInfo.color.withValues(alpha: 0.8),
+                    typeInfo.color.withValues(alpha: 0.3),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          Padding(
-            padding: const EdgeInsets.all(SpacingTokens.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: Icon + Name + Type Badge
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: typeInfo.color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(RadiusTokens.md),
+            Padding(
+              padding: const EdgeInsets.all(SpacingTokens.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header: Icon + Name + Type Badge
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: typeInfo.color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(RadiusTokens.md),
+                        ),
+                        child: Icon(typeInfo.icon,
+                            color: typeInfo.color, size: 22),
                       ),
-                      child: Icon(typeInfo.icon, color: typeInfo.color, size: 22),
-                    ),
-                    const SizedBox(width: SpacingTokens.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          QaydText(
-                            account.name,
-                            slot: QaydTextStyleSlot.titleSmall,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
+                      const SizedBox(width: SpacingTokens.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            QaydText(
+                              account.name,
+                              slot: QaydTextStyleSlot.titleSmall,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            decoration: BoxDecoration(
-                              color: typeInfo.color.withValues(alpha: 0.08),
-                              borderRadius:
-                                  BorderRadius.circular(RadiusTokens.xs),
-                            ),
-                            child: Text(
-                              typeInfo.label,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: typeInfo.color,
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: typeInfo.color.withValues(alpha: 0.08),
+                                borderRadius:
+                                    BorderRadius.circular(RadiusTokens.xs),
+                              ),
+                              child: Text(
+                                typeInfo.label,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: typeInfo.color,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_left_rounded,
-                      color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: SpacingTokens.sm),
-                const Divider(height: 1),
-                const SizedBox(height: SpacingTokens.sm),
-
-                // KPI Row
-                Row(
-                  children: [
-                    _KpiChip(
-                      label: _balanceLabel(sourceType),
-                      value: '${balance.toStringAsFixed(2)} $cur',
-                      color: balance >= 0
-                          ? ColorTokens.emerald500
-                          : ColorTokens.errorSoft,
-                    ),
-                    const SizedBox(width: SpacingTokens.sm),
-                    if (metadata['purchase_price'] != null)
-                      _KpiChip(
-                        label: AppStringsAr.incomeStreamAcquisitionValue,
-                        value:
-                            '${(metadata['purchase_price'] as num).toStringAsFixed(0)} $cur',
-                        color: scheme.onSurfaceVariant,
+                      Icon(
+                        Icons.chevron_left_rounded,
+                        color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
                       ),
-                    if (metadata['profession_name'] != null)
-                      _KpiChip(
-                        label: AppStringsAr.incomeStreamProfessionField,
-                        value: metadata['profession_name'] as String,
-                        color: ColorTokens.debitBlue,
-                      ),
-                  ],
-                ),
+                    ],
+                  ),
 
-                // Secondary metadata row
-                if (_hasSecondaryInfo(metadata)) ...[
-                  const SizedBox(height: SpacingTokens.xs),
-                  Wrap(
-                    spacing: SpacingTokens.md,
-                    runSpacing: 2,
+                  const SizedBox(height: SpacingTokens.sm),
+                  const Divider(height: 1),
+                  const SizedBox(height: SpacingTokens.sm),
+
+                  // KPI Row
+                  Row(
                     children: [
-                      if (metadata['start_date'] != null)
-                        _MetaLabel(
-                          icon: Icons.calendar_today_rounded,
-                          text:
-                              '${(metadata['start_date'] as String).split('T').first}',
+                      _KpiChip(
+                        label: _balanceLabel(sourceType),
+                        value: '${balance.toStringAsFixed(2)} $cur',
+                        color: balance >= 0
+                            ? ColorTokens.emerald500
+                            : ColorTokens.errorSoft,
+                      ),
+                      const SizedBox(width: SpacingTokens.sm),
+                      if (metadata['purchase_price'] != null)
+                        _KpiChip(
+                          label: AppStringsAr.incomeStreamAcquisitionValue,
+                          value:
+                              '${(metadata['purchase_price'] as num).toStringAsFixed(0)} $cur',
+                          color: scheme.onSurfaceVariant,
                         ),
-                      if (metadata['hourly_rate'] != null)
-                        _MetaLabel(
-                          icon: Icons.timer_outlined,
-                          text:
-                              '${(metadata['hourly_rate'] as num).toStringAsFixed(0)} /ساعة',
-                        ),
-                      if (metadata['license_number'] != null &&
-                          (metadata['license_number'] as String).isNotEmpty)
-                        _MetaLabel(
-                          icon: Icons.badge_outlined,
-                          text: metadata['license_number'] as String,
-                        ),
-                      if (metadata['purchase_date'] != null)
-                        _MetaLabel(
-                          icon: Icons.calendar_today_rounded,
-                          text:
-                              '${(metadata['purchase_date'] as String).split('T').first}',
+                      if (metadata['profession_name'] != null)
+                        _KpiChip(
+                          label: AppStringsAr.incomeStreamProfessionField,
+                          value: metadata['profession_name'] as String,
+                          color: ColorTokens.debitBlue,
                         ),
                     ],
                   ),
+
+                  // Secondary metadata row
+                  if (_hasSecondaryInfo(metadata)) ...[
+                    const SizedBox(height: SpacingTokens.xs),
+                    Wrap(
+                      spacing: SpacingTokens.md,
+                      runSpacing: 2,
+                      children: [
+                        if (metadata['start_date'] != null)
+                          _MetaLabel(
+                            icon: Icons.calendar_today_rounded,
+                            text:
+                                '${(metadata['start_date'] as String).split('T').first}',
+                          ),
+                        if (metadata['hourly_rate'] != null)
+                          _MetaLabel(
+                            icon: Icons.timer_outlined,
+                            text:
+                                '${(metadata['hourly_rate'] as num).toStringAsFixed(0)} /ساعة',
+                          ),
+                        if (metadata['license_number'] != null &&
+                            (metadata['license_number'] as String).isNotEmpty)
+                          _MetaLabel(
+                            icon: Icons.badge_outlined,
+                            text: metadata['license_number'] as String,
+                          ),
+                        if (metadata['purchase_date'] != null)
+                          _MetaLabel(
+                            icon: Icons.calendar_today_rounded,
+                            text:
+                                '${(metadata['purchase_date'] as String).split('T').first}',
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ]),
+        ),
       ),
     );
   }

@@ -181,10 +181,15 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
       _categoryAccount = a;
       
       // Auto-tagging logic: if account has a linked dimension, use it.
+      final linkedCenterId = a.metadata?['linked_cost_center_id'] as String?;
       final linkedDimId = a.metadata?['linked_dimension_id'] as String?;
-      if (linkedDimId != null) {
+      
+      if (linkedCenterId != null) {
         _costCenterTags = [
-          CostCenterTagInput(categorySelectorId: linkedDimId, tag: a.name)
+          CostCenterTagInput(
+            costCenterId: linkedCenterId,
+            dimensionIds: linkedDimId != null ? [linkedDimId] : [],
+          )
         ];
       }
     });

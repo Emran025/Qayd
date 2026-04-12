@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -7,6 +8,11 @@ import 'package:qayd/domain/value_objects/income_source_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
+import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/management/asset_creation_wizard_page.dart';
 import 'package:qayd/presentation/pages/management/income_source_type_sheet.dart';
 import 'package:qayd/presentation/pages/management/profession_creation_wizard.dart';
@@ -31,6 +37,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
   String? _profitableAssetsRootId;
   String? _personalRevenuesRootId;
   String? _personalExpensesRootId;
+  String? _personalExpensesRootName;
   bool _isLoadingRoots = true;
 
   @override
@@ -57,6 +64,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
                 _personalRevenuesRootId = a.id;
               case 'personalExpenses':
                 _personalExpensesRootId = a.id;
+                _personalExpensesRootName = a.name;
             }
           }
         }
@@ -109,6 +117,26 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
 
     if (updated == true && mounted) {
       setState(() {}); // Trigger rebuild to refresh lists
+    }
+  }
+
+  Future<void> _openAddExpenseAccount() async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) =>
+              AccountCreateCubit(InjectionContainer.createAccountUseCase),
+          child: AccountCreatePage(
+            parentAccountId: _personalExpensesRootId,
+            parentName: _personalExpensesRootName,
+            parentStandardKind: 'personalExpenses',
+            forcedIsChild: true,
+          ),
+        ),
+      ),
+    );
+    if (updated == true && mounted) {
+      setState(() {});
     }
   }
 
@@ -191,11 +219,14 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
             return AnimatedBuilder(
               animation: tabController,
               builder: (context, _) {
+                final isExpenseTab = tabController.index == 2;
                 return FloatingActionButton.extended(
                   heroTag: 'fab_income_streams',
-                  onPressed: _openAddWizard,
+                  onPressed: isExpenseTab
+                      ? _openAddExpenseAccount
+                      : _openAddWizard,
                   icon: const Icon(Icons.add_rounded),
-                  label: Text(tabController.index == 2
+                  label: Text(isExpenseTab
                       ? AppStringsAr.incomeStreamsAddExpense
                       : AppStringsAr.incomeStreamsAddSource),
                   backgroundColor: gold,
@@ -308,7 +339,7 @@ class _IncomeStreamsListState extends State<_IncomeStreamsList> {
               const SizedBox(height: SpacingTokens.lg),
               FilledButton.tonalIcon(
                 onPressed: widget.onSeed,
-                icon: const Icon(Icons.magic_button_outlined),
+                icon: const Icon(Icons.auto_awesome_outlined),
                 label: const Text('توليد التصنيفات التلقائية'),
               ),
             ],
@@ -326,7 +357,24 @@ class _IncomeStreamsListState extends State<_IncomeStreamsList> {
           final a = _accounts[i];
           return Padding(
             padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
-            child: IncomeStreamCard(account: a),
+            child: IncomeStreamCard(
+              account: a,
+              onTap: () async {
+                await Navigator.of(context).push<void>(
+                  QaydPageRoute.slideFromStart<void>(
+                    builder: (ctx) => BlocProvider(
+                      create: (_) => AccountDetailCubit(
+                        InjectionContainer.getAccountDetailsUseCase,
+                      )..load(a.id),
+                      child: const AccountDetailPage(),
+                    ),
+                  ),
+                );
+                if (mounted) {
+                  _load();
+                }
+              },
+            ),
           );
         },
       ),

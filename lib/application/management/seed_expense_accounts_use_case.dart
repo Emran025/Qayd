@@ -1,6 +1,5 @@
 import 'package:qayd/application/accounts/create_account_use_case.dart';
 import 'package:qayd/application/accounts/dtos/create_account_input.dart';
-import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/cost_centers/create_cost_center_use_case.dart';
 import 'package:qayd/application/cost_centers/manage_dimensions_use_case.dart';
 import 'package:qayd/core/error/failures.dart';
@@ -56,12 +55,12 @@ class SeedExpenseAccountsUseCase {
     }
 
     // 2. Find the root 'personalExpenses' account
-    final accRes = await _accountRepository.list(
-      const ListAccountsInput(activeOnly: false),
+    final accRes = await _accountRepository.getAll(
+      activeOnly: false,
     );
     if (accRes.isFailure) return accRes;
 
-    final accounts = accRes.valueOrNull!.accounts;
+    final accounts = accRes.valueOrNull!;
     final root = accounts
         .where((a) =>
             a.isRoot &&
@@ -108,7 +107,7 @@ class SeedExpenseAccountsUseCase {
 
       // Check/Create Account
       final alreadyExists = existingChildren
-          .any((a) => a.metadata?['linked_dimension_id'] == dimension!.id);
+          .any((a) => a.metadata['linked_dimension_id'] == dimension!.id);
 
       if (!alreadyExists) {
         await _createAccountUseCase(
