@@ -28,12 +28,15 @@ class IncomeStreamCard extends StatelessWidget {
 
     // Format balance
     int balanceMinor = 0;
-    String cur = 'SAR';
+    String cur = metadata['currency_code'] as String? ?? '';
+    
     if (account.balancesMinorUnits.isNotEmpty) {
       cur = account.balancesMinorUnits.keys.first;
       balanceMinor = account.balancesMinorUnits[cur]!;
     }
     final balance = balanceMinor / 100.0;
+    final balanceText = cur.isNotEmpty ? '${balance.toStringAsFixed(2)} $cur' : balance.toStringAsFixed(2);
+    final purchaseCurrency = metadata['purchase_currency'] as String? ?? cur;
 
     return Container(
       decoration: BoxDecoration(
@@ -50,10 +53,12 @@ class IncomeStreamCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(RadiusTokens.lg),
+        child: Material(
+          color: scheme.surface,
+          child: InkWell(
+            onTap: onTap,
           borderRadius: BorderRadius.circular(RadiusTokens.lg),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             // Top accent
@@ -142,17 +147,17 @@ class IncomeStreamCard extends StatelessWidget {
                     children: [
                       _KpiChip(
                         label: _balanceLabel(sourceType),
-                        value: '${balance.toStringAsFixed(2)} $cur',
+                        value: balanceText,
                         color: balance >= 0
                             ? ColorTokens.emerald500
-                            : ColorTokens.errorSoft,
+                            : ColorTokens.warningAmber,
                       ),
                       const SizedBox(width: SpacingTokens.sm),
                       if (metadata['purchase_price'] != null)
                         _KpiChip(
                           label: AppStringsAr.incomeStreamAcquisitionValue,
                           value:
-                              '${(metadata['purchase_price'] as num).toStringAsFixed(0)} $cur',
+                              '${(metadata['purchase_price'] as num).toStringAsFixed(0)} $purchaseCurrency',
                           color: scheme.onSurfaceVariant,
                         ),
                       if (metadata['profession_name'] != null)
@@ -175,7 +180,7 @@ class IncomeStreamCard extends StatelessWidget {
                           _MetaLabel(
                             icon: Icons.calendar_today_rounded,
                             text:
-                                '${(metadata['start_date'] as String).split('T').first}',
+                                (metadata['start_date'] as String).split('T').first,
                           ),
                         if (metadata['hourly_rate'] != null)
                           _MetaLabel(
@@ -193,7 +198,7 @@ class IncomeStreamCard extends StatelessWidget {
                           _MetaLabel(
                             icon: Icons.calendar_today_rounded,
                             text:
-                                '${(metadata['purchase_date'] as String).split('T').first}',
+                                (metadata['purchase_date'] as String).split('T').first,
                           ),
                       ],
                     ),
@@ -204,7 +209,7 @@ class IncomeStreamCard extends StatelessWidget {
           ]),
         ),
       ),
-    );
+    ));
   }
 
   bool _hasSecondaryInfo(Map<String, dynamic> m) =>
@@ -263,7 +268,7 @@ class IncomeStreamCard extends StatelessWidget {
       };
 
   Color _fallbackColor(String? kind) => switch (kind) {
-        'personalExpenses' => ColorTokens.errorSoft,
+        'personalExpenses' => ColorTokens.warningAmber,
         'personalRevenues' => ColorTokens.emerald500,
         'fixedProfitableAssets' => ColorTokens.emerald500,
         'fixedDepreciableAssets' => ColorTokens.slate400,

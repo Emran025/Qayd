@@ -4,6 +4,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/pages/accounts/archived_accounts_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/utils/account_archive_helper.dart';
 
 class ArchivedAccountsPage extends StatelessWidget {
   const ArchivedAccountsPage({super.key});
@@ -24,7 +25,8 @@ class ArchivedAccountsPage extends StatelessWidget {
             final accounts = state.data.accounts;
             if (accounts.isEmpty) {
               return const Center(
-                child: QaydText(AppStringsAr.archivedAccountsEmpty, slot: QaydTextStyleSlot.bodyLarge),
+                child: QaydText(AppStringsAr.archivedAccountsEmpty,
+                    slot: QaydTextStyleSlot.bodyLarge),
               );
             }
             return ListView.separated(
@@ -33,12 +35,16 @@ class ArchivedAccountsPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final account = accounts[index];
                 return ListTile(
-                  title: QaydText(account.name, slot: QaydTextStyleSlot.titleMedium),
-                  subtitle: Text(account.customClassificationName ?? account.standardClassificationKind ?? ''),
+                  title: QaydText(account.name,
+                      slot: QaydTextStyleSlot.titleMedium),
+                  subtitle: Text(account.customClassificationName ??
+                      account.standardClassificationKind ??
+                      ''),
                   trailing: TextButton.icon(
                     icon: const Icon(Icons.unarchive_outlined),
                     label: const Text(AppStringsAr.restoreAccountAction),
-                    onPressed: () => _confirmRestore(context, account.id, account.name),
+                    onPressed: () =>
+                        confirmAndRestoreAccount(context, account.id, account.name),
                   ),
                 );
               },
@@ -50,30 +56,5 @@ class ArchivedAccountsPage extends StatelessWidget {
     );
   }
 
-  void _confirmRestore(BuildContext context, String accountId, String accountName) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text(AppStringsAr.restoreAccountTitle),
-        content: Text(AppStringsAr.restoreAccountWarning(accountName)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStringsAr.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<ArchivedAccountsCubit>().restore(
-                accountId,
-                (error) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error))),
-                () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(AppStringsAr.restoreAccountSuccess))),
-              );
-            },
-            child: const Text(AppStringsAr.restoreAccountConfirm),
-          ),
-        ],
-      ),
-    );
-  }
+
 }

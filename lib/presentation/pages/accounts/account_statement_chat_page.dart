@@ -49,10 +49,12 @@ final class AccountStatementChatPage extends StatefulWidget {
     super.key,
     required this.counterpartyAccountId,
     this.myAccountId,
+    this.isEmbedded = false,
   });
 
   final String counterpartyAccountId;
   final String? myAccountId;
+  final bool isEmbedded;
 
   @override
   State<AccountStatementChatPage> createState() =>
@@ -502,8 +504,9 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         );
 
         return Scaffold(
+          backgroundColor: widget.isEmbedded ? Colors.transparent : null,
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: Padding(
+          floatingActionButton: widget.isEmbedded ? null : Padding(
             padding:
                 const EdgeInsets.only(bottom: 40.0), // Lift it a bit higher
             child: FloatingActionButton.extended(
@@ -531,7 +534,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
           body: Column(
             children: [
               // ── Header ──
-              _ChatHeader(
+              if (!widget.isEmbedded)
+                _ChatHeader(
                 counterpartyName: data.counterpartyName,
                 counterpartyAccountId: data.counterpartyAccountId,
                 messageCount: data.messages.length,

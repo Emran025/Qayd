@@ -8,6 +8,8 @@ import 'package:qayd/presentation/pages/cost_centers/cost_center_dashboard_widge
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/pages/management/income_stream_detail_page.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 
 class PersonalAccountsListView extends StatefulWidget {
   const PersonalAccountsListView({
@@ -105,87 +107,109 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
 
         // Format balance
         int balanceMinor = 0;
-        String cur = 'SAR';
+        String cur = metadata['currency_code'] as String? ?? '';
         if (a.balancesMinorUnits.isNotEmpty) {
           cur = a.balancesMinorUnits.keys.first;
           balanceMinor = a.balancesMinorUnits[cur]!;
         }
         final balance = balanceMinor / 100.0;
+        final balanceText = cur.isNotEmpty
+            ? '${balance.toStringAsFixed(2)} $cur'
+            : balance.toStringAsFixed(2);
+        final purchaseCurrency =
+            metadata['purchase_currency'] as String? ?? cur;
 
         return Container(
           margin: const EdgeInsets.only(bottom: SpacingTokens.md),
           child: GlassCard(
-            child: Padding(
-              padding: const EdgeInsets.all(SpacingTokens.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () async {
+                  await Navigator.of(context).push<void>(
+                    QaydPageRoute.slideFromStart<void>(
+                      builder: (ctx) => IncomeStreamDetailPage(summary: a),
+                    ),
+                  );
+                  _load();
+                },
+                borderRadius: BorderRadius.circular(RadiusTokens.md),
+                child: Padding(
+                  padding: const EdgeInsets.all(SpacingTokens.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: QaydText(
-                          a.name,
-                          slot: QaydTextStyleSlot.titleMedium,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: QaydText(
+                              a.name,
+                              slot: QaydTextStyleSlot.titleMedium,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color:
+                                  ColorTokens.emerald400.withValues(alpha: 0.1),
+                              borderRadius:
+                                  BorderRadius.circular(RadiusTokens.pill),
+                            ),
+                            child: QaydText(
+                              widget.showAssetDetails
+                                  ? '${price.toStringAsFixed(2)} ${purchaseCurrency.isNotEmpty ? purchaseCurrency : ''}'
+                                  : balanceText,
+                              slot: QaydTextStyleSlot.labelSmall,
+                              color: ColorTokens.emerald400,
+                            ),
+                          ),
+                        ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: ColorTokens.emerald400.withValues(alpha: 0.1),
-                          borderRadius:
-                              BorderRadius.circular(RadiusTokens.pill),
-                        ),
-                        child: QaydText(
-                          widget.showAssetDetails
-                              ? '${price.toStringAsFixed(2)} SAR'
-                              : '${balance.toStringAsFixed(2)} $cur',
-                          slot: QaydTextStyleSlot.labelSmall,
-                          color: ColorTokens.emerald400,
-                        ),
+                      if (widget.showAssetDetails &&
+                          (model != null ||
+                              serial != null ||
+                              date != null)) ...[
+                        const SizedBox(height: SpacingTokens.sm),
+                        if (model != null && model.isNotEmpty)
+                          _InfoRow(
+                              icon: Icons.directions_car_rounded,
+                              label: 'الموديل',
+                              value: model),
+                        if (serial != null && serial.isNotEmpty)
+                          _InfoRow(
+                              icon: Icons.numbers_rounded,
+                              label: 'الرقم التسلسلي',
+                              value: serial),
+                        if (date != null)
+                          _InfoRow(
+                              icon: Icons.calendar_today_rounded,
+                              label: 'تاريخ الشراء',
+                              value: date.split('T').first),
+                      ],
+                      const SizedBox(height: SpacingTokens.md),
+                      const Divider(height: 1),
+                      const SizedBox(height: SpacingTokens.md),
+                      Row(
+                        children: [
+                          const Icon(Icons.info_outline_rounded,
+                              size: 14, color: Colors.white54),
+                          const SizedBox(width: 4),
+                          Text(
+                            a.isActive ? 'نشط (Active)' : 'موقف (Inactive)',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: a.isActive
+                                  ? ColorTokens.emerald400
+                                  : Colors.white54,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  if (widget.showAssetDetails &&
-                      (model != null || serial != null || date != null)) ...[
-                    const SizedBox(height: SpacingTokens.sm),
-                    if (model != null && model.isNotEmpty)
-                      _InfoRow(
-                          icon: Icons.directions_car_rounded,
-                          label: 'الموديل',
-                          value: model),
-                    if (serial != null && serial.isNotEmpty)
-                      _InfoRow(
-                          icon: Icons.numbers_rounded,
-                          label: 'الرقم التسلسلي',
-                          value: serial),
-                    if (date != null)
-                      _InfoRow(
-                          icon: Icons.calendar_today_rounded,
-                          label: 'تاريخ الشراء',
-                          value: date.split('T').first),
-                  ],
-                  const SizedBox(height: SpacingTokens.md),
-                  const Divider(height: 1),
-                  const SizedBox(height: SpacingTokens.md),
-                  Row(
-                    children: [
-                      const Icon(Icons.info_outline_rounded,
-                          size: 14, color: Colors.white54),
-                      const SizedBox(width: 4),
-                      Text(
-                        a.isActive ? 'نشط (Active)' : 'موقف (Inactive)',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: a.isActive
-                              ? ColorTokens.emerald400
-                              : Colors.white54,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
           ),

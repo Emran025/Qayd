@@ -11,6 +11,8 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 
 class AssetCreationWizardPage extends StatefulWidget {
   const AssetCreationWizardPage({
@@ -36,6 +38,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
   String _assetType = 'investment'; // 'investment' (profitable) or 'possession' (depreciable)
   bool _isSubmitting = false;
   bool _generatesIncome = true;
+  CurrencyCode _purchaseCurrency = PredefinedCurrencies.sar;
 
   @override
   void dispose() {
@@ -69,6 +72,8 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
     final metadata = <String, dynamic>{
       'income_source_type': sourceType,
       'purchase_price': value,
+      'purchase_currency': _purchaseCurrency.code,
+      'currency_code': _purchaseCurrency.code,
       'purchase_date': DateTime.now().toIso8601String(),
       'generates_income': _assetType == 'investment' && _generatesIncome,
     };
@@ -159,9 +164,47 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                   (v == null || v.isEmpty) ? 'يرجى إدخال مسمى للأصل' : null,
             ),
             const SizedBox(height: SpacingTokens.md),
-            QaydAmountField(
-              controller: _valueController,
-              label: AppStringsAr.managementAssetValueLabel,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: QaydAmountField(
+                    controller: _valueController,
+                    label: AppStringsAr.managementAssetValueLabel,
+                  ),
+                ),
+                const SizedBox(width: SpacingTokens.md),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<CurrencyCode>(
+                    value: _purchaseCurrency,
+                    decoration: InputDecoration(
+                      labelText: 'عملة الاستحواذ',
+                      labelStyle: TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 14,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(RadiusTokens.md),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
+                    items: PredefinedCurrencies.all
+                        .where((c) => c.isActive || c == PredefinedCurrencies.sar)
+                        .map((c) => DropdownMenuItem(
+                              value: c,
+                              child: Text('${c.code} (${c.symbol})',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            ))
+                        .toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _purchaseCurrency = val);
+                    },
+                  ),
+                ),
+              ],
             ),
             if (_assetType == 'investment') ...[
               const SizedBox(height: SpacingTokens.lg),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -8,13 +7,11 @@ import 'package:qayd/domain/value_objects/income_source_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
-import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
-import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
-import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
-import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/management/asset_creation_wizard_page.dart';
+import 'package:qayd/presentation/pages/management/expense_creation_wizard_page.dart';
 import 'package:qayd/presentation/pages/management/income_source_type_sheet.dart';
+import 'package:qayd/presentation/pages/management/income_stream_detail_page.dart';
 import 'package:qayd/presentation/pages/management/profession_creation_wizard.dart';
 import 'package:qayd/presentation/pages/management/widgets/income_stream_card.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -37,7 +34,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
   String? _profitableAssetsRootId;
   String? _personalRevenuesRootId;
   String? _personalExpensesRootId;
-  String? _personalExpensesRootName;
+  // String? _personalExpensesRootName;
   bool _isLoadingRoots = true;
 
   @override
@@ -64,7 +61,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
                 _personalRevenuesRootId = a.id;
               case 'personalExpenses':
                 _personalExpensesRootId = a.id;
-                _personalExpensesRootName = a.name;
+                // _personalExpensesRootName = a.name;
             }
           }
         }
@@ -123,15 +120,8 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
   Future<void> _openAddExpenseAccount() async {
     final updated = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) =>
-              AccountCreateCubit(InjectionContainer.createAccountUseCase),
-          child: AccountCreatePage(
-            parentAccountId: _personalExpensesRootId,
-            parentName: _personalExpensesRootName,
-            parentStandardKind: 'personalExpenses',
-            forcedIsChild: true,
-          ),
+        builder: (_) => ExpenseCreationWizardPage(
+          personalExpensesRootId: _personalExpensesRootId,
         ),
       ),
     );
@@ -362,12 +352,7 @@ class _IncomeStreamsListState extends State<_IncomeStreamsList> {
               onTap: () async {
                 await Navigator.of(context).push<void>(
                   QaydPageRoute.slideFromStart<void>(
-                    builder: (ctx) => BlocProvider(
-                      create: (_) => AccountDetailCubit(
-                        InjectionContainer.getAccountDetailsUseCase,
-                      )..load(a.id),
-                      child: const AccountDetailPage(),
-                    ),
+                    builder: (ctx) => IncomeStreamDetailPage(summary: a),
                   ),
                 );
                 if (mounted) {
