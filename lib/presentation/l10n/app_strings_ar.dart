@@ -39,7 +39,7 @@ abstract final class AppStringsAr {
   static const String voucherStateWithdrawn = 'مسحوب';
 
   // Accounts — list
-  static const String chartOfAccountsTitle = 'دليل الحسابات';
+  static const String chartOfAccountsTitle = 'دليل الحسابات الأساسية';
   static const String searchAccountsHint = 'بحث باسم الحساب…';
   static const String filterNatureAll = 'الكل';
   static const String filterNatureDebit = 'مدين (عليك)';
@@ -128,6 +128,7 @@ abstract final class AppStringsAr {
   static const String internalVoucherFundAccount = 'الصندوق';
   static const String managementTabFinancialRecords = 'السجل المالي';
   static const String managementTabAssets = 'الأصول والممتلكات';
+  static const String managementTabPersonalFlowAccounts = 'حسابات التدفقات الشخصية';
   static const String managementTabFundFlows = 'تدفقات الصندوق';
   static const String managementTabRevenues = 'إيرادات الصندوق';
   static const String managementTabExpenses = 'مصاريف الصندوق';
@@ -142,6 +143,8 @@ abstract final class AppStringsAr {
   static const String managementAddFlowFab = 'إضافة حركة (دخل/مصرف)';
   static const String managementSearchVouchersHint = 'ابحث في السجلات...';
   static const String managementAssetsEmpty = 'لا توجد أصول مسجلة حالياً.';
+  static const String managementExpensesEmpty = 'لا توجد قنوات صرف مسجلة حالياً.';
+  static const String managementTabOutflowSources = 'قنوات الإنفاق';
   static const String managementAssetValueLabel = 'قيمة الأصل الاستراتيجية';
   static const String managementAssetYieldLabel = 'العائد الناتج';
   static const String managementSearchNoResults = 'لا توجد نتائج لبحثك';

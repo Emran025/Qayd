@@ -12,7 +12,7 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/identity_qr_dialog.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_list_page.dart';
 import 'package:qayd/presentation/pages/accruals/accrual_list_page.dart';
-import 'package:qayd/presentation/pages/management/assets_management_page.dart';
+import 'package:qayd/presentation/pages/management/personal_flow_management_page.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -125,8 +125,8 @@ class SettingsSidebar extends StatelessWidget {
                 ),
                 _DrawerTile(
                   icon: Icons.business_center_outlined,
-                  title: AppStringsAr.managementTabAssets,
-                  onTap: () => _navTo(context, const AssetsManagementPage()),
+                  title: AppStringsAr.managementTabPersonalFlowAccounts,
+                  onTap: () => _navTo(context, const PersonalFlowManagementPage()),
                 ),
                 const Divider(
                   indent: 20,
@@ -167,7 +167,9 @@ class SettingsSidebar extends StatelessWidget {
                   onTap: () => _navTo(
                     context,
                     BlocProvider(
-                      create: (_) => AuditLogCubit(InjectionContainer.auditLogService)..load(),
+                      create: (_) =>
+                          AuditLogCubit(InjectionContainer.auditLogService)
+                            ..load(),
                       child: const AuditLogPage(),
                     ),
                   ),
@@ -247,7 +249,7 @@ class _DrawerTile extends StatelessWidget {
                     title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: 15,
+                      fontSize: 14,
                     ),
                   ),
                 ),
