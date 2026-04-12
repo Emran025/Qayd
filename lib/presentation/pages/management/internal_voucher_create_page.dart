@@ -125,7 +125,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
             .toList();
 
         if (children.length == 1) {
-          _categoryAccount = children.first;
+          _applyAccountSelection(children.first);
         } else if (children.isEmpty) {
           // If no children, check if there's a root (as a fallback or if it's treated as a single account)
           final root = accounts
@@ -133,7 +133,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
                   a.standardClassificationKind == classification && a.isRoot)
               .firstOrNull;
           if (root != null) {
-            _categoryAccount = root;
+            _applyAccountSelection(root);
           }
         }
       }
@@ -172,10 +172,25 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
       requireParentClassification: classification,
     );
     if (a != null) {
-      setState(() => _categoryAccount = a);
-      if (mounted) {
-        context.read<VoucherSuggestionsCubit>().loadForCounterparty(a.id);
+      _applyAccountSelection(a);
+    }
+  }
+
+  void _applyAccountSelection(AccountSummaryDto a) {
+    setState(() {
+      _categoryAccount = a;
+      
+      // Auto-tagging logic: if account has a linked dimension, use it.
+      final linkedDimId = a.metadata?['linked_dimension_id'] as String?;
+      if (linkedDimId != null) {
+        _costCenterTags = [
+          CostCenterTagInput(categorySelectorId: linkedDimId, tag: a.name)
+        ];
       }
+    });
+    
+    if (mounted) {
+      context.read<VoucherSuggestionsCubit>().loadForCounterparty(a.id);
     }
   }
 
@@ -394,6 +409,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
                           const SizedBox(height: SpacingTokens.md),
 
                           CostCenterTagSelector(
+                            initialTags: _costCenterTags,
                             label: _type == VoucherType.receipt
                                 ? AppStringsAr.managementAssetLinkRevenue
                                 : AppStringsAr.managementAssetLinkExpense,

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/application/accounts/dtos/create_account_input.dart';
+import 'package:qayd/core/result/result.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
@@ -45,20 +48,59 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    final rootId = _assetType == 'investment'
+        ? widget.profitableAssetsRootId
+        : widget.depreciableAssetsRootId;
+
+    if (rootId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('خطأ: لم يتم العثور على الحساب الجذر للأصول.')),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
-    // Logic: 
-    // 1. Create Account under appropriate root (Investment vs Possession)
-    // 2. If Investment & generatesIncome: Create a Profit Center linked to this asset.
-    await Future.delayed(const Duration(seconds: 1)); // Mock
+    final value = double.tryParse(_valueController.text.trim()) ?? 0;
+    final sourceType = _assetType == 'investment'
+        ? 'investment_asset'
+        : 'possession';
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('تم تسجيل الأصل وربطه بالدائرة الاقتصادية بنجاح.')),
-      );
-      Navigator.pop(context, true);
+    final metadata = <String, dynamic>{
+      'income_source_type': sourceType,
+      'purchase_price': value,
+      'purchase_date': DateTime.now().toIso8601String(),
+      'generates_income': _assetType == 'investment' && _generatesIncome,
+    };
+    if (_notesController.text.trim().isNotEmpty) {
+      metadata['notes'] = _notesController.text.trim();
     }
+
+    final input = CreateAccountInput(
+      name: _nameController.text.trim(),
+      parentAccountId: rootId,
+      metadata: metadata,
+    );
+
+    final result = await InjectionContainer.createAccountUseCase(input);
+
+    if (!mounted) return;
+
+    result.fold(
+      (failure) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.messageAr)),
+        );
+      },
+      (_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('تم تسجيل الأصل وربطه بالدائرة الاقتصادية بنجاح.')),
+        );
+        Navigator.pop(context, true);
+      },
+    );
   }
 
   @override

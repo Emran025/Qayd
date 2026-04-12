@@ -942,4 +942,70 @@ abstract final class AppStringsAr {
       'تم تنفيذ الاستحقاق وتسجيل العملية بنجاح.';
   static const String accrualNextDuePrefix = 'الاستحقاق القادم';
   static const String accrualPayTooltip = 'تسجيل عملية دفع';
+
+  // ── Income Streams Module ───────────────────────────────────────────────
+
+  // Page titles & tabs
+  static const String incomeStreamsTitle = 'تدفقات الدخل والمصروفات';
+  static const String incomeStreamsTabIncome = 'مصادر الدخل';
+  static const String incomeStreamsTabPossessions = 'الممتلكات';
+  static const String incomeStreamsTabExpenses = 'المصروفات';
+  static const String incomeStreamsAddSource = 'إضافة مصدر';
+  static const String incomeStreamsAddExpense = 'إضافة تصنيف';
+
+  // Empty states
+  static const String incomeStreamsEmpty =
+      'لا توجد مصادر دخل مسجلة حالياً.\nأضف أصلاً استثمارياً أو مهنة لتبدأ.';
+  static const String possessionsEmpty =
+      'لا توجد ممتلكات شخصية مسجلة حالياً.';
+  static const String expenseCategoriesEmpty =
+      'لا توجد تصنيفات مصروفات حالياً.';
+
+  // Source type selection sheet
+  static const String incomeSourceTypeSheetTitle = 'ما نوع الإضافة؟';
+  static const String incomeSourceTypeSheetSubtitle =
+      'اختر نوع مصدر الدخل أو الممتلك الذي تودّ تسجيله';
+
+  static const String incomeSourceInvestmentAsset = 'أصل استثماري';
+  static const String incomeSourceInvestmentAssetDesc =
+      'عقارات، أسهم، مشاريع — كل ما يدرّ دخلاً دورياً';
+  static const String incomeSourceProfession = 'مهنة / عمل حر';
+  static const String incomeSourceProfessionDesc =
+      'وظيفة، حرفة، استشارة — مصدر دخل من العمل الشخصي';
+  static const String incomeSourceOther = 'مصدر دخل آخر';
+  static const String incomeSourceOtherDesc =
+      'إيجار، منحة، دخل جانبي — أي مصدر دخل غير مصنف';
+  static const String incomeSourcePossession = 'ممتلك شخصي';
+  static const String incomeSourcePossessionDesc =
+      'سيارة، أثاث، إلكترونيات — أصول مستهلَكة لا تدر دخلاً';
+
+  // Profession creation wizard
+  static const String professionWizardTitle = 'تسجيل مهنة / عمل حر';
+  static const String professionWizardDesc =
+      'سجّل مهنتك كمصدر دخل مستقل يتم تتبع إيراداته تلقائياً';
+  static const String professionAccountNameLabel = 'اسم الحساب';
+  static const String professionAccountNameHint =
+      'مثال: إيرادات التطوير، استشارات هندسية...';
+  static const String professionNameLabel = 'اسم المهنة';
+  static const String professionNameHint =
+      'مثال: تطوير تطبيقات، تصميم جرافيك، محاسبة...';
+  static const String professionLicenseLabel = 'رقم الترخيص / السجل (اختياري)';
+  static const String professionLicenseHint = 'رقم السجل التجاري أو الترخيص';
+  static const String professionHourlyRateLabel = 'معدل الساعة (اختياري)';
+  static const String professionStartDateLabel = 'تاريخ بدء المهنة';
+  static const String professionStartDateHint = 'اختر تاريخ البدء (اختياري)';
+  static const String professionNotesLabel = 'ملاحظات مرجعية (اختياري)';
+  static const String professionNotesHint = 'تفاصيل إضافية عن المهنة...';
+  static const String professionSubmitButton = 'تأكيد وتسجيل المهنة';
+  static const String professionSubmitNote =
+      'سيتم إنشاء حساب إيرادي مرتبط بهذه المهنة لتتبع الدخل تلقائياً.';
+
+  // Income stream card KPIs
+  static const String incomeStreamTotalYield = 'إجمالي العائد';
+  static const String incomeStreamTotalEarned = 'إجمالي المكتسب';
+  static const String incomeStreamCurrentValue = 'القيمة الحالية';
+  static const String incomeStreamBalance = 'الرصيد';
+  static const String incomeStreamAcquisitionValue = 'قيمة الاقتناء';
+  static const String incomeStreamProfessionField = 'المجال';
+  static const String incomeStreamExpenseCategory = 'تصنيف إنفاق';
 }

@@ -34,6 +34,17 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
     _selectedTags.addAll(widget.initialTags);
   }
 
+  @override
+  void didUpdateWidget(CostCenterTagSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTags != oldWidget.initialTags) {
+      setState(() {
+        _selectedTags.clear();
+        _selectedTags.addAll(widget.initialTags);
+      });
+    }
+  }
+
   void _notify() => widget.onChanged(List.unmodifiable(_selectedTags));
 
   Future<void> _addCostCenter() async {

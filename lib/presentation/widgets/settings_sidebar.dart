@@ -12,7 +12,7 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/identity_qr_dialog.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_list_page.dart';
 import 'package:qayd/presentation/pages/accruals/accrual_list_page.dart';
-import 'package:qayd/presentation/pages/management/personal_flow_management_page.dart';
+import 'package:qayd/presentation/pages/management/income_streams_page.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -124,9 +124,9 @@ class SettingsSidebar extends StatelessWidget {
                   onTap: () => _navTo(context, const AccrualListPage()),
                 ),
                 _DrawerTile(
-                  icon: Icons.business_center_outlined,
-                  title: AppStringsAr.managementTabPersonalFlowAccounts,
-                  onTap: () => _navTo(context, const PersonalFlowManagementPage()),
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: AppStringsAr.incomeStreamsTitle,
+                  onTap: () => _navTo(context, const IncomeStreamsPage()),
                 ),
                 const Divider(
                   indent: 20,

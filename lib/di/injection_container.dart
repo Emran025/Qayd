@@ -151,6 +151,7 @@ import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/repositories/audit_log_repository.dart';
 import 'package:qayd/data/repositories/sqlite_audit_log_repository.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/application/management/seed_expense_accounts_use_case.dart';
 
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
@@ -317,6 +318,7 @@ abstract final class InjectionContainer {
   static late ProcessAccrualUseCase processAccrualUseCase;
   static late AuditLogRepository auditLogRepository;
   static late AuditLogService auditLogService;
+  static late SeedExpenseAccountsUseCase seedExpenseAccountsUseCase;
 
   static Future<void> init({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
@@ -513,6 +515,13 @@ abstract final class InjectionContainer {
     if (userId > 0) {
       syncCoordinatorService.start();
     }
+    seedExpenseAccountsUseCase = SeedExpenseAccountsUseCase(
+      accountRepository,
+      createAccountUseCase,
+      costCenterRepository,
+      createCostCenterUseCase,
+      manageDimensionsUseCase,
+    );
   }
 
   static Future<void> closeDatabaseForRestore() async {
