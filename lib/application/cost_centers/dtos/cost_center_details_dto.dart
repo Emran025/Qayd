@@ -42,19 +42,22 @@ final class CostCenterDetailsDto {
     return total / center.budgetMinorUnits;
   }
 
-  /// Current month total in minor units (last element of trend).
-  int get currentMonthTotal =>
-      monthlyTrend.isEmpty ? 0 : monthlyTrend.last.totalMinor;
+  /// Current month total in minor units grouped by currency.
+  Map<String, int> get currentMonthTotals =>
+      monthlyTrend.isEmpty ? const {} : monthlyTrend.last.totalsByCurrency;
 
-  /// Previous month total in minor units.
-  int get prevMonthTotal => monthlyTrend.length < 2
-      ? 0
-      : monthlyTrend[monthlyTrend.length - 2].totalMinor;
+  /// Previous month total in minor units grouped by currency.
+  Map<String, int> get prevMonthTotals => monthlyTrend.length < 2
+      ? const {}
+      : monthlyTrend[monthlyTrend.length - 2].totalsByCurrency;
 
-  /// Month-over-month growth percentage (null if no previous data).
+  /// Month-over-month growth percentage for the primary currency (null if no previous data).
   double? get growthPct {
-    if (prevMonthTotal == 0) return null;
-    return (currentMonthTotal - prevMonthTotal) / prevMonthTotal * 100;
+    final pc = center.currencyCode;
+    final curr = currentMonthTotals[pc] ?? 0;
+    final prev = prevMonthTotals[pc] ?? 0;
+    if (prev == 0) return null;
+    return (curr - prev) / prev * 100;
   }
 
   /// Average voucher size in minor units across all currencies combined.

@@ -85,40 +85,11 @@ class _LoginPageState extends State<LoginPage> {
         await widget.onProvisioningComplete!();
         if (!mounted) return;
         setState(() => _loading = false);
-        // The parent (QaydAppBootstrapper) will swap the widget tree.
         return;
       }
-
-      // Legacy path: DB already open (e.g. from QaydApp BlocBuilder).
-      // Provisioning success — now check for backups before BLoC emission swaps the UI.
-      // NOTE: SecurityCubit emits the new state at the end of provisionDevice,
-      // but Flutter's build cycle happens after the current task.
-
-      final restoreCubit = InjectionContainer.restoreCubit;
-      await restoreCubit.checkBackups();
-
-      if (restoreCubit.state is RestoreFound && mounted) {
-        final restored = await Navigator.push<bool>(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BlocProvider.value(
-              value: restoreCubit,
-              child: const RestoreDiscoveryPage(),
-            ),
-          ),
-        );
-
-        if (restored == true) {
-          // Re-open DB with restored file
-          await InjectionContainer.reopenDatabaseAfterRestore();
-        } else {
-          // If they skipped restore, check if they have a registered identity on server
-          await _checkAndRecoverIdentityIfNecessary();
-        }
-      } else {
-        // No backup found — still check if they have an identity on server
-        await _checkAndRecoverIdentityIfNecessary();
-      }
+      
+      // Fallback: if no callback provided, check identity settle anyway
+      await _checkAndRecoverIdentityIfNecessary();
     }
 
     if (!mounted) return;

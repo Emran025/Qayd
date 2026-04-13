@@ -84,16 +84,24 @@ final class GetCostCenterDetailsUseCase {
     int months = 6,
   }) {
     final now = DateTime.now();
-    final rawMap = <String, int>{
-      for (final r in raw)
-        r['month_key'] as String: (r['total_minor'] as num).toInt(),
-    };
+    final rawMap = <String, Map<String, int>>{};
+
+    for (final r in raw) {
+      final key = r['month_key'] as String;
+      final currency = r['currency_code'] as String;
+      final minor = (r['total_minor'] as num).toInt();
+      rawMap.putIfAbsent(key, () => {})[currency] = minor;
+    }
+
     final result = <MonthlyTrendPoint>[];
     for (var i = months - 1; i >= 0; i--) {
       final d = DateTime(now.year, now.month - i, 1);
       final key = '${d.year}-${d.month.toString().padLeft(2, '0')}';
       result.add(
-        MonthlyTrendPoint(monthKey: key, totalMinor: rawMap[key] ?? 0),
+        MonthlyTrendPoint(
+          monthKey: key,
+          totalsByCurrency: rawMap[key] ?? const {},
+        ),
       );
     }
     return result;

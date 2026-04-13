@@ -16,9 +16,11 @@ import 'package:qayd/presentation/utils/numerical_styling.dart';
 
 // ── Glass Card ────────────────────────────────────────────────────────────
 
+/// A premium frosted-glass card with subtle backdrop blur and refined borders.
 class GlassCard extends StatelessWidget {
-  const GlassCard({super.key, required this.child});
+  const GlassCard({super.key, required this.child, this.padding});
   final Widget child;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -26,16 +28,23 @@ class GlassCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(RadiusTokens.lg),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.7),
+            color: scheme.surface.withValues(alpha: 0.72),
             borderRadius: BorderRadius.circular(RadiusTokens.lg),
             border: Border.all(
-              color: scheme.onSurface.withValues(alpha: 0.1),
+              color: scheme.onSurface.withValues(alpha: 0.08),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: scheme.shadow.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          padding: const EdgeInsets.all(SpacingTokens.md),
+          padding: padding ?? const EdgeInsets.all(SpacingTokens.md),
           child: child,
         ),
       ),
@@ -43,7 +52,8 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-// ── Hero Background ───────────────────────────────────────────────────────
+// ── Hero Background (kept for backward compat) ────────────────────────────
+// Prefer `CostCenterHeaderWidget` in `widgets/` for new code.
 
 class HeroBackground extends StatelessWidget {
   const HeroBackground({
@@ -61,30 +71,51 @@ class HeroBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasData = trend.any((p) => p.totalMinor > 0);
+    final currency = center.currencyCode;
+    final hasData = trend.any((p) => (p.totalsByCurrency[currency] ?? 0) > 0);
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: [
-            typeColor.withValues(alpha: 0.9),
-            typeColor.withValues(alpha: 0.6),
+            typeColor,
+            typeColor.withValues(alpha: 0.75),
+            typeColor.withValues(alpha: 0.55),
           ],
+          stops: const [0.0, 0.5, 1.0],
         ),
       ),
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // Decorative gradient orb
+          Positioned(
+            top: -40,
+            right: -30,
+            child: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.08),
+                    Colors.white.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
           if (hasData)
             Positioned(
               bottom: 0,
               left: 0,
               right: 0,
-              height: 120,
+              height: 100,
               child: IgnorePointer(
                 child: Opacity(
-                  opacity: 0.3,
+                  opacity: 0.2,
                   child: LineChart(
                     LineChartData(
                       gridData: const FlGridData(show: false),
@@ -94,8 +125,8 @@ class HeroBackground extends StatelessWidget {
                       lineBarsData: [
                         LineChartBarData(
                           spots: trend.asMap().entries.map((e) {
-                            return FlSpot(e.key.toDouble(),
-                                e.value.totalMinor.toDouble());
+                            final val = e.value.totalsByCurrency[currency] ?? 0;
+                            return FlSpot(e.key.toDouble(), val.toDouble());
                           }).toList(),
                           isCurved: true,
                           color: Colors.white,
@@ -104,7 +135,7 @@ class HeroBackground extends StatelessWidget {
                           dotData: const FlDotData(show: false),
                           belowBarData: BarAreaData(
                             show: true,
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withValues(alpha: 0.15),
                           ),
                         ),
                       ],
@@ -138,11 +169,13 @@ class HeroBackground extends StatelessWidget {
                       Expanded(
                         child: Text(
                           center.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
                           maxLines: 2,
                         ),
                       ),
@@ -171,6 +204,7 @@ class HeroBackground extends StatelessWidget {
 
 // ── Dash KPI Card ─────────────────────────────────────────────────────────
 
+/// Animated KPI card with counting number animation and glass-morphism background.
 class DashKpiCard extends StatefulWidget {
   const DashKpiCard({
     super.key,
@@ -231,7 +265,15 @@ class _DashKpiCardState extends State<DashKpiCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(widget.icon, color: c, size: 24),
+          // Icon with subtle background
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: c.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(RadiusTokens.sm),
+            ),
+            child: Icon(widget.icon, color: c, size: 20),
+          ),
           const SizedBox(height: SpacingTokens.sm),
           AnimatedBuilder(
             animation: _anim,
@@ -265,17 +307,26 @@ class _DashKpiCardState extends State<DashKpiCard>
 
 // ── Trend Line Chart ──────────────────────────────────────────────────────
 
+/// Interactive line chart for the monthly trend.
 class TrendLineChart extends StatelessWidget {
-  const TrendLineChart({super.key, required this.trend, required this.color});
+  const TrendLineChart({
+    super.key,
+    required this.trend,
+    required this.color,
+    required this.primaryCurrency,
+  });
   final List<MonthlyTrendPoint> trend;
   final Color color;
+  final String primaryCurrency;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
     // Find max value for Y axis padding
-    var maxY = trend.map((e) => e.totalMinor.toDouble()).reduce(max);
+    var maxY = trend
+        .map((e) => (e.totalsByCurrency[primaryCurrency] ?? 0).toDouble())
+        .reduce(max);
     if (maxY == 0) maxY = 100; // prevent empty chart issues
 
     return LineChart(
@@ -285,8 +336,9 @@ class TrendLineChart extends StatelessWidget {
           drawVerticalLine: false,
           horizontalInterval: maxY / 3,
           getDrawingHorizontalLine: (value) => FlLine(
-            color: scheme.onSurface.withValues(alpha: 0.1),
+            color: scheme.onSurface.withValues(alpha: 0.06),
             strokeWidth: 1,
+            dashArray: [4, 4],
           ),
         ),
         titlesData: FlTitlesData(
@@ -309,10 +361,10 @@ class TrendLineChart extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     trend[index].shortLabel,
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontSize: 10,
-                    ),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+                          fontSize: 10,
+                        ),
                   ),
                 );
               },
@@ -327,6 +379,7 @@ class TrendLineChart extends StatelessWidget {
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (_) => scheme.surfaceContainerHighest,
+            // tooltipRoundedRadius: RadiusTokens.md,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 return LineTooltipItem(
@@ -340,9 +393,11 @@ class TrendLineChart extends StatelessWidget {
         lineBarsData: [
           LineChartBarData(
             spots: trend.asMap().entries.map((e) {
-              return FlSpot(e.key.toDouble(), e.value.totalMinor.toDouble());
+              final val = e.value.totalsByCurrency[primaryCurrency] ?? 0;
+              return FlSpot(e.key.toDouble(), val.toDouble());
             }).toList(),
             isCurved: true,
+            curveSmoothness: 0.3,
             color: color,
             barWidth: 3,
             isStrokeCapRound: true,
@@ -352,7 +407,7 @@ class TrendLineChart extends StatelessWidget {
                   FlDotCirclePainter(
                 radius: 4,
                 color: scheme.surface,
-                strokeWidth: 2,
+                strokeWidth: 2.5,
                 strokeColor: color,
               ),
             ),
@@ -360,7 +415,7 @@ class TrendLineChart extends StatelessWidget {
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  color.withValues(alpha: 0.3),
+                  color.withValues(alpha: 0.25),
                   color.withValues(alpha: 0.0),
                 ],
                 begin: Alignment.topCenter,
@@ -378,6 +433,7 @@ class TrendLineChart extends StatelessWidget {
 
 // ── Donut Chart ───────────────────────────────────────────────────────────
 
+/// Interactive donut chart for dimension breakdown with touch & selection.
 class DonutChart extends StatefulWidget {
   const DonutChart(
       {super.key, required this.items, this.activeDimId, required this.onTap});
@@ -396,7 +452,9 @@ class _DonutChartState extends State<DonutChart> {
   Widget build(BuildContext context) {
     if (widget.items.isEmpty) return const SizedBox();
 
-    // Generate nice colors for donut
+    final scheme = Theme.of(context).colorScheme;
+
+    // Curated harmonious palette
     final colors = [
       ColorTokens.debitBlue,
       ColorTokens.emerald500,
@@ -435,7 +493,7 @@ class _DonutChartState extends State<DonutChart> {
               ),
               borderData: FlBorderData(show: false),
               sectionsSpace: 2,
-              centerSpaceRadius: 30,
+              centerSpaceRadius: 32,
               sections: widget.items.asMap().entries.map((e) {
                 final i = e.key;
                 final item = e.value;
@@ -444,8 +502,8 @@ class _DonutChartState extends State<DonutChart> {
                 final isOtherSelected =
                     widget.activeDimId != null && !isSelected;
 
-                final radius = isTouched || isSelected ? 40.0 : 30.0;
-                final opacity = isOtherSelected ? 0.3 : 1.0;
+                final radius = isTouched || isSelected ? 42.0 : 32.0;
+                final opacity = isOtherSelected ? 0.25 : 1.0;
                 final c = colors[i % colors.length].withValues(alpha: opacity);
 
                 return PieChartSectionData(
@@ -453,15 +511,18 @@ class _DonutChartState extends State<DonutChart> {
                   value: item.voucherCount.toDouble(),
                   title: item.voucherCount.toString(),
                   radius: radius,
-                  titleStyle: const TextStyle(
-                    fontSize: 12,
+                  titleStyle: TextStyle(
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.white.withValues(
+                      alpha: isOtherSelected ? 0.5 : 1.0,
+                    ),
                   ),
                 );
               }).toList(),
             ),
-            swapAnimationDuration: const Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutCubic,
           ),
         ),
         const SizedBox(width: SpacingTokens.sm),
@@ -470,37 +531,51 @@ class _DonutChartState extends State<DonutChart> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: widget.items.take(4).toList().asMap().entries.map((e) {
+            children: widget.items.take(5).toList().asMap().entries.map((e) {
               final item = e.value;
               final c = colors[e.key % colors.length];
               final isSelected = widget.activeDimId == item.dimensionId;
               final isOtherSelected = widget.activeDimId != null && !isSelected;
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsets.only(bottom: 5),
                 child: GestureDetector(
                   onTap: () => widget.onTap(item.dimensionId),
                   child: AnimatedOpacity(
-                    opacity: isOtherSelected ? 0.4 : 1.0,
+                    opacity: isOtherSelected ? 0.35 : 1.0,
                     duration: const Duration(milliseconds: 300),
                     child: Row(
                       children: [
                         Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                                color: c, shape: BoxShape.circle)),
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: c,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             item.dimensionName,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isSelected ? FontWeight.bold : null,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  fontWeight:
+                                      isSelected ? FontWeight.bold : null,
+                                ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        Text(
+                          '${item.voucherCount}',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                         ),
                       ],
                     ),
@@ -517,6 +592,7 @@ class _DonutChartState extends State<DonutChart> {
 
 // ── Budget Gauge ──────────────────────────────────────────────────────────
 
+/// Animated semi-circular budget utilization gauge.
 class BudgetGauge extends StatefulWidget {
   const BudgetGauge({
     super.key,
@@ -575,7 +651,7 @@ class _BudgetGaugeState extends State<BudgetGauge>
 
     // Gauge colors
     final activeColor = isOver ? ColorTokens.errorSoft : widget.typeColor;
-    final bgColor = scheme.onSurface.withValues(alpha: 0.1);
+    final bgColor = scheme.onSurface.withValues(alpha: 0.08);
 
     return Column(
       children: [
@@ -635,20 +711,31 @@ class _BudgetGaugeState extends State<BudgetGauge>
               }),
         ),
         if (isOver)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.warning_amber_rounded,
-                  size: 14, color: ColorTokens.errorSoft),
-              const SizedBox(width: 4),
-              Text(
-                AppStringsAr.costCenterOverBudgetWarning,
-                style: const TextStyle(
-                    color: ColorTokens.errorSoft,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SpacingTokens.sm,
+              vertical: SpacingTokens.xs,
+            ),
+            decoration: BoxDecoration(
+              color: ColorTokens.errorSoft.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(RadiusTokens.pill),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.warning_amber_rounded,
+                    size: 13, color: ColorTokens.errorSoft),
+                const SizedBox(width: 4),
+                Text(
+                  AppStringsAr.costCenterOverBudgetWarning,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: ColorTokens.errorSoft,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
+            ),
           )
         else
           Text.rich(
@@ -667,6 +754,7 @@ class _BudgetGaugeState extends State<BudgetGauge>
 
 // ── Voucher Activity Card ─────────────────────────────────────────────────
 
+/// A legacy activity card — prefer [TransactionHistoryTile] for new code.
 class VoucherActivityCard extends StatelessWidget {
   const VoucherActivityCard({super.key, required this.summary});
   final CenterVoucherSummary summary;
@@ -677,7 +765,7 @@ class VoucherActivityCard extends StatelessWidget {
     final isReceipt = summary.type == VoucherType.receipt;
     final c = isReceipt ? ColorTokens.debitBlue : ColorTokens.creditGreen;
     final icon =
-        isReceipt ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+        isReceipt ? Icons.south_west_rounded : Icons.north_east_rounded;
 
     return Card(
       elevation: 0,
@@ -689,10 +777,14 @@ class VoucherActivityCard extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
             horizontal: SpacingTokens.md, vertical: 4),
-        leading: CircleAvatar(
-          backgroundColor: c.withValues(alpha: 0.1),
-          foregroundColor: c,
-          child: Icon(icon, size: 20),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: c.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(RadiusTokens.md),
+          ),
+          child: Icon(icon, color: c, size: 20),
         ),
         title: Text(
           summary.counterpartyName ?? AppStringsAr.voucherStateConfirmed,
@@ -712,7 +804,7 @@ class VoucherActivityCard extends StatelessWidget {
               ),
             const SizedBox(height: 2),
             Text(
-              DateFormat('yyyy-MM-dd').format(summary.date),
+              DateFormat('yyyy/MM/dd').format(summary.date),
               style: TextStyle(
                   fontSize: 10,
                   color: scheme.onSurfaceVariant.withValues(alpha: 0.7)),

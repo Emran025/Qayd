@@ -39,7 +39,7 @@ class QaydAmountField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.rtl,
+      textDirection: TextDirection.ltr,
       child: TextFormField(
         controller: controller,
         focusNode: focusNode,
@@ -47,7 +47,7 @@ class QaydAmountField extends StatelessWidget {
         enabled: enabled,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         textInputAction: textInputAction,
-        textAlign: TextAlign.end,
+        textAlign: TextAlign.start,
         validator: validator,
         onChanged: onChanged,
         onFieldSubmitted: onFieldSubmitted,

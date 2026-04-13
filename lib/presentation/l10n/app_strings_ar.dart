@@ -184,6 +184,19 @@ abstract final class AppStringsAr {
   static const String managementAssetLinkRevenue = 'الأصل/المشروع المرتبط (مصدر الدخل)';
   static const String managementAssetLinkExpense = 'مركز التكلفة / المصلحة (جهة الصرف)';
 
+  static const String expenseWizardTitle = 'إضافة تصنيف مصروفات';
+  static const String expenseWizardRootError =
+      'خطأ: لم يتم العثور على حساب المصروفات الجذر.';
+  static const String expenseWizardSuccess = 'تم إضافة تصنيف المصروفات بنجاح.';
+  static const String expenseWizardHeaderTitle = 'تصنيف مصروف جديد';
+  static const String expenseWizardHeaderDesc =
+      'تصنيفات المصروفات تعمل كأوعية لتجميع وتتبع نفقاتك ضمن نفس السياق (مثلًا: صيانة سيارة، فواتير إلكترونية).';
+  static const String expenseWizardNameLabel = 'اسم تصنيف المصروفات';
+  static const String expenseWizardNameHint =
+      'مثال: اشتراكات شهرية، وقود السيارة، مقاضي المنزل...';
+  static const String expenseWizardNameRequired = 'يرجى إدخال اسم التصنيف';
+  static const String expenseWizardSubmit = 'إضافة التصنيف وتحليله';
+
   // Governance / activation (Phase 2)
   static const String activationSubtitle =
       'أدخل بيانات التفعيل للمتابعة. يتم التحقق من الخادم (وضع تجريبي حالياً).';

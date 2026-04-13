@@ -9,6 +9,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 
 /// Wizard for creating a new Expense Category.
 /// Extremely simple, since expense categories just act as buckets.
@@ -41,7 +42,7 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (widget.personalExpensesRootId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('خطأ: لم يتم العثور على حساب المصروفات الجذر.')),
+        const SnackBar(content: Text(AppStringsAr.expenseWizardRootError)),
       );
       return;
     }
@@ -69,7 +70,7 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
       },
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم إضافة تصنيف المصروفات بنجاح.')),
+          const SnackBar(content: Text(AppStringsAr.expenseWizardSuccess)),
         );
         Navigator.pop(context, true);
       },
@@ -83,7 +84,7 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
     final scheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: const QaydAppBar(title: 'إضافة تصنيف مصروفات'),
+      appBar: const QaydAppBar(title: AppStringsAr.expenseWizardTitle),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -109,12 +110,12 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         QaydText(
-                          'تصنيف مصروف جديد',
+                          AppStringsAr.expenseWizardHeaderTitle,
                           slot: QaydTextStyleSlot.titleMedium,
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'تصنيفات المصروفات تعمل كأوعية لتجميع وتتبع نفقاتك ضمن نفس السياق (مثلًا: صيانة سيارة، فواتير إلكترونية).',
+                          AppStringsAr.expenseWizardHeaderDesc,
                           style: TextStyle(
                             fontSize: 11,
                             color: scheme.onSurfaceVariant,
@@ -131,10 +132,11 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
 
             QaydTextField(
               controller: _nameController,
-              label: 'اسم تصنيف المصروفات',
-              hint: 'مثال: اشتراكات شهرية، وقود السيارة، مقاضي المنزل...',
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'يرجى إدخال اسم التصنيف' : null,
+              label: AppStringsAr.expenseWizardNameLabel,
+              hint: AppStringsAr.expenseWizardNameHint,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? AppStringsAr.expenseWizardNameRequired
+                  : null,
             ),
 
             const SizedBox(height: SpacingTokens.xxl),
@@ -153,10 +155,10 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
                   ? const CircularProgressIndicator(
                       color: Colors.black, strokeWidth: 2)
                   : const Text(
-                      'إضافة التصنيف وتحليله',
+                      AppStringsAr.expenseWizardSubmit,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                     ),
             ),

@@ -2,14 +2,14 @@
 final class MonthlyTrendPoint {
   const MonthlyTrendPoint({
     required this.monthKey,
-    required this.totalMinor,
+    required this.totalsByCurrency,
   });
 
   /// Month in 'YYYY-MM' format (e.g. '2026-04').
   final String monthKey;
 
-  /// Total confirmed voucher amount for this month in minor units.
-  final int totalMinor;
+  /// Confirmed voucher totals for this month grouped by currency (minor units).
+  final Map<String, int> totalsByCurrency;
 
   /// Short Arabic month label for chart axes.
   String get shortLabel {

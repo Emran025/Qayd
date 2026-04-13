@@ -358,13 +358,14 @@ GROUP BY v.currency_code
       final rows = await _db.rawQuery(
         '''
 SELECT strftime('%Y-%m', v.date) AS month_key,
+       v.currency_code,
        SUM(v.amount_minor) AS total_minor
 FROM vouchers v
 INNER JOIN voucher_cost_centers vcc ON vcc.voucher_id = v.id
 WHERE vcc.cost_center_id = ?
   AND v.state IN ('confirmed', 'settled')
   AND v.date >= ?
-GROUP BY month_key
+GROUP BY month_key, v.currency_code
 ORDER BY month_key ASC
 ''',
         [costCenterId, fromStr],
