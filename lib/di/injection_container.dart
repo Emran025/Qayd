@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/accruals/process_accrual_use_case.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
@@ -153,6 +154,23 @@ import 'package:qayd/data/repositories/sqlite_audit_log_repository.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/application/management/seed_expense_accounts_use_case.dart';
 
+/// Result of attempting to open the encrypted database.
+enum DatabaseOpenResult {
+  /// Database opened successfully.
+  success,
+
+  /// The encryption key doesn't match the existing database file.
+  /// User should be prompted to enter the primary key (mnemonic) or start fresh.
+  keyMismatch,
+
+  /// No database file exists yet (first run or after wipe).
+  /// The database was created fresh — no recovery needed.
+  freshCreated,
+
+  /// An unexpected error occurred.
+  otherError,
+}
+
 /// Composition root: encrypted DB, repositories, and use cases.
 abstract final class InjectionContainer {
   static final UuidV4IdGenerator _idGenerator = UuidV4IdGenerator();
@@ -164,6 +182,12 @@ abstract final class InjectionContainer {
 
   /// Not `final`: replaced after a successful restore ([reopenDatabaseAfterRestore]).
   static late Database database;
+
+  /// Whether the database has been successfully opened.
+  static bool _databaseReady = false;
+
+  /// Whether the database is ready for use.
+  static bool get isDatabaseReady => _databaseReady;
 
   static late final BackupService backupService;
   static late final AutoBackupService autoBackupService;
@@ -320,7 +344,21 @@ abstract final class InjectionContainer {
   static late AuditLogService auditLogService;
   static late SeedExpenseAccountsUseCase seedExpenseAccountsUseCase;
 
+  /// Kept for backward compatibility (tests, etc.).
+  /// Calls [initPreAuth] followed by [initDatabase].
   static Future<void> init({
+    DatabaseEncryptionKeyProvider? encryptionKeyProvider,
+  }) async {
+    await initPreAuth(encryptionKeyProvider: encryptionKeyProvider);
+    await initDatabase();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Phase A — Pre-Auth: lightweight services that do NOT require the database.
+  // Called from main() at startup.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static Future<void> initPreAuth({
     DatabaseEncryptionKeyProvider? encryptionKeyProvider,
   }) async {
     // Force SharedPreferences up early as Pigeon channels for it can be finicky after hot restarts
@@ -432,25 +470,7 @@ abstract final class InjectionContainer {
       keyProvider: _encryptionKeyProvider,
     );
 
-    database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
-    _registerSqliteStack();
-
-    // ── Phase 7: Security bootstrap ─────────────────────────────────────────
-    securityCubit = SecurityCubit(
-      pinStorage: appPinStorage,
-      licenseVault: licenseVault,
-      hardwareIdService: hardwareIdService,
-      clockGuard: clockGuard,
-      panicWipeService: panicWipeService,
-      authRepository: authRepository,
-      syncIdentityUseCase: syncIdentityToInternalAccountsUseCase,
-    );
-
-    autoBackupService.performIfDue().ignore();
-    driveBackupService.performIfDue().ignore();
-
-    // ── Real-Time Sync Engine ────────────────────────────────────────────────
-
+    // ── Sync Socket (needs no DB) ───────────────────────────────────────────
     final baseUrl = ApiEndpoints.baseUrl.trim().replaceAll(RegExp(r'/$'), '');
     final uri = Uri.parse(baseUrl);
     final protocol = uri.scheme == 'https' ? 'wss' : 'ws';
@@ -469,6 +489,63 @@ abstract final class InjectionContainer {
     );
 
     syncStatusCubit = SyncStatusCubit();
+
+    // ── Phase 7: Security bootstrap (pre-auth — no DB deps) ─────────────────
+    securityCubit = SecurityCubit(
+      pinStorage: appPinStorage,
+      licenseVault: licenseVault,
+      hardwareIdService: hardwareIdService,
+      clockGuard: clockGuard,
+      panicWipeService: panicWipeService,
+      authRepository: authRepository,
+      // syncIdentityUseCase is DB-dependent; bound later in initDatabase().
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Phase B — Post-Auth: opens the encrypted database and wires up the full
+  // SQLite stack, sync engine, and remaining use cases.
+  // Called ONLY after the user has been authenticated.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Opens the database and registers all DB-dependent services.
+  ///
+  /// Returns [DatabaseOpenResult.success] on happy path.
+  /// Returns [DatabaseOpenResult.keyMismatch] when the existing DB file
+  /// can't be decrypted with the current key — the caller should prompt
+  /// for the primary key (mnemonic) or offer to start fresh.
+  static Future<DatabaseOpenResult> initDatabase() async {
+    // Check whether a database file already exists.
+    final dbPath = await DatabaseProvider.databaseFilePath();
+    final dbFileExists = File(dbPath).existsSync();
+
+    try {
+      database =
+          await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
+    } on DatabaseException catch (e) {
+      debugPrint('InjectionContainer: Database open failed: $e');
+      if (dbFileExists) {
+        // A file exists but the key didn't work → key mismatch.
+        return DatabaseOpenResult.keyMismatch;
+      }
+      // No file existed and creation still failed → unexpected.
+      return DatabaseOpenResult.otherError;
+    } catch (e) {
+      debugPrint('InjectionContainer: Unexpected DB error: $e');
+      return DatabaseOpenResult.otherError;
+    }
+
+    _registerSqliteStack();
+    _databaseReady = true;
+
+    // ── Bind DB-dependent services to the SecurityCubit ──────────────────────
+    securityCubit.syncIdentityUseCase =
+        syncIdentityToInternalAccountsUseCase;
+
+    autoBackupService.performIfDue().ignore();
+    driveBackupService.performIfDue().ignore();
+
+    // ── Real-Time Sync Engine ────────────────────────────────────────────────
 
     syncPayloadProcessor = SyncPayloadProcessor(
       identityRepository: identityRepository,
@@ -522,6 +599,36 @@ abstract final class InjectionContainer {
       createCostCenterUseCase,
       manageDimensionsUseCase,
     );
+
+    return dbFileExists
+        ? DatabaseOpenResult.success
+        : DatabaseOpenResult.freshCreated;
+  }
+
+  /// Attempts to open the database with a key derived from the user's mnemonic.
+  ///
+  /// Used when [initDatabase] returns [DatabaseOpenResult.keyMismatch].
+  /// Returns `true` if the database opened successfully.
+  static Future<bool> retryDatabaseWithMnemonic(String mnemonic) async {
+    final hwProvider =
+        _encryptionKeyProvider as HardwareBackedEncryptionKeyProvider;
+    final derivedKey = await hwProvider.deriveKeyFromMnemonic(mnemonic);
+    await hwProvider.updateCachedKey(derivedKey);
+    final result = await initDatabase();
+    return result == DatabaseOpenResult.success ||
+        result == DatabaseOpenResult.freshCreated;
+  }
+
+  /// Deletes the existing database file and creates a new empty one.
+  ///
+  /// Used when the user chooses to "start fresh" after a key mismatch.
+  static Future<DatabaseOpenResult> resetDatabaseAndInit() async {
+    final dbPath = await DatabaseProvider.databaseFilePath();
+    final file = File(dbPath);
+    if (file.existsSync()) {
+      await file.delete();
+    }
+    return initDatabase();
   }
 
   static Future<void> closeDatabaseForRestore() async {
@@ -616,7 +723,8 @@ abstract final class InjectionContainer {
       governanceWriteGuard,
       auditLogService: auditLogService,
     );
-    listArchivedAccountsUseCase = ListArchivedAccountsUseCase(accountRepository);
+    listArchivedAccountsUseCase =
+        ListArchivedAccountsUseCase(accountRepository);
     deactivateAccountUseCase = DeactivateAccountUseCase(
       accountRepository,
       ledgerRepository,

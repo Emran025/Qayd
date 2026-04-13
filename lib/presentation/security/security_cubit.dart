@@ -7,6 +7,7 @@ import 'package:qayd/data/security/hardware_id_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/data/security/monotonic_clock_guard.dart';
 import 'package:qayd/data/security/panic_wipe_service.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
 import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
 import 'package:qayd/presentation/security/security_state.dart';
@@ -26,7 +27,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     required MonotonicClockGuard clockGuard,
     required PanicWipeService panicWipeService,
     required AuthRepository authRepository,
-    required SyncIdentityToInternalAccountsUseCase syncIdentityUseCase,
+    SyncIdentityToInternalAccountsUseCase? syncIdentityUseCase,
     LocalAuthentication? localAuth,
     Duration lockAfterBackground = const Duration(minutes: 5),
   })  : _pinStorage = pinStorage,
@@ -51,9 +52,13 @@ class SecurityCubit extends Cubit<SecurityState> {
   final MonotonicClockGuard _clockGuard;
   final PanicWipeService _panicWipeService;
   final AuthRepository _authRepository;
-  final SyncIdentityToInternalAccountsUseCase _syncIdentityUseCase;
+  SyncIdentityToInternalAccountsUseCase? _syncIdentityUseCase;
   final LocalAuthentication _localAuth;
   final Duration _lockAfterBackground;
+
+  /// Late-bind the sync identity use case after the database is ready.
+  set syncIdentityUseCase(SyncIdentityToInternalAccountsUseCase uc) =>
+      _syncIdentityUseCase = uc;
 
   DateTime? _pausedAt;
 
@@ -92,7 +97,10 @@ class SecurityCubit extends Cubit<SecurityState> {
     final shouldPinLock = lockEnabled && hasPin;
 
     // 5. Sync identity to internal accounts (Owner link)
-    _syncIdentityUseCase.call().ignore();
+    // Only call if DB is ready (Phase B completed).
+    if (InjectionContainer.isDatabaseReady) {
+      _syncIdentityUseCase?.call().ignore();
+    }
 
     emit(
       shouldPinLock
@@ -289,7 +297,10 @@ class SecurityCubit extends Cubit<SecurityState> {
       }
 
       // Sync identity to internal accounts after successful provision
-      _syncIdentityUseCase.call().ignore();
+      // Only call if DB is ready.
+      if (InjectionContainer.isDatabaseReady) {
+        _syncIdentityUseCase?.call().ignore();
+      }
 
       return ProvisioningResult.success(emailUnverified: emailUnverified);
     } on AuthException catch (e) {

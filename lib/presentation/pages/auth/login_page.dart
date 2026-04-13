@@ -24,7 +24,10 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 /// On success [SecurityCubit] emits a new state that drives the home widget
 /// swap in `main.dart` automatically — no manual navigation required.
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.onProvisioningComplete});
+
+  /// Called after successful provisioning to trigger database initialization.
+  final Future<void> Function()? onProvisioningComplete;
 
   static const routeName = '/auth/login';
 
@@ -77,6 +80,16 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (result.success) {
+      // Notify parent to open database now that provisioning is done.
+      if (widget.onProvisioningComplete != null) {
+        await widget.onProvisioningComplete!();
+        if (!mounted) return;
+        setState(() => _loading = false);
+        // The parent (QaydAppBootstrapper) will swap the widget tree.
+        return;
+      }
+
+      // Legacy path: DB already open (e.g. from QaydApp BlocBuilder).
       // Provisioning success — now check for backups before BLoC emission swaps the UI.
       // NOTE: SecurityCubit emits the new state at the end of provisionDevice,
       // but Flutter's build cycle happens after the current task.

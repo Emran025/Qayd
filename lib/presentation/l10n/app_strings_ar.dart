@@ -1049,4 +1049,27 @@ abstract final class AppStringsAr {
   static const String incomeStreamAcquisitionValue = 'قيمة الاقتناء';
   static const String incomeStreamProfessionField = 'المجال';
   static const String incomeStreamExpenseCategory = 'تصنيف إنفاق';
+
+  // ── Database Recovery / Key Mismatch ─────────────────────────────────────
+  static const String dbKeyMismatchTitle = 'تعذّر فتح قاعدة البيانات';
+  static const String dbKeyMismatchBody =
+      'يوجد ملف قاعدة بيانات مشفّرة على هذا الجهاز، لكن مفتاح التشفير الحالي لا يتطابق.\n\n'
+      'قد يحدث هذا عند تسجيل الدخول بحساب مختلف عن الحساب الذي أنشأ القاعدة الأصلية.\n\n'
+      'يُرجى إدخال المفتاح الأساسي (عبارة الـ 24 كلمة) لفتح القاعدة، أو البدء من جديد.';
+  static const String dbKeyMismatchRetryFailed =
+      'المفتاح المُدخل غير صحيح أو لا يتطابق مع القاعدة الموجودة. حاول مرة أخرى بعبارة مختلفة.';
+  static const String dbEnterPrimaryKeyAction = 'إدخال المفتاح الأساسي';
+  static const String dbMnemonicHint = 'أدخل عبارة الاسترداد المكونة من 24 كلمة…';
+  static const String dbUnlockAction = 'فتح القاعدة';
+  static const String dbRetryAction = 'إعادة المحاولة';
+  static const String dbStartFreshAction = 'البدء من جديد (حذف القاعدة الحالية)';
+  static const String dbStartFreshConfirmTitle = 'تأكيد الحذف والبدء من جديد';
+  static const String dbStartFreshConfirmBody =
+      'سيتم حذف جميع البيانات المالية المخزنة على هذا الجهاز نهائياً.\n\n'
+      'لا يمكن التراجع عن هذا الإجراء. هل أنت متأكد؟';
+  static const String dbStartFreshConfirmAction = 'حذف والبدء من جديد';
+  static const String dbOpenErrorTitle = 'خطأ في فتح قاعدة البيانات';
+  static const String dbOpenErrorBody =
+      'تعذّر فتح قاعدة البيانات بسبب خطأ غير متوقع. يُرجى إعادة المحاولة أو التواصل مع الدعم الفني.';
+  static const String dbOpeningProgress = 'جاري فتح قاعدة البيانات المشفّرة…';
 }
