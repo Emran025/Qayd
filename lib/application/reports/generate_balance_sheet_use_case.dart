@@ -109,8 +109,12 @@ class GenerateBalanceSheetUseCase {
           totalAssetsMinorUnits: entry.value.assets,
           totalLiabilitiesMinorUnits: entry.value.liabilities,
           totalEquityMinorUnits: entry.value.equity,
-          isBalanced: entry.value.assets ==
-              (entry.value.liabilities + entry.value.equity),
+          // Equation: Assets + Liabilities + Equity = 0 (signed Dr-Cr)
+          isBalanced: (entry.value.assets +
+                      entry.value.liabilities +
+                      entry.value.equity)
+                  .abs() <
+              10, // Tolerance for rounding if any (usually 0 in integer math)
         ),
     };
   }

@@ -56,15 +56,8 @@ final class BalanceSheetGenerator {
 
       final accMap = rawBalances.putIfAbsent(e.accountId, () => {});
       final current = accMap[e.currency] ?? 0;
-
-      // Balance direction depends on account nature.
-      if (acc.nature.isDebit) {
-        accMap[e.currency] =
-            current + (e.isDebit ? e.amount.minorUnits : -e.amount.minorUnits);
-      } else {
-        accMap[e.currency] =
-            current + (e.isCredit ? e.amount.minorUnits : -e.amount.minorUnits);
-      }
+      accMap[e.currency] =
+          current + (e.isDebit ? e.amount.minorUnits : -e.amount.minorUnits);
     }
 
     // ── 3. Hierarchical Roll-up (children → parents) ────────────────────

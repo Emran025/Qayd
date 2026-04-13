@@ -7,6 +7,7 @@ import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/reports/balance_sheet_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -168,10 +169,10 @@ class _FinancialHeaderChartCard extends StatelessWidget {
 
     final assets =
         _minorToMajor(section.totalAssetsMinorUnits, section.currencyDigits);
-    final liabilities = _minorToMajor(
+    final liabilities = -_minorToMajor(
         section.totalLiabilitiesMinorUnits, section.currencyDigits);
-    final equity =
-        _minorToMajor(section.totalEquityMinorUnits, section.currencyDigits);
+    final equity = -_minorToMajor(
+        section.totalEquityMinorUnits, section.currencyDigits);
 
     final maxVal =
         [assets, liabilities, equity].reduce((a, b) => a > b ? a : b);
@@ -199,7 +200,7 @@ class _FinancialHeaderChartCard extends StatelessWidget {
               Icon(Icons.insights_rounded, color: qayd.goldAccent, size: 20),
               const SizedBox(width: 8),
               Text(
-                'المركز المالي — ${section.currencyCode}',
+                '${AppStringsAr.financialCenterPrefix}${section.currencyCode}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -232,13 +233,17 @@ class _FinancialHeaderChartCard extends StatelessWidget {
                               Widget text;
                               switch (value.toInt()) {
                                 case 0:
-                                  text = const Text('الأصول', style: style);
+                                  text = const Text(AppStringsAr.assetsLabel,
+                                      style: style);
                                   break;
                                 case 1:
-                                  text = const Text('الخصوم', style: style);
+                                  text = const Text(
+                                      AppStringsAr.liabilitiesLabel,
+                                      style: style);
                                   break;
                                 case 2:
-                                  text = const Text('الملكية', style: style);
+                                  text = const Text(AppStringsAr.equityLabel,
+                                      style: style);
                                   break;
                                 default:
                                   text = const Text('');
@@ -298,14 +303,14 @@ class _FinancialHeaderChartCard extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildLegendIndicator(
-                          'الأصول', assets, ColorTokens.navy700),
+                      _buildLegendIndicator(AppStringsAr.assetsLabel, assets,
+                          ColorTokens.navy700),
                       const SizedBox(height: 12),
-                      _buildLegendIndicator(
-                          'الخصوم', liabilities, qayd.goldAccent),
+                      _buildLegendIndicator(AppStringsAr.liabilitiesLabel,
+                          liabilities, qayd.goldAccent),
                       const SizedBox(height: 12),
-                      _buildLegendIndicator(
-                          'الملكية', equity, ColorTokens.emerald600),
+                      _buildLegendIndicator(AppStringsAr.equityLabel, equity,
+                          ColorTokens.emerald600),
                     ],
                   ),
                 ),
@@ -400,17 +405,20 @@ class _BalanceSheetLedger extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildSectionGroup('الأصول', assets, context),
+        _buildSectionGroup(AppStringsAr.assetsLabel, assets, context),
         const SizedBox(height: 16),
-        _buildSectionGroup('الخصوم', liab, context),
+        _buildSectionGroup(AppStringsAr.liabilitiesLabel, liab, context,
+            shouldNegate: true),
         const SizedBox(height: 16),
-        _buildSectionGroup('حقوق الملكية', equity, context),
+        _buildSectionGroup(AppStringsAr.equityLabel, equity, context,
+            shouldNegate: true),
       ],
     );
   }
 
   Widget _buildSectionGroup(
-      String title, List<BalanceSheetLineDto> lines, BuildContext context) {
+      String title, List<BalanceSheetLineDto> lines, BuildContext context,
+      {bool shouldNegate = false}) {
     if (lines.isEmpty) return const SizedBox.shrink();
     final groups = _groupLines(lines);
 
@@ -455,15 +463,15 @@ class _BalanceSheetLedger extends StatelessWidget {
             children: [
               Expanded(
                 flex: 6,
-                child: Text('الحساب', style: _headerStyle),
+                child: Text(AppStringsAr.accountLabel, style: _headerStyle),
               ),
               Expanded(
                 flex: 2,
-                child: Text('العملة', style: _headerStyle),
+                child: Text(AppStringsAr.currencyLabel, style: _headerStyle),
               ),
               Expanded(
                 flex: 3,
-                child: Text('الرصيد',
+                child: Text(AppStringsAr.accountBalanceLabel,
                     style: _headerStyle, textAlign: TextAlign.end),
               ),
             ],
@@ -485,7 +493,9 @@ class _BalanceSheetLedger extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
-            children: groups.map((g) => _AccountGroupItem(group: g)).toList(),
+            children: groups
+                .map((g) => _AccountGroupItem(group: g, negate: shouldNegate))
+                .toList(),
           ),
         ),
       ],
@@ -556,8 +566,9 @@ class _BSAccountGroup {
 // ── Merged Row ───────────────────────────────────────────────────────────────
 
 class _AccountGroupItem extends StatelessWidget {
-  const _AccountGroupItem({required this.group});
+  const _AccountGroupItem({required this.group, this.negate = false});
   final _BSAccountGroup group;
+  final bool negate;
 
   @override
   Widget build(BuildContext context) {
@@ -696,7 +707,11 @@ class _AccountGroupItem extends StatelessWidget {
                                   vertical: 10, horizontal: 16),
                               alignment: Alignment.centerLeft,
                               child: _MoneyText(
-                                  line.balanceMinorUnits, cur, weight),
+                                  negate
+                                      ? -line.balanceMinorUnits
+                                      : line.balanceMinorUnits,
+                                  cur,
+                                  weight),
                             ),
                           ),
                         ],
@@ -795,7 +810,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'ملخص الإجماليات — ${section.currencyCode}',
+                  '${AppStringsAr.totalsSummaryPrefix}${section.currencyCode}',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
@@ -812,7 +827,9 @@ class _CurrencySectionFooter extends StatelessWidget {
                     border: Border.all(color: statusColor.withAlpha(50)),
                   ),
                   child: Text(
-                    balanced ? 'متوازن ✓' : 'غير متوازن',
+                    balanced
+                        ? AppStringsAr.balancedLabel
+                        : AppStringsAr.unbalancedLabel,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -827,21 +844,22 @@ class _CurrencySectionFooter extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _SummaryRow('إجمالي الأصول', section.totalAssetsMinorUnits,
+                _SummaryRow(AppStringsAr.totalAssetsLabel,
+                    section.totalAssetsMinorUnits, currency, ColorTokens.navy800),
+                const SizedBox(height: 8),
+                _SummaryRow(AppStringsAr.totalLiabilitiesLabel,
+                    -section.totalLiabilitiesMinorUnits,
                     currency, ColorTokens.navy800),
                 const SizedBox(height: 8),
-                _SummaryRow('إجمالي الخصوم', section.totalLiabilitiesMinorUnits,
-                    currency, ColorTokens.navy800),
-                const SizedBox(height: 8),
-                _SummaryRow('حقوق الملكية', section.totalEquityMinorUnits,
+                _SummaryRow(AppStringsAr.equityLabel, -section.totalEquityMinorUnits,
                     currency, ColorTokens.navy800),
                 const SizedBox(height: 12),
                 const Divider(height: 1),
                 const SizedBox(height: 12),
                 _SummaryRow(
-                  'صافي الخصوم والملكية',
-                  section.totalLiabilitiesMinorUnits +
-                      section.totalEquityMinorUnits,
+                  AppStringsAr.netLiabilitiesAndEquityLabel,
+                  -(section.totalLiabilitiesMinorUnits +
+                      section.totalEquityMinorUnits),
                   currency,
                   ColorTokens.navy900,
                   isBold: true,

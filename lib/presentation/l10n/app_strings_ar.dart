@@ -18,6 +18,32 @@ abstract final class AppStringsAr {
         return voucherStateSettled;
       case StringKeys.voucherJumpHeader:
         return voucherJumpHeader;
+      case StringKeys.balanceSheetTitle:
+        return balanceSheetTitle;
+      case StringKeys.financialCenterPrefix:
+        return financialCenterPrefix;
+      case StringKeys.assetsLabel:
+        return assetsLabel;
+      case StringKeys.liabilitiesLabel:
+        return liabilitiesLabel;
+      case StringKeys.equityLabel:
+        return equityLabel;
+      case StringKeys.totalsSummaryPrefix:
+        return totalsSummaryPrefix;
+      case StringKeys.balancedLabel:
+        return balancedLabel;
+      case StringKeys.unbalancedLabel:
+        return unbalancedLabel;
+      case StringKeys.totalAssetsLabel:
+        return totalAssetsLabel;
+      case StringKeys.totalLiabilitiesLabel:
+        return totalLiabilitiesLabel;
+      case StringKeys.netLiabilitiesAndEquityLabel:
+        return netLiabilitiesAndEquityLabel;
+      case StringKeys.accountLabel:
+        return accountLabel;
+      case StringKeys.currencyLabel:
+        return currencyLabel;
       default:
         return '';
     }
@@ -286,6 +312,21 @@ abstract final class AppStringsAr {
       'ميزان المراجعة فارغ — لا توجد أي عمليات مالية مسجلة بعد.';
   static const String voucherReferenceLabel = 'المرجع';
   static const String voucherNotesLabel = 'ملاحظات';
+
+  // Balance Sheet
+  static const String balanceSheetTitle = 'الميزانية العمومية';
+  static const String financialCenterPrefix = 'المركز المالي — ';
+  static const String assetsLabel = 'الأصول';
+  static const String liabilitiesLabel = 'الخصوم';
+  static const String equityLabel = 'حقوق الملكية';
+  static const String totalsSummaryPrefix = 'ملخص الإجماليات — ';
+  static const String balancedLabel = 'متوازن ✓';
+  static const String unbalancedLabel = 'غير متوازن';
+  static const String totalAssetsLabel = 'إجمالي الأصول';
+  static const String totalLiabilitiesLabel = 'إجمالي الخصوم';
+  static const String netLiabilitiesAndEquityLabel = 'صافي الخصوم والملكية';
+  static const String accountLabel = 'الحساب';
+  static const String currencyLabel = 'العملة';
 
   // PDF export / share
   static const String exportSharePdfTooltip = 'تصدير ومشاركة PDF';
