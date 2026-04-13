@@ -162,14 +162,23 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
   }
 
   Future<void> _pickCategory() async {
-    final classification =
-        _type == VoucherType.payment ? 'personalExpenses' : 'personalRevenues';
+    final List<String> classifications = _type == VoucherType.payment
+        ? [
+            'personalExpenses',
+            'fixedProfitableAssets',
+            'fixedDepreciableAssets'
+          ]
+        : [
+            'personalRevenues',
+            'fixedProfitableAssets',
+            'fixedDepreciableAssets'
+          ];
 
     final a = await showAccountPickerSheet(
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
       requireNoRoot: false,
-      requireParentClassification: classification,
+      allowedClassifications: classifications,
     );
     if (a != null) {
       _applyAccountSelection(a);
@@ -179,11 +188,11 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
   void _applyAccountSelection(AccountSummaryDto a) {
     setState(() {
       _categoryAccount = a;
-      
+
       // Auto-tagging logic: if account has a linked dimension, use it.
       final linkedCenterId = a.metadata?['linked_cost_center_id'] as String?;
       final linkedDimId = a.metadata?['linked_dimension_id'] as String?;
-      
+
       if (linkedCenterId != null) {
         _costCenterTags = [
           CostCenterTagInput(
@@ -193,7 +202,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
         ];
       }
     });
-    
+
     if (mounted) {
       context.read<VoucherSuggestionsCubit>().loadForCounterparty(a.id);
     }
@@ -370,16 +379,18 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
 
                     // Dynamic Category Account
                     ListTile(
-                      contentPadding: EdgeInsets.zero,
                       title: QaydText(
                         _type == VoucherType.payment
-                            ? 'حساب المصروف'
-                            : 'حساب الإيراد',
+                            ? AppStringsAr.managementAssetLinkExpense
+                            : AppStringsAr.managementAssetLinkRevenue,
                         slot: QaydTextStyleSlot.labelLarge,
                         color: scheme.onSurfaceVariant,
                       ),
                       subtitle: QaydText(
-                        _categoryAccount?.name ?? 'اختر الحساب المصروف/الإيراد',
+                        _categoryAccount?.name ??
+                            (_type == VoucherType.payment
+                                ? 'اختر حساب المصروف أو التجارة'
+                                : 'اختر مصدر الدخل أو الأصل'),
                         slot: QaydTextStyleSlot.bodyLarge,
                         color: _categoryAccount == null
                             ? scheme.onSurfaceVariant

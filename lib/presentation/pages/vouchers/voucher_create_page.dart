@@ -206,11 +206,15 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 
   Future<void> _pickCounterparty() async {
+    final allowedClasses = _type == VoucherType.payment
+        ? ['receivables', 'payables']
+        : ['liquidAssets'];
     final a = await showAccountPickerSheet(
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
       excludeAccountId: _affected?.id,
       requireNoRoot: true,
+      allowedClassifications: allowedClasses,
     );
     if (a != null) {
       setState(() => _counterparty = a);
@@ -222,8 +226,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
 
   Future<void> _pickAffectedAccount() async {
     final allowedClasses = _type == VoucherType.payment
-        ? ['liquidAssets', 'personalExpenses']
-        : ['liquidAssets', 'personalRevenues'];
+        ? ['liquidAssets']
+        : ['receivables', 'payables'];
 
     final a = await showAccountPickerSheet(
       context,
@@ -312,13 +316,16 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       return;
     }
 
-    final initialCounterparty = widget.initialQrData?['counterpartyAccountId'] as String?;
+    final initialCounterparty =
+        widget.initialQrData?['counterpartyAccountId'] as String?;
     final initialDate = widget.initialQrData?['date'] as DateTime?;
     final isEdit = widget.initialQrData?['originVoucherId'] != null;
 
     if (isEdit && initialCounterparty != null && initialDate != null) {
-      final initialDateMidnight = DateTime(initialDate.year, initialDate.month, initialDate.day);
-      if (_counterparty!.id != initialCounterparty || _voucherDate.compareTo(initialDateMidnight) != 0) {
+      final initialDateMidnight =
+          DateTime(initialDate.year, initialDate.month, initialDate.day);
+      if (_counterparty!.id != initialCounterparty ||
+          _voucherDate.compareTo(initialDateMidnight) != 0) {
         final proceed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -481,7 +488,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                         slot: QaydTextStyleSlot.labelLarge,
                       ),
                       subtitle: QaydText(
-                        _affected?.name ?? AppStringsAr.voucherAffectedAccountHint,
+                        _affected?.name ??
+                            AppStringsAr.voucherAffectedAccountHint,
                         slot: QaydTextStyleSlot.bodyLarge,
                         color: _affected == null
                             ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -698,7 +706,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                             color: Colors.black,
                                           ),
                                         )
-                                      : const Text(AppStringsAr.voucherConfirmAndSend),
+                                      : const Text(
+                                          AppStringsAr.voucherConfirmAndSend),
                                 ),
                               ),
                             ],

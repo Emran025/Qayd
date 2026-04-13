@@ -53,31 +53,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   final _bankInfoController = TextEditingController();
   final _partyTypeController = TextEditingController();
 
-  // Asset fields
-  final _purchasePriceController = TextEditingController();
-  final _purchaseDateController = TextEditingController();
-  final _assetSerialController = TextEditingController();
-  final _assetModelController = TextEditingController();
-  final _assetNotesController = TextEditingController();
-  DateTime? _selectedPurchaseDate;
-
-  Future<void> _pickPurchaseDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedPurchaseDate ?? now,
-      firstDate: DateTime(1900),
-      lastDate: now.add(const Duration(days: 365 * 10)),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedPurchaseDate = picked;
-        _purchaseDateController.text =
-            picked.toIso8601String().split('T').first;
-      });
-    }
-  }
-
   String? _parentId;
   String? _parentName;
   String? _parentStandardKind;
@@ -110,13 +85,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
         kind == StandardAccountClassificationKind.payables.name;
   }
 
-  bool get _showAssetDetails {
-    final kind = widget.isChild ? _parentStandardKind : _standardKind.name;
-    return kind ==
-            StandardAccountClassificationKind.fixedDepreciableAssets.name ||
-        kind == StandardAccountClassificationKind.fixedProfitableAssets.name;
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -127,11 +95,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     _whatsappController.dispose();
     _bankInfoController.dispose();
     _partyTypeController.dispose();
-    _purchasePriceController.dispose();
-    _purchaseDateController.dispose();
-    _assetSerialController.dispose();
-    _assetModelController.dispose();
-    _assetNotesController.dispose();
     super.dispose();
   }
 
@@ -191,16 +154,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       currentPublicKeyHex: _scannedData?.currentPublicKeyHex,
       publicKeyHistoryHex: _scannedData?.publicKeyHistoryHex,
       serverAccountId: _scannedData?.serverAccountId,
-      metadata: _showAssetDetails
-          ? {
-              'purchase_price':
-                  double.tryParse(_purchasePriceController.text) ?? 0.0,
-              'purchase_date': _selectedPurchaseDate?.toIso8601String(),
-              'serial_number': _assetSerialController.text.trim(),
-              'model': _assetModelController.text.trim(),
-              'notes': _assetNotesController.text.trim(),
-            }
-          : {},
+      metadata: {},
     );
 
     await context.read<AccountCreateCubit>().submit(input);
@@ -483,47 +437,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     ),
                     const SizedBox(height: SpacingTokens.xl),
                   ],
-                  if (_showAssetDetails) ...[
-                    QaydText(
-                      'بيانات الأصل (Asset Details)',
-                      slot: QaydTextStyleSlot.titleMedium,
-                    ),
-                    const SizedBox(height: SpacingTokens.md),
-                    QaydNumericField(
-                      controller: _purchasePriceController,
-                      label: 'سعر الشراء / القيمة الابتدائية',
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    InkWell(
-                      onTap: _pickPurchaseDate,
-                      child: IgnorePointer(
-                        child: QaydTextField(
-                          controller: _purchaseDateController,
-                          label: 'تاريخ الاستحواذ / الشراء',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    QaydTextField(
-                      controller: _assetSerialController,
-                      label: 'رقم اللوحة / الرقم التسلسلي',
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    QaydTextField(
-                      controller: _assetModelController,
-                      label: 'الموديل / سنة الصنع',
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    QaydTextField(
-                      controller: _assetNotesController,
-                      label: 'وصف أو ملاحظات إضافية',
-                      textInputAction: TextInputAction.done,
-                    ),
-                    const SizedBox(height: SpacingTokens.xl),
-                  ],
                   FilledButton(
                     onPressed: submitting ? null : _submit,
                     style: FilledButton.styleFrom(
@@ -561,7 +474,13 @@ class _StandardKindSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final kinds = allowedKinds ?? StandardAccountClassificationKind.values;
+    final kinds = (allowedKinds ?? StandardAccountClassificationKind.values)
+        .where(
+          (k) =>
+              k != StandardAccountClassificationKind.fixedDepreciableAssets &&
+              k != StandardAccountClassificationKind.fixedProfitableAssets,
+        )
+        .toList();
     return Wrap(
       spacing: SpacingTokens.sm,
       runSpacing: SpacingTokens.sm,
