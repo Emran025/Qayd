@@ -172,7 +172,7 @@ class CreateTripartiteTransferUseCase {
             feeAccount = Account.createRoot(
               id: feeAccountId,
               name: 'إيراد رسوم التحويل',
-              classification: AccountClassification.settlements,
+              classification: AccountClassification.remittanceFees,
               createdAt: now,
             );
             await _accountRepository.save(feeAccount);
