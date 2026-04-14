@@ -181,7 +181,7 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: IconButton(
-                icon: const Icon(Icons.arrow_forward_ios_rounded,
+                icon: const Icon(Icons.arrow_back_ios_rounded,
                     color: ColorTokens.slate400, size: 20),
                 onPressed: () => Navigator.of(context).maybePop(),
               ),

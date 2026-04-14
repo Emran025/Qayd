@@ -117,7 +117,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios_rounded,
+                    icon: const Icon(Icons.arrow_back_ios_rounded,
                         color: ColorTokens.slate400, size: 20),
                     tooltip: AppStringsAr.backToLogin,
                     onPressed: () => Navigator.of(context).maybePop(),

@@ -56,8 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_loading) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreedToTerms) {
-      setState(
-          () => _errorAr = AppStringsAr.agreeToTermsRequired);
+      setState(() => _errorAr = AppStringsAr.agreeToTermsRequired);
       return;
     }
     setState(() {
@@ -96,15 +95,15 @@ class _RegisterPageState extends State<RegisterPage> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
+          builder: (_) =>
+              EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
         ),
       );
     } on AuthException catch (e) {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
       if (mounted) {
-        setState(() =>
-            _errorAr = AppStringsAr.serverConnectionError);
+        setState(() => _errorAr = AppStringsAr.serverConnectionError);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -121,7 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: IconButton(
-                icon: const Icon(Icons.arrow_forward_ios_rounded,
+                icon: const Icon(Icons.arrow_back_ios_rounded,
                     color: ColorTokens.slate400, size: 20),
                 tooltip: AppStringsAr.backToLogin,
                 onPressed: () => Navigator.of(context).maybePop(),
@@ -498,11 +497,11 @@ class _DocumentBottomSheetDialogState
                 : ListView(
                     padding: const EdgeInsets.all(SpacingTokens.lg),
                     children: [
-                      _buildClausesSection(
-                          AppStringsAr.termsOfUseLabel, _termsClauses, _termsFallback),
+                      _buildClausesSection(AppStringsAr.termsOfUseLabel,
+                          _termsClauses, _termsFallback),
                       const SizedBox(height: SpacingTokens.xl),
-                      _buildClausesSection(
-                          AppStringsAr.privacyPolicyLabel, _privacyClauses, _privacyFallback),
+                      _buildClausesSection(AppStringsAr.privacyPolicyLabel,
+                          _privacyClauses, _privacyFallback),
                       const SizedBox(height: SpacingTokens.xxl),
                     ],
                   ),
