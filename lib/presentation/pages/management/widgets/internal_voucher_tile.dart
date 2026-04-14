@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -55,7 +56,7 @@ class InternalVoucherTile extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             QaydText(
-                              isReceipt ? 'إيراد / توريد' : 'مصروف / صرف نقدية',
+                              isReceipt ? AppStringsAr.internalVoucherReceiptLabel : AppStringsAr.internalVoucherPaymentLabel,
                               slot: QaydTextStyleSlot.labelLarge,
                               color: scheme.onSurfaceVariant,
                             ),

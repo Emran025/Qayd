@@ -16,6 +16,7 @@ import 'package:qayd/application/accounts/deactivate_account_use_case.dart';
 import 'package:qayd/application/accounts/archive_account_use_case.dart';
 import 'package:qayd/application/accounts/restore_account_use_case.dart';
 import 'package:qayd/application/accounts/list_archived_accounts_use_case.dart';
+import 'package:qayd/application/accounts/manage_account_default_cost_centers_use_case.dart';
 import 'package:qayd/application/accounts/get_account_details_use_case.dart';
 import 'package:qayd/application/accounts/get_account_statement_use_case.dart';
 import 'package:qayd/application/accounts/list_account_statement_chat_use_case.dart';
@@ -343,6 +344,7 @@ abstract final class InjectionContainer {
   static late AuditLogRepository auditLogRepository;
   static late AuditLogService auditLogService;
   static late SeedExpenseAccountsUseCase seedExpenseAccountsUseCase;
+  static late ManageAccountDefaultCostCentersUseCase manageAccountDefaultCostCentersUseCase;
 
   /// Kept for backward compatibility (tests, etc.).
   /// Calls [initPreAuth] followed by [initDatabase].
@@ -738,6 +740,8 @@ abstract final class InjectionContainer {
       balanceCalculator,
     );
     findAccountByPhoneUseCase = FindAccountByPhoneUseCase(accountRepository);
+    manageAccountDefaultCostCentersUseCase =
+        ManageAccountDefaultCostCentersUseCase(accountRepository);
     listAccountsUseCase = ListAccountsUseCase(
       accountRepository,
       ledgerRepository,

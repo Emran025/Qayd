@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/domain/entities/cost_center.dart';
-import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/application/cost_centers/dtos/cost_center_details_dto.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/presentation/widgets/cost_center_selection_sheet.dart';
 
 class CostCenterTagSelector extends StatefulWidget {
   const CostCenterTagSelector({
@@ -58,7 +58,7 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
     if (centers.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('لا يوجد مراكز تكلفة .')));
+      ).showSnackBar(SnackBar(content: Text(AppStringsAr.costCenterNoCentersAvailable)));
       return;
     }
     final available = centers
@@ -68,48 +68,29 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
     if (available.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تمت إضافة جميع مراكز التكلفة المتاحة.'),
+          SnackBar(
+            content: Text(AppStringsAr.costCenterAllAddedAllAvailable),
           ),
         );
       }
       return;
     }
 
-    final selectedCenter = await showModalBottomSheet<CostCenter>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => _CostCenterPickerSheet(centers: available),
+    final result = await showCostCenterSelectionSheet(
+      context,
+      availableCenters: available,
     );
+    if (result == null || !mounted) return;
 
-    if (selectedCenter != null && mounted) {
-      // Pick dimensions for this center
-      final dimRes = await InjectionContainer.manageDimensionsUseCase
-          .listDimensions(costCenterId: selectedCenter.id);
-
-      List<String> selectedDims = [];
-      if (dimRes.isSuccess && dimRes.valueOrNull!.isNotEmpty) {
-        final picked = await showModalBottomSheet<List<String>>(
-          context: context,
-          isScrollControlled: true,
-          builder: (context) => _DimensionPickerSheet(
-            centerName: selectedCenter.name,
-            dimensions: dimRes.valueOrNull!,
-          ),
-        );
-        if (picked != null) selectedDims = picked;
-      }
-
-      setState(() {
-        _selectedTags.add(
-          CostCenterTagInput(
-            costCenterId: selectedCenter.id,
-            dimensionIds: selectedDims,
-          ),
-        );
-      });
-      _notify();
-    }
+    setState(() {
+      _selectedTags.add(
+        CostCenterTagInput(
+          costCenterId: result.center.id,
+          dimensionIds: result.dimensionIds,
+        ),
+      );
+    });
+    _notify();
   }
 
   @override
@@ -123,13 +104,13 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             QaydText(
-              widget.label ?? 'مراكز التكلفة والأبعاد',
+              widget.label ?? AppStringsAr.costCenterTagsLabel,
               slot: QaydTextStyleSlot.labelLarge,
             ),
             TextButton.icon(
               onPressed: _addCostCenter,
               icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-              label: const Text('إضافة'),
+              label: Text(AppStringsAr.actionAdd),
             ),
           ],
         ),
@@ -137,7 +118,7 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
             child: Text(
-              'لا توجد مراكز تكلفة مرتبطة.',
+              AppStringsAr.costCenterNoneLinked,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(
                   alpha: 0.6,
@@ -173,105 +154,6 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
             }).toList(),
           ),
       ],
-    );
-  }
-}
-
-class _CostCenterPickerSheet extends StatelessWidget {
-  const _CostCenterPickerSheet({required this.centers});
-
-  final List<CostCenter> centers;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(SpacingTokens.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          QaydText('اختر مركز التكلفة', slot: QaydTextStyleSlot.titleMedium),
-          const SizedBox(height: SpacingTokens.md),
-          ...centers.map(
-            (c) => ListTile(
-              title: Text(c.name),
-              leading: const Icon(Icons.pie_chart_outline_rounded),
-              onTap: () => Navigator.pop(context, c),
-            ),
-          ),
-          const SizedBox(height: SpacingTokens.xl),
-        ],
-      ),
-    );
-  }
-}
-
-class _DimensionPickerSheet extends StatefulWidget {
-  const _DimensionPickerSheet({
-    required this.centerName,
-    required this.dimensions,
-  });
-
-  final String centerName;
-  final List<CostCenterDimension> dimensions;
-
-  @override
-  State<_DimensionPickerSheet> createState() => _DimensionPickerSheetState();
-}
-
-class _DimensionPickerSheetState extends State<_DimensionPickerSheet> {
-  final Set<String> _selectedIds = {};
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(SpacingTokens.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          QaydText(
-            'أبعاد ${widget.centerName}',
-            slot: QaydTextStyleSlot.titleMedium,
-          ),
-          const SizedBox(height: SpacingTokens.md),
-          Flexible(
-            child: ListView(
-              shrinkWrap: true,
-              children: widget.dimensions.map((d) {
-                return CheckboxListTile(
-                  title: Text(d.name),
-                  subtitle: Text(d.category.name),
-                  value: _selectedIds.contains(d.id),
-                  onChanged: (v) {
-                    setState(() {
-                      if (v == true) {
-                        _selectedIds.add(d.id);
-                      } else {
-                        _selectedIds.remove(d.id);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: SpacingTokens.lg),
-          Directionality(
-            textDirection: TextDirection.rtl,
-            child: Row(
-              children: [
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () =>
-                        Navigator.pop(context, _selectedIds.toList()),
-                    child: const Text('تطبيق'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: SpacingTokens.xl),
-        ],
-      ),
     );
   }
 }

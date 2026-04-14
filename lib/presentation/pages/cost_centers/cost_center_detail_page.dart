@@ -272,6 +272,7 @@ class _DashboardViewState extends State<_DashboardView>
                     // ── Dimensions list ───────────────────────
                     if (dto.dimensions.isNotEmpty)
                       _DimensionsList(
+                        centerName: dto.center.name,
                         dims: dto.dimensions,
                         getCategoryColor: _getCategoryColor,
                       ),
@@ -519,10 +520,12 @@ class _EmptyState extends StatelessWidget {
 
 class _DimensionsList extends StatelessWidget {
   const _DimensionsList({
+    required this.centerName,
     required this.dims,
     required this.getCategoryColor,
   });
 
+  final String centerName;
   final List<CostCenterDimension> dims;
   final Color Function(CostCenterDimensionCategory) getCategoryColor;
 
@@ -539,7 +542,7 @@ class _DimensionsList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppStringsAr.costCenterDimensionsTitle,
+            AppStringsAr.costCenterDimensionsTitle(centerName),
             style: tt.labelSmall?.copyWith(
               color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
               fontWeight: FontWeight.w700,

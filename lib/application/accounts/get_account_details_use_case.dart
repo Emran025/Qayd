@@ -1,3 +1,4 @@
+import 'package:qayd/application/accounts/dtos/account_default_cost_center_dto.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/application/failure_mapping.dart';
@@ -53,6 +54,13 @@ class GetAccountDetailsUseCase {
           await _accountRepository.getPartyDetails(account.id);
       final partyDetails = partyDetailsR.valueOrNull;
 
+      // Fetch default cost centers; soft-fail so account details still load.
+      final defaultCCRes =
+          await _accountRepository.getDefaultCostCenters(account.id);
+      final defaultCCs = defaultCCRes.isSuccess
+          ? defaultCCRes.valueOrNull!
+          : const <AccountDefaultCostCenterDto>[];
+
       return Success(
         GetAccountDetailsOutput(
           accountId: account.id.value,
@@ -71,6 +79,7 @@ class GetAccountDetailsUseCase {
           whatsappNumber: partyDetails?.whatsappNumber,
           bankAccountInfo: partyDetails?.bankAccountInfo,
           partyType: partyDetails?.partyType,
+          defaultCostCenters: defaultCCs,
         ),
       );
     } catch (e, _) {

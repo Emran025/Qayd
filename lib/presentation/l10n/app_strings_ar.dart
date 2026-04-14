@@ -49,6 +49,71 @@ abstract final class AppStringsAr {
     }
   }
 
+  // Refactored UI Strings
+  static const String costCenterSelectionTitle = 'اختر مركز التكلفة';
+  static String costCenterDimensionsTitle(String name) => 'أبعاد $name';
+  static const String costCenterCustomizeDimensions = 'تخصيص الأبعاد';
+  static const String costCenterApplyDimensions = 'تطبيق الأبعاد';
+  static const String voucherAffectedAccountParty = 'الحساب المتأثر (طَرَف)';
+  static const String voucherPickCounterpartyHint2 = 'اختر حساب الطرف (العميل/المورد)';
+  static const String costCenterNoCentersAvailable = 'لا يوجد مراكز تكلفة .';
+  static const String costCenterAllAddedAllAvailable = 'تمت إضافة جميع مراكز التكلفة المتاحة.';
+  static const String costCenterTagsLabel = 'مراكز التكلفة والأبعاد';
+  static const String costCenterNoneLinked = 'لا توجد مراكز تكلفة مرتبطة.';
+  static const String professionWizardRootError = 'خطأ: لم يتم العثور على حساب الإيرادات الجذر.';
+  static const String professionWizardSuccess = 'تم تسجيل المهنة كمصدر دخل بنجاح.';
+  static const String professionAccountNameRequired = 'يرجى إدخال اسم الحساب';
+  static const String professionNameRequired = 'يرجى إدخال اسم المهنة';
+  static const String defaultCostCentersTitle = 'مراكز التكلفة الافتراضية';
+  static const String professionAddCostCenter = 'إضافة مركز تكلفة للمهنة';
+  static const String internalVoucherFundError = 'خطأ: لم يتم العثور على حساب الصندوق الرئيسي.';
+  static const String internalVoucherCategoryRequired = 'يرجى اختيار حساب المصروف أو الإيراد أولاً.';
+  static const String internalVoucherSuccess = 'تم تسجيل المعاملة الداخلية بنجاح.';
+  static const String internalVoucherPickExpense = 'اختر حساب المصروف أو التجارة';
+  static const String internalVoucherPickRevenue = 'اختر مصدر الدخل أو الأصل';
+  static const String actionRecordTransaction = 'تسجيل العملية';
+  static const String suggestionRecurring = 'متكرر';
+  static const String suggestionClaim = 'مطالبة';
+  static const String incomeStreamTracker = 'سجل التتبع';
+  static const String incomeStreamExpense = 'تصنيف مصروفات';
+  static const String incomeStreamAsset = 'أصل استثماري ذو عائد';
+  static const String incomeStreamPossession = 'ممتلكات شخصية';
+  static const String incomeStreamProfession = 'مصدر دخل مهني';
+  static const String exportPdfStatement = 'تصدير كشف حساب PDF';
+  static const String exportExcelStatement = 'تصدير كشف حساب Excel';
+  static const String incomeStreamNoData = 'لا توجد بيانات مالية مسجلة حتى الآن.';
+  static const String incomeStreamLoadError = 'حدث خطأ أثناء تحميل السجل المالي.';
+  static const String incomeStreamPurchasePrice = 'قيمة الاستحواذ: ';
+  static const String incomeStreamPerHour = '/ساعة';
+  static const String incomeStreamDatePrefix = 'تاريخ: ';
+  static const String ledgerMovement = 'حركة السجل (Ledger)';
+  static const String filterApplied = 'تمت التصفية';
+  static const String filterLedger = 'تصفية السجل';
+  static const String financialBalancePerformance = 'أداء الرصيد المالي';
+  static String costCenterRemoveConfirmBody(String name) => 'إزالة "$name" من المراكز الافتراضية؟';
+  static const String costCenterRemoveError = 'تعذر إزالة مركز التكلفة.';
+  static const String defaultCostCentersDesc = 'تُضاف هذه المراكز تلقائياً عند اختيار هذا الحساب في سند صرف أو قبض جديد.';
+  static const String defaultCostCentersEmpty = 'لا توجد مراكز تكلفة افتراضية محددة.';
+  static const String costCenterAddCenter = 'إضافة مركز';
+  static const String modelLabel = 'الموديل';
+  static const String serialNumberLabel = 'الرقم التسلسلي';
+  static const String serialNumberOrPlateLabel = 'الرقم التسلسلي / اللوحة';
+  static const String purchaseDateLabel = 'تاريخ الشراء';
+  static const String statusActiveEn = 'نشط (Active)';
+  static const String statusInactiveEn = 'موقف (Inactive)';
+  static const String filterLedgerTitle = 'تصفية السجل المالي';
+  static const String financialMovementType = 'نوع الحركة المالية';
+  static const String internalVoucherReceiptLabel = 'إيراد / توريد';
+  static const String internalVoucherPaymentLabel = 'مصروف / صرف نقدية';
+  static const String assetsEmptyList = 'لا تملك أي أصول مسجلة حالياً.';
+
+  static const String statusRejected = 'مرفوض';
+  static const String actionDelete = 'حذف';
+  static const String confirmDeletionTitle = 'تأكيد الحذف';
+  static const String costCenterSaveError = 'تعذر حفظ مركز التكلفة';
+  static const String actionAttachImages = 'إرفاق صور';
+  static const String actionAdd = 'إضافة';
+
   static const String appTitle = 'قيد';
 
   static const String bootstrapMessage =
@@ -882,7 +947,6 @@ abstract final class AppStringsAr {
   static const String costCenterVoucherCountLabel = 'عدد السندات';
   static const String costCenterTotalLabel = 'إجمالي مؤكد';
   static const String costCenterOpenLedger = 'عرض سجل السندات كمحادثة';
-  static const String costCenterDimensionsTitle = 'التصنيفات والأبعاد';
   static const String costCenterLedgerTitle = 'سجل السندات';
   static const String costCenterLedgerSubtitle =
       'يعرض جميع سندات القبض والصرف المرتبطة بهذا المركز في واجهة محادثة.';

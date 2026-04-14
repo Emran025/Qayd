@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
+import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -188,23 +189,35 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
   void _applyAccountSelection(AccountSummaryDto a) {
     setState(() {
       _categoryAccount = a;
-
-      // Auto-tagging logic: if account has a linked dimension, use it.
-      final linkedCenterId = a.metadata?['linked_cost_center_id'] as String?;
-      final linkedDimId = a.metadata?['linked_dimension_id'] as String?;
-
-      if (linkedCenterId != null) {
-        _costCenterTags = [
-          CostCenterTagInput(
-            costCenterId: linkedCenterId,
-            dimensionIds: linkedDimId != null ? [linkedDimId] : [],
-          )
-        ];
-      }
+      // Clear old tags immediately when picking a new account so it doesn't show old ones
+      _costCenterTags = [];
     });
+
+    _loadDefaultCostCentersForAccount(a.id);
 
     if (mounted) {
       context.read<VoucherSuggestionsCubit>().loadForCounterparty(a.id);
+    }
+  }
+
+  Future<void> _loadDefaultCostCentersForAccount(String accountId) async {
+    final res = await InjectionContainer.getAccountDetailsUseCase
+        .call(GetAccountDetailsInput(accountId: accountId));
+    if (!mounted || !res.isSuccess) return;
+
+    final defaults = res.valueOrNull!.defaultCostCenters;
+    if (defaults.isNotEmpty) {
+      setState(() {
+        // Only override if the user hasn't manually selected tags in the meantime
+        if (_categoryAccount?.id == accountId && _costCenterTags.isEmpty) {
+          _costCenterTags = defaults.map((d) {
+            return CostCenterTagInput(
+              costCenterId: d.costCenterId,
+              dimensionIds: d.dimensionIds,
+            );
+          }).toList();
+        }
+      });
     }
   }
 
@@ -242,16 +255,16 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
 
     if (_fundAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('خطأ: لم يتم العثور على حساب الصندوق الرئيسي.')),
+        SnackBar(
+            content: Text(AppStringsAr.internalVoucherFundError)),
       );
       return;
     }
 
     if (_categoryAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('يرجى اختيار حساب المصروف أو الإيراد أولاً.')),
+        SnackBar(
+            content: Text(AppStringsAr.internalVoucherCategoryRequired)),
       );
       return;
     }
@@ -439,7 +452,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
                             onPressed: _pickAttachments,
                             icon: Icon(Icons.attach_file_rounded,
                                 size: 18, color: gold),
-                            label: Text('إرفاق صور',
+                            label: Text(AppStringsAr.actionAttachImages,
                                 style: TextStyle(color: gold)),
                             style: OutlinedButton.styleFrom(
                               side: BorderSide(
@@ -530,7 +543,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
                                           child: CircularProgressIndicator(
                                               color: Colors.black,
                                               strokeWidth: 2))
-                                      : const Text('تسجيل العملية'),
+                                      : const Text(AppStringsAr.actionRecordTransaction),
                                 ),
                               ),
                             ],
@@ -589,7 +602,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
               itemBuilder: (context, i) {
                 final s = state.suggestions[i];
                 final label =
-                    s.messageId.startsWith('freq_') ? 'متكرر' : 'مطالبة';
+                    s.messageId.startsWith('freq_') ? AppStringsAr.suggestionRecurring : AppStringsAr.suggestionClaim;
                 return ActionChip(
                   label: Text(
                       '$label: ${(s.amountMinorUnits! / 100).toStringAsFixed(0)}'),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
 import 'package:qayd/domain/value_objects/income_source_type.dart';
@@ -20,6 +21,7 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/account_statement_pdf_export.dart';
 import 'package:qayd/presentation/utils/statement_chat_export.dart';
 import 'package:qayd/presentation/utils/account_archive_helper.dart';
+import 'package:qayd/presentation/pages/accounts/widgets/account_default_cost_centers_section.dart';
 import 'package:qayd/di/injection_container.dart';
 
 enum _IncomeMenuAction { exportPdf, exportExcel, archive }
@@ -71,24 +73,24 @@ class _IncomeStreamDetailBody extends StatelessWidget {
 
     Color primaryColor = scheme.primary;
     IconData headerIcon = Icons.account_balance_wallet_outlined;
-    String typeLabel = 'سجل التتبع';
+    String typeLabel = AppStringsAr.incomeStreamTracker;
 
     if (isExpense) {
       primaryColor = ColorTokens.warningAmber;
       headerIcon = Icons.receipt_long_rounded;
-      typeLabel = 'تصنيف مصروفات';
+      typeLabel = AppStringsAr.incomeStreamExpense;
     } else if (sourceType == IncomeSourceType.investmentAsset) {
       primaryColor = ColorTokens.emerald400;
       headerIcon = Icons.trending_up_rounded;
-      typeLabel = 'أصل استثماري ذو عائد';
+      typeLabel = AppStringsAr.incomeStreamAsset;
     } else if (sourceType == IncomeSourceType.possession) {
       primaryColor = Colors.blueAccent;
       headerIcon = Icons.inventory_2_outlined;
-      typeLabel = 'ممتلكات شخصية';
+      typeLabel = AppStringsAr.incomeStreamPossession;
     } else if (sourceType == IncomeSourceType.profession) {
       primaryColor = ColorTokens.debitBlue;
       headerIcon = Icons.work_outline_rounded;
-      typeLabel = 'مصدر دخل مهني';
+      typeLabel = AppStringsAr.incomeStreamProfession;
     }
 
     return Scaffold(
@@ -143,7 +145,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                     const Icon(Icons.picture_as_pdf_outlined,
                         color: Colors.red, size: 20),
                     const SizedBox(width: SpacingTokens.sm),
-                    const Text('تصدير كشف حساب PDF'),
+                    const Text(AppStringsAr.exportPdfStatement),
                   ],
                 ),
               ),
@@ -154,7 +156,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                     const Icon(Icons.table_view_rounded,
                         color: Colors.green, size: 20),
                     const SizedBox(width: SpacingTokens.sm),
-                    const Text('تصدير كشف حساب Excel'),
+                    const Text(AppStringsAr.exportExcelStatement),
                   ],
                 ),
               ),
@@ -166,7 +168,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                     const Icon(Icons.archive_outlined,
                         size: 20, color: ColorTokens.errorSoft),
                     const SizedBox(width: SpacingTokens.sm),
-                    const Text('أرشفة الحساب',
+                    const Text(AppStringsAr.archiveAccountAction,
                         style: TextStyle(color: ColorTokens.errorSoft)),
                   ],
                 ),
@@ -196,6 +198,23 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                     child: _buildMetadataRibbon(context, metadata, scheme),
                   ),
 
+                // Default Cost Centers Section
+                SliverToBoxAdapter(
+                  child: BlocBuilder<AccountDetailCubit, AccountDetailState>(
+                    builder: (context, detailState) {
+                      if (detailState is AccountDetailReady) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: SpacingTokens.lg),
+                          child: AccountDefaultCostCentersSection(
+                            data: detailState.data,
+                          ),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+
                 // Smart Chart section
                 if (chatState is StatementChatReady &&
                     chatState.messages.isNotEmpty)
@@ -220,14 +239,14 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                   if (chatState.messages.isEmpty)
                     const SliverFillRemaining(
                       child: Center(
-                          child: Text('لا توجد بيانات مالية مسجلة حتى الآن.')),
+                          child: Text(AppStringsAr.incomeStreamNoData)),
                     )
                   else
                     _buildLedgerList(context, chatState, primaryColor)
                 else if (chatState is StatementChatFailure)
                   SliverFillRemaining(
                     child: Center(
-                        child: Text('حدث خطأ أثناء تحميل السجل المالي.')),
+                        child: Text(AppStringsAr.incomeStreamLoadError)),
                   ),
 
                 const SliverToBoxAdapter(
@@ -346,7 +365,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
             _MetaRibbonItem(
               icon: Icons.monetization_on_outlined,
               label:
-                  'قيمة الاستحواذ: ${metadata['purchase_price']} ${metadata['purchase_currency'] ?? ''}',
+                  '${AppStringsAr.incomeStreamPurchasePrice}${metadata['purchase_price']} ${metadata['purchase_currency'] ?? ''}',
             ),
           if (metadata['profession_name'] != null)
             _MetaRibbonItem(
@@ -354,12 +373,12 @@ class _IncomeStreamDetailBody extends StatelessWidget {
           if (metadata['hourly_rate'] != null)
             _MetaRibbonItem(
                 icon: Icons.timer_outlined,
-                label: '${metadata['hourly_rate']} /ساعة'),
+                label: '${metadata['hourly_rate']} ${AppStringsAr.incomeStreamPerHour}'),
           if (metadata['purchase_date'] != null)
             _MetaRibbonItem(
               icon: Icons.calendar_today_rounded,
               label:
-                  'تاريخ: ${(metadata['purchase_date'] as String).split('T').first}',
+                  '${AppStringsAr.incomeStreamDatePrefix}${(metadata['purchase_date'] as String).split('T').first}',
             ),
         ],
       ),
@@ -373,7 +392,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          QaydText('حركة السجل (Ledger)', slot: QaydTextStyleSlot.titleMedium),
+          QaydText(AppStringsAr.ledgerMovement, slot: QaydTextStyleSlot.titleMedium),
           FilledButton.tonalIcon(
             onPressed: () async {
               final cubit = context.read<StatementChatCubit>();
@@ -382,7 +401,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
               if (result != null) cubit.setFilter(result);
             },
             icon: const Icon(Icons.filter_list_rounded, size: 18),
-            label: Text(state.hasActiveFilters ? 'تمت التصفية' : 'تصفية السجل'),
+            label: Text(state.hasActiveFilters ? AppStringsAr.filterApplied : AppStringsAr.filterLedger),
             style: FilledButton.styleFrom(
               visualDensity: VisualDensity.compact,
               backgroundColor: state.hasActiveFilters
@@ -460,7 +479,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
             children: [
               Icon(Icons.show_chart_rounded, size: 18, color: primaryColor),
               const SizedBox(width: SpacingTokens.sm),
-              QaydText('أداء الرصيد المالي',
+              QaydText(AppStringsAr.financialBalancePerformance,
                   slot: QaydTextStyleSlot.titleSmall, color: scheme.onSurface),
             ],
           ),
@@ -513,8 +532,9 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                       showTitles: true,
                       reservedSize: 45,
                       getTitlesWidget: (value, meta) {
-                        if (value == meta.max || value == meta.min)
+                        if (value == meta.max || value == meta.min) {
                           return const SizedBox();
+                        }
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: Text(
@@ -741,7 +761,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                                               .withValues(alpha: 0.1),
                                           borderRadius:
                                               BorderRadius.circular(2)),
-                                      child: const Text('مرفوض',
+                                      child: Text(AppStringsAr.statusRejected,
                                           style: TextStyle(
                                               fontSize: 9,
                                               color: ColorTokens.errorSoft)),

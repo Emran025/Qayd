@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_error_banner.dart';
 import 'package:qayd/presentation/components/auth/auth_field.dart';
@@ -13,7 +12,6 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/auth/email_verification_otp_page.dart';
 import 'package:qayd/presentation/pages/auth/password_reset_page.dart';
 import 'package:qayd/presentation/pages/auth/register_page.dart';
-import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
 import 'package:qayd/presentation/pages/identity/seed_recovery_page.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';

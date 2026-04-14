@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:qayd/application/accounts/dtos/account_default_cost_center_dto.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/mappers/account_mapper.dart';
@@ -9,6 +10,7 @@ import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+
 
 final class SqliteAccountRepository implements AccountRepository {
   SqliteAccountRepository(this._db);
@@ -405,6 +407,126 @@ ORDER BY a.name COLLATE NOCASE
         DatabaseFailure(messageAr: 'تعذر قراءة الحسابات المؤرشفة.'),
       );
     }
+  }
+
+  // ── Default Cost Centers ──────────────────────────────────────────────────
+
+  static const _adcc = 'account_default_cost_centers';
+
+  @override
+  Future<Result<List<AccountDefaultCostCenterDto>>> getDefaultCostCenters(
+    AccountId accountId,
+  ) async {
+    try {
+      final rows = await _db.rawQuery(
+        '''
+SELECT a.id, a.account_id, a.cost_center_id, a.dimension_ids_json,
+       c.name AS center_name
+FROM $_adcc a
+LEFT JOIN cost_centers c ON c.id = a.cost_center_id
+WHERE a.account_id = ?
+ORDER BY a.created_at
+''',
+        [accountId.value],
+      );
+      return Success(rows.map(_adccFromRow).toList(growable: false));
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر قراءة مراكز التكلفة الافتراضية للحساب.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> saveDefaultCostCenter({
+    required AccountId accountId,
+    required String costCenterId,
+    required List<String> dimensionIds,
+  }) async {
+    try {
+      // Try to find existing row first (for upsert)
+      final existing = await _db.query(
+        _adcc,
+        where: 'account_id = ? AND cost_center_id = ?',
+        whereArgs: [accountId.value, costCenterId],
+        limit: 1,
+      );
+      final now = DateTime.now().toIso8601String();
+      final dimsJson = jsonEncode(dimensionIds);
+      if (existing.isEmpty) {
+        await _db.insert(_adcc, {
+          'id': _adccUuid(),
+          'account_id': accountId.value,
+          'cost_center_id': costCenterId,
+          'dimension_ids_json': dimsJson,
+          'created_at': now,
+        });
+      } else {
+        await _db.update(
+          _adcc,
+          {'dimension_ids_json': dimsJson},
+          where: 'account_id = ? AND cost_center_id = ?',
+          whereArgs: [accountId.value, costCenterId],
+        );
+      }
+      return const Success(null);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر حفظ مركز التكلفة الافتراضي للحساب.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> removeDefaultCostCenter({
+    required AccountId accountId,
+    required String costCenterId,
+  }) async {
+    try {
+      await _db.delete(
+        _adcc,
+        where: 'account_id = ? AND cost_center_id = ?',
+        whereArgs: [accountId.value, costCenterId],
+      );
+      return const Success(null);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر حذف مركز التكلفة الافتراضي من الحساب.',
+        ),
+      );
+    }
+  }
+
+  static AccountDefaultCostCenterDto _adccFromRow(Map<String, Object?> r) {
+    final dimsJson = r['dimension_ids_json'] as String? ?? '[]';
+    List<String> dims = const [];
+    try {
+      dims = (jsonDecode(dimsJson) as List<dynamic>)
+          .map((e) => e as String)
+          .toList();
+    } catch (_) {}
+    return AccountDefaultCostCenterDto(
+      id: r['id'] as String,
+      accountId: r['account_id'] as String,
+      costCenterId: r['cost_center_id'] as String,
+      costCenterName: r['center_name'] as String?,
+      dimensionIds: dims,
+    );
+  }
+
+  static String _adccUuid() {
+    // Lightweight UUID v4 without external dependency
+    final now = DateTime.now().microsecondsSinceEpoch;
+    return '${now.toRadixString(16).padLeft(12, '0')}-'
+        '${(now >> 16).toRadixString(16).padLeft(4, '0')}-'
+        '4${(now >> 20).toRadixString(16).padLeft(3, '0')}-'
+        '${((now >> 24) | 0x8000).toRadixString(16).padLeft(4, '0')}-'
+        '${(now * 37).toRadixString(16).padLeft(12, '0').substring(0, 12)}';
   }
 
   // ── JSON helpers for public key history ──────────────────────────────────

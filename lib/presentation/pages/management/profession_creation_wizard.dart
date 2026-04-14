@@ -11,6 +11,8 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
+import 'package:qayd/presentation/pages/vouchers/widgets/cost_center_tag_selector.dart';
 
 /// Wizard for creating a "Profession / Freelance" income source account.
 ///
@@ -41,6 +43,8 @@ class _ProfessionCreationWizardPageState
   DateTime? _startDate;
   bool _isSubmitting = false;
 
+  List<CostCenterTagInput> _costCenterTags = [];
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -68,7 +72,7 @@ class _ProfessionCreationWizardPageState
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (widget.personalRevenuesRootId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('خطأ: لم يتم العثور على حساب الإيرادات الجذر.')),
+        SnackBar(content: Text(AppStringsAr.professionWizardRootError)),
       );
       return;
     }
@@ -96,6 +100,7 @@ class _ProfessionCreationWizardPageState
     final input = CreateAccountInput(
       name: _nameController.text.trim(),
       parentAccountId: widget.personalRevenuesRootId,
+      defaultCostCenters: _costCenterTags,
       metadata: metadata,
     );
 
@@ -112,7 +117,7 @@ class _ProfessionCreationWizardPageState
       },
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم تسجيل المهنة كمصدر دخل بنجاح.')),
+          SnackBar(content: Text(AppStringsAr.professionWizardSuccess)),
         );
         Navigator.pop(context, true);
       },
@@ -177,7 +182,7 @@ class _ProfessionCreationWizardPageState
               label: AppStringsAr.professionAccountNameLabel,
               hint: AppStringsAr.professionAccountNameHint,
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'يرجى إدخال اسم الحساب' : null,
+                  (v == null || v.trim().isEmpty) ? AppStringsAr.professionAccountNameRequired : null,
             ),
 
             const SizedBox(height: SpacingTokens.md),
@@ -187,7 +192,7 @@ class _ProfessionCreationWizardPageState
               label: AppStringsAr.professionNameLabel,
               hint: AppStringsAr.professionNameHint,
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'يرجى إدخال اسم المهنة' : null,
+                  (v == null || v.trim().isEmpty) ? AppStringsAr.professionNameRequired : null,
             ),
 
             const SizedBox(height: SpacingTokens.md),
@@ -232,6 +237,19 @@ class _ProfessionCreationWizardPageState
               label: AppStringsAr.professionNotesLabel,
               hint: AppStringsAr.professionNotesHint,
               maxLines: 2,
+            ),
+
+            const SizedBox(height: SpacingTokens.md),
+
+            QaydText(
+              AppStringsAr.defaultCostCentersTitle,
+              slot: QaydTextStyleSlot.titleMedium,
+            ),
+            const SizedBox(height: SpacingTokens.md),
+            CostCenterTagSelector(
+              initialTags: _costCenterTags,
+              onChanged: (tags) => setState(() => _costCenterTags = tags),
+              label: AppStringsAr.professionAddCostCenter,
             ),
 
             const SizedBox(height: SpacingTokens.xxl),

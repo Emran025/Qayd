@@ -1,3 +1,4 @@
+import 'package:qayd/application/accounts/dtos/account_default_cost_center_dto.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/entities/party_details.dart';
@@ -47,4 +48,27 @@ abstract interface class AccountRepository {
 
   /// Returns only accounts where `is_archived == 1`.
   Future<Result<List<Account>>> getArchivedAccounts();
+
+  // ── Default Cost Centers ────────────────────────────────────────────────
+
+  /// Returns the list of default cost-center tags associated with [accountId].
+  /// Each entry carries the cost-center ID and any pre-selected dimension IDs.
+  Future<Result<List<AccountDefaultCostCenterDto>>> getDefaultCostCenters(
+    AccountId accountId,
+  );
+
+  /// Upserts a default cost-center tag for [accountId].
+  /// If the (account_id, cost_center_id) pair already exists the
+  /// dimension list is updated in place.
+  Future<Result<void>> saveDefaultCostCenter({
+    required AccountId accountId,
+    required String costCenterId,
+    required List<String> dimensionIds,
+  });
+
+  /// Removes a default cost-center tag from [accountId].
+  Future<Result<void>> removeDefaultCostCenter({
+    required AccountId accountId,
+    required String costCenterId,
+  });
 }

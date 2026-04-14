@@ -18,6 +18,8 @@ import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
+import 'package:qayd/presentation/pages/vouchers/widgets/cost_center_tag_selector.dart';
 
 class AccountCreatePage extends StatefulWidget {
   const AccountCreatePage({
@@ -77,6 +79,8 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
 
   // Stored data from QR scan
   CounterpartyQrData? _scannedData;
+
+  List<CostCenterTagInput> _costCenterTags = [];
 
   bool get _showPartyDetails {
     if (!widget.isChild) return false;
@@ -154,6 +158,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       currentPublicKeyHex: _scannedData?.currentPublicKeyHex,
       publicKeyHistoryHex: _scannedData?.publicKeyHistoryHex,
       serverAccountId: _scannedData?.serverAccountId,
+      defaultCostCenters: _costCenterTags,
       metadata: {},
     );
 
@@ -437,6 +442,17 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     ),
                     const SizedBox(height: SpacingTokens.xl),
                   ],
+                  QaydText(
+                    'مراكز التكلفة الافتراضية',
+                    slot: QaydTextStyleSlot.titleMedium,
+                  ),
+                  const SizedBox(height: SpacingTokens.md),
+                  CostCenterTagSelector(
+                    initialTags: _costCenterTags,
+                    onChanged: (tags) => setState(() => _costCenterTags = tags),
+                    label: 'إضافة مركز تكلفة افتراضي',
+                  ),
+                  const SizedBox(height: SpacingTokens.xl),
                   FilledButton(
                     onPressed: submitting ? null : _submit,
                     style: FilledButton.styleFrom(

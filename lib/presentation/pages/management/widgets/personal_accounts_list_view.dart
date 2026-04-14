@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -175,17 +176,17 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
                         if (model != null && model.isNotEmpty)
                           _InfoRow(
                               icon: Icons.directions_car_rounded,
-                              label: 'الموديل',
+                              label: AppStringsAr.modelLabel,
                               value: model),
                         if (serial != null && serial.isNotEmpty)
                           _InfoRow(
                               icon: Icons.numbers_rounded,
-                              label: 'الرقم التسلسلي',
+                              label: AppStringsAr.serialNumberLabel,
                               value: serial),
                         if (date != null)
                           _InfoRow(
                               icon: Icons.calendar_today_rounded,
-                              label: 'تاريخ الشراء',
+                              label: AppStringsAr.purchaseDateLabel,
                               value: date.split('T').first),
                       ],
                       const SizedBox(height: SpacingTokens.md),
@@ -197,7 +198,7 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
                               size: 14, color: Colors.white54),
                           const SizedBox(width: 4),
                           Text(
-                            a.isActive ? 'نشط (Active)' : 'موقف (Inactive)',
+                            a.isActive ? AppStringsAr.statusActiveEn : AppStringsAr.statusInactiveEn,
                             style: TextStyle(
                               fontSize: 10,
                               color: a.isActive

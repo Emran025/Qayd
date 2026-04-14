@@ -13,7 +13,6 @@ import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/presentation/widgets/attachment_picker_sheet.dart';
 import 'package:qayd/presentation/widgets/collateral_entry_sheet.dart';
 import 'package:image_picker/image_picker.dart';
-
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -28,6 +27,7 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/amount_parser.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/cost_center_tag_selector.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
 
 class VoucherCreatePage extends StatefulWidget {
   const VoucherCreatePage({super.key, this.initialQrData});
@@ -221,6 +221,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       if (mounted) {
         await context.read<VoucherSuggestionsCubit>().loadForCounterparty(a.id);
       }
+      // Auto-populate cost centers from counterparty account defaults
+      await _loadDefaultCostCentersForAccount(a.id);
     }
   }
 
@@ -238,6 +240,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     );
     if (a != null) {
       setState(() => _affected = a);
+      // Auto-populate cost centers from account defaults
+      await _loadDefaultCostCentersForAccount(a.id);
     }
   }
 
@@ -247,6 +251,26 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     if (c != null && mounted) {
       setState(() => _currencyCode = c.code);
     }
+  }
+
+  /// Loads the account's default cost centers and pre-populates
+  /// [_costCenterTags] so [CostCenterTagSelector] shows them automatically.
+  Future<void> _loadDefaultCostCentersForAccount(String accountId) async {
+    final res = await InjectionContainer
+        .manageAccountDefaultCostCentersUseCase
+        .list(AccountId(accountId));
+    if (!res.isSuccess || !mounted) return;
+    final defaults = res.valueOrNull!;
+    if (defaults.isEmpty) return;
+    final tags = defaults
+        .map(
+          (d) => CostCenterTagInput(
+            costCenterId: d.costCenterId,
+            dimensionIds: d.dimensionIds,
+          ),
+        )
+        .toList();
+    setState(() => _costCenterTags = tags);
   }
 
   Future<void> _pickAttachments() async {
@@ -464,12 +488,12 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       title: QaydText(
                         _type == VoucherType.payment
                             ? AppStringsAr.voucherCounterpartyLabel
-                            : 'الحساب المتأثر (طَرَف)',
+                            : AppStringsAr.voucherAffectedAccountParty,
                         slot: QaydTextStyleSlot.labelLarge,
                       ),
                       subtitle: QaydText(
                         _counterparty?.name ??
-                            'اختر حساب الطرف (العميل/المورد)',
+                            AppStringsAr.voucherPickCounterpartyHint2,
                         slot: QaydTextStyleSlot.bodyLarge,
                         color: _counterparty == null
                             ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -520,6 +544,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                           const SizedBox(height: SpacingTokens.md),
 
                           CostCenterTagSelector(
+                            initialTags: _costCenterTags,
                             onChanged: (tags) =>
                                 setState(() => _costCenterTags = tags),
                           ),

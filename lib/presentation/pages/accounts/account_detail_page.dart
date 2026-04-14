@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
@@ -19,6 +19,7 @@ import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_page.dart';
+import 'package:qayd/presentation/pages/accounts/widgets/account_default_cost_centers_section.dart';
 import 'package:qayd/presentation/utils/account_statement_pdf_export.dart';
 import 'package:qayd/presentation/utils/account_archive_helper.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
@@ -90,7 +91,8 @@ class AccountDetailPage extends StatelessWidget {
                 IconButton(
                   tooltip: AppStringsAr.archiveAccountAction,
                   icon: const Icon(Icons.archive_outlined),
-                  onPressed: () => confirmAndArchiveAccount(context, state.data.accountId),
+                  onPressed: () =>
+                      confirmAndArchiveAccount(context, state.data.accountId),
                 ),
               ],
             ],
@@ -128,7 +130,7 @@ class _DetailBody extends StatelessWidget {
     final scheme = theme.colorScheme;
     final custom = theme.extension<QaydCustomColors>()!;
     final created =
-        DateFormat.yMMMd('ar').format(DateTime.parse(data.createdAtIso));
+        intl.DateFormat.yMMMd('ar').format(DateTime.parse(data.createdAtIso));
 
     final classificationText = data.standardClassificationKind != null
         ? AppStringsAr.standardClassificationLabel(
@@ -342,6 +344,9 @@ class _DetailBody extends StatelessWidget {
             ),
           ),
         ],
+        const SizedBox(height: SpacingTokens.xl),
+        // ── 4. Default Cost Centers Section ──
+        AccountDefaultCostCentersSection(data: data),
         const SizedBox(height: SpacingTokens.xl),
       ],
     );

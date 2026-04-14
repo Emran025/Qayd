@@ -1,3 +1,4 @@
+import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 
@@ -17,6 +18,7 @@ class CreateAccountInput {
     this.currentPublicKeyHex,
     this.publicKeyHistoryHex,
     this.serverAccountId,
+    this.defaultCostCenters = const [],
     this.metadata = const {},
   });
 
@@ -40,6 +42,8 @@ class CreateAccountInput {
   final String? currentPublicKeyHex;
   final List<String>? publicKeyHistoryHex;
   final int? serverAccountId;
+
+  final List<CostCenterTagInput> defaultCostCenters;
 
   final Map<String, dynamic> metadata;
 }

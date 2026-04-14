@@ -112,6 +112,16 @@ class CreateAccountUseCase {
         await _accountRepository.savePartyDetails(partyDetails);
       }
 
+      if (input.defaultCostCenters.isNotEmpty) {
+        for (final tag in input.defaultCostCenters) {
+          await _accountRepository.saveDefaultCostCenter(
+            accountId: id,
+            costCenterId: tag.costCenterId,
+            dimensionIds: tag.dimensionIds,
+          );
+        }
+      }
+
       await _auditLogService?.log(
         entityType: 'account',
         entityId: id.value,

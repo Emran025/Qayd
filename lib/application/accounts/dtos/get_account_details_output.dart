@@ -1,3 +1,5 @@
+import 'package:qayd/application/accounts/dtos/account_default_cost_center_dto.dart';
+
 class GetAccountDetailsOutput {
   const GetAccountDetailsOutput({
     required this.accountId,
@@ -15,6 +17,7 @@ class GetAccountDetailsOutput {
     this.whatsappNumber,
     this.bankAccountInfo,
     this.partyType,
+    this.defaultCostCenters = const [],
   });
 
   final String accountId;
@@ -35,4 +38,8 @@ class GetAccountDetailsOutput {
   final String? whatsappNumber;
   final String? bankAccountInfo;
   final String? partyType;
+
+  /// Default cost-center tags to pre-populate when this account is selected
+  /// on a new voucher.
+  final List<AccountDefaultCostCenterDto> defaultCostCenters;
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -50,7 +51,7 @@ class _AssetsListViewState extends State<AssetsListView> {
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_assets.isEmpty) {
-      return const Center(child: QaydText('لا تملك أي أصول مسجلة حالياً.'));
+      return const Center(child: QaydText(AppStringsAr.assetsEmptyList));
     }
 
     return ListView.builder(
@@ -101,17 +102,17 @@ class _AssetsListViewState extends State<AssetsListView> {
                   if (model != null && model.isNotEmpty)
                     _InfoRow(
                         icon: Icons.directions_car_rounded,
-                        label: 'الموديل',
+                        label: AppStringsAr.modelLabel,
                         value: model),
                   if (serial != null && serial.isNotEmpty)
                     _InfoRow(
                         icon: Icons.numbers_rounded,
-                        label: 'الرقم التسلسلي / اللوحة',
+                        label: AppStringsAr.serialNumberOrPlateLabel,
                         value: serial),
                   if (date != null)
                     _InfoRow(
                         icon: Icons.calendar_today_rounded,
-                        label: 'تاريخ الشراء',
+                        label: AppStringsAr.purchaseDateLabel,
                         value: date.split('T').first),
                   const SizedBox(height: SpacingTokens.md),
                   const Divider(height: 1),
@@ -122,7 +123,7 @@ class _AssetsListViewState extends State<AssetsListView> {
                           size: 14, color: Colors.white54),
                       const SizedBox(width: 4),
                       Text(
-                        asset.isActive ? 'نشط (Active)' : 'موقف (Inactive)',
+                        asset.isActive ? AppStringsAr.statusActiveEn : AppStringsAr.statusInactiveEn,
                         style: TextStyle(
                           fontSize: 10,
                           color: asset.isActive
