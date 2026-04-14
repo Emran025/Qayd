@@ -23,6 +23,7 @@ class StatementChatFilterInput {
     this.searchQuery,
     this.amountMinMinorUnits,
     this.amountMaxMinorUnits,
+    this.costCenterId,
     this.includePreviousBalance = false,
     this.viewMode = StatementChatViewMode.myAccounts,
   });
@@ -50,6 +51,9 @@ class StatementChatFilterInput {
   /// Maximum amount (minor units) inclusive.
   final int? amountMaxMinorUnits;
 
+  /// Filter by cost center ID.
+  final String? costCenterId;
+
   /// When true AND [fromDate] is set, include a "brought forward" opening
   /// balance calculated from all vouchers before [fromDate].
   final bool includePreviousBalance;
@@ -67,7 +71,20 @@ class StatementChatFilterInput {
       (searchQuery != null && searchQuery!.trim().isNotEmpty) ||
       amountMinMinorUnits != null ||
       amountMaxMinorUnits != null ||
+      (costCenterId != null && costCenterId!.isNotEmpty) ||
       viewMode != StatementChatViewMode.myAccounts;
+
+  StatementChatFilterInput clearCostCenter() => StatementChatFilterInput(
+        agreementStatus: agreementStatus,
+        type: type,
+        fromDate: fromDate,
+        toDate: toDate,
+        searchQuery: searchQuery,
+        amountMinMinorUnits: amountMinMinorUnits,
+        amountMaxMinorUnits: amountMaxMinorUnits,
+        includePreviousBalance: includePreviousBalance,
+        viewMode: viewMode,
+      );
 
   StatementChatFilterInput copyWith({
     AgreementStatus? agreementStatus,
@@ -77,6 +94,7 @@ class StatementChatFilterInput {
     String? searchQuery,
     int? amountMinMinorUnits,
     int? amountMaxMinorUnits,
+    String? costCenterId,
     bool? includePreviousBalance,
     StatementChatViewMode? viewMode,
     bool clearAgreementStatus = false,
@@ -86,6 +104,7 @@ class StatementChatFilterInput {
     bool clearSearchQuery = false,
     bool clearAmountMin = false,
     bool clearAmountMax = false,
+    bool clearCostCenter = false,
   }) {
     return StatementChatFilterInput(
       agreementStatus: clearAgreementStatus
@@ -101,6 +120,7 @@ class StatementChatFilterInput {
       amountMaxMinorUnits: clearAmountMax
           ? null
           : (amountMaxMinorUnits ?? this.amountMaxMinorUnits),
+      costCenterId: clearCostCenter ? null : (costCenterId ?? this.costCenterId),
       includePreviousBalance:
           includePreviousBalance ?? this.includePreviousBalance,
       viewMode: viewMode ?? this.viewMode,

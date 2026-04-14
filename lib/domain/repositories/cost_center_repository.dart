@@ -57,6 +57,12 @@ abstract interface class CostCenterRepository {
     DateTime? toDate,
   });
 
+  /// All dimension tags associated with a specific voucher and cost center.
+  Future<Result<List<CostCenterDimension>>> getDimensionsForVoucher({
+    required String voucherId,
+    required String costCenterId,
+  });
+
   // ── KPIs ──────────────────────────────────────────────────────────────────
 
   /// Total amount (in minor units) of confirmed vouchers attached to a center.

@@ -37,6 +37,8 @@ class _NotificationsView extends StatelessWidget {
           create: (_) => StatementChatCubit(
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
+            getCostCenterDetails:
+                InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: accountId,
           )..load(),
           child: AccountStatementChatPage(

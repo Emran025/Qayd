@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
 import 'package:qayd/application/cost_centers/dtos/center_voucher_summary.dart';
 import 'package:qayd/application/cost_centers/dtos/cost_center_details_dto.dart';
 import 'package:qayd/application/cost_centers/get_cost_center_details_use_case.dart';
@@ -404,7 +405,11 @@ class _DashboardViewState extends State<_DashboardView>
           create: (_) => StatementChatCubit(
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
+            getCostCenterDetails:
+                InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: dto.center.id,
+            initialCounterpartyName: dto.center.name,
+            initialFilter: StatementChatFilterInput(costCenterId: dto.center.id),
           )..load(),
           child: AccountStatementChatPage(counterpartyAccountId: dto.center.id),
         ),

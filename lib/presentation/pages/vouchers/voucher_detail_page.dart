@@ -55,9 +55,9 @@ class VoucherDetailPage extends StatefulWidget {
 
 class _VoucherDetailPageState extends State<VoucherDetailPage> {
   final GlobalKey _boundaryKey = GlobalKey();
-
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return BlocConsumer<VoucherDetailCubit, VoucherDetailState>(
       listenWhen: (prev, cur) {
         if (cur is VoucherDetailReady && cur.confirmErrorAr != null) {
@@ -106,67 +106,103 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                     );
                   },
                 ),
-                IconButton(
-                  tooltip: AppStringsAr.shareAsTextTooltip,
-                  icon: const Icon(Icons.text_snippet_outlined),
-                  onPressed: () => shareVoucherAsText(context, state.data),
-                ),
-                IconButton(
-                  tooltip: AppStringsAr.shareAsImageTooltip,
-                  icon: const Icon(Icons.image_outlined),
-                  onPressed: () =>
-                      shareVoucherAsFormattedImage(context, state.data),
-                ),
-                IconButton(
-                  tooltip: AppStringsAr.exportSharePdfTooltip,
-                  icon: const Icon(Icons.picture_as_pdf_outlined),
-                  onPressed: () => shareVoucherAsPdf(context, state.data),
-                ),
-                if (state.data.qrData != null)
-                  IconButton(
-                    tooltip: AppStringsAr.qrCodeShowTooltip,
-                    icon: const Icon(Icons.qr_code_2_rounded),
-                    onPressed: () {
-                      final amount = MoneyFormatter.formatWithSymbol(
-                        state.data.amountMinorUnits /
-                            (state.data.currencyDigits == 0
-                                ? 1
-                                : (state.data.currencyDigits == 2
-                                    ? 100
-                                    : 100)), // Simplification for detail view
-                        state.data.currencySymbol,
-                        fractionalDigits: state.data.currencyDigits,
-                      );
-
-                      showDialog<void>(
-                        context: context,
-                        builder: (ctx) => VoucherQrDialog(
-                          qrData: state.data.qrData!,
-                          voucherDescription: state.data.description ?? '',
-                          amountLabel: amount,
-                        ),
-                      );
-                    },
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert_rounded),
+                  tooltip: 'المزيد',
+                  color: scheme.surface,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: scheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
                   ),
-
-                // --- Protocol §2: Withdrawal Action ---
-                if (state.data.isCreator &&
-                    state.data.stateCode != 'settled' &&
-                    state.data.stateCode != 'withdrawn' &&
-                    state.data.receiverStatusCode != 'accepted')
-                  PopupMenuButton<String>(
-                    onSelected: (val) {
-                      if (val == 'withdraw') {
+                  onSelected: (val) {
+                    switch (val) {
+                      case 'share_text':
+                        shareVoucherAsText(context, state.data);
+                      case 'share_image':
+                        shareVoucherAsFormattedImage(context, state.data);
+                      case 'share_pdf':
+                        shareVoucherAsPdf(context, state.data);
+                      case 'qr_code':
+                        final amountStr = MoneyFormatter.formatWithSymbol(
+                          state.data.amountMinorUnits /
+                              (state.data.currencyDigits == 0
+                                  ? 1
+                                  : (state.data.currencyDigits == 2
+                                      ? 100
+                                      : 100)),
+                          state.data.currencySymbol,
+                          fractionalDigits: state.data.currencyDigits,
+                        );
+                        showDialog<void>(
+                          context: context,
+                          builder: (ctx) => VoucherQrDialog(
+                            qrData: state.data.qrData!,
+                            voucherDescription: state.data.description ?? '',
+                            amountLabel: amountStr,
+                          ),
+                        );
+                      case 'withdraw':
                         context.read<VoucherDetailCubit>().withdraw();
-                      }
-                    },
-                    itemBuilder: (ctx) => [
+                    }
+                  },
+                  itemBuilder: (ctx) => [
+                    PopupMenuItem(
+                      value: 'share_text',
+                      child: ListTile(
+                        leading: const Icon(Icons.text_snippet_outlined),
+                        title: Text(AppStringsAr.shareAsTextTooltip),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'share_image',
+                      child: ListTile(
+                        leading: const Icon(Icons.image_outlined),
+                        title: Text(AppStringsAr.shareAsImageTooltip),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'share_pdf',
+                      child: ListTile(
+                        leading: const Icon(Icons.picture_as_pdf_outlined),
+                        title: Text(AppStringsAr.exportSharePdfTooltip),
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    if (state.data.qrData != null)
+                      PopupMenuItem(
+                        value: 'qr_code',
+                        child: ListTile(
+                          leading: const Icon(Icons.qr_code_2_rounded),
+                          title: Text(AppStringsAr.qrCodeShowTooltip),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    if (state.data.isCreator &&
+                        state.data.stateCode != 'settled' &&
+                        state.data.stateCode != 'withdrawn' &&
+                        state.data.receiverStatusCode != 'accepted')
                       const PopupMenuItem(
                         value: 'withdraw',
-                        child: Text('سحب السند'),
+                        child: ListTile(
+                          leading:
+                              Icon(Icons.undo_rounded, color: Colors.orange),
+                          title: Text('سحب السند',
+                              style: TextStyle(color: Colors.orange)),
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
-                    ],
-                  ),
+                  ],
+                ),
               ],
             ],
           ),
@@ -288,13 +324,16 @@ class _VoucherDetailBody extends StatelessWidget {
                                   BlocProvider<VoucherCreateCubit>(
                                     create: (_) => VoucherCreateCubit(
                                       InjectionContainer.createVoucherUseCase,
-                                      InjectionContainer.createTripartiteTransferUseCase,
+                                      InjectionContainer
+                                          .createTripartiteTransferUseCase,
                                     ),
                                   ),
                                   BlocProvider<VoucherSuggestionsCubit>(
                                     create: (_) => VoucherSuggestionsCubit(
-                                      InjectionContainer.getAutoSuggestionsUseCase,
-                                      InjectionContainer.markNotificationMessageProcessedUseCase,
+                                      InjectionContainer
+                                          .getAutoSuggestionsUseCase,
+                                      InjectionContainer
+                                          .markNotificationMessageProcessedUseCase,
                                     ),
                                   ),
                                 ],
@@ -494,36 +533,99 @@ class _VoucherDetailBody extends StatelessWidget {
             ),
             const SizedBox(height: SpacingTokens.md),
 
-            // ── Amount card ──────────────────────────────────────────────
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(SpacingTokens.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    QaydText(
-                      AppStringsAr.voucherAmountLabel,
-                      slot: QaydTextStyleSlot.labelMedium,
-                      color: scheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(height: SpacingTokens.xs),
-                    QaydMoneyDisplay(
-                      money: Money.nonNegative(
-                        data.amountMinorUnits,
-                        CurrencyCode(
-                          code: data.currencyCode,
-                          nameAr: data.currencyNameAr,
-                          symbol: data.currencySymbol,
-                          fractionalDigits: data.currencyDigits,
-                        ),
-                      ),
-                      size: QaydMoneyDisplaySize.large,
-                    ),
+            // ── Amount card (Light Premium Redesign) ─────────────────────
+            Container(
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    scheme.surface,
+                    scheme.surfaceContainerLow,
                   ],
                 ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: gold.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.04),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -25,
+                    top: -25,
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: gold.withValues(alpha: 0.05),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(SpacingTokens.lg),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            QaydText(
+                              AppStringsAr.voucherAmountLabel,
+                              slot: QaydTextStyleSlot.labelLarge,
+                              color: scheme.onSurfaceVariant,
+                            ),
+                            Icon(
+                              Icons.account_balance_wallet_rounded,
+                              color: gold,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: SpacingTokens.md),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            QaydMoneyDisplay(
+                              money: Money.nonNegative(
+                                data.amountMinorUnits,
+                                CurrencyCode(
+                                  code: data.currencyCode,
+                                  nameAr: data.currencyNameAr,
+                                  symbol: data.currencySymbol,
+                                  fractionalDigits: data.currencyDigits,
+                                ),
+                              ),
+                              size: QaydMoneyDisplaySize.large,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            const SizedBox(width: SpacingTokens.xs),
+                            QaydText(
+                              data.currencySymbol,
+                              slot: QaydTextStyleSlot.titleLarge,
+                              color: gold,
+                              // weight: FontWeight.bold,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: SpacingTokens.md),
+            const SizedBox(height: SpacingTokens.xl),
 
             // ── Core details rows ────────────────────────────────────────
             _Row(
@@ -718,9 +820,8 @@ class _CostCenterSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: SpacingTokens.sm),
-            Wrap(
-              spacing: SpacingTokens.sm,
-              runSpacing: SpacingTokens.sm,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: costCenters.map((cc) {
                 final isCost = cc.typeCode == 'cost';
                 final typeLabel = isCost
@@ -729,36 +830,190 @@ class _CostCenterSection extends StatelessWidget {
                 final chipColor =
                     isCost ? Colors.red.shade300 : Colors.green.shade400;
 
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: chipColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: chipColor.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        isCost
-                            ? Icons.trending_down_rounded
-                            : Icons.trending_up_rounded,
-                        size: 14,
-                        color: chipColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${cc.name} ($typeLabel)',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: chipColor,
-                              fontWeight: FontWeight.w600,
-                            ),
+                      // Main Center Chip
+                      InkWell(
+                        onTap: cc.dimensions.isNotEmpty
+                            ? () => _showDimensionsSheet(context, cc)
+                            : null,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: chipColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: chipColor.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isCost
+                                    ? Icons.trending_down_rounded
+                                    : Icons.trending_up_rounded,
+                                size: 14,
+                                color: chipColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${cc.name} ($typeLabel)',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: chipColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              if (cc.dimensions.isNotEmpty) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  '+${cc.dimensions.length}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelSmall
+                                      ?.copyWith(
+                                        color: chipColor.withValues(alpha: 0.7),
+                                        fontSize: 10,
+                                      ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.info_outline_rounded,
+                                    size: 14, color: chipColor),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 );
               }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDimensionsSheet(BuildContext context, CostCenterSummary cc) {
+    final scheme = Theme.of(context).colorScheme;
+    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.only(bottom: SpacingTokens.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle and Header
+            const SizedBox(height: SpacingTokens.sm),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: SpacingTokens.md),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
+              child: Row(
+                children: [
+                  Icon(Icons.layers_outlined, color: gold, size: 22),
+                  const SizedBox(width: SpacingTokens.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        QaydText(
+                          cc.name,
+                          slot: QaydTextStyleSlot.titleMedium,
+                        ),
+                        QaydText(
+                          AppStringsAr.voucherCostCentersSection,
+                          slot: QaydTextStyleSlot.labelSmall,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: SpacingTokens.xl),
+
+            // Dimension list
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
+                itemCount: cc.dimensions.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: SpacingTokens.md),
+                itemBuilder: (context, index) {
+                  final dim = cc.dimensions[index];
+                  return Container(
+                    padding: const EdgeInsets.all(SpacingTokens.md),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: scheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: gold.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.label_important_outline_rounded,
+                              color: gold, size: 20),
+                        ),
+                        const SizedBox(width: SpacingTokens.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              QaydText(
+                                dim.categoryName,
+                                slot: QaydTextStyleSlot.labelSmall,
+                                color: scheme.onSurfaceVariant,
+                              ),
+                              QaydText(
+                                dim.name,
+                                slot: QaydTextStyleSlot.bodyLarge,
+                                // weight: FontWeight.w600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

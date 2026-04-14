@@ -28,6 +28,7 @@ final class StatementChatReady extends StatementChatState {
     this.isUnified = false,
     this.currencySymbol = '',
     this.currencyDigits = 0,
+    this.costCenterNamesById = const {},
   });
 
   final String myAccountId;
@@ -41,6 +42,7 @@ final class StatementChatReady extends StatementChatState {
   final bool isUnified;
   final String currencySymbol;
   final int currencyDigits;
+  final Map<String, String> costCenterNamesById;
 
   bool get hasActiveFilters => filter.hasAny || searchQuery.trim().isNotEmpty;
 
@@ -53,6 +55,7 @@ final class StatementChatReady extends StatementChatState {
     bool? isUnified,
     String? currencySymbol,
     int? currencyDigits,
+    Map<String, String>? costCenterNamesById,
   }) {
     return StatementChatReady(
       myAccountId: myAccountId,
@@ -68,6 +71,7 @@ final class StatementChatReady extends StatementChatState {
       isUnified: isUnified ?? this.isUnified,
       currencySymbol: currencySymbol ?? this.currencySymbol,
       currencyDigits: currencyDigits ?? this.currencyDigits,
+      costCenterNamesById: costCenterNamesById ?? this.costCenterNamesById,
     );
   }
 }

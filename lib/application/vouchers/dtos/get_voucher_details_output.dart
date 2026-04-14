@@ -133,6 +133,7 @@ class CostCenterSummary {
     required this.id,
     required this.name,
     required this.typeCode,
+    this.dimensions = const [],
   });
 
   final String id;
@@ -140,4 +141,18 @@ class CostCenterSummary {
 
   /// 'cost' or 'profit'
   final String typeCode;
+
+  final List<DimensionSummary> dimensions;
+}
+
+class DimensionSummary {
+  const DimensionSummary({
+    required this.id,
+    required this.name,
+    required this.categoryName,
+  });
+
+  final String id;
+  final String name;
+  final String categoryName;
 }

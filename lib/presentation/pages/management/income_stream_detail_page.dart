@@ -46,6 +46,8 @@ class IncomeStreamDetailPage extends StatelessWidget {
           create: (_) => StatementChatCubit(
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
+            getCostCenterDetails:
+                InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: summary.id,
           )..load(),
         ),

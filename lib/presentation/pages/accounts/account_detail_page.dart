@@ -64,6 +64,8 @@ class AccountDetailPage extends StatelessWidget {
                           listStatement: InjectionContainer
                               .listAccountStatementChatUseCase,
                           listAccounts: InjectionContainer.listAccountsUseCase,
+                          getCostCenterDetails:
+                              InjectionContainer.getCostCenterDetailsUseCase,
                           counterpartyAccountId: state.data.accountId,
                         )..load(),
                         child: AccountStatementChatPage(

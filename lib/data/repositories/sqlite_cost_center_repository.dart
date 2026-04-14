@@ -313,6 +313,31 @@ ORDER BY d.category, d.name COLLATE NOCASE
     }
   }
 
+  @override
+  Future<Result<List<CostCenterDimension>>> getDimensionsForVoucher({
+    required String voucherId,
+    required String costCenterId,
+  }) async {
+    try {
+      final rows = await _db.rawQuery(
+        '''
+SELECT d.*, c.name AS cat_name, c.icon_name AS cat_icon, c.is_default AS cat_is_default
+FROM cost_center_dimensions d
+INNER JOIN voucher_dimension_tags vdt ON vdt.dimension_id = d.id
+LEFT JOIN cost_center_dimension_categories c ON c.id = d.category
+WHERE vdt.voucher_id = ? AND vdt.cost_center_id = ?
+ORDER BY c.name, d.name
+''',
+        [voucherId, costCenterId],
+      );
+      return Success(rows.map(_dimFromRow).toList());
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(messageAr: 'تعذر قراءة أبعاد السند.'),
+      );
+    }
+  }
+
   // ── KPIs ──────────────────────────────────────────────────────────────────
 
   @override

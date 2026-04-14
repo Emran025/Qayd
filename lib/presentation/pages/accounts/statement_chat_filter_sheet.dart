@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
+import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/entities/cost_center.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -8,6 +10,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/di/injection_container.dart';
 
 /// Premium filter sheet for the Statement of Account chat.
 /// Returns new [StatementChatFilterInput] on apply, or null if dismissed.
@@ -36,6 +39,8 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
   VoucherType? _type;
   DateTime? _from;
   DateTime? _to;
+  String? _ccId;
+  String? _ccName;
   bool _includePrevBalance = false;
 
   @override
@@ -46,7 +51,21 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
     _type = i.type;
     _from = i.fromDate;
     _to = i.toDate;
+    _ccId = i.costCenterId;
     _includePrevBalance = i.includePreviousBalance;
+    _loadCostCenterName();
+  }
+
+  Future<void> _loadCostCenterName() async {
+    if (_ccId == null) return;
+    final res =
+        await InjectionContainer.getCostCenterDetailsUseCase.call(_ccId!);
+    res.fold(
+      (_) {},
+      (dto) {
+        if (mounted) setState(() => _ccName = dto.center.name);
+      },
+    );
   }
 
   StatementChatFilterInput _buildResult() {
@@ -55,6 +74,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
       type: _type,
       fromDate: _from,
       toDate: _to,
+      costCenterId: _ccId,
       includePreviousBalance: _includePrevBalance,
     );
   }
@@ -294,6 +314,63 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
               ),
             ],
 
+            // ── Cost Center ──
+            _sectionTitle('مركز التكلفة'),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const QaydText(
+                'تصفية حسب مركز التكلفة',
+                slot: QaydTextStyleSlot.bodyMedium,
+              ),
+              subtitle: QaydText(
+                _ccName ?? AppStringsAr.voucherFilterNotSelected,
+                slot: QaydTextStyleSlot.bodySmall,
+              ),
+              trailing: Icon(
+                _ccId != null
+                    ? Icons.check_circle_rounded
+                    : Icons.chevron_left_rounded,
+                color: _ccId != null ? ColorTokens.emerald600 : null,
+              ),
+              onTap: () async {
+                final res =
+                    await InjectionContainer.listCostCentersUseCase.call();
+                res.fold(
+                  (_) {},
+                  (centers) async {
+                    if (!mounted) return;
+                    final picked = await showModalBottomSheet<CostCenter>(
+                      context: context,
+                      builder: (ctx) => Container(
+                        padding: const EdgeInsets.all(SpacingTokens.lg),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const QaydText('اختر مركز التكلفة',
+                                slot: QaydTextStyleSlot.titleMedium),
+                            const SizedBox(height: SpacingTokens.md),
+                            ...centers.map((c) => ListTile(
+                                  title: Text(c.name),
+                                  leading: const Icon(
+                                      Icons.pie_chart_outline_rounded),
+                                  onTap: () => Navigator.pop(ctx, c),
+                                )),
+                            const SizedBox(height: SpacingTokens.xl),
+                          ],
+                        ),
+                      ),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _ccId = picked.id;
+                        _ccName = picked.name;
+                      });
+                    }
+                  },
+                );
+              },
+            ),
+
             // ── Actions ──
             const SizedBox(height: SpacingTokens.lg),
             Row(
@@ -305,6 +382,8 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
                       _type = null;
                       _from = null;
                       _to = null;
+                      _ccId = null;
+                      _ccName = null;
                       _includePrevBalance = false;
                     }),
                     child: Text(AppStringsAr.voucherFilterClearFields),

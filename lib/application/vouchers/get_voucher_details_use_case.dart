@@ -119,10 +119,27 @@ class GetVoucherDetailsUseCase {
           final ccR = await _costCenterRepository.getById(ccId);
           if (ccR.isSuccess && ccR.valueOrNull != null) {
             final cc = ccR.valueOrNull!;
+            final List<DimensionSummary> dimensions = [];
+
+            final dimsR = await _costCenterRepository.getDimensionsForVoucher(
+              voucherId: v.id.value,
+              costCenterId: cc.id,
+            );
+            if (dimsR.isSuccess) {
+              for (final d in dimsR.valueOrNull!) {
+                dimensions.add(DimensionSummary(
+                  id: d.id,
+                  name: d.name,
+                  categoryName: d.category.name,
+                ));
+              }
+            }
+
             costCenters.add(CostCenterSummary(
               id: cc.id,
               name: cc.name,
               typeCode: cc.type.name,
+              dimensions: dimensions,
             ));
           }
         }

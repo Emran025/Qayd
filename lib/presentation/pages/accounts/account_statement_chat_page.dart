@@ -288,6 +288,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
           create: (_) => StatementChatCubit(
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
+            getCostCenterDetails: InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: cpAccountId,
             myAccountId: myAccountId,
           )..load(),
@@ -1025,6 +1026,21 @@ class _ActiveFilterChips extends StatelessWidget {
             cubit.setFilter(
               cubit.filter.copyWith(clearFromDate: true, clearToDate: true),
             );
+          },
+          deleteIconColor: custom.goldAccent,
+        ),
+      );
+    }
+
+    if (data.filter.costCenterId != null) {
+      final name = data.costCenterNamesById[data.filter.costCenterId] ??
+          data.filter.costCenterId;
+      chips.add(
+        InputChip(
+          label: Text('مركز: $name'),
+          onDeleted: () {
+            final cubit = context.read<StatementChatCubit>();
+            cubit.setFilter(cubit.filter.copyWith(clearCostCenter: true));
           },
           deleteIconColor: custom.goldAccent,
         ),

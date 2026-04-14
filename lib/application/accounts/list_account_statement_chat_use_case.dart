@@ -49,14 +49,24 @@ final class ListAccountStatementChatUseCase {
 
       final List<Voucher> allVouchers;
       if (isUnified) {
-        // Fetch all vouchers involving this account.
-        final f = VoucherQueryFilter(involvedAccountId: cpId);
+        // Fetch all vouchers involving this subject.
+        // If the subject IS the cost center we're filtering by, then we don't
+        // filter by account at all, effectively showing a global cost center ledger.
+        final bool isGlobalCostCenter = filter.costCenterId == counterpartyAccountId;
+        
+        final f = VoucherQueryFilter(
+          involvedAccountId: isGlobalCostCenter ? null : cpId,
+          costCenterId: filter.costCenterId,
+        );
         final r = await voucherRepository.getAll(filter: f);
         if (r.isFailure) return FailureResult(r.failureOrNull!);
         allVouchers = r.valueOrNull!;
       } else {
         // Fetch all vouchers involving myId, then filter by cpId in-memory to handle Tripartite
-        final f = VoucherQueryFilter(involvedAccountId: myId);
+        final f = VoucherQueryFilter(
+          involvedAccountId: myId,
+          costCenterId: filter.costCenterId,
+        );
         final r = await voucherRepository.getAll(filter: f);
         if (r.isFailure) return FailureResult(r.failureOrNull!);
 

@@ -13,9 +13,11 @@ class VoucherListCubit extends Cubit<VoucherListState> {
   VoucherListCubit(
     this._listVouchers,
     this._notificationRepo, {
+    AdvancedFilterInput? initialFilter,
     bool? isInternalOnly,
   }) : super(const VoucherListInitial()) {
-    _advancedFilter = AdvancedFilterInput(isInternalOnly: isInternalOnly);
+    _advancedFilter =
+        initialFilter ?? AdvancedFilterInput(isInternalOnly: isInternalOnly);
   }
 
   final ListVouchersUseCase _listVouchers;

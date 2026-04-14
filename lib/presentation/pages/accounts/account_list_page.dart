@@ -117,6 +117,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
             counterpartyAccountId: accountId,
+            getCostCenterDetails: InjectionContainer.getCostCenterDetailsUseCase
           )..load(),
           child: AccountStatementChatPage(counterpartyAccountId: accountId),
         ),
