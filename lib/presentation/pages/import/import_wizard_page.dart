@@ -1,0 +1,1256 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
+import 'package:qayd/core/result/result.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+
+// ─── Wizard phases ────────────────────────────────────────────────────────────
+
+enum _Phase { pickFile, analyzing, resolving, importing, done }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+class ImportWizardPage extends StatefulWidget {
+  const ImportWizardPage({super.key});
+
+  @override
+  State<ImportWizardPage> createState() => _ImportWizardPageState();
+}
+
+class _ImportWizardPageState extends State<ImportWizardPage> {
+  _Phase _phase = _Phase.pickFile;
+
+  MigrationAnalysisResult? _analysis;
+  ImportSummary? _summary;
+  String? _errorMessage;
+
+  /// User decisions: legacyId → AccountResolution
+  final Map<String, AccountResolution> _resolutions = {};
+
+  // ── File Picking ─────────────────────────────────────────────────────────────
+
+  Future<void> _pickAndAnalyse() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final bytes = result.files.first.bytes;
+    final path = result.files.first.path;
+    String? content;
+
+    if (bytes != null) {
+      content = utf8.decode(bytes);
+    } else if (path != null) {
+      content = await File(path).readAsString();
+    }
+
+    if (content == null) {
+      _showError('تعذّر قراءة الملف.');
+      return;
+    }
+
+    setState(() {
+      _phase = _Phase.analyzing;
+      _errorMessage = null;
+    });
+
+    final analysisResult =
+        await InjectionContainer.legacyMigrationUseCase.analyzeBundle(content);
+
+    if (!mounted) return;
+
+    if (analysisResult is FailureResult) {
+      setState(() {
+        _errorMessage = (analysisResult as FailureResult).failure.messageAr;
+        _phase = _Phase.pickFile;
+      });
+      return;
+    }
+
+    final analysis = (analysisResult as Success<MigrationAnalysisResult>).value;
+
+    // Pre-fill default resolutions: exact matches → merge, others → createNew
+    _resolutions.clear();
+    for (final c in analysis.accountConflicts) {
+      if (c.type == AccountConflictType.exactMatch && c.existingAccount != null) {
+        _resolutions[c.legacyIdStr] =
+            AccountResolution.merge(c.existingAccount!.id.value);
+      } else {
+        _resolutions[c.legacyIdStr] = const AccountResolution.createNew();
+      }
+    }
+
+    setState(() {
+      _analysis = analysis;
+      _phase = _Phase.resolving;
+    });
+  }
+
+  // ── Import Execution ─────────────────────────────────────────────────────────
+
+  Future<void> _startImport() async {
+    final analysis = _analysis!;
+
+    setState(() => _phase = _Phase.importing);
+
+    // Phase 2a: Resolve accounts (create new / assign merges)
+    final resolveResult =
+        await InjectionContainer.legacyMigrationUseCase.resolveAccounts(
+      analysis: analysis,
+      userResolutions: Map.from(_resolutions),
+    );
+    if (!mounted) return;
+
+    if (resolveResult is FailureResult) {
+      setState(() {
+        _errorMessage =
+            (resolveResult as FailureResult).failure.messageAr;
+        _phase = _Phase.resolving;
+      });
+      return;
+    }
+
+    final finalResolutions =
+        (resolveResult as Success<Map<String, String>>).value;
+
+    // Phase 2b: Import transactions
+    final importResult =
+        await InjectionContainer.legacyMigrationUseCase.executeImport(
+      bundle: analysis.rawBundle,
+      accountResolutions: finalResolutions,
+    );
+    if (!mounted) return;
+
+    if (importResult is FailureResult) {
+      setState(() {
+        _errorMessage =
+            (importResult as FailureResult).failure.messageAr;
+        _phase = _Phase.resolving;
+      });
+      return;
+    }
+
+    setState(() {
+      _summary = (importResult as Success<ImportSummary>).value;
+      _phase = _Phase.done;
+    });
+  }
+
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  void _reset() {
+    setState(() {
+      _phase = _Phase.pickFile;
+      _analysis = null;
+      _summary = null;
+      _errorMessage = null;
+      _resolutions.clear();
+    });
+  }
+
+  // ── Build ────────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return QaydScaffold(
+      appBar: QaydAppBar(
+        title: 'استيراد بيانات',
+        actions: _phase == _Phase.resolving
+            ? [
+                TextButton(
+                  onPressed: _startImport,
+                  child: Text(
+                    'بدء الاستيراد',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
+      ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: switch (_phase) {
+          _Phase.pickFile => _PickFilePage(
+              key: const ValueKey('pick'),
+              onPick: _pickAndAnalyse,
+              errorMessage: _errorMessage,
+            ),
+          _Phase.analyzing => const _LoadingPage(
+              key: ValueKey('analyzing'),
+              message: 'جاري تحليل الحزمة...',
+            ),
+          _Phase.resolving => _ResolvingPage(
+              key: const ValueKey('resolving'),
+              analysis: _analysis!,
+              resolutions: _resolutions,
+              onResolutionChanged: (id, r) =>
+                  setState(() => _resolutions[id] = r),
+              onConfirm: _startImport,
+            ),
+          _Phase.importing => const _LoadingPage(
+              key: ValueKey('importing'),
+              message: 'جاري استيراد البيانات...',
+            ),
+          _Phase.done => _DonePage(
+              key: const ValueKey('done'),
+              summary: _summary!,
+              onReset: _reset,
+            ),
+        },
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 1 — Pick File
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _PickFilePage extends StatelessWidget {
+  const _PickFilePage({
+    super.key,
+    required this.onPick,
+    this.errorMessage,
+  });
+
+  final VoidCallback onPick;
+  final String? errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(SpacingTokens.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Header card ──────────────────────────────────────────────────
+          _SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.upload_file_rounded,
+                        color: scheme.onPrimaryContainer,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: SpacingTokens.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'وحدة الاستيراد من النظام القديم',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'استيراد الحسابات والحركات المالية من حزمة JSON',
+                            style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: SpacingTokens.lg),
+
+                // Pick button
+                InkWell(
+                  onTap: onPick,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: SpacingTokens.xl,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: scheme.primary.withValues(alpha: 0.4),
+                        width: 1.5,
+                        strokeAlign: BorderSide.strokeAlignCenter,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      color: scheme.primaryContainer.withValues(alpha: 0.25),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.folder_open_rounded,
+                          size: 44,
+                          color: scheme.primary,
+                        ),
+                        const SizedBox(height: SpacingTokens.sm),
+                        Text(
+                          'اختر ملف الحزمة (.json)',
+                          style: TextStyle(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'qayd_bundle_v2_*.json',
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 12,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                if (errorMessage != null) ...[
+                  const SizedBox(height: SpacingTokens.md),
+                  _WarningBanner(message: errorMessage!),
+                ],
+              ],
+            ),
+          ),
+
+          const SizedBox(height: SpacingTokens.md),
+
+          // ── How it works ──────────────────────────────────────────────────
+          _SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'كيف يعمل الاستيراد؟',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: SpacingTokens.md),
+                _StepHint(
+                  number: '١',
+                  title: 'تحليل الحسابات',
+                  subtitle: 'تحديد الحسابات المكررة ومطابقتها',
+                ),
+                _StepHint(
+                  number: '٢',
+                  title: 'حسم التعارضات',
+                  subtitle: 'لكل حساب: دمج مع موجود، أو إنشاء جديد، أو تخطي',
+                ),
+                _StepHint(
+                  number: '٣',
+                  title: 'استيراد السندات',
+                  subtitle: 'تنشأ سندات الحركات في حالة انتظار للمراجعة',
+                ),
+                _StepHint(
+                  number: '٤',
+                  title: 'مراجعة وتأكيد',
+                  subtitle: 'اعتمد السندات من قائمة الانتظار في التطبيق',
+                  isLast: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 2 — Loading
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _LoadingPage extends StatelessWidget {
+  const _LoadingPage({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 60,
+            height: 60,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: scheme.primary,
+            ),
+          ),
+          const SizedBox(height: SpacingTokens.lg),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 3 — Conflict Resolution
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _ResolvingPage extends StatelessWidget {
+  const _ResolvingPage({
+    super.key,
+    required this.analysis,
+    required this.resolutions,
+    required this.onResolutionChanged,
+    required this.onConfirm,
+  });
+
+  final MigrationAnalysisResult analysis;
+  final Map<String, AccountResolution> resolutions;
+  final void Function(String legacyId, AccountResolution r) onResolutionChanged;
+  final VoidCallback onConfirm;
+
+  @override
+  Widget build(BuildContext context) {
+    final conflicts = analysis.accountConflicts;
+    final exactCount = analysis.exactMatchCount;
+    final partialCount = analysis.partialMatchCount;
+    final newCount = analysis.newAccountCount;
+    final txCount =
+        (analysis.rawBundle['stats']?['transactions_count'] as num? ?? 0).toInt();
+    final scheme = Theme.of(context).colorScheme;
+
+    return CustomScrollView(
+      slivers: [
+        // ── Stats banner ─────────────────────────────────────────────────────
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SpacingTokens.md,
+              SpacingTokens.md,
+              SpacingTokens.md,
+              0,
+            ),
+            child: Row(
+              children: [
+                _MiniStat(
+                  label: 'حسابات',
+                  value: '${conflicts.length}',
+                  color: scheme.primary,
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+                _MiniStat(
+                  label: 'حركات',
+                  value: '$txCount',
+                  color: ColorTokens.emerald600,
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+                _MiniStat(
+                  label: 'تطابق تام',
+                  value: '$exactCount',
+                  color: ColorTokens.emerald700,
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+                _MiniStat(
+                  label: 'جزئي',
+                  value: '$partialCount',
+                  color: ColorTokens.warningAmber,
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+                _MiniStat(
+                  label: 'جديد',
+                  value: '$newCount',
+                  color: ColorTokens.debitBlue,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // ── Instructions ─────────────────────────────────────────────────────
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SpacingTokens.md,
+              SpacingTokens.md,
+              SpacingTokens.md,
+              0,
+            ),
+            child: Text(
+              'راجع كل حساب وحدّد كيفية التعامل معه. القرار الافتراضي مُعيَّن تلقائياً.',
+              style: TextStyle(
+                color: scheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+
+        // ── Account conflict cards ────────────────────────────────────────────
+        SliverList.builder(
+          itemCount: conflicts.length,
+          itemBuilder: (context, i) {
+            final conflict = conflicts[i];
+            final resolution = resolutions[conflict.legacyIdStr] ??
+                const AccountResolution.createNew();
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                SpacingTokens.md,
+                SpacingTokens.sm,
+                SpacingTokens.md,
+                i == conflicts.length - 1 ? SpacingTokens.xl : 0,
+              ),
+              child: _ConflictCard(
+                conflict: conflict,
+                resolution: resolution,
+                onResolutionChanged: (r) =>
+                    onResolutionChanged(conflict.legacyIdStr, r),
+              ),
+            );
+          },
+        ),
+
+        // ── Confirm button ────────────────────────────────────────────────────
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              SpacingTokens.md,
+              0,
+              SpacingTokens.md,
+              SpacingTokens.xl,
+            ),
+            child: FilledButton.icon(
+              onPressed: onConfirm,
+              icon: const Icon(Icons.download_done_rounded, size: 20),
+              label: const Text('بدء الاستيراد'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Conflict Card ─────────────────────────────────────────────────────────────
+
+class _ConflictCard extends StatelessWidget {
+  const _ConflictCard({
+    required this.conflict,
+    required this.resolution,
+    required this.onResolutionChanged,
+  });
+
+  final AccountMigrationConflict conflict;
+  final AccountResolution resolution;
+  final ValueChanged<AccountResolution> onResolutionChanged;
+
+  Color _conflictColor(BuildContext context) => switch (conflict.type) {
+        AccountConflictType.exactMatch => ColorTokens.emerald700,
+        AccountConflictType.partialMatch => ColorTokens.warningAmber,
+        AccountConflictType.noMatch => ColorTokens.debitBlue,
+      };
+
+  String _conflictLabel() => switch (conflict.type) {
+        AccountConflictType.exactMatch => 'تطابق تام',
+        AccountConflictType.partialMatch => 'تطابق جزئي',
+        AccountConflictType.noMatch => 'حساب جديد',
+      };
+
+  IconData _conflictIcon() => switch (conflict.type) {
+        AccountConflictType.exactMatch => Icons.check_circle_outline_rounded,
+        AccountConflictType.partialMatch => Icons.warning_amber_rounded,
+        AccountConflictType.noMatch => Icons.add_circle_outline_rounded,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = _conflictColor(context);
+    final mergeTargetName = conflict.existingAccount?.name;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.3),
+          width: 1.2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Account header ────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(SpacingTokens.md),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: accent.withValues(alpha: 0.15),
+                  child: Text(
+                    conflict.name.isNotEmpty
+                        ? conflict.name.characters.first
+                        : '؟',
+                    style: TextStyle(
+                      color: accent,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        conflict.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (conflict.phone.isNotEmpty)
+                        Text(
+                          conflict.phone,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 12,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      if (conflict.groupName.isNotEmpty)
+                        Text(
+                          conflict.groupName,
+                          style: TextStyle(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Conflict type badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                        color: accent.withValues(alpha: 0.3), width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_conflictIcon(), color: accent, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        _conflictLabel(),
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Legacy balance chips ──────────────────────────────────────────
+          if (conflict.legacyBalances.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(
+                left: SpacingTokens.md,
+                right: SpacingTokens.md,
+                bottom: SpacingTokens.sm,
+              ),
+              child: Wrap(
+                spacing: 6,
+                children: [
+                  for (final b in conflict.legacyBalances)
+                    _BalanceChip(
+                      amount: (b['balance'] as num? ?? 0).toDouble(),
+                      code: b['currency_code']?.toString() ?? '',
+                    ),
+                ],
+              ),
+            ),
+
+          const Divider(height: 1),
+
+          // ── Existing account match banner ────────────────────────────────
+          if (mergeTargetName != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                SpacingTokens.md,
+                SpacingTokens.sm,
+                SpacingTokens.md,
+                0,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(SpacingTokens.sm),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color:
+                          scheme.primary.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.link_rounded,
+                        size: 16, color: scheme.primary),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'مطابق في قيد: $mergeTargetName',
+                        style: TextStyle(
+                          color: scheme.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // ── Resolution actions ────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(SpacingTokens.md),
+            child: Row(
+              children: [
+                // Merge
+                _ActionChip(
+                  label: 'دمج',
+                  icon: Icons.merge_rounded,
+                  isSelected: resolution.action == ResolutionAction.merge,
+                  color: ColorTokens.emerald600,
+                  onTap: () async {
+                    final picked = await showAccountPickerSheet(
+                      context,
+                      listAccounts: InjectionContainer.listAccountsUseCase,
+                      hideSterileRoots: true,
+                    );
+                    if (picked == null) return;
+                    onResolutionChanged(AccountResolution.merge(picked.id));
+                  },
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+
+                // Create New
+                _ActionChip(
+                  label: 'إنشاء جديد',
+                  icon: Icons.person_add_rounded,
+                  isSelected: resolution.action == ResolutionAction.createNew,
+                  color: ColorTokens.debitBlue,
+                  onTap: () =>
+                      onResolutionChanged(const AccountResolution.createNew()),
+                ),
+                const SizedBox(width: SpacingTokens.sm),
+
+                // Skip
+                _ActionChip(
+                  label: 'تخطي',
+                  icon: Icons.skip_next_rounded,
+                  isSelected: resolution.action == ResolutionAction.skip,
+                  color: scheme.outline,
+                  onTap: () =>
+                      onResolutionChanged(const AccountResolution.skip()),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Phase 5 — Done
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _DonePage extends StatelessWidget {
+  const _DonePage({
+    super.key,
+    required this.summary,
+    required this.onReset,
+  });
+
+  final ImportSummary summary;
+  final VoidCallback onReset;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(SpacingTokens.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Success illustration
+          Container(
+            padding: const EdgeInsets.all(SpacingTokens.xl),
+            decoration: BoxDecoration(
+              color: ColorTokens.emerald700.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: ColorTokens.emerald700.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 72,
+                  color: ColorTokens.emerald600,
+                ),
+                const SizedBox(height: SpacingTokens.md),
+                Text(
+                  'اكتمل الاستيراد',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: ColorTokens.emerald700,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'تم إنشاء السندات في حالة انتظار — راجعها واعتمدها',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: SpacingTokens.lg),
+
+          // Stats
+          _SectionCard(
+            child: Column(
+              children: [
+                _SummaryRow(
+                  icon: Icons.receipt_long_rounded,
+                  label: 'سندات مستوردة',
+                  value: '${summary.imported}',
+                  color: ColorTokens.emerald600,
+                ),
+                const Divider(height: SpacingTokens.lg),
+                _SummaryRow(
+                  icon: Icons.compare_arrows_rounded,
+                  label: 'منها تحويلات',
+                  value: '${summary.transfers}',
+                  color: scheme.primary,
+                ),
+                const Divider(height: SpacingTokens.lg),
+                _SummaryRow(
+                  icon: Icons.skip_next_rounded,
+                  label: 'حركات متخطاة',
+                  value: '${summary.skipped}',
+                  color: scheme.outline,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: SpacingTokens.md),
+
+          // Next steps
+          _SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'الخطوات التالية',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: SpacingTokens.md),
+                _StepHint(
+                  number: '١',
+                  title: 'مراجعة السندات المعلقة',
+                  subtitle: 'ابحث في قائمة السندات عن حالة "انتظار"',
+                ),
+                _StepHint(
+                  number: '٢',
+                  title: 'اعتماد السندات',
+                  subtitle: 'افتح كل سند وتحقق من البيانات ثم اعتمده',
+                  isLast: true,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: SpacingTokens.lg),
+
+          // Import another
+          OutlinedButton.icon(
+            onPressed: onReset,
+            icon: const Icon(Icons.upload_file_rounded, size: 18),
+            label: const Text('استيراد ملف آخر'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Shared helper widgets ─────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _WarningBanner extends StatelessWidget {
+  const _WarningBanner({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.sm),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded,
+              color: scheme.onErrorContainer, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                  color: scheme.onErrorContainer, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepHint extends StatelessWidget {
+  const _StepHint({
+    required this.number,
+    required this.title,
+    required this.subtitle,
+    this.isLast = false,
+  });
+
+  final String number;
+  final String title;
+  final String subtitle;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Column(
+            children: [
+              CircleAvatar(
+                radius: 13,
+                backgroundColor: scheme.primaryContainer,
+                child: Text(
+                  number,
+                  style: TextStyle(
+                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 1.5,
+                    color: scheme.outlineVariant,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: SpacingTokens.sm),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                  bottom: isLast ? 0 : SpacingTokens.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: color.withValues(alpha: 0.8),
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionChip extends StatelessWidget {
+  const _ActionChip({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? color.withValues(alpha: 0.12)
+                : scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? color : scheme.outlineVariant,
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon,
+                  size: 18, color: isSelected ? color : scheme.outline),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? color : scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BalanceChip extends StatelessWidget {
+  const _BalanceChip({required this.amount, required this.code});
+  final double amount;
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPos = amount >= 0;
+    final color =
+        isPos ? ColorTokens.creditGreen : ColorTokens.errorSoft;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        '${isPos ? '+' : ''}${amount.toStringAsFixed(2)} $code',
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          fontFamily: 'monospace',
+        ),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(width: SpacingTokens.sm),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
+          ),
+        ),
+      ],
+    );
+  }
+}

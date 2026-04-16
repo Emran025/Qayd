@@ -11,6 +11,7 @@ import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/application/accounts/batch_import_accounts_from_csv_use_case.dart';
+import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
 import 'package:qayd/application/accounts/deactivate_account_use_case.dart';
 import 'package:qayd/application/accounts/archive_account_use_case.dart';
@@ -345,6 +346,9 @@ abstract final class InjectionContainer {
   static late AuditLogService auditLogService;
   static late SeedExpenseAccountsUseCase seedExpenseAccountsUseCase;
   static late ManageAccountDefaultCostCentersUseCase manageAccountDefaultCostCentersUseCase;
+
+  // ── Legacy Migration ───────────────────────────────────────────────────────
+  static late LegacyMigrationUseCase legacyMigrationUseCase;
 
   /// Kept for backward compatibility (tests, etc.).
   /// Calls [initPreAuth] followed by [initDatabase].
@@ -964,5 +968,12 @@ abstract final class InjectionContainer {
     saveAccrualUseCase = SaveAccrualUseCase(accrualRepository, _idGenerator);
     processAccrualUseCase =
         ProcessAccrualUseCase(accrualRepository, createVoucherUseCase);
+
+    // ── Legacy Migration ─────────────────────────────────────────────────────
+    legacyMigrationUseCase = LegacyMigrationUseCase(
+      accountRepository,
+      voucherRepository,
+      currencyRepository,
+    );
   }
 }

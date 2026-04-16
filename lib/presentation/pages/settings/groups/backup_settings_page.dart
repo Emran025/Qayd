@@ -6,6 +6,8 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/import/import_wizard_page.dart';
 import 'package:qayd/presentation/pages/settings/auto_backup_settings_section.dart';
 import 'package:qayd/presentation/pages/settings/drive_backup_section.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -50,6 +52,17 @@ class BackupSettingsPage extends StatelessWidget {
           // Google Drive backup
           _SectionTitle(AppStringsAr.settingsSectionDriveBackup),
           const DriveBackupSection(),
+          const Divider(),
+          const _SectionTitle('الاستيراد والهجرة'),
+          ListTile(
+            leading: const Icon(Icons.move_to_inbox_rounded),
+            title: Text('استيراد وتهيئة'),
+            subtitle: Text('استيراد بيانات من نظام قديم'),
+            onTap: () => Navigator.of(context).push(
+              QaydPageRoute.slideFromStart(
+                  builder: (_) => const ImportWizardPage()),
+            ),
+          ),
         ],
       ),
     );
