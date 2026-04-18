@@ -879,7 +879,10 @@ abstract final class InjectionContainer {
       notificationRepo: notificationMessageRepository,
       accountRepository: accountRepository,
     );
-    notificationsCubit = NotificationsCubit(listInboxNotificationsUseCase);
+    notificationsCubit = NotificationsCubit(
+      listInboxNotificationsUseCase,
+      markNotificationMessageProcessedUseCase,
+    );
 
     // ── Collateral services ──────────────────────────────────────────────
     // (collateralExpiryChecker initialized earlier — before sync coordinator)
