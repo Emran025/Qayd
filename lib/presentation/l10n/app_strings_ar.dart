@@ -1149,4 +1149,45 @@ abstract final class AppStringsAr {
   static const String dbOpenErrorBody =
       'تعذّر فتح قاعدة البيانات بسبب خطأ غير متوقع. يُرجى إعادة المحاولة أو التواصل مع الدعم الفني.';
   static const String dbOpeningProgress = 'جاري فتح قاعدة البيانات المشفّرة…';
+
+  // ── Post-Auth Gate / Onboarding Flow ──────────────────────────────────
+  static const String gateCheckingStatus = 'جاري التحقق من حالة حسابك…';
+  static const String gateCheckingBackups = 'جاري البحث عن نسخ احتياطية…';
+
+  // Backup restore options for returning accounts
+  static const String gateRestoreTitle = 'استعادة بياناتك';
+  static const String gateRestoreSubtitle =
+      'وجدنا نسخاً احتياطية مرتبطة بحسابك. اختر طريقة الاستعادة.';
+  static const String gateRestoreLocalOption = 'استعادة النسخة المحلية';
+  static const String gateRestoreDriveOption = 'استعادة من Google Drive';
+  static const String gateRestoreAndKeepIdentity =
+      'استعادة مع الاحتفاظ بالهوية الرقمية السابقة';
+  static const String gateRestoreNewIdentity =
+      'استعادة البيانات فقط (هوية رقمية جديدة)';
+  static const String gateSkipRestore = 'تخطي والبدء بحساب جديد تماماً';
+
+  // No backups found — identity recovery
+  static const String gateNoBackupTitle = 'لا توجد نسخة احتياطية';
+  static const String gateNoBackupSubtitle =
+      'لم نعثر على نسخ احتياطية. إذا كنت تمتلك المفتاح الأساسي (24 كلمة)، يمكنك استعادة هويتك الرقمية.';
+  static const String gateEnterPrimaryKey = 'إدخال المفتاح الأساسي';
+  static const String gateBypassIdentity =
+      'متابعة بهوية رقمية جديدة (غير مستحسن)';
+
+  // Identity setup prompt
+  static const String gateIdentitySetupTitle = 'إعداد الهوية الرقمية';
+  static const String gateIdentitySetupSubtitle =
+      'لإتمام حماية حسابك، سيتم إنشاء مفتاح التشفير الخاص بك.';
+
+  // Device lock setup prompt
+  static const String gateDeviceLockTitle = 'حماية التطبيق';
+  static const String gateDeviceLockSubtitle =
+      'حماية التطبيق عند ترك الجهاز بدون مراقبة.';
+  static const String gateSetupBiometric = 'تفعيل البصمة أو الوجه';
+  static const String gateSetupPin = 'تعيين رمز قفل رقمي';
+  static const String gateSkipDeviceLock = 'المتابعة بدون قفل (غير مستحسن)';
+  static const String gateSetupComplete = 'اكتمل الإعداد';
+  static const String gateSetupCompleteBody =
+      'تم تأمين حسابك بنجاح. يمكنك الآن استخدام التطبيق.';
+  static const String gateContinueToApp = 'الدخول إلى التطبيق';
 }

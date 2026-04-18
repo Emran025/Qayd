@@ -9,6 +9,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/auth/database_recovery_page.dart';
 import 'package:qayd/presentation/pages/auth/login_page.dart';
 import 'package:qayd/presentation/pages/governance/governance_host_page.dart';
+import 'package:qayd/presentation/pages/auth/post_auth_gate_page.dart';
 import 'package:qayd/presentation/security/app_lock_screen.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_lifecycle_observer.dart';
@@ -276,8 +277,66 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
 // QaydApp — Post-auth MaterialApp (database is open)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-class QaydApp extends StatelessWidget {
+class QaydApp extends StatefulWidget {
   const QaydApp({super.key});
+
+  @override
+  State<QaydApp> createState() => _QaydAppState();
+}
+
+class _QaydAppState extends State<QaydApp> {
+  /// Tracks whether the post-auth onboarding gate has been completed.
+  /// Once `true`, the user goes directly to [GovernanceHostPage].
+  bool _onboardingComplete = false;
+
+  /// Whether this is a returning account (server had an existing identity).
+  bool _isReturningAccount = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOnboardingStatus();
+  }
+
+  Future<void> _checkOnboardingStatus() async {
+    // If the user already has a local identity AND had the app set up,
+    // skip the gate entirely. The gate is only for first-time setup
+    // or after a fresh login where state needs to be established.
+    final hasIdentity = await InjectionContainer.mnemonicVault.hasIdentity();
+    final hasPin = await InjectionContainer.securityCubit.hasPinConfigured();
+
+    if (hasIdentity) {
+      // User has identity — check if this might be a returning account
+      // (e.g., re-login on a different device where identity was restored
+      // from the vault file but the user hasn't gone through device lock).
+      if (mounted) {
+        setState(() => _onboardingComplete = true);
+      }
+      return;
+    }
+
+    // No local identity — check server for existing identity
+    try {
+      final licenseData =
+          await InjectionContainer.licenseVault.readLicenseData();
+      final email = licenseData?['email'] as String?;
+      if (email != null && email.isNotEmpty) {
+        final lookup = await InjectionContainer.identityRepository
+            .lookupByEmail(email: email);
+        if (mounted) {
+          setState(() => _isReturningAccount = lookup != null);
+        }
+      }
+    } catch (_) {
+      // Network failure — not critical, default to new account flow.
+    }
+  }
+
+  void _onGateComplete() {
+    if (mounted) {
+      setState(() => _onboardingComplete = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -349,6 +408,16 @@ class QaydApp extends StatelessWidget {
           if (state.licenseStatus == LicenseStatus.pending) {
             return const LoginPage();
           }
+
+          // ── Post-Auth Gate ─────────────────────────────────────────────
+          // Show the onboarding gate for first-time setup.
+          if (!_onboardingComplete) {
+            return PostAuthGatePage(
+              isReturningAccount: _isReturningAccount,
+              onSetupComplete: _onGateComplete,
+            );
+          }
+
           return ValueListenableBuilder<int>(
             valueListenable: InjectionContainer.databaseEpoch,
             builder: (context, gen, _) =>
