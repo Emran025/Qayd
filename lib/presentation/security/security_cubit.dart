@@ -143,8 +143,9 @@ class SecurityCubit extends Cubit<SecurityState> {
       await _licenseVault.writeTrialStart(DateTime.now().toUtc());
       return LicenseStatus.trial;
     }
-    if (_licenseVault.isTrialExpired(trialStart))
+    if (_licenseVault.isTrialExpired(trialStart)) {
       return LicenseStatus.trialExpired;
+    }
     return LicenseStatus.trial;
   }
 
