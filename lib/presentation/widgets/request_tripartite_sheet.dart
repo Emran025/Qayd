@@ -54,6 +54,7 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
       requireNoRoot: true,
+      allowedClassifications: const ['receivables', 'payables'],
     );
     if (res != null) setState(() => _mediator = res);
   }

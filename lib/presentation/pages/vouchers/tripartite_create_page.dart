@@ -75,7 +75,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
       final res = await InjectionContainer.listAccountsUseCase
           .call(const ListAccountsInput());
       if (res.isSuccess) {
-        final accounts = res.valueOrNull as List<AccountSummaryDto>?;
+        final accounts = res.valueOrNull?.accounts;
         final match = accounts?.where((a) => a.id == sourceId).firstOrNull;
         if (match != null) setState(() => _source = match);
       }
@@ -84,7 +84,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
       final res = await InjectionContainer.listAccountsUseCase
           .call(const ListAccountsInput());
       if (res.isSuccess) {
-        final accounts = res.valueOrNull as List<AccountSummaryDto>?;
+        final accounts = res.valueOrNull?.accounts;
         final match = accounts?.where((a) => a.id == destId).firstOrNull;
         if (match != null) setState(() => _dest = match);
       }
@@ -119,6 +119,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
       requireNoRoot: true,
+      allowedClassifications: const ['receivables', 'payables'],
     );
     if (res != null) {
       setState(() {
@@ -137,8 +138,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
       final accountsRes = await InjectionContainer.listAccountsUseCase
           .call(const ListAccountsInput());
       if (accountsRes.isSuccess) {
-        final accounts =
-            (accountsRes.valueOrNull as List<AccountSummaryDto>?) ?? [];
+        final accounts = accountsRes.valueOrNull?.accounts ?? [];
         _affected = accounts
                 .where((a) => a.standardClassificationKind == 'liquidAssets')
                 .firstOrNull ??

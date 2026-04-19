@@ -303,7 +303,7 @@ class _QaydAppState extends State<QaydApp> {
     // skip the gate entirely. The gate is only for first-time setup
     // or after a fresh login where state needs to be established.
     final hasIdentity = await InjectionContainer.mnemonicVault.hasIdentity();
-    final hasPin = await InjectionContainer.securityCubit.hasPinConfigured();
+    // final hasPin = await InjectionContainer.securityCubit.hasPinConfigured();
 
     if (hasIdentity) {
       // User has identity — check if this might be a returning account
