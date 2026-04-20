@@ -56,7 +56,7 @@ Future<void> shareVoucherAsPdf(
         ? true
         : forceNormalLayout
             ? false
-            : (data.isTripartite && data.isContingent),
+            : data.isTripartite,
     isTrueTripartite: data.isContingent,
     tripartiteRole: forceTripartiteLayout
         ? 'receipt'

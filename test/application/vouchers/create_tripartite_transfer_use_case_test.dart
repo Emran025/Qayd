@@ -17,6 +17,8 @@ import 'package:qayd/domain/entities/transaction_fee_setting.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 
+import 'package:qayd/domain/services/entry_generator.dart';
+
 class MockVoucherRepository extends Mock implements VoucherRepository {}
 
 class MockCurrencyRepository extends Mock implements CurrencyRepository {}
@@ -29,6 +31,8 @@ class MockGetActiveTransactionFeeUseCase extends Mock
     implements GetActiveTransactionFeeUseCase {}
 
 class MockAccountRepository extends Mock implements AccountRepository {}
+
+class MockEntryGenerator extends Mock implements EntryGenerator {}
 
 class FakeVoucher extends Fake implements Voucher {}
 
@@ -44,6 +48,7 @@ void main() {
   late MockGovernanceWriteGuard mockWriteGuard;
   late MockGetActiveTransactionFeeUseCase mockGetFee;
   late MockAccountRepository mockAccountRepo;
+  late MockEntryGenerator mockEntryGenerator;
 
   setUpAll(() {
     registerFallbackValue(VoucherId('id'));
@@ -58,6 +63,7 @@ void main() {
     mockWriteGuard = MockGovernanceWriteGuard();
     mockGetFee = MockGetActiveTransactionFeeUseCase();
     mockAccountRepo = MockAccountRepository();
+    mockEntryGenerator = MockEntryGenerator();
 
     useCase = CreateTripartiteTransferUseCase(
       mockVoucherRepo,
@@ -66,6 +72,7 @@ void main() {
       mockWriteGuard,
       mockGetFee,
       mockAccountRepo,
+      mockEntryGenerator,
     );
   });
 

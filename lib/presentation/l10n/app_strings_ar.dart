@@ -170,7 +170,6 @@ abstract final class AppStringsAr {
   static const String statusLabel = 'الحالة';
   static const String statusActive = 'نشط';
   static const String statusInactive = 'موقوف';
-  static const String createdAtLabel = 'تاريخ الإنشاء';
   static const String archiveAccountAction = 'أرشفة الحساب';
   static const String archiveAccountWarningText =
       'هل أنت متأكد من أرشفة هذا الحساب؟\nلا يمكن أرشفة الحساب إلا إذا كان رصيده صفراً في جميع العملات، وسيتم إخفاؤه من جميع القوائم والتقارير.';
@@ -1019,7 +1018,7 @@ abstract final class AppStringsAr {
 
   // ── Enhanced Voucher Detail Page ────────────────────────────────────────
   static const String voucherPreviewCardTitle = 'معاينة السند';
-  static const String voucherCreatedAtLabel = 'تاريخ الإنشاء';
+  static const String createdAtLabel = 'تاريخ الإنشاء';
   static const String voucherConfirmedAtLabel = 'تاريخ التأكيد';
   static const String voucherSettledAtLabel = 'تاريخ التسوية';
   static const String voucherAttachmentsSection = 'المرفقات';

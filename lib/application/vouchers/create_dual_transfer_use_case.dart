@@ -16,6 +16,12 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
+import 'package:qayd/domain/value_objects/entry_id.dart';
+import 'package:qayd/domain/value_objects/transaction_id.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
+import 'package:qayd/domain/services/entry_generator.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 
 /// Creates a dual transfer (two standard vouchers through the fund/cashbox).
 ///
@@ -39,13 +45,17 @@ class CreateDualTransferUseCase {
     this._idGenerator,
     this._writeGuard,
     this._accountRepository,
-  );
+    this._entryGenerator, {
+    SyncEventDispatcher? syncEventDispatcher,
+  }) : _syncEventDispatcher = syncEventDispatcher;
 
   final VoucherRepository _voucherRepository;
   final CurrencyRepository _currencyRepository;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
   final AccountRepository _accountRepository;
+  final EntryGenerator _entryGenerator;
+  final SyncEventDispatcher? _syncEventDispatcher;
 
   Future<Result<CreateDualTransferOutput>> call(
     CreateDualTransferInput input,
@@ -158,12 +168,68 @@ class CreateDualTransferUseCase {
         ),
       );
 
-      // 8. Persist both vouchers atomically using the tripartite pair save
-      //    (it's the same atomic persist mechanism — two vouchers in one tx).
-      final saveResult = await _voucherRepository.saveTripartitePair(
-        receiptVoucher: receiptVoucher,
-        paymentVoucher: paymentVoucher,
-      );
+      // 8. Persist both vouchers atomically
+      // Check if Fund is a Cashbox/Liquid Asset (Automatic confirmation)
+      final fundRes = await _accountRepository.getById(fundId);
+      bool isCashbox = false;
+      if (fundRes.isSuccess) {
+        final kind = fundRes.valueOrNull!.classification.standardKind;
+        isCashbox = kind == StandardAccountClassificationKind.liquidAssets ||
+            kind == StandardAccountClassificationKind.clearingRemittances;
+      }
+
+      Result<void> saveResult;
+
+      if (isCashbox) {
+        // Automatically confirm and sign as "The Box" (Internal signature)
+        final confirmedReceipt = receiptVoucher.confirm(now).attachSignature(
+              signatureHex: 'internal_box_sig', 
+              publicKeyHex: 'system',
+              isSender: false, // In receipt leg, the box is the receiver
+              status: AgreementStatus.accepted,
+            );
+
+        // Payment is already "Signed by sender" (senderStatus=accepted)
+        final confirmedPayment = paymentVoucher.confirm(now);
+
+        // Generate entries
+        final rTransactionId = TransactionId(_idGenerator.next());
+        final rEntries = _entryGenerator.generateForConfirmedVoucher(
+          voucher: confirmedReceipt,
+          transactionId: rTransactionId,
+          debitEntryId: EntryId(_idGenerator.next()),
+          creditEntryId: EntryId(_idGenerator.next()),
+          ledgerCreatedAt: now,
+        );
+
+        final pTransactionId = TransactionId(_idGenerator.next());
+        final pEntries = _entryGenerator.generateForConfirmedVoucher(
+          voucher: confirmedPayment,
+          transactionId: pTransactionId,
+          debitEntryId: EntryId(_idGenerator.next()),
+          creditEntryId: EntryId(_idGenerator.next()),
+          ledgerCreatedAt: now,
+        );
+
+        saveResult = await _voucherRepository.saveTripartitePairWithLedgerEntries(
+          receiptVoucher: confirmedReceipt,
+          receiptEntries: rEntries,
+          paymentVoucher: confirmedPayment,
+          paymentEntries: pEntries,
+        );
+
+        if (saveResult.isSuccess) {
+           if (_syncEventDispatcher != null) {
+            await _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedReceipt);
+            await _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedPayment);
+          }
+        }
+      } else {
+        saveResult = await _voucherRepository.saveTripartitePair(
+          receiptVoucher: receiptVoucher,
+          paymentVoucher: paymentVoucher,
+        );
+      }
 
       return saveResult.fold(
         (f) => FailureResult(f),

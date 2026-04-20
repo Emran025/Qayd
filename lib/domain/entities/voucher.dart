@@ -345,6 +345,14 @@ class Voucher {
     );
   }
 
+  /// Release the contingent lock on this voucher (for tripartite flows).
+  Voucher releaseContingency() {
+    if (tripartiteMeta == null) return this;
+    return _copyWith(
+      tripartiteMeta: tripartiteMeta!.release(),
+    );
+  }
+
   /// Attaches a cryptographic signature to a voucher from either party.
   Voucher attachSignature({
     required String signatureHex,
@@ -485,6 +493,8 @@ class Voucher {
     VoucherLifecycle? lifecycleStatus,
     String? signerPhone,
     String? rejectionReason,
+    TripartiteMeta? tripartiteMeta,
+    VoucherId? originVoucherId,
   }) {
     return Voucher._(
       id: id,
@@ -511,8 +521,8 @@ class Voucher {
       receiverPublicKeyHex: receiverPublicKeyHex ?? this.receiverPublicKeyHex,
       lifecycleStatus: lifecycleStatus ?? this.lifecycleStatus,
       signerPhone: signerPhone ?? this.signerPhone,
-      tripartiteMeta: tripartiteMeta,
-      originVoucherId: originVoucherId,
+      tripartiteMeta: tripartiteMeta ?? this.tripartiteMeta,
+      originVoucherId: originVoucherId ?? this.originVoucherId,
       rejectionReason: rejectionReason ?? this.rejectionReason,
       withdrawnAt: withdrawnAt ?? this.withdrawnAt,
     );

@@ -787,6 +787,8 @@ abstract final class InjectionContainer {
       governanceWriteGuard,
       getActiveTransactionFeeUseCase,
       accountRepository,
+      entryGenerator,
+      syncEventDispatcher: syncEventDispatcher,
     );
     createDualTransferUseCase = CreateDualTransferUseCase(
       voucherRepository,
@@ -794,6 +796,8 @@ abstract final class InjectionContainer {
       _idGenerator,
       governanceWriteGuard,
       accountRepository,
+      entryGenerator,
+      syncEventDispatcher: syncEventDispatcher,
     );
     updateDraftVoucherUseCase = UpdateDraftVoucherUseCase(
       voucherRepository,

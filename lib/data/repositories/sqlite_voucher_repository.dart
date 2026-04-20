@@ -432,17 +432,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
   }) async {
     try {
       await _transactionRunner.run((txn) async {
-        final rMap = VoucherMapper.toModel(receiptVoucher).toMap();
-        final rUpdateMap = Map.of(rMap)..remove('id');
-        int updated = await txn.update(_vouchers, rUpdateMap,
-            where: 'id = ?', whereArgs: [receiptVoucher.id.value]);
-        if (updated == 0) await txn.insert(_vouchers, rMap);
-
-        final pMap = VoucherMapper.toModel(paymentVoucher).toMap();
-        final pUpdateMap = Map.of(pMap)..remove('id');
-        updated = await txn.update(_vouchers, pUpdateMap,
-            where: 'id = ?', whereArgs: [paymentVoucher.id.value]);
-        if (updated == 0) await txn.insert(_vouchers, pMap);
+        await _saveVoucherRaw(txn, receiptVoucher);
+        await _saveVoucherRaw(txn, paymentVoucher);
       });
       return const Success(null);
     } catch (_) {
@@ -451,6 +442,57 @@ final class SqliteVoucherRepository implements VoucherRepository {
           messageAr: 'تعذر حفظ سندات التحويل الثلاثي. تم التراجع عن العملية.',
         ),
       );
+    }
+  }
+
+  @override
+  Future<Result<void>> saveTripartitePairWithLedgerEntries({
+    required Voucher receiptVoucher,
+    required List<LedgerEntry> receiptEntries,
+    required Voucher paymentVoucher,
+    required List<LedgerEntry> paymentEntries,
+  }) async {
+    try {
+      await _transactionRunner.run((txn) async {
+        await _saveVoucherRaw(txn, receiptVoucher);
+        for (final e in receiptEntries) {
+          await txn.insert(
+            _ledger,
+            LedgerEntryMapper.toModel(e).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.abort,
+          );
+        }
+
+        await _saveVoucherRaw(txn, paymentVoucher);
+        for (final e in paymentEntries) {
+          await txn.insert(
+            _ledger,
+            LedgerEntryMapper.toModel(e).toMap(),
+            conflictAlgorithm: ConflictAlgorithm.abort,
+          );
+        }
+      });
+      return const Success(null);
+    } catch (_) {
+      return const FailureResult(
+        DatabaseFailure(
+          messageAr: 'تعذر حفظ ومزامنة سندات التحويل الثلاثي مع القيود.',
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveVoucherRaw(Transaction txn, Voucher voucher) async {
+    final map = VoucherMapper.toModel(voucher).toMap();
+    final updateMap = Map.of(map)..remove('id');
+    final updated = await txn.update(
+      _vouchers,
+      updateMap,
+      where: 'id = ?',
+      whereArgs: [voucher.id.value],
+    );
+    if (updated == 0) {
+      await txn.insert(_vouchers, map);
     }
   }
 

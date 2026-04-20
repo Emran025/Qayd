@@ -124,11 +124,11 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                         break;
                       case 'share_image':
                         shareVoucherAsFormattedImage(context, state.data,
-                            forceNormalLayout: true);
+                            forceNormalLayout: false);
                         break;
                       case 'share_pdf':
                         shareVoucherAsPdf(context, state.data,
-                            forceNormalLayout: true);
+                            forceNormalLayout: false);
                         break;
                       case 'qr_code':
                         final amountStr = MoneyFormatter.formatWithSymbol(
@@ -678,11 +678,11 @@ class _VoucherDetailBody extends StatelessWidget {
             ),
 
             // ── Tripartite flow diagram ──────────────────────────────────
-            if (data.isTripartite) ...[
-              const SizedBox(height: SpacingTokens.sm),
-              _TripartiteFlowDiagram(data: data),
-              const SizedBox(height: SpacingTokens.sm),
-            ],
+            // if (data.isTripartite) ...[
+            const SizedBox(height: SpacingTokens.sm),
+            _TripartiteFlowDiagram(data: data),
+            const SizedBox(height: SpacingTokens.sm),
+            // ],
 
             if (data.referenceNumber != null &&
                 data.referenceNumber!.isNotEmpty)
@@ -704,19 +704,19 @@ class _VoucherDetailBody extends StatelessWidget {
             // ── Timestamps section ───────────────────────────────────────
             const SizedBox(height: SpacingTokens.sm),
             _Row(
-              label: AppStringsAr.voucherCreatedAtLabel,
+              label: AppStringsAr.createdAtLabel,
               value: createdStr,
             ),
             if (data.confirmedAtIso != null)
               _Row(
                 label: AppStringsAr.voucherConfirmedAtLabel,
-                value: DateFormat('hh:mm a  dd/MM/yyyy', 'en')
+                value: DateFormat('hh:mm a  dd/MM/yyyy', 'ar')
                     .format(DateTime.parse(data.confirmedAtIso!)),
               ),
             if (data.settledAtIso != null)
               _Row(
                 label: AppStringsAr.voucherSettledAtLabel,
-                value: DateFormat('hh:mm a  dd/MM/yyyy', 'en')
+                value: DateFormat('hh:mm a  dd/MM/yyyy', 'ar')
                     .format(DateTime.parse(data.settledAtIso!)),
               ),
 
@@ -805,7 +805,7 @@ class _VoucherPreviewSection extends StatelessWidget {
             padding: const EdgeInsets.all(SpacingTokens.md),
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: VoucherImageCard(data: data),
+              child: VoucherImageCard(data: data, forceNormalLayout: true),
             ),
           ),
         ],

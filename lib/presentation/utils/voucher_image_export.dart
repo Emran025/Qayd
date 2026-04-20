@@ -189,7 +189,7 @@ class VoucherImageCard extends StatelessWidget {
       ? true
       : forceNormalLayout
           ? false
-          : (data.isTripartite && data.isContingent);
+          : data.isTripartite;
 
   String? get _tripartiteRole => forceTripartiteLayout
       ? 'receipt'

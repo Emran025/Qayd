@@ -12,7 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 
 Future<void> shareVoucherAsText(
-    BuildContext context, GetVoucherDetailsOutput data) async {
+    BuildContext context, GetVoucherDetailsOutput data, {bool forceTripartiteLayout = false}) async {
   final isReceipt = data.typeCode == 'receipt';
   final type = isReceipt
       ? AppStringsAr.voucherTypeReceipt
