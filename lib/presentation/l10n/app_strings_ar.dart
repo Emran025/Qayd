@@ -55,21 +55,29 @@ abstract final class AppStringsAr {
   static const String costCenterCustomizeDimensions = 'تخصيص الأبعاد';
   static const String costCenterApplyDimensions = 'تطبيق الأبعاد';
   static const String voucherAffectedAccountParty = 'الحساب المتأثر (طَرَف)';
-  static const String voucherPickCounterpartyHint2 = 'اختر حساب الطرف (العميل/المورد)';
+  static const String voucherPickCounterpartyHint2 =
+      'اختر حساب الطرف (العميل/المورد)';
   static const String costCenterNoCentersAvailable = 'لا يوجد مراكز تكلفة .';
-  static const String costCenterAllAddedAllAvailable = 'تمت إضافة جميع مراكز التكلفة المتاحة.';
+  static const String costCenterAllAddedAllAvailable =
+      'تمت إضافة جميع مراكز التكلفة المتاحة.';
   static const String costCenterTagsLabel = 'مراكز التكلفة والأبعاد';
   static const String costCenterNoneLinked = 'لا توجد مراكز تكلفة مرتبطة.';
-  static const String professionWizardRootError = 'خطأ: لم يتم العثور على حساب الإيرادات الجذر.';
-  static const String professionWizardSuccess = 'تم تسجيل المهنة كمصدر دخل بنجاح.';
+  static const String professionWizardRootError =
+      'خطأ: لم يتم العثور على حساب الإيرادات الجذر.';
+  static const String professionWizardSuccess =
+      'تم تسجيل المهنة كمصدر دخل بنجاح.';
   static const String professionAccountNameRequired = 'يرجى إدخال اسم الحساب';
   static const String professionNameRequired = 'يرجى إدخال اسم المهنة';
   static const String defaultCostCentersTitle = 'مراكز التكلفة الافتراضية';
   static const String professionAddCostCenter = 'إضافة مركز تكلفة للمهنة';
-  static const String internalVoucherFundError = 'خطأ: لم يتم العثور على حساب الصندوق الرئيسي.';
-  static const String internalVoucherCategoryRequired = 'يرجى اختيار حساب المصروف أو الإيراد أولاً.';
-  static const String internalVoucherSuccess = 'تم تسجيل المعاملة الداخلية بنجاح.';
-  static const String internalVoucherPickExpense = 'اختر حساب المصروف أو التجارة';
+  static const String internalVoucherFundError =
+      'خطأ: لم يتم العثور على حساب الصندوق الرئيسي.';
+  static const String internalVoucherCategoryRequired =
+      'يرجى اختيار حساب المصروف أو الإيراد أولاً.';
+  static const String internalVoucherSuccess =
+      'تم تسجيل المعاملة الداخلية بنجاح.';
+  static const String internalVoucherPickExpense =
+      'اختر حساب المصروف أو التجارة';
   static const String internalVoucherPickRevenue = 'اختر مصدر الدخل أو الأصل';
   static const String actionRecordTransaction = 'تسجيل العملية';
   static const String suggestionRecurring = 'متكرر';
@@ -81,8 +89,10 @@ abstract final class AppStringsAr {
   static const String incomeStreamProfession = 'مصدر دخل مهني';
   static const String exportPdfStatement = 'تصدير كشف حساب PDF';
   static const String exportExcelStatement = 'تصدير كشف حساب Excel';
-  static const String incomeStreamNoData = 'لا توجد بيانات مالية مسجلة حتى الآن.';
-  static const String incomeStreamLoadError = 'حدث خطأ أثناء تحميل السجل المالي.';
+  static const String incomeStreamNoData =
+      'لا توجد بيانات مالية مسجلة حتى الآن.';
+  static const String incomeStreamLoadError =
+      'حدث خطأ أثناء تحميل السجل المالي.';
   static const String incomeStreamPurchasePrice = 'قيمة الاستحواذ: ';
   static const String incomeStreamPerHour = '/ساعة';
   static const String incomeStreamDatePrefix = 'تاريخ: ';
@@ -90,10 +100,13 @@ abstract final class AppStringsAr {
   static const String filterApplied = 'تمت التصفية';
   static const String filterLedger = 'تصفية السجل';
   static const String financialBalancePerformance = 'أداء الرصيد المالي';
-  static String costCenterRemoveConfirmBody(String name) => 'إزالة "$name" من المراكز الافتراضية؟';
+  static String costCenterRemoveConfirmBody(String name) =>
+      'إزالة "$name" من المراكز الافتراضية؟';
   static const String costCenterRemoveError = 'تعذر إزالة مركز التكلفة.';
-  static const String defaultCostCentersDesc = 'تُضاف هذه المراكز تلقائياً عند اختيار هذا الحساب في سند صرف أو قبض جديد.';
-  static const String defaultCostCentersEmpty = 'لا توجد مراكز تكلفة افتراضية محددة.';
+  static const String defaultCostCentersDesc =
+      'تُضاف هذه المراكز تلقائياً عند اختيار هذا الحساب في سند صرف أو قبض جديد.';
+  static const String defaultCostCentersEmpty =
+      'لا توجد مراكز تكلفة افتراضية محددة.';
   static const String costCenterAddCenter = 'إضافة مركز';
   static const String modelLabel = 'الموديل';
   static const String serialNumberLabel = 'الرقم التسلسلي';
@@ -219,7 +232,8 @@ abstract final class AppStringsAr {
   static const String internalVoucherFundAccount = 'الصندوق';
   static const String managementTabFinancialRecords = 'السجل المالي';
   static const String managementTabAssets = 'الأصول والممتلكات';
-  static const String managementTabPersonalFlowAccounts = 'حسابات التدفقات الشخصية';
+  static const String managementTabPersonalFlowAccounts =
+      'حسابات التدفقات الشخصية';
   static const String managementTabFundFlows = 'تدفقات الصندوق';
   static const String managementTabRevenues = 'إيرادات الصندوق';
   static const String managementTabExpenses = 'مصاريف الصندوق';
@@ -234,7 +248,8 @@ abstract final class AppStringsAr {
   static const String managementAddFlowFab = 'إضافة حركة (دخل/مصرف)';
   static const String managementSearchVouchersHint = 'ابحث في السجلات...';
   static const String managementAssetsEmpty = 'لا توجد أصول مسجلة حالياً.';
-  static const String managementExpensesEmpty = 'لا توجد قنوات صرف مسجلة حالياً.';
+  static const String managementExpensesEmpty =
+      'لا توجد قنوات صرف مسجلة حالياً.';
   static const String managementTabOutflowSources = 'قنوات الإنفاق';
   static const String managementAssetValueLabel = 'قيمة الأصل الاستراتيجية';
   static const String managementAssetYieldLabel = 'العائد الناتج';
@@ -246,8 +261,10 @@ abstract final class AppStringsAr {
   static const String assetWizardInvestmentTitle = 'إضافة أصل استثماري';
   static const String assetWizardPossessionTitle = 'إضافة مقتنى شخصي';
   static const String assetWizardIncomeSourceLabel = 'هل يدر دخلاً دورياً؟';
-  static const String managementAssetLinkRevenue = 'الأصل/المشروع المرتبط (مصدر الدخل)';
-  static const String managementAssetLinkExpense = 'مركز التكلفة / المصلحة (جهة الصرف)';
+  static const String managementAssetLinkRevenue =
+      'الأصل/المشروع المرتبط (مصدر الدخل)';
+  static const String managementAssetLinkExpense =
+      'مركز التكلفة / المصلحة (جهة الصرف)';
 
   static const String expenseWizardTitle = 'إضافة تصنيف مصروفات';
   static const String expenseWizardRootError =
@@ -822,8 +839,8 @@ abstract final class AppStringsAr {
   static const String statementBalanceSettled = 'مسوّى';
   static const String statementRunningBalance = 'الرصيد';
   static const String statementVoucherCount = 'سند';
-  static const String statementViewModeMy = 'بناءً على حساباتي';
-  static const String statementViewModeOther = 'بناءً على حسابات الطرف الآخر';
+  static const String statementViewModeMy = 'حسبتي';
+  static const String statementViewModeOther = 'حسبة الطرف الآخر';
   static const String statementChatWithdraw = 'سحب';
 
   static const String settingsGroupProfile = 'بيانات الحساب والهوية';
@@ -1074,8 +1091,7 @@ abstract final class AppStringsAr {
   // Empty states
   static const String incomeStreamsEmpty =
       'لا توجد مصادر دخل مسجلة حالياً.\nأضف أصلاً استثمارياً أو مهنة لتبدأ.';
-  static const String possessionsEmpty =
-      'لا توجد ممتلكات شخصية مسجلة حالياً.';
+  static const String possessionsEmpty = 'لا توجد ممتلكات شخصية مسجلة حالياً.';
   static const String expenseCategoriesEmpty =
       'لا توجد تصنيفات مصروفات حالياً.';
 
@@ -1136,10 +1152,12 @@ abstract final class AppStringsAr {
   static const String dbKeyMismatchRetryFailed =
       'المفتاح المُدخل غير صحيح أو لا يتطابق مع القاعدة الموجودة. حاول مرة أخرى بعبارة مختلفة.';
   static const String dbEnterPrimaryKeyAction = 'إدخال المفتاح الأساسي';
-  static const String dbMnemonicHint = 'أدخل عبارة الاسترداد المكونة من 24 كلمة…';
+  static const String dbMnemonicHint =
+      'أدخل عبارة الاسترداد المكونة من 24 كلمة…';
   static const String dbUnlockAction = 'فتح القاعدة';
   static const String dbRetryAction = 'إعادة المحاولة';
-  static const String dbStartFreshAction = 'البدء من جديد (حذف القاعدة الحالية)';
+  static const String dbStartFreshAction =
+      'البدء من جديد (حذف القاعدة الحالية)';
   static const String dbStartFreshConfirmTitle = 'تأكيد الحذف والبدء من جديد';
   static const String dbStartFreshConfirmBody =
       'سيتم حذف جميع البيانات المالية المخزنة على هذا الجهاز نهائياً.\n\n'

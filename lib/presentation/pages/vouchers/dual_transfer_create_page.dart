@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
-import 'package:qayd/core/result/result.dart';
 import 'package:intl/intl.dart';
-
+import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
+import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
+import 'package:qayd/application/vouchers/dtos/create_dual_transfer_input.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
-import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
-import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
-import 'package:qayd/application/vouchers/dtos/create_tripartite_transfer_input.dart';
-import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -20,81 +17,69 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/amount_parser.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
+import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
+import 'package:qayd/core/result/result.dart';
 
-class TripartiteCreatePage extends StatefulWidget {
-  const TripartiteCreatePage({super.key, this.initialQrData});
-
-  final Map<String, dynamic>? initialQrData;
+/// Page for creating a dual transfer (two standard vouchers through the fund).
+///
+/// The user selects:
+/// - Sender account (external party — debit)
+/// - Receiver account (external party — credit)
+/// - The fund/cashbox is auto-detected (liquidAssets)
+/// - Amount, currency, date, description
+class DualTransferCreatePage extends StatefulWidget {
+  const DualTransferCreatePage({super.key});
 
   @override
-  State<TripartiteCreatePage> createState() => _TripartiteCreatePageState();
+  State<DualTransferCreatePage> createState() => _DualTransferCreatePageState();
 }
 
-class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
+class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _notesController = TextEditingController();
 
   DateTime _date = DateTime.now();
   String _currencyCode = PredefinedCurrencies.sar.code;
 
-  AccountSummaryDto? _source;
-  AccountSummaryDto? _dest;
-  AccountSummaryDto? _affected;
+  AccountSummaryDto? _sender;
+  AccountSummaryDto? _receiver;
+  AccountSummaryDto? _fund; // auto-detected
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialQrData != null) {
-      _applyFromQr(widget.initialQrData!);
-    } else {
-      _loadBaseCurrency();
-    }
+    _loadBaseCurrency();
+    _autoDetectFund();
   }
 
-  void _applyFromQr(Map<String, dynamic> data) {
-    if (data['date'] is DateTime) {
-      _date = data['date'] as DateTime;
-    }
-    if (data['currencyCode'] is String) {
-      _currencyCode = data['currencyCode'] as String;
-    }
-    if (data['amountMinorUnits'] != null) {
-      _amountController.text =
-          formatMinorAmountForField(data['amountMinorUnits'] as int);
-    }
-    if (data['description'] != null) {
-      _descriptionController.text = data['description'] as String;
-    }
-
-    _loadAccountsFromIds(data['sourceAccountId'], data['destAccountId']);
-  }
-
-  Future<void> _loadAccountsFromIds(String? sourceId, String? destId) async {
-    if (sourceId != null) {
-      final res = await InjectionContainer.listAccountsUseCase
-          .call(const ListAccountsInput());
-      if (res.isSuccess) {
-        final accounts = res.valueOrNull?.accounts;
-        final match = accounts?.where((a) => a.id == sourceId).firstOrNull;
-        if (match != null) setState(() => _source = match);
-      }
-    }
-    if (destId != null) {
-      final res = await InjectionContainer.listAccountsUseCase
-          .call(const ListAccountsInput());
-      if (res.isSuccess) {
-        final accounts = res.valueOrNull?.accounts;
-        final match = accounts?.where((a) => a.id == destId).firstOrNull;
-        if (match != null) setState(() => _dest = match);
-      }
-    }
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _descriptionController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBaseCurrency() async {
     final res = await InjectionContainer.getBaseCurrencyUseCase();
     if (res.isSuccess && mounted) {
       setState(() => _currencyCode = res.valueOrNull!);
+    }
+  }
+
+  Future<void> _autoDetectFund() async {
+    final res = await InjectionContainer.listAccountsUseCase
+        .call(const ListAccountsInput());
+    if (res.isSuccess && mounted) {
+      final accounts = res.valueOrNull?.accounts ?? [];
+      final liquidAssets = accounts
+          .where((a) => a.standardClassificationKind == 'liquidAssets')
+          .firstOrNull;
+      if (liquidAssets != null) {
+        setState(() => _fund = liquidAssets);
+      }
     }
   }
 
@@ -123,9 +108,8 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     );
     if (res != null) {
       setState(() {
-        if (fieldIndex == 0) _source = res;
-        if (fieldIndex == 1) _affected = res;
-        if (fieldIndex == 2) _dest = res;
+        if (fieldIndex == 0) _sender = res;
+        if (fieldIndex == 1) _receiver = res;
       });
     }
   }
@@ -134,20 +118,25 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final messenger = ScaffoldMessenger.of(context);
 
-    if (_affected == null) {
-      final accountsRes = await InjectionContainer.listAccountsUseCase
-          .call(const ListAccountsInput());
-      if (accountsRes.isSuccess) {
-        final accounts = accountsRes.valueOrNull?.accounts ?? [];
-        _affected =
-            accounts.where((a) => a.name == 'مقاصة الحوالات').firstOrNull ??
-                accounts.firstOrNull;
-      }
+    if (_sender == null || _receiver == null) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('الرجاء اختيار المرسل والمستلم')),
+      );
+      return;
     }
 
-    if (_source == null || _affected == null || _dest == null) {
+    if (_fund == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار الحسابات')),
+        const SnackBar(
+            content: Text('لم يتم العثور على حساب الصندوق تلقائياً')),
+      );
+      return;
+    }
+
+    if (_sender!.id == _receiver!.id) {
+      messenger.showSnackBar(
+        const SnackBar(
+            content: Text('لا يمكن أن يكون المرسل والمستلم نفس الطرف')),
       );
       return;
     }
@@ -160,22 +149,26 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
       return;
     }
 
-    final input = CreateTripartiteTransferInput(
-      sourceAccountId: _source!.id,
-      affectedAccountId: _affected!.id,
-      destinationAccountId: _dest!.id,
+    final input = CreateDualTransferInput(
+      senderAccountId: _sender!.id,
+      receiverAccountId: _receiver!.id,
+      fundAccountId: _fund!.id,
       amountMinorUnits: minor,
       currencyCode: _currencyCode,
       date: _date,
       description: _descriptionController.text.trim(),
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
     );
 
-    await context.read<VoucherCreateCubit>().submitTripartite(input);
+    await context.read<VoucherCreateCubit>().submitDualTransfer(input);
   }
 
   @override
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
+    final scheme = Theme.of(context).colorScheme;
 
     return BlocConsumer<VoucherCreateCubit, VoucherCreateState>(
       listener: (context, state) {
@@ -184,15 +177,9 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
             SnackBar(content: Text(state.failure.messageAr)),
           );
         }
-        if (state is VoucherCreateSuccess) {
+        if (state is VoucherCreateDualSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم حفظ مسودة التحويل بنجاح')),
-          );
-          Navigator.of(context).pop();
-        }
-        if (state is VoucherCreateTripartiteSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم حفظ التحويل الثلاثي بنجاح')),
+            const SnackBar(content: Text('تم حفظ التحويل المزدوج بنجاح')),
           );
           Navigator.of(context).pop();
         }
@@ -202,7 +189,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
 
         return Scaffold(
           appBar: QaydAppBar(
-            title: 'تحويل جديد',
+            title: 'تحويل مزدوج مع الصندوق',
           ),
           body: AbsorbPointer(
             absorbing: submitting,
@@ -211,24 +198,79 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
               child: ListView(
                 padding: const EdgeInsets.all(SpacingTokens.lg),
                 children: [
+                  // ── Info banner ──────────────────────────────────────
+                  Container(
+                    padding: const EdgeInsets.all(SpacingTokens.md),
+                    margin: const EdgeInsets.only(bottom: SpacingTokens.lg),
+                    decoration: BoxDecoration(
+                      color: ColorTokens.debitBlue.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: ColorTokens.debitBlue.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline_rounded,
+                            size: 20, color: ColorTokens.debitBlue),
+                        const SizedBox(width: SpacingTokens.sm),
+                        Expanded(
+                          child: QaydText(
+                            'سيتم إنشاء سندين: سند خصم من المرسل وسند إضافة للمستلم.\nالصندوق يتأثر برصيده.',
+                            slot: QaydTextStyleSlot.bodySmall,
+                            color: ColorTokens.debitBlue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                   _buildDateTile(gold),
                   const Divider(),
                   _buildCurrencyTile(gold),
                   const Divider(),
+
+                  // ── Fund (auto-detected, read-only) ─────────────
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: QaydText(
+                      'الصندوق (الوسيط)',
+                      slot: QaydTextStyleSlot.labelLarge,
+                    ),
+                    subtitle: QaydText(
+                      _fund?.name ?? 'جاري الكشف التلقائي…',
+                      slot: QaydTextStyleSlot.bodyLarge,
+                      color: _fund == null ? scheme.onSurfaceVariant : null,
+                    ),
+                    trailing: Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: gold,
+                      size: 20,
+                    ),
+                  ),
+                  const Divider(),
+
+                  // ── Sender ──────────────────────────────────────
                   _buildAccountPicker(
-                    label: 'الحساب المُرْسِل (مَدين)',
-                    account: _source,
+                    label: 'المُرْسِل (يُخصم من حسابه)',
+                    account: _sender,
                     onTap: () => _pickAccount(0),
                     gold: gold,
+                    icon: Icons.south_west_rounded,
                   ),
                   const SizedBox(height: SpacingTokens.sm),
+
+                  // ── Receiver ────────────────────────────────────
                   _buildAccountPicker(
-                    label: 'الحساب المُلْتزم (دائن)',
-                    account: _dest,
-                    onTap: () => _pickAccount(2),
+                    label: 'المُسْتلم (يُضاف لحسابه)',
+                    account: _receiver,
+                    onTap: () => _pickAccount(1),
                     gold: gold,
+                    icon: Icons.north_east_rounded,
                   ),
                   const SizedBox(height: SpacingTokens.lg),
+
                   QaydAmountField(
                     controller: _amountController,
                     label: AppStringsAr.voucherAmountLabel,
@@ -239,7 +281,14 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
                     label: AppStringsAr.voucherDescriptionLabel,
                     maxLines: 2,
                   ),
+                  const SizedBox(height: SpacingTokens.md),
+                  QaydTextField(
+                    controller: _notesController,
+                    label: AppStringsAr.voucherNotesLabel,
+                    maxLines: 2,
+                  ),
                   const SizedBox(height: SpacingTokens.xl),
+
                   FilledButton(
                     onPressed: submitting ? null : _submit,
                     style: FilledButton.styleFrom(
@@ -249,7 +298,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
                     ),
                     child: submitting
                         ? const CircularProgressIndicator()
-                        : Text(AppStringsAr.voucherSaveDraft),
+                        : const Text('حفظ التحويل المزدوج'),
                   ),
                 ],
               ),
@@ -293,9 +342,11 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     required AccountSummaryDto? account,
     required VoidCallback onTap,
     required Color gold,
+    IconData icon = Icons.chevron_left_rounded,
   }) =>
       ListTile(
         contentPadding: EdgeInsets.zero,
+        leading: Icon(icon, color: gold, size: 20),
         title: QaydText(
           label,
           slot: QaydTextStyleSlot.labelLarge,

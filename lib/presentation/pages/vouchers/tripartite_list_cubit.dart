@@ -89,10 +89,24 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
           final isReceipt = v.typeCode == VoucherType.receipt.name;
           final isPayment = v.typeCode == VoucherType.payment.name;
 
+          // Skip fee vouchers: they share the same transferGroupId but
+          // their tripartiteRole is 'intermediary_receipt' while being a
+          // receipt whose affectedAccount differs from the main legs.
+          // We detect them by checking if a group already exists and
+          // the new voucher's affectedAccountId differs from the existing one.
+          final existingGroup = groups[gid];
+          if (existingGroup != null) {
+            final existingAffectedId =
+                existingGroup.receiptVoucher?.affectedAccountId ??
+                    existingGroup.paymentVoucher?.affectedAccountId;
+            if (existingAffectedId != null &&
+                existingAffectedId != v.affectedAccountId) {
+              // This is a fee voucher — skip it.
+              continue;
+            }
+          }
+
           groups.putIfAbsent(gid, () {
-            // Figure out source name and destination name based on the role.
-            // A receipt means A->C. A is the counterparty, C is our affected account.
-            // A payment means C->B. C is our affected account, B is the counterparty.
             String sourceName = '';
             String destinationName = '';
             if (isReceipt) {
@@ -117,22 +131,42 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
           });
 
           final existing = groups[gid]!;
-          // Update missing info
-          groups[gid] = TripartiteTransferSummaryDto(
-            transferGroupId: gid,
-            dateIso: existing.dateIso,
-            amountMinorUnits: existing.amountMinorUnits,
-            currencyCode: existing.currencyCode,
-            currencySymbol: existing.currencySymbol,
-            currencyDigits: existing.currencyDigits,
-            currencyNameAr: existing.currencyNameAr,
-            sourceName: isReceipt ? v.counterpartyName : existing.sourceName,
-            destinationName:
-                isPayment ? v.counterpartyName : existing.destinationName,
-            affectedName: existing.affectedName,
-            receiptVoucher: isReceipt ? v : existing.receiptVoucher,
-            paymentVoucher: isPayment ? v : existing.paymentVoucher,
-          );
+          // If existing was created from a fee voucher (wrong affected), fix it
+          if (existing.receiptVoucher == null && existing.paymentVoucher == null) {
+            // First real leg — replace the stub entirely
+            groups[gid] = TripartiteTransferSummaryDto(
+              transferGroupId: gid,
+              dateIso: v.dateIso,
+              amountMinorUnits: v.amountMinorUnits,
+              currencyCode: v.currencyCode,
+              currencySymbol: v.currencySymbol,
+              currencyDigits: v.currencyDigits,
+              currencyNameAr: v.currencyNameAr,
+              sourceName: isReceipt ? v.counterpartyName : '',
+              destinationName: isPayment ? v.counterpartyName : '',
+              affectedName: v.affectedName,
+              receiptVoucher: isReceipt ? v : null,
+              paymentVoucher: isPayment ? v : null,
+            );
+          } else {
+            // Update missing info from the second leg
+            groups[gid] = TripartiteTransferSummaryDto(
+              transferGroupId: gid,
+              dateIso: existing.dateIso,
+              amountMinorUnits: existing.amountMinorUnits,
+              currencyCode: existing.currencyCode,
+              currencySymbol: existing.currencySymbol,
+              currencyDigits: existing.currencyDigits,
+              currencyNameAr: existing.currencyNameAr,
+              sourceName:
+                  isReceipt ? v.counterpartyName : existing.sourceName,
+              destinationName:
+                  isPayment ? v.counterpartyName : existing.destinationName,
+              affectedName: existing.affectedName,
+              receiptVoucher: isReceipt ? v : existing.receiptVoucher,
+              paymentVoucher: isPayment ? v : existing.paymentVoucher,
+            );
+          }
         }
 
         final sorted = groups.values.toList()

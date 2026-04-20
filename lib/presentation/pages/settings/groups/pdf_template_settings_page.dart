@@ -23,6 +23,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     'pdf_label_from': 'من حساب العميل:',
     'pdf_label_description': 'البيان التفصيلي:',
     'pdf_footer_text': 'المصدر: تطبيق قيد للمحاسبة الشخصية',
+    'pdf_mediator_name': 'شركة الناصر للصرافة والتحويلات',
   };
 
   String? _selectedKey;
@@ -74,104 +75,142 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       'pdf_label_from' => 'مسمى الطرف الآخر',
       'pdf_label_description' => 'مسمى حقل البيان',
       'pdf_footer_text' => 'نص حقوق التذييل',
+      'pdf_mediator_name' => 'اسم الوسيط المالي',
       _ => key,
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
+    if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     final theme = Theme.of(context);
     final gold = theme.extension<QaydCustomColors>()!.goldAccent;
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      appBar: QaydAppBar(title: 'تخصيص هوية السندات'),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-              child: Column(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        appBar: QaydAppBar(
+          title: 'تخصيص هوية السندات',
+          bottom: TabBar(
+            tabs: const [
+              Tab(text: 'سند عادي / ثنائي'),
+              Tab(text: 'تحويل ثلاثي'),
+            ],
+            indicatorColor: gold,
+            labelColor: gold,
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: TabBarView(
                 children: [
-                  const QaydText(
-                    'قم بالنقر على أي عنصر نصي ملون في المعاينة لتعديله',
-                    slot: QaydTextStyleSlot.labelSmall,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ── EXACT REPLICA OF VOUCHER IMAGE CARD ────────────────────
-                  Center(
-                    child: Container(
-                      width: 550, // Matches VoucherImageCard width
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFCBD5E1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: Stack(
-                          children: [
-                            // Watermark matching image export
-                            Positioned.fill(
-                              child: Center(
-                                child: Opacity(
-                                  opacity: 0.05,
-                                  child: Image.asset(
-                                    'assets/images/logo.png',
-                                    width: 250,
-                                    height: 250,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildExactHeader(),
-                                _buildExactTitleRow(),
-                                const SizedBox(height: 12),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
-                                  child: _buildExactEntrySection(),
-                                ),
-                                const SizedBox(height: 12),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
-                                  child: _buildExactSignatures(),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildExactFooter(),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Tab 1: Normal Layout
+                  _buildPreviewTab(isTripartite: false),
+                  // Tab 2: Tripartite Layout
+                  _buildPreviewTab(isTripartite: true),
                 ],
               ),
             ),
-          ),
 
-          // ── EDITING PANEL ────────────────────────────────────────────────
-          _buildBottomActionPanel(gold, theme),
+            // ── EDITING PANEL ────────────────────────────────────────────────
+            _buildBottomActionPanel(gold, theme),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreviewTab({required bool isTripartite}) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      child: Column(
+        children: [
+          const QaydText(
+            'قم بالنقر على أي عنصر نصي ملون في المعاينة لتعديله',
+            slot: QaydTextStyleSlot.labelSmall,
+          ),
+          const SizedBox(height: 24),
+          Center(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Container(
+                width: 550,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Center(
+                          child: Opacity(
+                            opacity: 0.05,
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 250,
+                              height: 250,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildExactHeader(),
+                          _buildExactTitleRow(isTripartite: isTripartite),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              children: [
+                                _buildExactEntrySection(
+                                  isTripartite: isTripartite,
+                                  sectionType: 'debit',
+                                ),
+                                if (isTripartite) ...[
+                                  const SizedBox(height: 8),
+                                  _buildExactEntrySection(
+                                    isTripartite: isTripartite,
+                                    sectionType: 'credit',
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _buildExactSignatures(
+                                isTripartite: isTripartite),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildExactFooter(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -209,7 +248,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                     const SizedBox(width: 12),
                     QaydText(
                       'جاري تعديل: ${_labelForKey(_selectedKey!)}',
-                      slot: QaydTextStyleSlot.titleSmall,
+                      slot: QaydTextStyleSlot.bodyMedium,
                       color: theme.colorScheme.onSurface,
                     ),
                     const Spacer(),
@@ -327,7 +366,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     );
   }
 
-  Widget _buildExactTitleRow() {
+  Widget _buildExactTitleRow({required bool isTripartite}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       child: Column(
@@ -343,12 +382,29 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           _directText(
               'سـنـد قـبـض مـالـي (مـعـايـنـة)', 13, const Color(0xFF0F2741),
               bold: true, align: TextAlign.center),
+          if (isTripartite) ...[
+            const SizedBox(height: 1),
+            _selectableText('pdf_mediator_name', 8.0, const Color(0xFF64748B),
+                align: TextAlign.center),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildExactEntrySection() {
+  Widget _buildExactEntrySection(
+      {bool isTripartite = false, String sectionType = 'debit'}) {
+    final isDebit = sectionType == 'debit';
+    final sectionLabel = isTripartite
+        ? (isDebit
+            ? 'بيانات القيد (المدين) - من حساب العميل المرسل:'
+            : 'بيانات القيد (الدائن) - إلى حساب العميل المستلم:')
+        : 'pdf_label_from';
+
+    final name = isTripartite
+        ? (isDebit ? 'أحمد كمال الناصر' : 'خالد وليد العامري')
+        : 'أحمد كمال الناصر';
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFCBD5E1)),
@@ -366,20 +422,29 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                   children: [
                     Row(
                       children: [
-                        _selectableText(
-                            'pdf_label_from', 10, const Color(0xFF0F2741),
-                            bold: true),
+                        if (isTripartite)
+                          _directText(sectionLabel, 10, const Color(0xFF0F2741),
+                              bold: true)
+                        else
+                          _selectableText(
+                              'pdf_label_from', 10, const Color(0xFF0F2741),
+                              bold: true),
                         const SizedBox(width: 5),
-                        const Text('أحمد كمال الناصر',
-                            style: TextStyle(
+                        Text(name,
+                            style: const TextStyle(
                                 fontSize: 10,
                                 color: Color(0xFF047857),
                                 fontWeight: FontWeight.w700)),
                       ],
                     ),
                     const SizedBox(height: 5),
-                    _labeledLine('pdf_label_description',
-                        'سداد دفعة من الفاتورة الآجلة المستحقة رقم 452'),
+                    _labeledLine(
+                        'pdf_label_description',
+                        isTripartite
+                            ? (isDebit
+                                ? 'إشعار بالخصم من الرصيد كتحويل مرسل'
+                                : 'إشعار بالإضافة إلى الرصيد كتحويل مستلم')
+                            : 'سداد دفعة من الفاتورة الآجلة المستحقة رقم 452'),
                   ],
                 ),
               ),
@@ -410,7 +475,17 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     );
   }
 
-  Widget _buildExactSignatures() {
+  Widget _buildExactSignatures({bool isTripartite = false}) {
+    if (isTripartite) {
+      return Row(
+        children: [
+          Expanded(child: _sigBoxMock('(توقيع العميل الأول)', true)),
+          const SizedBox(width: 8),
+          Expanded(child: _sigBoxMock('(توقيع العميل الثاني)', true)),
+        ],
+      );
+    }
+
     return Row(
       children: [
         Expanded(
@@ -473,7 +548,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
   // ── HELPERS ──────────────────────────────────────────────────────────────
 
   Widget _selectableText(String key, double size, Color color,
-      {bool bold = false}) {
+      {bool bold = false, TextAlign? align}) {
     final isSelected = _selectedKey == key;
     return InkWell(
       onTap: () => _selectField(key),
@@ -496,6 +571,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
             height: 1.35,
           ),
+          textAlign: align,
         ),
       ),
     );

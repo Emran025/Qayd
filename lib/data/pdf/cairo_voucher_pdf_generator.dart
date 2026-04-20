@@ -45,15 +45,33 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       final accent = isReceipt ? _emerald : _gold;
       final typeAr = isReceipt ? 'سند قبض' : 'سند صرف';
 
+      // Safe date parsing for pre-formatted strings
+      DateTime safeParse(String iso, DateTime fallback) {
+        try {
+          return DateTime.parse(iso);
+        } catch (_) {
+          return fallback;
+        }
+      }
+
       final dateFmt = DateFormat('dd/MM/yyyy');
-      final dateStr = dateFmt.format(DateTime.parse(report.dateIso));
+      final dateStr = _notEmpty(report.dateIso) && report.dateIso.contains('/')
+          ? report.dateIso
+          : dateFmt.format(safeParse(report.dateIso, DateTime.now()));
+
       final createdFmt = DateFormat('hh:mm:ss a  dd/MM/yyyy');
-      final createdStr = createdFmt.format(DateTime.parse(report.createdAtIso));
+      final createdStr = _notEmpty(report.createdAtIso) &&
+              (report.createdAtIso.contains('/') ||
+                  report.createdAtIso.contains(':'))
+          ? report.createdAtIso
+          : createdFmt.format(safeParse(report.createdAtIso, DateTime.now()));
 
       final divisor = math.pow(10, report.currencyDigits).toDouble();
       final amount = report.amountMinorUnits / divisor;
-      final fmt = NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en');
-      final amountStr = '#${fmt.format(amount)} ${report.currencyCode}#';
+      final fmt = report.currencyDigits > 0
+          ? NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en')
+          : NumberFormat('#,##0', 'en');
+      final amountStr = '${fmt.format(amount)} ${report.currencyCode}';
 
       final qrPayload = report.qrData ?? report.voucherId;
 
@@ -81,6 +99,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       final labelFrom = prefs.getString('pdf_label_from') ?? 'من حساب العميل:';
       final labelDescription =
           prefs.getString('pdf_label_description') ?? 'البيان التفصيلي:';
+      final mediatorName = prefs.getString('pdf_mediator_name') ??
+          prefs.getString('company_name') ??
+          'نظام قيد المالي';
 
       // Title logic
       final titleAr = _buildTitle(report, typeAr);
@@ -89,96 +110,109 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
       doc.addPage(
         pw.Page(
-          pageFormat: PdfPageFormat.a4,
+          // Dynamic widget-like sizing: Height adapts to the voucher type, Width matches the Image Export (550)
+          pageFormat: PdfPageFormat(550, report.isTripartite ? 680 : 580),
           textDirection: pw.TextDirection.rtl,
-          margin: pw.EdgeInsets.zero,
-          build: (ctx) => pw.Stack(
-            children: [
-              // ── WATERMARK (Back layer) ─────────────────────────────
-              if (logoImage != null)
-                pw.Positioned.fill(
-                  child: pw.Center(
-                    child: pw.Opacity(
-                      opacity: 0.05,
-                      child: pw.Image(
-                        logoImage,
-                        width: 400,
-                        height: 400,
-                        fit: pw.BoxFit.contain,
+          margin: const pw.EdgeInsets.all(12),
+          build: (ctx) => pw.Container(
+            decoration: pw.BoxDecoration(
+              color: PdfColors.white,
+              borderRadius: pw.BorderRadius.circular(8),
+              border: pw.Border.all(color: _border, width: 1),
+            ),
+            child: pw.Stack(
+              alignment: pw.Alignment.topCenter,
+              children: [
+                // ── WATERMARK (Back layer) ─────────────────────────────
+                if (logoImage != null)
+                  pw.Positioned.fill(
+                    child: pw.Align(
+                      alignment: pw.Alignment.topCenter,
+                      child: pw.Padding(
+                        padding: const pw.EdgeInsets.only(top: 150),
+                        child: pw.Opacity(
+                          opacity: 0.05,
+                          child: pw.Image(
+                            logoImage,
+                            width: 350,
+                            height: 350,
+                            fit: pw.BoxFit.contain,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-              // ── CONTENT (Front layer) ──────────────────────────────
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                children: [
-                  // ── HEADER BAR ──────────────────────────────────────────
-                  _buildHeaderBar(
-                      font, logoImage, customHeaderTitle, customHeaderSubtitle),
+                // ── CONTENT (Front layer) ──────────────────────────────
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                  mainAxisSize: pw.MainAxisSize.min,
+                  children: [
+                    // ── HEADER BAR ──────────────────────────────────────────
+                    _buildHeaderBar(font, logoImage, customHeaderTitle,
+                        customHeaderSubtitle),
 
-                  // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
-                  _buildTitleRow(font, report, titleAr, dateStr, accent,
-                      labelVoucherNo, labelDate),
+                    // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
+                    _buildTitleRow(font, report, titleAr, dateStr, accent,
+                        labelVoucherNo, labelDate, mediatorName),
 
-                  pw.SizedBox(height: 6),
+                    pw.SizedBox(height: 6),
 
-                  // ── ENTRY SECTIONS ──────────────────────────────────────
-                  pw.Padding(
-                    padding: const pw.EdgeInsets.symmetric(horizontal: 24),
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                      children: [
-                        // Debit entry (from account)
-                        _buildEntrySection(
-                          font: font,
-                          amountStr: amountStr,
-                          sectionType: 'debit',
-                          report: report,
-                          accent: accent,
-                          labelFrom: labelFrom,
-                          labelDescription: labelDescription,
-                        ),
-
-                        pw.SizedBox(height: 8),
-
-                        // Credit entry (to account) — only for tripartite
-                        if (report.isTripartite)
+                    // ── ENTRY SECTIONS ──────────────────────────────────────
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 24),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                        children: [
                           _buildEntrySection(
                             font: font,
                             amountStr: amountStr,
-                            sectionType: 'credit',
+                            sectionType: 'debit',
                             report: report,
                             accent: accent,
                             labelFrom: labelFrom,
                             labelDescription: labelDescription,
                           ),
 
-                        pw.SizedBox(height: 14),
+                          pw.SizedBox(height: 8),
 
-                        // ── SIGNATURE ROW ──────────────────────────────────
-                        _buildSignatureRow(font, report),
+                          // Credit entry (to account) — only for tripartite
+                          if (report.isTripartite)
+                            _buildEntrySection(
+                              font: font,
+                              amountStr: amountStr,
+                              sectionType: 'credit',
+                              report: report,
+                              accent: accent,
+                              labelFrom: labelFrom,
+                              labelDescription: labelDescription,
+                            ),
 
-                        pw.SizedBox(height: 14),
+                          pw.SizedBox(height: 14),
 
-                        // ── FOOTER ─────────────────────────────────────────
-                        _buildFooter(font, report, createdStr, qrPayload,
-                            customFooterText),
-                      ],
+                          // ── SIGNATURE ROW ──────────────────────────────────
+                          _buildSignatureRow(font, report),
+
+                          pw.SizedBox(height: 14),
+
+                          // ── FOOTER ─────────────────────────────────────────
+                          _buildFooter(font, report, createdStr, qrPayload,
+                              customFooterText),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       );
 
       return Success(await doc.save());
-    } catch (_) {
-      return const FailureResult(
-        UnexpectedFailure(messageAr: 'تعذر إنشاء ملف السند.'),
+    } catch (e) {
+      return FailureResult(
+        UnexpectedFailure(messageAr: 'تعذر إنشاء ملف السند: $e'),
       );
     }
   }
@@ -190,15 +224,23 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   pw.Widget _buildHeaderBar(pw.Font font, pw.ImageProvider? logoImage,
       String title, String subtitle) {
     return pw.Container(
-      color: _headerBg,
-      padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      decoration: pw.BoxDecoration(
+        color: _headerBg,
+        borderRadius: const pw.BorderRadius.only(
+          topLeft: pw.Radius.circular(8),
+          topRight: pw.Radius.circular(8),
+        ),
+      ),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.center,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        // mainAxisSize: pw.MainAxisSize.min,
         children: [
           // ── Right: Arabic info
           pw.Expanded(
             child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
                   title,
@@ -229,8 +271,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           // ── Center: Logo badge
           if (logoImage != null)
             pw.Container(
-              width: 56,
-              height: 56,
+              width: 52,
+              height: 52,
               decoration: pw.BoxDecoration(
                 color: PdfColors.white,
                 shape: pw.BoxShape.circle,
@@ -245,7 +287,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           // ── Left: English info
           pw.Expanded(
             child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 pw.Text(
                   'Qayd — Personal Accounting',
@@ -285,9 +327,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     PdfColor accent,
     String labelVoucherNo,
     String labelDate,
+    String mediatorName,
   ) {
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const pw.EdgeInsets.fromLTRB(16, 10, 16, 8),
       child: pw.Column(
         children: [
           // Top row: voucher number + date in bordered boxes
@@ -315,6 +358,21 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               textAlign: pw.TextAlign.center,
             ),
           ),
+          if (report.isTripartite)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(top: 1),
+              child: pw.Center(
+                child: pw.Text(
+                  mediatorName,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 8,
+                    color: _muted,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -322,7 +380,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
   pw.Widget _borderedLabel(pw.Font font, String label, String value) {
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: _navy, width: 1),
         borderRadius: pw.BorderRadius.circular(4),
@@ -339,7 +397,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               fontWeight: pw.FontWeight.bold,
             ),
           ),
-          pw.SizedBox(width: 6),
+          pw.SizedBox(width: 4),
           pw.RichText(
             text: buildPdfNumericalScaledSpan(
               value,
@@ -378,23 +436,25 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     String notesText;
 
     if (report.isTripartite) {
-      // Tripartite: show intermediary in origin
+      // Tripartite: show A (sender) and B (receiver) — mediator C is hidden.
+      // Receipt leg: counterpartyName = A (sender), linkedPartyName = B (receiver).
+      // Payment leg: counterpartyName = B (receiver), linkedPartyName = A (sender).
       final isReceiptLeg = report.tripartiteRole == 'receipt';
+      final senderName = isReceiptLeg
+          ? report.counterpartyName
+          : (report.linkedPartyName ?? report.counterpartyName);
+      final receiverName = isReceiptLeg
+          ? (report.linkedPartyName ?? '—')
+          : report.counterpartyName;
 
       if (isDebit) {
-        // Debit section = "from" account
-        sectionLabel = isReceiptLeg
-            ? 'بيانات القيد (المدين) - من حساب العميل:'
-            : 'بيانات القيد (المدين) - من حساب الوسيط:';
-        accountName =
-            isReceiptLeg ? report.counterpartyName : report.affectedName;
+        // Debit = "from sender"
+        sectionLabel = 'بيانات القيد (المدين) — من حساب المُرسِل:';
+        accountName = senderName;
       } else {
-        // Credit section = "to" account
-        sectionLabel = isReceiptLeg
-            ? 'بيانات القيد (الدائن) - إلى حساب الوسيط:'
-            : 'بيانات القيد (الدائن) - إلى حساب العميل المستلم:';
-        accountName =
-            isReceiptLeg ? report.affectedName : report.counterpartyName;
+        // Credit = "to receiver" — shows B (linkedParty), NOT the mediator C
+        sectionLabel = 'بيانات القيد (الدائن) — إلى حساب المُستلِم:';
+        accountName = receiverName;
       }
 
       descriptionText = _buildTripartiteDescription(report, isDebit);
@@ -420,45 +480,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          // ── Amount box (left column) ──
-          pw.Container(
-            width: 100,
-            padding: const pw.EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-            decoration: pw.BoxDecoration(
-              border: pw.Border(
-                left: pw.BorderSide(color: _border, width: 1),
-              ),
-            ),
-            child: pw.Center(
-              child: pw.Container(
-                padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 6,
-                ),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: _navy, width: 1.2),
-                  borderRadius: pw.BorderRadius.circular(4),
-                ),
-                child: pw.RichText(
-                  text: buildPdfNumericalScaledSpan(
-                    amountStr,
-                    pw.TextStyle(
-                      font: font,
-                      fontSize: 9,
-                      color: _navy,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  textAlign: pw.TextAlign.center,
-                ),
-              ),
-            ),
-          ),
-
           // ── Entry details (right column) ──
           pw.Expanded(
             child: pw.Padding(
-              padding: const pw.EdgeInsets.all(12),
+              padding: const pw.EdgeInsets.all(10),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
@@ -491,22 +516,56 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
                   // Description
                   if (descriptionText.trim().isNotEmpty) ...[
-                    pw.SizedBox(height: 6),
+                    pw.SizedBox(height: 4),
                     _labeledLine(font, labelDescription, descriptionText),
                   ],
 
                   // Notes
                   if (notesText.trim().isNotEmpty) ...[
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 3),
                     _labeledLine(font, 'الملاحظات:', notesText),
                   ],
 
                   // Reference
                   if (_notEmpty(report.referenceNumber)) ...[
-                    pw.SizedBox(height: 4),
+                    pw.SizedBox(height: 3),
                     _labeledLine(font, 'المرجع:', report.referenceNumber!),
                   ],
                 ],
+              ),
+            ),
+          ),
+          // ── Amount box (left column) ──
+          pw.Container(
+            width: 90,
+            padding: const pw.EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+            decoration: pw.BoxDecoration(
+              border: pw.Border(
+                right: pw.BorderSide(color: _border, width: 1),
+              ),
+            ),
+            child: pw.Center(
+              child: pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 6,
+                  vertical: 5,
+                ),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: _navy, width: 1.2),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.RichText(
+                  text: buildPdfNumericalScaledSpan(
+                    amountStr,
+                    pw.TextStyle(
+                      font: font,
+                      fontSize: 9,
+                      color: _navy,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
               ),
             ),
           ),
@@ -602,7 +661,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   'حالة التوقيع',
                   style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
                 ),
-                pw.SizedBox(height: 4),
+                pw.SizedBox(height: 2),
                 pw.Text(
                   _agreementAr(report.receiverStatusCode),
                   style: pw.TextStyle(
@@ -628,12 +687,12 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
   pw.Widget _signatureBox(pw.Font font, String label, bool hasSig) {
     return pw.Container(
-      height: 70,
+      height: 50,
       decoration: pw.BoxDecoration(
         border: pw.Border.all(color: _border, width: 0.8),
         borderRadius: pw.BorderRadius.circular(4),
       ),
-      padding: const pw.EdgeInsets.all(6),
+      padding: const pw.EdgeInsets.all(4),
       child: pw.Column(
         mainAxisAlignment: pw.MainAxisAlignment.end,
         children: [
@@ -652,7 +711,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               ),
             ),
           pw.Divider(color: _border, thickness: 0.5),
-          pw.SizedBox(height: 4),
+          pw.SizedBox(height: 2),
           pw.Text(
             label,
             style: pw.TextStyle(font: font, fontSize: 8, color: _muted),
@@ -675,7 +734,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     String footerText,
   ) {
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      padding: const pw.EdgeInsets.fromLTRB(0, 8, 0, 12),
       decoration: pw.BoxDecoration(
         border: pw.Border(top: pw.BorderSide(color: _border, width: 1)),
       ),
@@ -693,7 +752,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                     pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
                   ),
                 ),
-                pw.SizedBox(height: 3),
+                pw.SizedBox(height: 2),
                 pw.Text(
                   footerText,
                   style: pw.TextStyle(font: font, fontSize: 7.5, color: _muted),
@@ -702,7 +761,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 // Crypto info
                 if (report.senderPublicKeyHex != null &&
                     report.senderPublicKeyHex!.isNotEmpty) ...[
-                  pw.SizedBox(height: 3),
+                  pw.SizedBox(height: 2),
                   pw.Text(
                     'مفتاح المرسل: ${_truncateHex(report.senderPublicKeyHex!)}',
                     style:
@@ -711,7 +770,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 ],
                 if (report.receiverPublicKeyHex != null &&
                     report.receiverPublicKeyHex!.isNotEmpty) ...[
-                  pw.SizedBox(height: 2),
+                  pw.SizedBox(height: 1),
                   pw.Text(
                     'مفتاح المستلم: ${_truncateHex(report.receiverPublicKeyHex!)}',
                     style:
@@ -729,23 +788,18 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               pw.BarcodeWidget(
                 barcode: Barcode.qrCode(),
                 data: qrPayload,
-                width: 64,
-                height: 64,
+                width: 75,
+                height: 75,
                 drawText: false,
               ),
+              pw.SizedBox(height: 2),
               pw.Text(
-                'امسح للمراجعة أو التوقيع',
+                'تحقق من السند',
                 style: pw.TextStyle(
                   font: font,
                   fontSize: 7,
-                  color: _navy,
-                  fontWeight: pw.FontWeight.bold,
+                  color: _muted,
                 ),
-              ),
-              pw.SizedBox(height: 1),
-              pw.Text(
-                'عبر تطبيق قيد',
-                style: pw.TextStyle(font: font, fontSize: 6, color: _muted),
               ),
             ],
           ),
@@ -760,36 +814,42 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
   String _buildTitle(VoucherReportDto report, String typeAr) {
     if (!report.isTripartite) return typeAr;
-
-    final isReceiptLeg = report.tripartiteRole == 'receipt';
-    final legLabel =
-        isReceiptLeg ? 'إشعار للطرفين' : 'إشعار قيد العميل المحوّل';
-    return 'سند قيد مزدوج وإشعار قيد ($legLabel)\n- $legLabel';
+    return 'سند تحويل ثلاثي — إشعار للطرفين';
   }
 
   String _buildTripartiteDescription(VoucherReportDto report, bool isDebit) {
     final isReceiptLeg = report.tripartiteRole == 'receipt';
+    final senderName = isReceiptLeg
+        ? report.counterpartyName
+        : (report.linkedPartyName ?? report.counterpartyName);
+    final receiverName = isReceiptLeg
+        ? (report.linkedPartyName ?? '—')
+        : report.counterpartyName;
 
-    if (isDebit) {
-      if (isReceiptLeg) {
-        return 'تحويل مالي بنكي إلى حساب العميل المستلم: ${report.linkedPartyName ?? '—'}.';
+    if (report.isTrueTripartite) {
+      if (isDebit) {
+        return report.description?.isNotEmpty == true
+            ? report.description!
+            : 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).';
       } else {
-        return 'تحويل مالي مستلم من حساب ${report.counterpartyName}.';
+        return 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).';
       }
     } else {
-      if (isReceiptLeg) {
-        return report.description ?? 'تحويل مالي مستلم.';
+      if (isDebit) {
+        return report.description?.isNotEmpty == true
+            ? report.description!
+            : 'تحويل مالي مزدوج عبر الصندوق — خصم من حساب $senderName وإضافة إلى حساب $receiverName.';
       } else {
-        return 'تحويل مالي مستلم من حساب ${report.linkedPartyName ?? '—'}.';
+        return 'تمت إضافة المبلغ إلى حساب $receiverName من حساب $senderName عبر الصندوق كتحويل مزدوج.';
       }
     }
   }
 
   String _buildTripartiteNotes(VoucherReportDto report, bool isDebit) {
     if (isDebit) {
-      return 'يعتبر هذا السند إشعاراً بالخصم من رصيد حسابكم الجاري.';
+      return 'يُعتبر هذا الإشعار توثيقاً رسمياً بالخصم من حساب المُرسِل.';
     } else {
-      return 'يعتبر هذا السند إشعاراً بالإضافة إلى رصيد حسابكم الجاري كتحويل مالي مستلم.';
+      return 'يُعتبر هذا الإشعار توثيقاً رسمياً بالإضافة إلى حساب المُستلِم.';
     }
   }
 
@@ -797,12 +857,16 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
   String _shortId(String id) {
     if (id.length <= 16) return id;
-    return '${id.substring(0, 8)}…${id.substring(id.length - 8)}';
+    final start = id.substring(0, 8);
+    final end = id.substring(id.length - 8);
+    return '$start…$end';
   }
 
   String _truncateHex(String hex) {
     if (hex.length <= 32) return hex;
-    return '${hex.substring(0, 16)}…${hex.substring(hex.length - 16)}';
+    final start = hex.substring(0, 16);
+    final end = hex.substring(hex.length - 16);
+    return '$start…$end';
   }
 
   String _agreementAr(String code) {

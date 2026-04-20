@@ -1,0 +1,187 @@
+import 'package:qayd/application/failure_mapping.dart';
+import 'package:qayd/application/governance/governance_write_guard.dart';
+import 'package:qayd/application/vouchers/dtos/create_dual_transfer_input.dart';
+import 'package:qayd/application/vouchers/dtos/create_dual_transfer_output.dart';
+import 'package:qayd/core/error/failures.dart';
+import 'package:qayd/core/result/result.dart';
+import 'package:qayd/core/utils/id_generator.dart';
+import 'package:qayd/domain/entities/voucher.dart';
+import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/domain/repositories/currency_repository.dart';
+import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/dual_transfer_meta.dart';
+import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/domain/value_objects/tripartite_meta.dart';
+import 'package:qayd/domain/value_objects/tripartite_role.dart';
+
+/// Creates a dual transfer (two standard vouchers through the fund/cashbox).
+///
+/// Unlike the tripartite transfer which acts as a bridge (fund not affected),
+/// the dual transfer creates two real vouchers that impact the fund:
+///
+/// 1. **Receipt** (Sender → Fund): Debits the sender, credits the fund.
+///    - counterparty = Sender, affectedAccount = Fund
+///    - Description: "خصم مبلغ ... من حساب [المرسل]"
+///
+/// 2. **Payment** (Fund → Receiver): Debits the fund, credits the receiver.
+///    - counterparty = Receiver, affectedAccount = Fund
+///    - Description: "إضافة مبلغ ... إلى حساب [المستلم]"
+///
+/// Both vouchers are linked via a shared [dualGroupId] and carry
+/// [DualTransferMeta] so the UI can distinguish them from regular vouchers.
+class CreateDualTransferUseCase {
+  CreateDualTransferUseCase(
+    this._voucherRepository,
+    this._currencyRepository,
+    this._idGenerator,
+    this._writeGuard,
+    this._accountRepository,
+  );
+
+  final VoucherRepository _voucherRepository;
+  final CurrencyRepository _currencyRepository;
+  final IdGenerator _idGenerator;
+  final GovernanceWriteGuard _writeGuard;
+  final AccountRepository _accountRepository;
+
+  Future<Result<CreateDualTransferOutput>> call(
+    CreateDualTransferInput input,
+  ) async {
+    try {
+      // 1. Governance gate
+      final gate = await _writeGuard.assertWritesPermitted();
+      if (gate.isFailure) {
+        return FailureResult(gate.failureOrNull!);
+      }
+
+      // 2. Validate currency
+      final currencyRes = await _currencyRepository.getByCode(
+        input.currencyCode,
+      );
+      if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
+        return FailureResult(
+          ValidationFailure(
+            messageAr: 'العملة المختارة غير صالحة.',
+            code: 'invalid_currency',
+          ),
+        );
+      }
+      final currency = currencyRes.valueOrNull!;
+
+      // 3. Validate parties are distinct
+      final senderId = AccountId(input.senderAccountId);
+      final receiverId = AccountId(input.receiverAccountId);
+      final fundId = AccountId(input.fundAccountId);
+
+      if (senderId == receiverId) {
+        return const FailureResult(
+          ValidationFailure(
+            messageAr: 'لا يمكن أن يكون المرسل والمستلم نفس الطرف.',
+            code: 'dual_same_sender_receiver',
+          ),
+        );
+      }
+      if (senderId == fundId || receiverId == fundId) {
+        return const FailureResult(
+          ValidationFailure(
+            messageAr: 'حساب الصندوق يجب أن يكون مختلفاً عن المرسل والمستلم.',
+            code: 'dual_fund_conflict',
+          ),
+        );
+      }
+
+      // 4. Resolve account names for descriptions
+      final senderName = await _resolveAccountName(senderId);
+      final receiverName = await _resolveAccountName(receiverId);
+
+      // 5. Generate shared identifiers
+      final dualGroupId = _idGenerator.next();
+      final receiptId = VoucherId(_idGenerator.next());
+      final paymentId = VoucherId(_idGenerator.next());
+      final now = DateTime.now();
+      final amount = Money.positiveAmount(input.amountMinorUnits, currency);
+
+      // Build description text
+      final senderDesc = input.description != null && input.description!.isNotEmpty
+          ? '${input.description} — خصم من حساب $senderName'
+          : 'خصم مبلغ من حساب $senderName (تحويل مزدوج)';
+      final receiverDesc = input.description != null && input.description!.isNotEmpty
+          ? '${input.description} — إضافة إلى حساب $receiverName'
+          : 'إضافة مبلغ إلى حساب $receiverName (تحويل مزدوج)';
+
+      // 6. Create Receipt Voucher (Sender → Fund)
+      // counterparty = Sender, affectedAccount = Fund
+      // type = receipt (money coming IN from sender to fund)
+      final receiptVoucher = Voucher.draft(
+        id: receiptId,
+        type: VoucherType.receipt,
+        date: input.date,
+        amount: amount,
+        currency: currency,
+        counterpartyId: senderId,
+        affectedAccountId: fundId,
+        createdAt: now,
+        description: senderDesc,
+        notes: input.notes,
+        tripartiteMeta: TripartiteMeta(
+          transferGroupId: dualGroupId,
+          role: TripartiteRole.intermediaryReceipt,
+          linkedPartyId: receiverId,
+          mediatorAccountId: fundId,
+          isContingent: false,
+        ),
+      );
+
+      // 7. Create Payment Voucher (Fund → Receiver)
+      // counterparty = Receiver, affectedAccount = Fund
+      // type = payment (money going OUT from fund to receiver)
+      final paymentVoucher = Voucher.draft(
+        id: paymentId,
+        type: VoucherType.payment,
+        date: input.date,
+        amount: amount,
+        currency: currency,
+        counterpartyId: receiverId,
+        affectedAccountId: fundId,
+        createdAt: now,
+        description: receiverDesc,
+        notes: input.notes,
+        tripartiteMeta: TripartiteMeta(
+          transferGroupId: dualGroupId,
+          role: TripartiteRole.intermediaryPayment,
+          linkedPartyId: senderId,
+          mediatorAccountId: fundId,
+          isContingent: false,
+        ),
+      );
+
+      // 8. Persist both vouchers atomically using the tripartite pair save
+      //    (it's the same atomic persist mechanism — two vouchers in one tx).
+      final saveResult = await _voucherRepository.saveTripartitePair(
+        receiptVoucher: receiptVoucher,
+        paymentVoucher: paymentVoucher,
+      );
+
+      return saveResult.fold(
+        (f) => FailureResult(f),
+        (_) => Success(
+          CreateDualTransferOutput(
+            receiptVoucherId: receiptId.value,
+            paymentVoucherId: paymentId.value,
+            dualGroupId: dualGroupId,
+          ),
+        ),
+      );
+    } catch (e, _) {
+      return FailureResult(failureFromDomainException(e));
+    }
+  }
+
+  Future<String> _resolveAccountName(AccountId id) async {
+    final r = await _accountRepository.getById(id);
+    return r.isSuccess ? r.valueOrNull!.name : id.value;
+  }
+}

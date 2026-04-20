@@ -28,8 +28,10 @@ import 'package:share_plus/share_plus.dart';
 
 Future<void> shareVoucherAsFormattedImage(
   BuildContext context,
-  GetVoucherDetailsOutput data,
-) async {
+  GetVoucherDetailsOutput data, {
+  bool forceNormalLayout = false,
+  bool forceTripartiteLayout = false,
+}) async {
   final messenger = ScaffoldMessenger.of(context);
   final boundaryKey = GlobalKey();
 
@@ -51,7 +53,11 @@ Future<void> shareVoucherAsFormattedImage(
         key: boundaryKey,
         child: Material(
           color: Colors.transparent,
-          child: VoucherImageCard(data: data),
+          child: VoucherImageCard(
+            data: data,
+            forceNormalLayout: forceNormalLayout,
+            forceTripartiteLayout: forceTripartiteLayout,
+          ),
         ),
       ),
     ),
@@ -102,13 +108,33 @@ Future<void> shareVoucherAsFormattedImage(
         data.currencySymbol,
         fractionalDigits: data.currencyDigits,
       );
-      final voucherType =
-          data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
-      shareText = 'مرفق لكم $voucherType من حساب ${data.affectedName}.\n'
-          'المبلغ: $amountTextFormatter\n'
-          'الطرف الآخر: ${data.counterpartyName}\n'
-          'المرجع: ${data.referenceNumber ?? data.id.substring(0, 8)}\n'
-          '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+
+      if (data.isTripartite) {
+        final isReceiptLeg = data.tripartiteRole == 'receipt' ||
+            data.tripartiteRole == 'intermediary_receipt';
+        final sender = isReceiptLeg
+            ? data.counterpartyName
+            : (data.linkedPartyName ?? 'المرسل');
+        final receiver = isReceiptLeg
+            ? (data.linkedPartyName ?? 'المستلم')
+            : data.counterpartyName;
+
+        final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
+        shareText =
+            'مرفق لكم إشعار تحويل مالي من حساب $sender إلى حساب $receiver.\n'
+            'المبلغ: $amountTextFormatter\n'
+            'المرجع: ${data.referenceNumber ?? shortId}\n'
+            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+      } else {
+        final voucherType =
+            data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
+        final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
+        shareText = 'مرفق لكم $voucherType من حساب ${data.affectedName}.\n'
+            'المبلغ: $amountTextFormatter\n'
+            'الطرف الآخر: ${data.counterpartyName}\n'
+            'المرجع: ${data.referenceNumber ?? shortId}\n'
+            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+      }
       if (data.senderSignatureHex != null ||
           data.receiverSignatureHex != null) {
         shareText +=
@@ -148,9 +174,28 @@ Future<void> shareVoucherAsFormattedImage(
 /// A self-contained, theme-independent image card matching the
 /// Galal Nasser Exchange reference design.
 class VoucherImageCard extends StatelessWidget {
-  const VoucherImageCard({super.key, required this.data});
+  const VoucherImageCard({
+    super.key,
+    required this.data,
+    this.forceNormalLayout = false,
+    this.forceTripartiteLayout = false,
+  });
 
   final GetVoucherDetailsOutput data;
+  final bool forceNormalLayout;
+  final bool forceTripartiteLayout;
+
+  bool get _isTripartite => forceTripartiteLayout
+      ? true
+      : forceNormalLayout
+          ? false
+          : (data.isTripartite && data.isContingent);
+
+  String? get _tripartiteRole => forceTripartiteLayout
+      ? 'receipt'
+      : forceNormalLayout
+          ? null
+          : data.tripartiteRole;
 
   // ── Palette (self-contained, no theme dependency) ──
   static const _navy = Color(0xFF0F2741);
@@ -223,7 +268,7 @@ class VoucherImageCard extends StatelessWidget {
                         accent: accent,
                       ),
                       const SizedBox(height: 8),
-                      if (data.isTripartite)
+                      if (_isTripartite)
                         _entrySection(
                           sectionType: 'credit',
                           amountStr: amountStr,
@@ -338,6 +383,17 @@ class VoucherImageCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _text(titleAr, 13, _navy, bold: true, align: TextAlign.center),
+          if (_isTripartite) ...[
+            const SizedBox(height: 1),
+            _text(
+              prefs.getString('pdf_mediator_name') ??
+                  prefs.getString('company_name') ??
+                  'نظام قيد المالي',
+              8.5,
+              _muted,
+              align: TextAlign.center,
+            ),
+          ],
         ],
       ),
     );
@@ -378,26 +434,35 @@ class VoucherImageCard extends StatelessWidget {
     String? descText;
     String? notesText;
 
-    if (data.isTripartite) {
-      final isReceiptLeg = data.tripartiteRole == 'receipt' ||
-          data.tripartiteRole == 'intermediary_receipt';
+    if (_isTripartite) {
+      final isReceiptLeg = _tripartiteRole == 'receipt' ||
+          _tripartiteRole == 'intermediary_receipt';
+
+      final senderName = isReceiptLeg
+          ? data.counterpartyName
+          : (data.linkedPartyName ?? data.counterpartyName);
+      final receiverName = isReceiptLeg
+          ? (data.linkedPartyName ?? '—')
+          : data.counterpartyName;
 
       if (isDebit) {
-        sectionLabel = isReceiptLeg
-            ? 'بيانات القيد (المدين) - من حساب العميل:'
-            : 'بيانات القيد (المدين) - من حساب الوسيط:';
-        accountName = isReceiptLeg ? data.counterpartyName : data.affectedName;
+        sectionLabel = 'بيانات القيد (المدين) — من حساب المُرسِل:';
+        accountName = senderName;
+        descText = data.description?.isNotEmpty == true
+            ? data.description
+            : (data.isContingent
+                ? 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).'
+                : 'تحويل مالي مزدوج عبر الصندوق — خصم من حساب $senderName وإضافة إلى حساب $receiverName.');
+        notesText = 'يُعتبر هذا الإشعار توثيقاً رسمياً بالخصم من حساب المُرسِل.';
       } else {
-        sectionLabel = isReceiptLeg
-            ? 'بيانات القيد (الدائن) - إلى حساب الوسيط:'
-            : 'بيانات القيد (الدائن) - إلى حساب العميل المستلم:';
-        accountName = isReceiptLeg ? data.affectedName : data.counterpartyName;
+        sectionLabel = 'بيانات القيد (الدائن) — إلى حساب المُستلِم:';
+        accountName = receiverName;
+        descText = data.isContingent
+            ? 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).'
+            : 'تمت إضافة المبلغ إلى حساب $receiverName من حساب $senderName عبر الصندوق كتحويل مزدوج.';
+        notesText =
+            'يُعتبر هذا الإشعار توثيقاً رسمياً بالإضافة إلى حساب المُستلِم.';
       }
-
-      descText = data.description;
-      notesText = isDebit
-          ? 'يعتبر هذا السند إشعاراً بالخصم من رصيد حسابكم الجاري.'
-          : 'يعتبر هذا السند إشعاراً بالإضافة إلى رصيد حسابكم الجاري كتحويل مالي مستلم.';
     } else {
       sectionLabel = isReceipt
           ? 'بيانات القيد - من حساب العميل:'
@@ -522,7 +587,7 @@ class VoucherImageCard extends StatelessWidget {
     final hasReceiverSig = data.receiverSignatureHex != null &&
         data.receiverSignatureHex!.isNotEmpty;
 
-    if (data.isTripartite) {
+    if (_isTripartite) {
       return Row(
         children: [
           Expanded(child: _sigBox('(توقيع العميل الأول)', hasSenderSig)),
@@ -693,12 +758,8 @@ class VoucherImageCard extends StatelessWidget {
   static bool _notEmpty(String? s) => s != null && s.trim().isNotEmpty;
 
   String _buildTitle(GetVoucherDetailsOutput d, String typeAr) {
-    if (!d.isTripartite) return typeAr;
-    final isReceiptLeg = d.tripartiteRole == 'receipt' ||
-        d.tripartiteRole == 'intermediary_receipt';
-    final legLabel =
-        isReceiptLeg ? 'إشعار للطرفين' : 'إشعار قيد العميل المحوّل';
-    return 'سند قيد مزدوج وإشعار قيد ($legLabel)';
+    if (!_isTripartite) return typeAr;
+    return 'سند تحويل ثلاثي — إشعار للطرفين';
   }
 
   static String _shortId(String id) {

@@ -161,11 +161,26 @@ class CreateTripartiteTransferUseCase {
           excludeArchived: true,
         );
         Account? feeAccount;
+        Account? clearingRemittancesAccount;
         if (accountsRes.isSuccess) {
           feeAccount = accountsRes.valueOrNull!
               .where((a) => a.name == 'إيراد رسوم التحويل')
               .firstOrNull;
+          clearingRemittancesAccount = accountsRes.valueOrNull!
+              .where((a) => a.name == 'مقاصة الحوالات')
+              .firstOrNull;
 
+          if (clearingRemittancesAccount == null) {
+            // Auto-create a revenue/settlement account for fees
+            final clearingRemittancesAccountId = AccountId(_idGenerator.next());
+            clearingRemittancesAccount = Account.createRoot(
+              id: clearingRemittancesAccountId,
+              name: 'مقاصة الحوالات',
+              classification: AccountClassification.clearingRemittances,
+              createdAt: now,
+            );
+            await _accountRepository.save(clearingRemittancesAccount);
+          }
           if (feeAccount == null) {
             // Auto-create a revenue/settlement account for fees
             final feeAccountId = AccountId(_idGenerator.next());
@@ -197,16 +212,14 @@ class CreateTripartiteTransferUseCase {
               date: input.date,
               amount: feeAmount,
               currency: feeCurrency,
-              counterpartyId: sourceId,
+              counterpartyId:
+                  affectedId, // Fee is from the mediator (transfers account)
               affectedAccountId: feeAccount.id,
               createdAt: now,
-              description: 'رسوم تحويل - ${input.description ?? ""}',
-              tripartiteMeta: TripartiteMeta(
-                transferGroupId: transferGroupId,
-                role: TripartiteRole.intermediaryReceipt,
-                linkedPartyId: destId,
-                isContingent: false,
-              ),
+              description:
+                  'رسوم تحويل من ${input.description ?? ""} — مقابل عملية تحويل من المرسل إلى المستلم',
+              // No TripartiteMeta — fee is an independent internal accounting entry
+              // and should NOT appear in the transfers list.
             );
           }
         }

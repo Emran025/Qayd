@@ -13,8 +13,10 @@ import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sh
 
 Future<void> shareVoucherAsPdf(
   BuildContext context,
-  GetVoucherDetailsOutput data,
-) async {
+  GetVoucherDetailsOutput data, {
+  bool forceNormalLayout = false,
+  bool forceTripartiteLayout = false,
+}) async {
   final messenger = ScaffoldMessenger.of(context);
   showDialog<void>(
     context: context,
@@ -50,8 +52,17 @@ Future<void> shareVoucherAsPdf(
     createdAtIso: data.createdAtIso,
     confirmedAtIso: data.confirmedAtIso,
     settledAtIso: data.settledAtIso,
-    isTripartite: data.isTripartite,
-    tripartiteRole: data.tripartiteRole,
+    isTripartite: forceTripartiteLayout
+        ? true
+        : forceNormalLayout
+            ? false
+            : (data.isTripartite && data.isContingent),
+    isTrueTripartite: data.isContingent,
+    tripartiteRole: forceTripartiteLayout
+        ? 'receipt'
+        : forceNormalLayout
+            ? null
+            : data.tripartiteRole,
     linkedPartyName: data.linkedPartyName,
     senderSignatureHex: data.senderSignatureHex,
     receiverSignatureHex: data.receiverSignatureHex,
@@ -92,13 +103,33 @@ Future<void> shareVoucherAsPdf(
         data.currencySymbol,
         fractionalDigits: data.currencyDigits,
       );
-      final voucherType =
-          data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
-      shareText = 'مرفق لكم $voucherType من حساب ${data.affectedName}.\n'
-          'المبلغ: $amountTextFormatter\n'
-          'الطرف الآخر: ${data.counterpartyName}\n'
-          'المرجع: ${data.referenceNumber ?? data.id.substring(0, 8)}\n'
-          '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+
+      if (data.isTripartite) {
+        final isReceiptLeg = data.tripartiteRole == 'receipt' ||
+            data.tripartiteRole == 'intermediary_receipt';
+        final sender = isReceiptLeg
+            ? data.counterpartyName
+            : (data.linkedPartyName ?? 'المرسل');
+        final receiver = isReceiptLeg
+            ? (data.linkedPartyName ?? 'المستلم')
+            : data.counterpartyName;
+
+        final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
+        shareText =
+            'مرفق لكم إشعار تحويل مالي من حساب $sender إلى حساب $receiver.\n'
+            'المبلغ: $amountTextFormatter\n'
+            'المرجع: ${data.referenceNumber ?? shortId}\n'
+            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+      } else {
+        final voucherType =
+            data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
+        final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
+        shareText = 'مرفق لكم $voucherType من حساب ${data.affectedName}.\n'
+            'المبلغ: $amountTextFormatter\n'
+            'الطرف الآخر: ${data.counterpartyName}\n'
+            'المرجع: ${data.referenceNumber ?? shortId}\n'
+            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+      }
       if (data.senderSignatureHex != null ||
           data.receiverSignatureHex != null) {
         shareText +=

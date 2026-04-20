@@ -22,6 +22,7 @@ class VoucherReportDto {
     this.confirmedAtIso,
     this.settledAtIso,
     this.isTripartite = false,
+    this.isTrueTripartite = false,
     this.tripartiteRole,
     this.linkedPartyName,
     this.senderSignatureHex,
@@ -58,6 +59,7 @@ class VoucherReportDto {
 
   // Tripartite transfer
   final bool isTripartite;
+  final bool isTrueTripartite;
 
   /// 'receipt' → this leg is A→C, 'payment' → C→B.
   final String? tripartiteRole;

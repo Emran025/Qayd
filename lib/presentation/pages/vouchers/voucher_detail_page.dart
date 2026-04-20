@@ -121,10 +121,15 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                     switch (val) {
                       case 'share_text':
                         shareVoucherAsText(context, state.data);
+                        break;
                       case 'share_image':
-                        shareVoucherAsFormattedImage(context, state.data);
+                        shareVoucherAsFormattedImage(context, state.data,
+                            forceNormalLayout: true);
+                        break;
                       case 'share_pdf':
-                        shareVoucherAsPdf(context, state.data);
+                        shareVoucherAsPdf(context, state.data,
+                            forceNormalLayout: true);
+                        break;
                       case 'qr_code':
                         final amountStr = MoneyFormatter.formatWithSymbol(
                           state.data.amountMinorUnits /
@@ -144,8 +149,10 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                             amountLabel: amountStr,
                           ),
                         );
+                        break;
                       case 'withdraw':
                         context.read<VoucherDetailCubit>().withdraw();
+                        break;
                     }
                   },
                   itemBuilder: (ctx) => [
@@ -285,6 +292,35 @@ class _VoucherDetailBody extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(SpacingTokens.lg),
           children: [
+            // ── Dual Transfer banner ──────────────────────────────────────
+            if (data.transferGroupId != null && !data.isTripartite)
+              Padding(
+                padding: const EdgeInsets.only(bottom: SpacingTokens.md),
+                child: Container(
+                  padding: const EdgeInsets.all(SpacingTokens.md),
+                  decoration: BoxDecoration(
+                    color: gold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: gold.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.swap_calls_rounded, color: gold, size: 20),
+                      const SizedBox(width: SpacingTokens.sm),
+                      Expanded(
+                        child: QaydText(
+                          data.typeCode == 'receipt'
+                              ? 'هذا السند جزء من عملية تحويل مزدوج. الطرف المستلم النهائي هو: ${data.linkedPartyName ?? 'غير محدد'}'
+                              : 'هذا السند جزء من عملية تحويل مزدوج. الطرف المرسل الأصلي هو: ${data.linkedPartyName ?? 'غير محدد'}',
+                          slot: QaydTextStyleSlot.bodySmall,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             // ── Withdrawn banner ──────────────────────────────────────────
             if (data.stateCode == 'withdrawn')
               Padding(
@@ -1195,7 +1231,7 @@ class _Row extends StatelessWidget {
             flex: 3,
             child: QaydText(
               value,
-              slot: QaydTextStyleSlot.bodyLarge,
+              slot: QaydTextStyleSlot.labelMedium,
               textAlign: TextAlign.end,
             ),
           ),

@@ -46,6 +46,7 @@ import 'package:qayd/application/vouchers/accept_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/reject_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/resubmit_voucher_use_case.dart';
+import 'package:qayd/application/vouchers/create_dual_transfer_use_case.dart';
 import 'package:qayd/application/vouchers/create_tripartite_transfer_use_case.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/application/accounts/find_account_by_phone_use_case.dart';
@@ -251,6 +252,7 @@ abstract final class InjectionContainer {
   static late ListAccountStatementChatUseCase listAccountStatementChatUseCase;
   static late CreateVoucherUseCase createVoucherUseCase;
   static late CreateTripartiteTransferUseCase createTripartiteTransferUseCase;
+  static late CreateDualTransferUseCase createDualTransferUseCase;
   static late UpdateDraftVoucherUseCase updateDraftVoucherUseCase;
   static late AcceptVoucherUseCase acceptVoucherUseCase;
   static late ConfirmVoucherUseCase confirmVoucherUseCase;
@@ -784,6 +786,13 @@ abstract final class InjectionContainer {
       _idGenerator,
       governanceWriteGuard,
       getActiveTransactionFeeUseCase,
+      accountRepository,
+    );
+    createDualTransferUseCase = CreateDualTransferUseCase(
+      voucherRepository,
+      currencyRepository,
+      _idGenerator,
+      governanceWriteGuard,
       accountRepository,
     );
     updateDraftVoucherUseCase = UpdateDraftVoucherUseCase(

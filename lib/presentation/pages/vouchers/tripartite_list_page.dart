@@ -17,6 +17,9 @@ import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_filter_sheet.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_create_page.dart';
+import 'package:qayd/presentation/pages/vouchers/tripartite_detail_page.dart';
+import 'package:qayd/presentation/pages/vouchers/transfer_type_sheet.dart';
+import 'package:qayd/presentation/pages/vouchers/dual_transfer_create_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_qr_scanner_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_state.dart';
@@ -80,6 +83,23 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
     await context.read<TripartiteListCubit>().load();
   }
 
+  Future<void> _openDualCreate(BuildContext context) async {
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (ctx) => BlocProvider<VoucherCreateCubit>(
+          create: (_) => VoucherCreateCubit(
+            InjectionContainer.createVoucherUseCase,
+            InjectionContainer.createTripartiteTransferUseCase,
+            InjectionContainer.createDualTransferUseCase,
+          ),
+          child: const DualTransferCreatePage(),
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+    await context.read<TripartiteListCubit>().load();
+  }
+
   Future<void> _scanQr(BuildContext context) async {
     final data = await Navigator.of(context).push<Map<String, dynamic>?>(
       QaydPageRoute.slideFromStart<Map<String, dynamic>?>(
@@ -117,7 +137,15 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_tripartite_list',
-        onPressed: () => _openCreate(context),
+        onPressed: () async {
+          final type = await showTransferTypeSheet(context);
+          if (!context.mounted) return;
+          if (type == TransferType.tripartite) {
+            await _openCreate(context);
+          } else if (type == TransferType.dualWithFund) {
+            await _openDualCreate(context);
+          }
+        },
         label: const Text('تحويل جديد'),
         icon: const Icon(Icons.add_rounded),
         backgroundColor: gold,
@@ -416,15 +444,7 @@ class _TransferSummaryCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          final startId =
-              transfer.receiptVoucher?.id ?? transfer.paymentVoucher?.id;
-          if (startId != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('التحويل الوسيط يتم معاينته من خلال سنداته.'),
-              ),
-            );
-          }
+          TripartiteDetailPage.show(context, transfer);
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
