@@ -444,7 +444,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                   ],
                   QaydText(
                     'مراكز التكلفة الافتراضية',
-                    slot: QaydTextStyleSlot.titleMedium,
+                    slot: QaydTextStyleSlot.titleSmall,
                   ),
                   const SizedBox(height: SpacingTokens.md),
                   CostCenterTagSelector(

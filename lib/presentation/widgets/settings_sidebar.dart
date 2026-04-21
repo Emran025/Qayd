@@ -18,6 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/pages/settings/audit_log_page.dart';
 import 'package:qayd/presentation/pages/settings/audit_log_cubit.dart';
+import 'package:qayd/presentation/pages/settings/sync_privacy_settings_section.dart';
 
 class SettingsSidebar extends StatelessWidget {
   const SettingsSidebar({super.key});
@@ -138,6 +139,12 @@ class SettingsSidebar extends StatelessWidget {
                   icon: Icons.cloud_done_outlined,
                   title: AppStringsAr.settingsGroupBackup,
                   onTap: () => _navTo(context, const BackupSettingsPage()),
+                ),
+                _DrawerTile(
+                  icon: Icons.sync_lock_outlined,
+                  title: 'خصوصية المزامنة',
+                  onTap: () =>
+                      _navTo(context, const SyncPrivacySettingsSection()),
                 ),
                 _DrawerTile(
                   icon: Icons.receipt_long_outlined,
