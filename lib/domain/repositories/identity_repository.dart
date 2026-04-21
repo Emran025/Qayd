@@ -1,3 +1,5 @@
+import 'package:qayd/domain/value_objects/sync_privacy_policy.dart';
+
 /// Domain contract for public key discovery via the governance API.
 ///
 /// The server stores only public keys; private keys never leave the device.
@@ -44,6 +46,23 @@ abstract interface class IdentityRepository {
     String? avatarPath,
     String? logoPath,
   });
+
+  // ── Sync Privacy Policy Management ──────────────────────────────────────
+
+  /// Fetches the user's current sync privacy policy and access list.
+  Future<SyncPrivacyPolicy> getSyncPolicy();
+
+  /// Updates the sync privacy policy mode.
+  Future<void> updateSyncPolicy(SyncPolicyMode mode);
+
+  /// Adds a user to the sync access list by phone.
+  Future<SyncAccessEntry> addToSyncAccessList({
+    required String phone,
+    required String listType,
+  });
+
+  /// Removes an entry from the sync access list.
+  Future<void> removeFromSyncAccessList({required int entryId});
 }
 
 /// Result of a public key lookup from the server.
@@ -56,6 +75,7 @@ final class PublicKeyLookupResult {
     this.previousPublicKeysHex = const [],
     required this.keyGeneration,
     required this.name,
+    this.syncBlocked = false,
   });
 
   final String phone;
@@ -70,6 +90,9 @@ final class PublicKeyLookupResult {
 
   final int keyGeneration;
   final String name;
+
+  /// Whether the target user has restricted sync access to the requester.
+  final bool syncBlocked;
 
   /// All keys authorized to sign for this identity.
   List<String> get allAuthorizedKeys =>

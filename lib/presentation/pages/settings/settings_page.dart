@@ -15,6 +15,7 @@ import 'package:qayd/presentation/pages/settings/groups/profile_settings_page.da
 import 'package:qayd/presentation/pages/settings/groups/security_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/support_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/sync_privacy_settings_section.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/excel_data_export.dart';
 import 'package:qayd/presentation/utils/share_export_bytes.dart';
@@ -54,6 +55,11 @@ class SettingsPage extends StatelessWidget {
             icon: Icons.lock_outline,
             title: AppStringsAr.settingsGroupSecurity,
             onTap: () => _navTo(context, const SecuritySettingsPage()),
+          ),
+          _CategoryTile(
+            icon: Icons.sync_lock_outlined,
+            title: 'خصوصية المزامنة',
+            onTap: () => _navTo(context, const SyncPrivacySettingsSection()),
           ),
           _CategoryTile(
             icon: Icons.support_agent_outlined,

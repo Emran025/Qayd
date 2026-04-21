@@ -3,6 +3,7 @@ import 'package:qayd/core/constants/api_endpoints.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/domain/repositories/identity_repository.dart';
+import 'package:qayd/domain/value_objects/sync_privacy_policy.dart';
 
 /// HTTP implementation of [IdentityRepository] using the Dio-based [ApiClient].
 final class RemoteIdentityRepository implements IdentityRepository {
@@ -34,6 +35,18 @@ final class RemoteIdentityRepository implements IdentityRepository {
         ApiEndpoints.identityLookup,
         queryParameters: {'phone': phone},
       );
+
+      // §6: Sync privacy — target user has restricted access.
+      if (data['sync_blocked'] == true) {
+        return PublicKeyLookupResult(
+          phone: data['phone'] as String? ?? phone,
+          publicKeyHex: '',
+          keyGeneration: 0,
+          name: data['name'] as String? ?? '',
+          syncBlocked: true,
+        );
+      }
+
       if (data['public_key'] == null) return null;
 
       // Parse historical public keys for cross-vector verification.
@@ -65,6 +78,19 @@ final class RemoteIdentityRepository implements IdentityRepository {
         ApiEndpoints.identityLookup,
         queryParameters: {'email': email},
       );
+
+      // §6: Sync privacy — target user has restricted access.
+      if (data['sync_blocked'] == true) {
+        return PublicKeyLookupResult(
+          phone: data['phone'] as String? ?? '',
+          publicKeyHex: '',
+          keyGeneration: 0,
+          name: data['name'] as String? ?? '',
+          email: data['email'] as String?,
+          syncBlocked: true,
+        );
+      }
+
       if (data['public_key'] == null) return null;
 
       // Parse historical public keys for cross-vector verification.
@@ -183,6 +209,70 @@ final class RemoteIdentityRepository implements IdentityRepository {
     } catch (e) {
       throw AuthException(
           'خطأ في تحديث البيانات: ${e.toString().split('\n').first}');
+    }
+  }
+
+  // ── Sync Privacy Policy ──────────────────────────────────────────────────
+
+  @override
+  Future<SyncPrivacyPolicy> getSyncPolicy() async {
+    try {
+      final data = await _client.get(ApiEndpoints.syncPrivacyPolicy);
+      return SyncPrivacyPolicy.fromJson(data as Map<String, dynamic>);
+    } catch (e) {
+      // Fallback to open policy on error.
+      return const SyncPrivacyPolicy(mode: SyncPolicyMode.open);
+    }
+  }
+
+  @override
+  Future<void> updateSyncPolicy(SyncPolicyMode mode) async {
+    try {
+      await _client.post(
+        ApiEndpoints.syncPrivacyPolicy,
+        body: {'sync_policy': mode.toApiString()},
+        options: Options(method: 'PUT'),
+      );
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(
+          'خطأ في تحديث سياسة الخصوصية: ${e.toString().split('\n').first}');
+    }
+  }
+
+  @override
+  Future<SyncAccessEntry> addToSyncAccessList({
+    required String phone,
+    required String listType,
+  }) async {
+    try {
+      final data = await _client.post(
+        ApiEndpoints.syncPrivacyListAdd,
+        body: {'phone': phone, 'list_type': listType},
+      );
+      return SyncAccessEntry.fromJson(data as Map<String, dynamic>);
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(
+          'خطأ في إضافة المستخدم للقائمة: ${e.toString().split('\n').first}');
+    }
+  }
+
+  @override
+  Future<void> removeFromSyncAccessList({required int entryId}) async {
+    try {
+      // Use POST with DELETE method override since ApiClient lacks a native delete().
+      await _client.post(
+        ApiEndpoints.syncPrivacyListRemove(entryId),
+        options: Options(method: 'DELETE'),
+      );
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(
+          'خطأ في حذف المستخدم من القائمة: ${e.toString().split('\n').first}');
     }
   }
 }

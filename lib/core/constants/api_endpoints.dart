@@ -53,4 +53,9 @@ abstract final class ApiEndpoints {
   // ── Support & Documents ─────────────────────────────────────────────────
   static const String documents = '$v1/documents';
   static const String supportTickets = '$v1/support/tickets';
+
+  // ── Sync Privacy (§6: Accounting Contacts) ────────────────────────────
+  static const String syncPrivacyPolicy = '$v1/sync-privacy/policy';
+  static const String syncPrivacyListAdd = '$v1/sync-privacy/list';
+  static String syncPrivacyListRemove(int id) => '$v1/sync-privacy/list/$id';
 }

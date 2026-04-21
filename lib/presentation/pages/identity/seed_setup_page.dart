@@ -150,15 +150,15 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               Container(
                 padding: const EdgeInsets.all(SpacingTokens.md),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08)),
                 ),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: words.asMap().entries.map((entry) {
-                    return _buildWordCard(entry.key + 1, entry.value);
+                    return _buildWordCard(context, entry.key + 1, entry.value);
                   }).toList(),
                 ),
               ),
@@ -169,6 +169,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                 children: [
                   Expanded(
                     child: _buildActionBtn(
+                      context,
                       icon: Icons.copy_rounded,
                       label: AppStringsAr.identitySeedCopy,
                       onTap: _copyPhrase,
@@ -177,6 +178,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                   const SizedBox(width: SpacingTokens.md),
                   Expanded(
                     child: _buildActionBtn(
+                      context,
                       icon: Icons.ios_share_rounded,
                       label: AppStringsAr.identitySeedShare,
                       onTap: _sharePhrase,
@@ -207,14 +209,14 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     );
   }
 
-  Widget _buildWordCard(int index, String word) {
+  Widget _buildWordCard(BuildContext context, int index, String word) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       constraints: const BoxConstraints(minWidth: 80),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -230,8 +232,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
           const SizedBox(width: 6),
           Text(
             word,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w500,
               letterSpacing: 0.5,
@@ -242,7 +244,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     );
   }
 
-  Widget _buildActionBtn({
+  Widget _buildActionBtn(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -253,18 +256,18 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white70, size: 18),
+            Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), size: 18),
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 14),
             ),
           ],
         ),

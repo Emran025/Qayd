@@ -121,6 +121,13 @@ class SyncEventDispatcher {
         serverIdentity = await identityRepository.lookupByEmail(email: party.email!);
       }
 
+      // §6: Sync Privacy Policy — check if target has restricted access.
+      if (serverIdentity != null && serverIdentity.syncBlocked) {
+        return const FailureResult(ValidationFailure(
+          messageAr: 'الطرف المقابل قيّد المزامنة مع حسابك.',
+        ));
+      }
+
       if (serverIdentity != null) {
         receiverPubKey = serverIdentity.publicKeyHex;
         // Optionally update local cache immediately
