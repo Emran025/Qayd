@@ -21,6 +21,7 @@ class MnemonicVault {
   static const _kPrivateKey = 'qayd_crypto_private_key_v1';
   static const _kKeyGeneration = 'qayd_crypto_key_generation_v1';
   static const _kBackupConfirmed = 'qayd_mnemonic_backup_confirmed_v1';
+  static const _kServerKeyRegistered = 'qayd_server_key_registered_v1';
 
   // ── Mnemonic ──────────────────────────────────────────────────────────────
 
@@ -88,6 +89,22 @@ class MnemonicVault {
   Future<void> confirmBackup() =>
       _storage.write(key: _kBackupConfirmed, value: 'true');
 
+  // ── Server registration status ──────────────────────────────────────────
+
+  /// Whether the public key has been successfully registered on the server.
+  Future<bool> isServerKeyRegistered() async {
+    final raw = await _storage.read(key: _kServerKeyRegistered);
+    return raw == 'true';
+  }
+
+  /// Marks the public key as successfully registered on the server.
+  Future<void> markServerKeyRegistered() =>
+      _storage.write(key: _kServerKeyRegistered, value: 'true');
+
+  /// Clears the server registration flag (e.g. after key rotation).
+  Future<void> clearServerKeyRegistered() =>
+      _storage.delete(key: _kServerKeyRegistered);
+
   // ── Aggregate queries ─────────────────────────────────────────────────────
 
   /// Whether a cryptographic identity has been set up.
@@ -105,5 +122,6 @@ class MnemonicVault {
     await _storage.delete(key: _kPrivateKey);
     await _storage.delete(key: _kKeyGeneration);
     await _storage.delete(key: _kBackupConfirmed);
+    await _storage.delete(key: _kServerKeyRegistered);
   }
 }

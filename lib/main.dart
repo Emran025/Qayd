@@ -296,10 +296,6 @@ class _QaydAppState extends State<QaydApp> {
   /// Tracks whether the post-auth onboarding gate has been completed.
   /// Once `true`, the user goes directly to [GovernanceHostPage].
   bool _onboardingComplete = false;
-
-  /// Whether this is a returning account (server had an existing identity).
-  bool _isReturningAccount = false;
-
   @override
   void initState() {
     super.initState();
@@ -310,33 +306,15 @@ class _QaydAppState extends State<QaydApp> {
     // If the user already has a local identity AND had the app set up,
     // skip the gate entirely. The gate is only for first-time setup
     // or after a fresh login where state needs to be established.
+    //
+    // NOTE: All discovery (backups, server identity, OTP) is now handled
+    // inside PostAuthGatePage._evaluateState() to avoid race conditions.
     final hasIdentity = await InjectionContainer.mnemonicVault.hasIdentity();
-    // final hasPin = await InjectionContainer.securityCubit.hasPinConfigured();
 
     if (hasIdentity) {
-      // User has identity — check if this might be a returning account
-      // (e.g., re-login on a different device where identity was restored
-      // from the vault file but the user hasn't gone through device lock).
       if (mounted) {
         setState(() => _onboardingComplete = true);
       }
-      return;
-    }
-
-    // No local identity — check server for existing identity
-    try {
-      final licenseData =
-          await InjectionContainer.licenseVault.readLicenseData();
-      final email = licenseData?['email'] as String?;
-      if (email != null && email.isNotEmpty) {
-        final lookup = await InjectionContainer.identityRepository
-            .lookupByEmail(email: email);
-        if (mounted) {
-          setState(() => _isReturningAccount = lookup != null);
-        }
-      }
-    } catch (_) {
-      // Network failure — not critical, default to new account flow.
     }
   }
 
@@ -422,7 +400,6 @@ class _QaydAppState extends State<QaydApp> {
           // Show the onboarding gate for first-time setup.
           if (!_onboardingComplete) {
             return PostAuthGatePage(
-              isReturningAccount: _isReturningAccount,
               onSetupComplete: _onGateComplete,
             );
           }

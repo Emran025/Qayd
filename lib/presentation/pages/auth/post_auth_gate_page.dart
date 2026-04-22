@@ -14,7 +14,7 @@ import 'package:qayd/presentation/pages/identity/seed_setup_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
-/// The three setup phases after authentication.
+/// The setup phases after authentication.
 enum _GatePhase {
   /// Evaluating what the user needs.
   checking,
@@ -31,32 +31,31 @@ enum _GatePhase {
   /// Layer 3: Device lock setup (biometric / PIN).
   deviceLock,
 
+  /// Network error during server identity check — user decides what to do.
+  networkError,
+
   /// All done — transition to app.
   complete,
 }
 
 /// Orchestrates the post-authentication onboarding flow:
 ///
-/// 1. **Backup Check** — For returning accounts, search for local + Drive
-///    backups and offer restore options.
-/// 2. **Identity Setup** — Generate or recover the encryption primary key
+/// 1. **Identity Check** — Check local identity first (fast path).
+/// 2. **Backup Check** — Search for local + Drive backups and offer restore.
+/// 3. **Server Identity** — Check if the server has an existing public key.
+/// 4. **Identity Setup** — Generate or recover the encryption primary key
 ///    (24-word mnemonic → Ed25519 keys).
-/// 3. **Device Lock** — Prompt for biometric or PIN protection on the device.
+/// 5. **Device Lock** — Prompt for biometric or PIN protection on the device.
 ///
-/// New accounts skip the backup phase and go straight to identity setup.
 /// All paths converge on [onSetupComplete] which transitions to the main app.
 class PostAuthGatePage extends StatefulWidget {
   const PostAuthGatePage({
     super.key,
     required this.onSetupComplete,
-    this.isReturningAccount = false,
   });
 
   /// Called when all setup layers are complete and the user should enter the app.
   final VoidCallback onSetupComplete;
-
-  /// True when the server reported an existing identity for this email.
-  final bool isReturningAccount;
 
   @override
   State<PostAuthGatePage> createState() => _PostAuthGatePageState();
@@ -67,6 +66,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
   bool _hasLocalBackup = false;
   bool _hasDriveBackup = false;
   bool _hasServerIdentity = false;
+  bool _serverCheckFailed = false;
 
   @override
   void initState() {
@@ -79,35 +79,43 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
   Future<void> _evaluateState() async {
     setState(() => _phase = _GatePhase.checking);
 
+    // Step 1: Check local identity
     final hasLocalIdentity =
         await InjectionContainer.mnemonicVault.hasIdentity();
 
-    if (widget.isReturningAccount) {
-      // ── Returning account: check backups first ──────────────────────────
-      await _checkBackups();
-
-      if (_hasLocalBackup || _hasDriveBackup) {
-        if (mounted) setState(() => _phase = _GatePhase.backupRestore);
-        return;
-      }
-
-      // No backups — check if server has identity
-      await _checkServerIdentity();
-
-      if (_hasServerIdentity && !hasLocalIdentity) {
-        // Server has identity but local doesn't → prompt for primary key
-        if (mounted) setState(() => _phase = _GatePhase.identityDecision);
-        return;
-      }
-    }
-
-    // New account or already has identity
-    if (!hasLocalIdentity) {
-      if (mounted) setState(() => _phase = _GatePhase.identitySetup);
-      _navigateToSeedSetup();
-    } else {
+    // If user already has a local identity, skip all discovery.
+    if (hasLocalIdentity) {
       _advanceToDeviceLock();
+      return;
     }
+
+    // Step 2: Check for local/cloud backups (database files)
+    await _checkBackups();
+
+    if (_hasLocalBackup || _hasDriveBackup) {
+      if (mounted) setState(() => _phase = _GatePhase.backupRestore);
+      return;
+    }
+
+    // Step 3: Check server for existing public key identity
+    await _checkServerIdentity();
+
+    if (_serverCheckFailed) {
+      // Network failed — don't silently create a new identity.
+      // Ask the user what they want to do.
+      if (mounted) setState(() => _phase = _GatePhase.networkError);
+      return;
+    }
+
+    if (_hasServerIdentity) {
+      // Server has identity but local doesn't → prompt for primary key recovery
+      if (mounted) setState(() => _phase = _GatePhase.identityDecision);
+      return;
+    }
+
+    // Step 4: No identity anywhere → create new one
+    if (mounted) setState(() => _phase = _GatePhase.identitySetup);
+    _navigateToSeedSetup();
   }
 
   Future<void> _checkBackups() async {
@@ -126,6 +134,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
   }
 
   Future<void> _checkServerIdentity() async {
+    _serverCheckFailed = false;
     try {
       final licenseData =
           await InjectionContainer.licenseVault.readLicenseData();
@@ -133,10 +142,17 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       if (email != null && email.isNotEmpty) {
         final lookup = await InjectionContainer.identityRepository
             .lookupByEmail(email: email);
-        _hasServerIdentity = lookup != null;
+        if (lookup == null) {
+          // Server responded successfully but no identity found.
+          _hasServerIdentity = false;
+        } else {
+          _hasServerIdentity = true;
+        }
       }
     } catch (_) {
+      // Network or server error — we CAN'T determine if identity exists.
       _hasServerIdentity = false;
+      _serverCheckFailed = true;
     }
   }
 
@@ -384,6 +400,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
             _GatePhase.identityDecision => _buildIdentityDecision(),
             _GatePhase.identitySetup => _buildChecking(), // Navigating to setup
             _GatePhase.deviceLock => _buildDeviceLock(),
+            _GatePhase.networkError => _buildNetworkError(),
             _GatePhase.complete => _buildComplete(),
           },
         ),
@@ -404,9 +421,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
           const CircularProgressIndicator(color: ColorTokens.emerald500),
           const SizedBox(height: SpacingTokens.lg),
           Text(
-            widget.isReturningAccount
-                ? AppStringsAr.gateCheckingBackups
-                : AppStringsAr.gateCheckingStatus,
+            AppStringsAr.gateCheckingStatus,
             style: const TextStyle(
               color: ColorTokens.slate400,
               fontSize: 14,
@@ -472,22 +487,22 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
           ),
           const SizedBox(height: SpacingTokens.lg),
           const AuthTitleBlock(
-            title: AppStringsAr.gateNoBackupTitle,
-            subtitle: AppStringsAr.gateNoBackupSubtitle,
+            title: AppStringsAr.identityRecoveryRequiredTitle,
+            subtitle: AppStringsAr.identityRecoveryRequiredBody,
           ),
           const SizedBox(height: SpacingTokens.xl),
 
-          // Option 1: Enter primary key
+          // Option 1: Enter primary key (recommended)
           _buildOptionCard(
             icon: Icons.key_rounded,
-            title: AppStringsAr.gateEnterPrimaryKey,
+            title: AppStringsAr.identityRecoveryEnterKeyAction,
             subtitle: AppStringsAr.identityRecoveryHint,
             color: ColorTokens.emerald500,
             onTap: _navigateToSeedRecovery,
           ),
           const SizedBox(height: SpacingTokens.sm),
 
-          // Option 2: Bypass with new identity
+          // Option 2: Bypass with new identity (not recommended)
           _buildOptionCard(
             icon: Icons.add_circle_outline_rounded,
             title: AppStringsAr.gateBypassIdentity,
@@ -572,6 +587,54 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     );
   }
 
+  Widget _buildNetworkError() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const AuthAnimatedIcon(
+            iconData: Icons.wifi_off_rounded,
+            iconColor: ColorTokens.warningAmber,
+          ),
+          const SizedBox(height: SpacingTokens.lg),
+          const AuthTitleBlock(
+            title: AppStringsAr.gateNetworkErrorTitle,
+            subtitle: AppStringsAr.gateNetworkErrorSubtitle,
+          ),
+          const SizedBox(height: SpacingTokens.xl),
+
+          // Option 1: Retry
+          _buildOptionCard(
+            icon: Icons.refresh_rounded,
+            title: AppStringsAr.gateNetworkRetry,
+            subtitle: AppStringsAr.gateNetworkRetryHint,
+            color: ColorTokens.emerald500,
+            onTap: _evaluateState,
+          ),
+          const SizedBox(height: SpacingTokens.sm),
+
+          // Option 2: Enter recovery phrase manually
+          _buildOptionCard(
+            icon: Icons.key_rounded,
+            title: AppStringsAr.gateEnterPrimaryKey,
+            subtitle: AppStringsAr.identityRecoveryHint,
+            color: ColorTokens.emerald500,
+            onTap: _navigateToSeedRecovery,
+          ),
+          const SizedBox(height: SpacingTokens.sm),
+
+          // Option 3: Create new (with explicit warning)
+          _buildOptionCard(
+            icon: Icons.add_circle_outline_rounded,
+            title: AppStringsAr.gateNetworkCreateNew,
+            subtitle: AppStringsAr.gateNetworkCreateNewWarning,
+            color: ColorTokens.warningAmber,
+            onTap: _bypassIdentityAndContinue,
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Shared Widget ────────────────────────────────────────────────────────
 
   Widget _buildOptionCard({
@@ -621,3 +684,5 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     );
   }
 }
+
+

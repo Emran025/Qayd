@@ -1229,4 +1229,17 @@ abstract final class AppStringsAr {
   static const String gateSetupCompleteBody =
       'تم تأمين حسابك بنجاح. يمكنك الآن استخدام التطبيق.';
   static const String gateContinueToApp = 'الدخول إلى التطبيق';
+
+  // Network error during server identity check
+  static const String gateNetworkErrorTitle = 'تعذّر التحقق من السيرفر';
+  static const String gateNetworkErrorSubtitle =
+      'لم نتمكن من التحقق مما إذا كانت لديك هوية رقمية مسجلة مسبقاً. '
+      'قد يكون السبب ضعف الاتصال بالإنترنت.';
+  static const String gateNetworkRetry = 'إعادة المحاولة';
+  static const String gateNetworkRetryHint =
+      'تحقق من الاتصال بالإنترنت ثم أعد المحاولة.';
+  static const String gateNetworkCreateNew =
+      'إنشاء هوية جديدة (حساب جديد تماماً)';
+  static const String gateNetworkCreateNewWarning =
+      'تحذير: إذا كنت تمتلك هوية سابقة، فستفقد القدرة على التعامل مع السندات الموقعة بها.';
 }

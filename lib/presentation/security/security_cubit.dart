@@ -102,6 +102,11 @@ class SecurityCubit extends Cubit<SecurityState> {
       _syncIdentityUseCase?.call().ignore();
     }
 
+    // 6. Retry any pending server key registration (non-blocking).
+    InjectionContainer.setupIdentityUseCase
+        .ensureServerRegistration()
+        .ignore();
+
     emit(
       shouldPinLock
           ? SecurityLocked(

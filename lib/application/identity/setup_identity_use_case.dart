@@ -39,18 +39,20 @@ final class SetupIdentityUseCase {
     await _vault.writeMnemonic(mnemonic);
     await _vault.writeKeyPair(keyPair);
     await _vault.writeKeyGeneration(1);
+    await _vault.clearServerKeyRegistered();
 
     // Persist to file alongside the database for auto-restore after reinstall.
     await _fileStorage.persist(mnemonic: mnemonic, keyPair: keyPair);
 
-    // Register public key with server (best-effort; non-blocking).
+    // Register public key with server.
     try {
       final generation = await _identity.registerPublicKey(
         publicKeyHex: keyPair.publicKeyHex,
       );
       await _vault.writeKeyGeneration(generation);
+      await _vault.markServerKeyRegistered();
     } catch (_) {
-      // Server registration will be retried on next app launch.
+      // Server registration failed — will be retried via ensureServerRegistration().
     }
 
     return mnemonic;
@@ -65,6 +67,7 @@ final class SetupIdentityUseCase {
 
     await _vault.writeMnemonic(mnemonic);
     await _vault.writeKeyPair(keyPair);
+    await _vault.clearServerKeyRegistered();
 
     // Refresh identity file after recovery.
     await _fileStorage.persist(mnemonic: mnemonic, keyPair: keyPair);
@@ -75,11 +78,34 @@ final class SetupIdentityUseCase {
         publicKeyHex: keyPair.publicKeyHex,
       );
       await _vault.writeKeyGeneration(generation);
+      await _vault.markServerKeyRegistered();
     } catch (_) {
-      // Will retry later.
+      // Will be retried via ensureServerRegistration().
     }
 
     return keyPair;
+  }
+
+  /// Retries server registration if a previous attempt failed.
+  ///
+  /// Safe to call on every boot — exits immediately if already registered.
+  /// Returns `true` if the registration is now confirmed.
+  Future<bool> ensureServerRegistration() async {
+    if (await _vault.isServerKeyRegistered()) return true;
+
+    final keyPair = await _vault.readKeyPair();
+    if (keyPair == null) return false; // No identity to register.
+
+    try {
+      final generation = await _identity.registerPublicKey(
+        publicKeyHex: keyPair.publicKeyHex,
+      );
+      await _vault.writeKeyGeneration(generation);
+      await _vault.markServerKeyRegistered();
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Checks if identity is already set up.

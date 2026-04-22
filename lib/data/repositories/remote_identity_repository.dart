@@ -109,6 +109,17 @@ final class RemoteIdentityRepository implements IdentityRepository {
       );
     } on AuthException {
       rethrow;
+    } on DioException catch (e) {
+      // Connectivity / timeout errors must propagate so callers can
+      // distinguish "not found" (null) from "network unavailable" (throw).
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        rethrow;
+      }
+      // Server-side errors (4xx/5xx) → treat as "not found" for safety.
+      return null;
     } catch (e) {
       // Lookup failures are non-fatal — return null for offline/missing cases.
       return null;
