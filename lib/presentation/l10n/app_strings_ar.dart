@@ -42,8 +42,6 @@ abstract final class AppStringsAr {
         return netLiabilitiesAndEquityLabel;
       case StringKeys.accountLabel:
         return accountLabel;
-      case StringKeys.currencyLabel:
-        return currencyLabel;
       default:
         return '';
     }
@@ -737,6 +735,24 @@ abstract final class AppStringsAr {
   static const String autoBackupSavedExternal =
       'تم حفظ النسخة الاحتياطية في وحدة التخزين الخارجية.';
 
+  // Transfer Fees Settings
+  static const String transferFeeToggleTitle = 'تفعيل التحويلات والرسوم';
+  static const String transferFeeToggleSubtitle =
+      'تفعيل ميزة التحويل الوسيط وتحديد رسوم تلقائية لها.';
+  static const String transferFeeAmountLabel = 'مبلغ الرسوم';
+  static const String transferFeeErrorInvalidAmount =
+      'يرجى إدخال مبلغ صحيح للرسوم';
+  static const String transferFeeSaveSuccess = 'تم حفظ إعدادات الرسوم';
+  static const String transferFeeActionSave = 'حفظ التغييرات';
+  static const String transferFeeActionEdit = 'تعديل مبلغ الرسوم';
+
+  static const String tripartiteDisabledError =
+      'خيار التحويل عبر مقاصة الحوالات غير مفعل من الإعدادات.';
+  static const String tripartiteGoToSettings = 'الإعدادات';
+  static const String tripartiteDisabledDialogTitle = 'خيار التحويل الوسيط غير مفعل';
+  static const String tripartiteDisabledDialogContent =
+      'يجب تفعيل خيار التحويل عبر مقاصة الحوالات من الإعدادات لتتمكن من استخدام هذا النوع من التحويلات.';
+
   // ── Google Drive backup ─────────────────────────────────────────────────
   static const String settingsSectionDriveBackup = 'النسخ الاحتياطي على Drive';
   static const String driveBackupSuspendedNotice =
@@ -786,14 +802,16 @@ abstract final class AppStringsAr {
   static const String tripartiteMediatorLabel = 'وسيط';
   static const String tripartiteToggleSubtitle =
       'تحويل مبلغ بين طرفين عبر حسابك كوسيط';
-  static const String tripartiteSourceLabel = 'المصدر (من)';
-  static const String tripartiteDestinationLabel = 'الوجهة (إلى)';
+  static const String tripartiteSourceLabel = 'الحساب المُرْسِل (مَدين)';
+  static const String tripartiteDestinationLabel = 'الحساب المُلْتزم (دائن)';
   static const String tripartitePickSourceHint = 'اختر الطرف المُرسِل';
   static const String tripartitePickDestHint = 'اختر الطرف المُستلِم';
   static const String tripartiteAffectedLabel = 'حسابك الوسيط';
   static const String tripartitePickAffectedHint = 'اختر حسابك (مثل النقدية)';
-  static const String tripartiteCreatedSuccess =
-      'تم إنشاء سندات التحويل الوسيط (قبض + صرف).';
+  static const String tripartiteCreatedSuccess = 'تم حفظ التحويل الثلاثي بنجاح';
+  static const String tripartiteDraftSaved = 'تم حفظ مسودة التحويل بنجاح';
+  static const String tripartiteNewTitle = 'تحويل جديد';
+  static const String tripartiteSelectAccountHint = 'اختر الحساب';
   static const String tripartiteContingentHint =
       'هذا السند معلّق حتى يتم تأكيد سند القبض المقابل.';
   static const String tripartiteReleasedInfo =
@@ -806,6 +824,10 @@ abstract final class AppStringsAr {
   static const String tripartiteReceiptLeg = 'سند القبض';
   static const String tripartitePaymentLeg = 'سند الصرف';
   static const String tripartiteGroupLabel = 'مجموعة التحويل';
+
+  static const String clearingAccountName = 'مقاصة الحوالات';
+  static const String tripartiteNoClearingAccount = 'لا يوجد حساب مقاصة حوالات';
+  static const String tripartiteSelectAccounts = 'الرجاء اختيار الحسابات';
 
   // ── Statement of Account Chat (كشف الحساب) ─────────────────────────────
   static const String statementChatTitle = 'كشف الحساب';

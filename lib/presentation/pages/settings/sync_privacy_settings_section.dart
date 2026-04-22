@@ -74,56 +74,15 @@ class _SyncPrivacySettingsSectionState
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.symmetric(
-                vertical: SpacingTokens.sm,
-                horizontal: SpacingTokens.md,
-              ),
+              padding: const EdgeInsets.all(SpacingTokens.lg),
               children: [
-                // ── Header ────────────────────────────────────────────
-                Container(
-                  padding: const EdgeInsets.all(SpacingTokens.md),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.shield_outlined,
-                          color: colorScheme.primary, size: 32),
-                      const SizedBox(width: SpacingTokens.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'التحكم بالمزامنة',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'حدد من يمكنه مزامنة السندات معك واكتشاف مفتاحك العام.',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // ── Header Banner ─────────────────────────────────────
+                _buildHeaderBanner(context),
 
                 const SizedBox(height: SpacingTokens.lg),
 
                 // ── Policy Mode Selection ─────────────────────────────
-                Text(
-                  'وضع الخصوصية',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                _buildSectionLabel(context, 'وضع الخصوصية'),
                 const SizedBox(height: SpacingTokens.sm),
 
                 for (final mode in SyncPolicyMode.values)
@@ -135,19 +94,13 @@ class _SyncPrivacySettingsSectionState
                   ),
 
                 // ── Access List ────────────────────────────────────────
-                if (policy != null &&
-                    policy.mode != SyncPolicyMode.open) ...[
+                if (policy != null && policy.mode != SyncPolicyMode.open) ...[
                   const SizedBox(height: SpacingTokens.lg),
-                  const Divider(),
-                  const SizedBox(height: SpacingTokens.sm),
-
-                  Text(
+                  _buildSectionLabel(
+                    context,
                     policy.mode == SyncPolicyMode.openWithBlocklist
                         ? 'قائمة الحظر'
                         : 'قائمة السماح',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
                   ),
                   const SizedBox(height: SpacingTokens.xs),
                   Text(
@@ -155,10 +108,11 @@ class _SyncPrivacySettingsSectionState
                         ? 'المستخدمون المحظورون من المزامنة معك.'
                         : 'المستخدمون المسموح فقط لهم بالمزامنة معك.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                      color: theme.hintColor,
+                      fontSize: 11,
                     ),
                   ),
-                  const SizedBox(height: SpacingTokens.sm),
+                  const SizedBox(height: SpacingTokens.md),
 
                   // Add entry input
                   Row(
@@ -188,10 +142,10 @@ class _SyncPrivacySettingsSectionState
                             : () {
                                 final phone = _phoneController.text.trim();
                                 if (phone.isEmpty) return;
-                                final listType =
-                                    policy.mode == SyncPolicyMode.openWithBlocklist
-                                        ? 'block'
-                                        : 'allow';
+                                final listType = policy.mode ==
+                                        SyncPolicyMode.openWithBlocklist
+                                    ? 'block'
+                                    : 'allow';
                                 _cubit.addToList(
                                     phone: phone, listType: listType);
                                 _phoneController.clear();
@@ -217,8 +171,7 @@ class _SyncPrivacySettingsSectionState
                         child: Column(
                           children: [
                             Icon(Icons.person_off_outlined,
-                                size: 40,
-                                color: colorScheme.onSurfaceVariant),
+                                size: 40, color: colorScheme.onSurfaceVariant),
                             const SizedBox(height: SpacingTokens.sm),
                             Text(
                               'القائمة فارغة',
@@ -247,32 +200,111 @@ class _SyncPrivacySettingsSectionState
                 const SizedBox(height: SpacingTokens.lg),
 
                 // Info box
-                Container(
-                  padding: const EdgeInsets.all(SpacingTokens.md),
-                  decoration: BoxDecoration(
-                    color: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.info_outline,
-                          size: 20, color: colorScheme.tertiary),
-                      const SizedBox(width: SpacingTokens.sm),
-                      Expanded(
-                        child: Text(
-                          'المزامنة عبر مسح باركود QR مباشرة تعتبر موافقة صريحة وتتجاوز هذه الإعدادات.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onTertiaryContainer,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildInfoBanner(context),
                 const SizedBox(height: SpacingTokens.xl),
               ],
             ),
+    );
+  }
+
+  Widget _buildSectionLabel(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: SpacingTokens.sm, right: 4),
+      child: Text(
+        title,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderBanner(BuildContext context) {
+    final theme = Theme.of(context);
+    final tertiaryColor = theme.colorScheme.tertiary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SpacingTokens.md,
+        vertical: SpacingTokens.sm + 2,
+      ),
+      decoration: BoxDecoration(
+        color: tertiaryColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: tertiaryColor.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: tertiaryColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Icon(
+              Icons.shield_rounded,
+              color: tertiaryColor,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: SpacingTokens.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'التحكم بالمزامنة',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: tertiaryColor,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  'حدد من يمكنه مزامنة السندات معك واكتشاف مفتاحك العام.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 10.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoBanner(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.05)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, size: 20, color: theme.colorScheme.tertiary),
+          const SizedBox(width: SpacingTokens.sm),
+          Expanded(
+            child: Text(
+              'المزامنة عبر مسح باركود QR مباشرة تعتبر موافقة صريحة وتتجاوز هذه الإعدادات.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.hintColor,
+                fontSize: 11,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -306,61 +338,61 @@ class _PolicyModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
-      child: Material(
-        color: isSelected
-            ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: isUpdating ? null : onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(SpacingTokens.md),
-            child: Row(
-              children: [
-                Icon(
-                  _icon,
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: SpacingTokens.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        mode.displayNameAr,
-                        style:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: isSelected
-                                      ? colorScheme.primary
-                                      : null,
-                                ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        mode.descriptionAr,
-                        style:
-                            Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-                Radio<SyncPolicyMode>(
-                  value: mode,
-                  groupValue:
-                      isSelected ? mode : null,
-                  onChanged: isUpdating ? null : (_) => onTap(),
-                ),
-              ],
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 250),
+        opacity: isUpdating ? 0.45 : 1.0,
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colorScheme.primaryContainer.withValues(alpha: 0.12)
+                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.tertiary.withValues(alpha: 0.2)
+                  : theme.dividerColor.withValues(alpha: 0.05),
             ),
+          ),
+          child: RadioListTile<SyncPolicyMode>.adaptive(
+            value: mode,
+            groupValue: isSelected ? mode : null,
+            onChanged: isUpdating ? null : (_) => onTap(),
+            secondary: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                _icon,
+                color: theme.colorScheme.primary,
+                size: 19,
+              ),
+            ),
+            title: Text(
+              mode.displayNameAr,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: isSelected ? theme.colorScheme.primary : null,
+              ),
+            ),
+            subtitle: Text(
+              mode.descriptionAr,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 11,
+              ),
+            ),
+            activeColor: theme.colorScheme.tertiary,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            dense: true,
           ),
         ),
       ),

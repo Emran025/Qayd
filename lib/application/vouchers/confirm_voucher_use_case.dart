@@ -92,7 +92,7 @@ class ConfirmVoucherUseCase {
 
       // §5.A: Enqueue acceptance into local outbox
       if (_syncEventDispatcher != null) {
-        await _syncEventDispatcher!.dispatchVoucherAcceptance(confirmed);
+        _syncEventDispatcher!.dispatchVoucherAcceptance(confirmed).ignore();
       }
 
       await _auditLogService?.log(

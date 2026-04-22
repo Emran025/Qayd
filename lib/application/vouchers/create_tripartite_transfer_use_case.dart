@@ -252,19 +252,23 @@ class CreateTripartiteTransferUseCase {
 
       if (isCashbox) {
         // Automatically confirm and sign as "The Box"
+        // We only sign for the box (creator) and leave the counterparty as Under Request.
         final confirmedReceipt = receiptVoucher.confirm(now).attachSignature(
-              signatureHex:
-                  'internal_box_sig', // Placeholder for internal confirmation
+              signatureHex: 'internal_box_sig',
               publicKeyHex: 'system',
-              isSender: false, // In receipt leg, the box is the receiver
+              isSender: true, // The box is the creator (sender of the document)
               status: AgreementStatus.accepted,
             );
 
-        // Payment is already "Signed by sender" (senderStatus=accepted)
-        // because creating a payment implies sender's approval.
-        // But we release contingency because the box is immediate.
+        // Payment is signed by the box (sender) only.
+        // We also release contingency because the box is immediate.
         final confirmedPayment =
-            paymentVoucher.confirm(now).releaseContingency();
+            paymentVoucher.confirm(now).releaseContingency().attachSignature(
+                  signatureHex: 'internal_box_sig',
+                  publicKeyHex: 'system',
+                  isSender: true,
+                  status: AgreementStatus.accepted,
+                );
 
         // Generate entries
         final rTransactionId = TransactionId(_idGenerator.next());
@@ -295,10 +299,12 @@ class CreateTripartiteTransferUseCase {
 
         if (saveResult.isSuccess) {
           if (_syncEventDispatcher != null) {
-            await _syncEventDispatcher!
-                .dispatchVoucherAcceptance(confirmedReceipt);
-            await _syncEventDispatcher!
-                .dispatchVoucherAcceptance(confirmedPayment);
+            _syncEventDispatcher!
+                .dispatchVoucherAcceptance(confirmedReceipt)
+                .ignore();
+            _syncEventDispatcher!
+                .dispatchVoucherAcceptance(confirmedPayment)
+                .ignore();
           }
           if (feeVoucher != null) {
             await _voucherRepository.save(feeVoucher);

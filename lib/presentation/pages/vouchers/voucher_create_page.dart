@@ -206,9 +206,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 
   Future<void> _pickCounterparty() async {
-    final allowedClasses = _type == VoucherType.payment
-        ? ['receivables', 'payables']
-        : ['liquidAssets'];
+    final allowedClasses = ['receivables', 'payables'];
     final a = await showAccountPickerSheet(
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
@@ -227,9 +225,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 
   Future<void> _pickAffectedAccount() async {
-    final allowedClasses = _type == VoucherType.payment
-        ? ['liquidAssets']
-        : ['receivables', 'payables'];
+    final allowedClasses = ['liquidAssets'];
 
     final a = await showAccountPickerSheet(
       context,
@@ -256,8 +252,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   /// Loads the account's default cost centers and pre-populates
   /// [_costCenterTags] so [CostCenterTagSelector] shows them automatically.
   Future<void> _loadDefaultCostCentersForAccount(String accountId) async {
-    final res = await InjectionContainer
-        .manageAccountDefaultCostCentersUseCase
+    final res = await InjectionContainer.manageAccountDefaultCostCentersUseCase
         .list(AccountId(accountId));
     if (!res.isSuccess || !mounted) return;
     final defaults = res.valueOrNull!;

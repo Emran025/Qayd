@@ -23,4 +23,5 @@ abstract final class StringKeys {
       'net_liabilities_and_equity_label';
   static const String accountLabel = 'account_label';
   static const String currencyLabel = 'currency_label';
+
 }

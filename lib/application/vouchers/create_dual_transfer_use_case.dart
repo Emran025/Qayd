@@ -182,15 +182,21 @@ class CreateDualTransferUseCase {
 
       if (isCashbox) {
         // Automatically confirm and sign as "The Box" (Internal signature)
+        // We only sign for the box (creator) and leave the counterparty as Under Request
         final confirmedReceipt = receiptVoucher.confirm(now).attachSignature(
               signatureHex: 'internal_box_sig', 
               publicKeyHex: 'system',
-              isSender: false, // In receipt leg, the box is the receiver
+              isSender: true, // The box is the creator (sender of the document)
               status: AgreementStatus.accepted,
             );
 
-        // Payment is already "Signed by sender" (senderStatus=accepted)
-        final confirmedPayment = paymentVoucher.confirm(now);
+        // Payment is signed by the box (sender) only
+        final confirmedPayment = paymentVoucher.confirm(now).attachSignature(
+              signatureHex: 'internal_box_sig', 
+              publicKeyHex: 'system',
+              isSender: true,
+              status: AgreementStatus.accepted,
+            );
 
         // Generate entries
         final rTransactionId = TransactionId(_idGenerator.next());
@@ -220,8 +226,8 @@ class CreateDualTransferUseCase {
 
         if (saveResult.isSuccess) {
            if (_syncEventDispatcher != null) {
-            await _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedReceipt);
-            await _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedPayment);
+            _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedReceipt).ignore();
+            _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedPayment).ignore();
           }
         }
       } else {

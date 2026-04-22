@@ -40,7 +40,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
         final phrase = await _setupUseCase.generateAndRegister();
         setState(() => _mnemonic = phrase);
       } else {
-        // If they already have an identity but are here, something is odd, 
+        // If they already have an identity but are here, something is odd,
         // but let's just proceed or re-show.
         // For now, let's assume we need to generate if they are in this flow.
         final phrase = await _setupUseCase.generateAndRegister();
@@ -89,9 +89,11 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_isLoading && _mnemonic == null) {
       return const AuthGradientScaffold(
-        child: Center(child: CircularProgressIndicator(color: ColorTokens.emerald500)),
+        child: Center(
+            child: CircularProgressIndicator(color: ColorTokens.emerald500)),
       );
     }
 
@@ -106,9 +108,9 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
           ),
           child: Column(
             children: [
-              const AuthAnimatedIcon(
+              AuthAnimatedIcon(
                 iconData: Icons.vignette_rounded, // Identity/Seed icon
-                iconColor: ColorTokens.emerald500,
+                iconColor: theme.colorScheme.primary,
               ),
               const SizedBox(height: SpacingTokens.lg),
 
@@ -118,41 +120,25 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               ),
               const SizedBox(height: SpacingTokens.xl),
 
-              // Warning Box
-              Container(
-                padding: const EdgeInsets.all(SpacingTokens.md),
-                decoration: BoxDecoration(
-                  color: ColorTokens.errorDeep.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: ColorTokens.errorSoft.withOpacity(0.2)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        color: ColorTokens.errorSoft, size: 24),
-                    const SizedBox(width: SpacingTokens.md),
-                    Expanded(
-                      child: Text(
-                        AppStringsAr.seedBackupWarning,
-                        style: const TextStyle(
-                          color: ColorTokens.errorSoft,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // ── Warning Banner (Professional Style) ─────────────────────────
+              _buildWarningBanner(context),
               const SizedBox(height: SpacingTokens.xl),
 
-              // Seed Words Grid
+              // ── Seed Words Grid (Professional Style) ────────────────────────
+              _buildSectionLabel(context, AppStringsAr.identityViewSeed),
+              const SizedBox(height: SpacingTokens.sm),
               Container(
                 padding: const EdgeInsets.all(SpacingTokens.md),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08)),
+                  border: Border.all(
+                      color: Theme.of(context)
+                          .dividerColor
+                          .withValues(alpha: 0.05)),
                 ),
                 child: Wrap(
                   spacing: 8,
@@ -196,10 +182,15 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               const SizedBox(height: SpacingTokens.lg),
 
               TextButton(
-                onPressed: () => _confirmBackup(), // Skip/Later for now leads to same boot check
+                onPressed: () =>
+                    _confirmBackup(), // Skip/Later for now leads to same boot check
                 child: Text(
                   AppStringsAr.seedBackupSkipAction,
-                  style: TextStyle(color: ColorTokens.slate400.withOpacity(0.7), fontSize: 13),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant
+                        .withValues(alpha: 0.7),
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -209,34 +200,120 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     );
   }
 
-  Widget _buildWordCard(BuildContext context, int index, String word) {
+  Widget _buildSectionLabel(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: SpacingTokens.sm, right: 4),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Text(
+          title,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWarningBanner(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      constraints: const BoxConstraints(minWidth: 80),
+      padding: const EdgeInsets.all(SpacingTokens.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05)),
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.error.withValues(alpha: 0.12),
+            theme.colorScheme.error.withValues(alpha: 0.06),
+          ],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: theme.colorScheme.error.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.error.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.warning_amber_rounded,
+              color: theme.colorScheme.error,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: SpacingTokens.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'تحذير الأمان',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  AppStringsAr.seedBackupWarning,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    fontSize: 11,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWordCard(BuildContext context, int index, String word) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '$index.',
-            style: const TextStyle(
-              color: ColorTokens.emerald500,
-              fontSize: 10,
+            style: TextStyle(
+              color: theme.colorScheme.primary,
+              fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
           Text(
             word,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
               letterSpacing: 0.5,
+              fontFamily: 'monospace',
             ),
           ),
         ],
@@ -250,26 +327,34 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     required String label,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), size: 18),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 14),
-            ),
-          ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border:
+                Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: theme.colorScheme.primary, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

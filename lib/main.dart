@@ -198,14 +198,14 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
         themeMode: ThemeMode.system,
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: _buildPreAuthBody(),
+          child: Builder(builder: (context) => _buildPreAuthBody(context)),
         ),
       ),
     );
   }
 
-  Widget _buildPreAuthBody() {
-    if (_initializingDb) return _bootSplash();
+  Widget _buildPreAuthBody(BuildContext context) {
+    if (_initializingDb) return _bootSplash(context);
     if (_keyMismatch) {
       return DatabaseRecoveryPage(
         errorMessage: _dbErrorMessage ?? '',
@@ -214,11 +214,13 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
         onRetry: _openDatabase,
       );
     }
-    if (_dbErrorMessage != null) return _errorScreen();
+    if (_dbErrorMessage != null) return _errorScreen(context);
     return LoginPage(onProvisioningComplete: _onProvisioningComplete);
   }
 
-  Widget _bootSplash() {
+  Widget _bootSplash(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Center(
         child: Column(
@@ -226,11 +228,14 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
           children: [
             Image.asset('assets/images/logo.png', width: 150, height: 150),
             const SizedBox(height: 24),
-            const CircularProgressIndicator(),
+            CircularProgressIndicator(color: theme.colorScheme.primary),
             const SizedBox(height: 16),
             Text(
               AppStringsAr.dbOpeningProgress,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -238,7 +243,8 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
     );
   }
 
-  Widget _errorScreen() {
+  Widget _errorScreen(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Center(
         child: Padding(
@@ -246,18 +252,20 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              Icon(Icons.error_outline,
+                  size: 64, color: theme.colorScheme.error),
               const SizedBox(height: 16),
               Text(
                 AppStringsAr.dbOpenErrorTitle,
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 _dbErrorMessage!,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
@@ -341,6 +349,7 @@ class _QaydAppState extends State<QaydApp> {
   @override
   Widget build(BuildContext context) {
     final locale = Locale(AppConstants.defaultLanguageCode);
+    final theme = Theme.of(context);
     return MaterialApp(
       title: AppStringsAr.appTitle,
       scrollBehavior: const NoStretchScrollBehavior(),
@@ -399,7 +408,7 @@ class _QaydAppState extends State<QaydApp> {
                       height: 150,
                     ),
                     const SizedBox(height: 24),
-                    const CircularProgressIndicator(),
+                    CircularProgressIndicator(color: theme.colorScheme.primary),
                   ],
                 ),
               ),

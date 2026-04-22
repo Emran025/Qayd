@@ -3,6 +3,12 @@ import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/settings/groups/currency_settings_page.dart';
+import 'package:qayd/core/result/result.dart';
 
 /// The two types of intermediary transfer available.
 enum TransferType {
@@ -53,26 +59,50 @@ class _TransferTypeBody extends StatelessWidget {
             color: scheme.onSurfaceVariant,
           ),
           const SizedBox(height: SpacingTokens.lg),
-
           _TransferTypeTile(
             icon: Icons.account_tree_rounded,
             color: ColorTokens.emerald500,
             title: 'تحويل وسيط (ثلاثي)',
             subtitle:
                 'جسر بين المرسل والمستلم. الصندوق لا يتأثر ولا يظهر في المحادثات.',
-            onTap: () =>
-                Navigator.pop(context, TransferType.tripartite),
+            onTap: () async {
+              final activeFee =
+                  await InjectionContainer.getActiveTransactionFeeUseCase();
+              if (activeFee.isSuccess && activeFee.valueOrNull != null) {
+                if (context.mounted) {
+                  Navigator.pop(context, TransferType.tripartite);
+                }
+              } else {
+                if (context.mounted) {
+                  QaydDialog.show(
+                    context: context,
+                    icon: Icons.settings_suggest_outlined,
+                    iconColor: ColorTokens.goldAccent,
+                    title: AppStringsAr.tripartiteDisabledDialogTitle,
+                    content: AppStringsAr.tripartiteDisabledDialogContent,
+                    secondaryActionLabel: AppStringsAr.actionCancel,
+                    primaryActionLabel: AppStringsAr.tripartiteGoToSettings,
+                    onPrimaryAction: () {
+                      Navigator.pop(context); // Close dialog
+                      Navigator.of(context).push(
+                        QaydPageRoute.slideFromStart(
+                          builder: (ctx) => const CurrencySettingsPage(),
+                        ),
+                      );
+                    },
+                  );
+                }
+              }
+            },
           ),
           const SizedBox(height: SpacingTokens.sm),
-
           _TransferTypeTile(
             icon: Icons.swap_horiz_rounded,
             color: ColorTokens.debitBlue,
             title: 'تحويل مزدوج مع الصندوق',
             subtitle:
                 'سندان عاديان يتأثر بهما الصندوق: خصم من المرسل وإضافة للمستلم.',
-            onTap: () =>
-                Navigator.pop(context, TransferType.dualWithFund),
+            onTap: () => Navigator.pop(context, TransferType.dualWithFund),
           ),
         ],
       ),

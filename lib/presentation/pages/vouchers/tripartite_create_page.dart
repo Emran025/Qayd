@@ -139,15 +139,21 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
           .call(const ListAccountsInput());
       if (accountsRes.isSuccess) {
         final accounts = accountsRes.valueOrNull?.accounts ?? [];
+        if (accounts.where((a) => a.name == AppStringsAr.clearingAccountName).firstOrNull ==
+            null) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text(AppStringsAr.tripartiteNoClearingAccount)),
+          );
+          return;
+        }
         _affected =
-            accounts.where((a) => a.name == 'مقاصة الحوالات').firstOrNull ??
-                accounts.firstOrNull;
+            accounts.where((a) => a.name == AppStringsAr.clearingAccountName).firstOrNull;
       }
     }
 
     if (_source == null || _affected == null || _dest == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار الحسابات')),
+        const SnackBar(content: Text(AppStringsAr.tripartiteSelectAccounts)),
       );
       return;
     }
@@ -186,13 +192,13 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
         }
         if (state is VoucherCreateSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم حفظ مسودة التحويل بنجاح')),
+            const SnackBar(content: Text(AppStringsAr.tripartiteDraftSaved)),
           );
           Navigator.of(context).pop();
         }
         if (state is VoucherCreateTripartiteSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم حفظ التحويل الثلاثي بنجاح')),
+            const SnackBar(content: Text(AppStringsAr.tripartiteCreatedSuccess)),
           );
           Navigator.of(context).pop();
         }
@@ -202,7 +208,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
 
         return Scaffold(
           appBar: QaydAppBar(
-            title: 'تحويل جديد',
+            title: AppStringsAr.tripartiteNewTitle,
           ),
           body: AbsorbPointer(
             absorbing: submitting,
@@ -216,14 +222,14 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
                   _buildCurrencyTile(gold),
                   const Divider(),
                   _buildAccountPicker(
-                    label: 'الحساب المُرْسِل (مَدين)',
+                    label: AppStringsAr.tripartiteSourceLabel,
                     account: _source,
                     onTap: () => _pickAccount(0),
                     gold: gold,
                   ),
                   const SizedBox(height: SpacingTokens.sm),
                   _buildAccountPicker(
-                    label: 'الحساب المُلْتزم (دائن)',
+                    label: AppStringsAr.tripartiteDestinationLabel,
                     account: _dest,
                     onTap: () => _pickAccount(2),
                     gold: gold,
@@ -301,7 +307,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
-          account?.name ?? 'اختر الحساب',
+          account?.name ?? AppStringsAr.tripartiteSelectAccountHint,
           slot: QaydTextStyleSlot.bodyLarge,
           color: account == null
               ? Theme.of(context).colorScheme.onSurfaceVariant

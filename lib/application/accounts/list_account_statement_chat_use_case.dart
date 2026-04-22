@@ -52,8 +52,9 @@ final class ListAccountStatementChatUseCase {
         // Fetch all vouchers involving this subject.
         // If the subject IS the cost center we're filtering by, then we don't
         // filter by account at all, effectively showing a global cost center ledger.
-        final bool isGlobalCostCenter = filter.costCenterId == counterpartyAccountId;
-        
+        final bool isGlobalCostCenter =
+            filter.costCenterId == counterpartyAccountId;
+
         final f = VoucherQueryFilter(
           involvedAccountId: isGlobalCostCenter ? null : cpId,
           costCenterId: filter.costCenterId,
@@ -79,12 +80,13 @@ final class ListAccountStatementChatUseCase {
 
           if (!involvesCp) return false;
 
-          // Rule 3: Exclude any voucher where the Mediator is the Counterparty unless it is a pure direct voucher.
-          if (v.isTripartite) {
+          // Rule 3: Exclude Bridge vouchers from regular statements unless they are finalized (Dual Transfers).
+          // Bridge vouchers are "Contingent" vouchers that wait for reciprocal confirmation.
+          if (v.isTripartite && v.isContingent) {
             final mediatorId =
                 v.tripartiteMeta?.mediatorAccountId ?? v.affectedAccountId;
             if (myId == mediatorId || cpId == mediatorId) {
-              return false; // Exclude from Mediator's chat with parties
+              return false; // Exclude locked bridge legs from Mediator's chat with parties
             }
           }
 

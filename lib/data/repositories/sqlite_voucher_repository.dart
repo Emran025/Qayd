@@ -128,7 +128,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       args.add(filter.dateRange!.end.toIso8601String());
     }
     if (filter.excludeTripartite == true) {
-      whereParts.add('${p}transfer_group_id IS NULL');
+      whereParts
+          .add('(${p}transfer_group_id IS NULL OR ${p}is_contingent = 0)');
     }
     if (filter.onlyTripartite == true) {
       whereParts.add('${p}transfer_group_id IS NOT NULL');

@@ -47,10 +47,14 @@ class SyncCoordinatorService {
   Timer? _expiryTimer;
   StreamSubscription? _socketSubscription;
 
+  // Background queue state for lookups
+  bool _isProcessingQueue = false;
+  bool _hasPendingPull = false;
+
   /// Initiate the synchronization lifecycle
   void start() {
-    // 1. Instantly fetch any missed nodes while disconnected
-    _catchUpSync();
+    // 1. Instantly enqueue task to fetch any missed nodes while disconnected
+    triggerSync();
 
     // 2. Connect the active WebSocket listener
     socketService.connect(currentUserId);
@@ -98,7 +102,7 @@ class SyncCoordinatorService {
     });
 
     // 3. Periodic safe polling (for extreme resilience)
-    _periodicTimer = Timer.periodic(syncInterval, (_) => _catchUpSync());
+    _periodicTimer = Timer.periodic(syncInterval, (_) => triggerSync());
 
     // 4. Schedule collateral expiry checks (every 6 hours)
     if (collateralExpiryChecker != null) {
@@ -121,7 +125,27 @@ class SyncCoordinatorService {
 
   /// Manually requested pull-to-refresh / On-Enter Sync
   Future<void> forceSync() async {
-    await _catchUpSync();
+    triggerSync();
+  }
+
+  /// Triggers a lookup operation in the background queue.
+  void triggerSync() {
+    _hasPendingPull = true;
+    _processQueue();
+  }
+
+  Future<void> _processQueue() async {
+    if (_isProcessingQueue) return;
+    _isProcessingQueue = true;
+
+    try {
+      while (_hasPendingPull) {
+        _hasPendingPull = false;
+        await _catchUpSync();
+      }
+    } finally {
+      _isProcessingQueue = false;
+    }
   }
 
   /// Delta fetch capturing any encrypted nodes missed while socket disconnected
