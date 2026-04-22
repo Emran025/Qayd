@@ -74,7 +74,10 @@ class CreateVoucherUseCase {
 
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
-      final voucherId = VoucherId(_idGenerator.next());
+      final isEdit = input.editingVoucherId != null;
+      final voucherId = isEdit
+          ? VoucherId(input.editingVoucherId!)
+          : VoucherId(_idGenerator.next());
       final gate = await _writeGuard.assertWritesPermitted();
       if (gate.isFailure) {
         return FailureResult(gate.failureOrNull!);
@@ -159,24 +162,45 @@ class CreateVoucherUseCase {
             )));
       }
 
-      var voucher = Voucher.draft(
-        id: voucherId,
-        type: input.type,
-        date: input.date,
-        amount: amount,
-        currency: currency,
-        counterpartyId: AccountId(input.counterpartyAccountId),
-        affectedAccountId: AccountId(actualAffectedAccountId),
-        createdAt: DateTime.now(),
-        referenceNumber: input.referenceNumber,
-        description: input.description,
-        notes: input.notes,
-        tripartiteMeta: tripartiteMeta,
-        attachmentRefs: attachmentRefs,
-        originVoucherId: input.originVoucherId != null
-            ? VoucherId(input.originVoucherId!)
-            : null,
-      );
+      Voucher voucher;
+      if (isEdit) {
+        final existingRes = await _voucherRepository.getById(voucherId);
+        if (existingRes.isFailure) return FailureResult(existingRes.failureOrNull!);
+        voucher = existingRes.valueOrNull!;
+        
+        final allRefs = [...voucher.attachmentRefs, ...attachmentRefs];
+        voucher = voucher.updateDraft(
+          type: input.type,
+          date: input.date,
+          amount: amount,
+          currency: currency,
+          counterpartyId: AccountId(input.counterpartyAccountId),
+          affectedAccountId: AccountId(actualAffectedAccountId),
+          referenceNumber: input.referenceNumber,
+          description: input.description,
+          notes: input.notes,
+          attachmentRefs: allRefs,
+        );
+      } else {
+        voucher = Voucher.draft(
+          id: voucherId,
+          type: input.type,
+          date: input.date,
+          amount: amount,
+          currency: currency,
+          counterpartyId: AccountId(input.counterpartyAccountId),
+          affectedAccountId: AccountId(actualAffectedAccountId),
+          createdAt: DateTime.now(),
+          referenceNumber: input.referenceNumber,
+          description: input.description,
+          notes: input.notes,
+          tripartiteMeta: tripartiteMeta,
+          attachmentRefs: attachmentRefs,
+          originVoucherId: input.originVoucherId != null
+              ? VoucherId(input.originVoucherId!)
+              : null,
+        );
+      }
 
       if (input.confirm) {
         if (_signingService != null && _getKeyPair != null) {

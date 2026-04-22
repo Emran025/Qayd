@@ -384,7 +384,6 @@ class Voucher {
     );
   }
 
-  /// Draft-only edits; confirmed/settled vouchers reject any mutation.
   Voucher updateDraft({
     VoucherType? type,
     String? referenceNumber,
@@ -398,17 +397,16 @@ class Voucher {
     String? notes,
     List<String>? tags,
   }) {
-    if (!state.isDraft) {
+    if (!state.isDraft && !state.isWithdrawn) {
       throw const ImmutableEntityException(
-        messageAr: 'لا يمكن تعديل سند مؤكد أو مسوّى.',
-        code: 'voucher_not_draft',
+        messageAr: 'لا يمكن تعديل السند إلا إذا كان مسودة أو تم سحبه.',
+        code: 'voucher_not_editable',
       );
     }
     final nextType = type ?? this.type;
     final nextDate = date ?? this.date;
     final nextCurrency = currency ?? this.currency;
 
-    // If currency changed but amount didn't, we must re-classify the minor units.
     var nextAmount = amount ?? this.amount;
     if (nextCurrency != nextAmount.currency) {
       nextAmount = Money.positiveAmount(nextAmount.minorUnits, nextCurrency);
@@ -437,26 +435,26 @@ class Voucher {
       currency: nextCurrency,
       counterpartyId: nextCounterparty,
       affectedAccountId: nextAffected,
-      state: state,
+      state: VoucherState.draft,
       description: description ?? this.description,
       attachmentRefs: List.unmodifiable(attachmentRefs ?? this.attachmentRefs),
       notes: notes ?? this.notes,
       tags: List.unmodifiable(tags ?? this.tags),
       createdAt: createdAt,
-      confirmedAt: confirmedAt,
+      confirmedAt: null,
       settledAt: settledAt,
-      senderStatus: senderStatus,
-      receiverStatus: receiverStatus,
-      senderSignatureHex: senderSignatureHex,
-      receiverSignatureHex: receiverSignatureHex,
-      senderPublicKeyHex: senderPublicKeyHex,
-      receiverPublicKeyHex: receiverPublicKeyHex,
-      lifecycleStatus: lifecycleStatus,
+      senderStatus: AgreementStatus.accepted,
+      receiverStatus: AgreementStatus.underRequest,
+      senderSignatureHex: null,
+      receiverSignatureHex: null,
+      senderPublicKeyHex: null,
+      receiverPublicKeyHex: null,
+      lifecycleStatus: VoucherLifecycle.draft,
       signerPhone: signerPhone,
       tripartiteMeta: tripartiteMeta,
       originVoucherId: originVoucherId,
-      rejectionReason: rejectionReason,
-      withdrawnAt: withdrawnAt,
+      rejectionReason: null,
+      withdrawnAt: null,
     );
   }
 

@@ -338,7 +338,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     final initialCounterparty =
         widget.initialQrData?['counterpartyAccountId'] as String?;
     final initialDate = widget.initialQrData?['date'] as DateTime?;
-    final isEdit = widget.initialQrData?['originVoucherId'] != null;
+    final isEdit = widget.initialQrData?['originVoucherId'] != null ||
+        widget.initialQrData?['editingVoucherId'] != null;
 
     if (isEdit && initialCounterparty != null && initialDate != null) {
       final initialDateMidnight =
@@ -383,6 +384,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       attachments: _pickedImages,
       confirm: confirm,
       originVoucherId: widget.initialQrData?['originVoucherId'] as String?,
+      editingVoucherId: widget.initialQrData?['editingVoucherId'] as String?,
       costCenterTags: _costCenterTags,
     );
 
