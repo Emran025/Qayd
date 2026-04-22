@@ -207,30 +207,34 @@ class _Keypad extends StatelessWidget {
     ];
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          for (final row in rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  for (final cell in row)
-                    _KeyCell(
-                      label: cell,
-                      onTap: () {
-                        if (cell == '⌫') {
-                          onBackspace();
-                        } else if (cell.isNotEmpty) {
-                          onDigit(cell);
-                        }
-                      },
-                    ),
-                ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final row in rows)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (final cell in row)
+                      _KeyCell(
+                        label: cell,
+                        onTap: () {
+                          if (cell == '⌫') {
+                            onBackspace();
+                          } else if (cell.isNotEmpty) {
+                            onDigit(cell);
+                          }
+                        },
+                      ),
+                  ],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

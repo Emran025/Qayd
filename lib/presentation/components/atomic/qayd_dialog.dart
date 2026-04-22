@@ -4,8 +4,8 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 /// A reusable, premium-styled dialog for the Qayd application.
-/// 
-/// Follows the app's design language with circular iconography, 
+///
+/// Follows the app's design language with circular iconography,
 /// specialized typography via [QaydText], and consistent spacing.
 class QaydDialog extends StatelessWidget {
   const QaydDialog({
@@ -18,6 +18,8 @@ class QaydDialog extends StatelessWidget {
     this.onPrimaryAction,
     this.secondaryActionLabel,
     this.onSecondaryAction,
+    this.tertiaryActionLabel,
+    this.onTertiaryAction,
   });
 
   /// The icon displayed at the top of the dialog.
@@ -29,7 +31,7 @@ class QaydDialog extends StatelessWidget {
   /// The title of the dialog.
   final String title;
 
-  /// The main message or widget content. 
+  /// The main message or widget content.
   /// If a [String] is passed, it is rendered as [QaydText].
   final dynamic content;
 
@@ -45,6 +47,12 @@ class QaydDialog extends StatelessWidget {
   /// Callback for the secondary action.
   final VoidCallback? onSecondaryAction;
 
+  /// Label for the tertiary (text) button, usually placed below the primary/secondary buttons.
+  final String? tertiaryActionLabel;
+
+  /// Callback for the tertiary action.
+  final VoidCallback? onTertiaryAction;
+
   /// Helper method to show this dialog.
   static Future<T?> show<T>({
     required BuildContext context,
@@ -56,6 +64,8 @@ class QaydDialog extends StatelessWidget {
     VoidCallback? onPrimaryAction,
     String? secondaryActionLabel,
     VoidCallback? onSecondaryAction,
+    String? tertiaryActionLabel,
+    VoidCallback? onTertiaryAction,
   }) {
     return showDialog<T>(
       context: context,
@@ -68,6 +78,8 @@ class QaydDialog extends StatelessWidget {
         onPrimaryAction: onPrimaryAction,
         secondaryActionLabel: secondaryActionLabel,
         onSecondaryAction: onSecondaryAction,
+        tertiaryActionLabel: tertiaryActionLabel,
+        onTertiaryAction: onTertiaryAction,
       ),
     );
   }
@@ -119,51 +131,78 @@ class QaydDialog extends StatelessWidget {
         right: SpacingTokens.lg,
       ),
       actions: [
-        if (primaryActionLabel != null || secondaryActionLabel != null)
-          Row(
-            children: [
-              if (secondaryActionLabel != null)
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      if (onSecondaryAction != null) {
-                        onSecondaryAction!();
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: SpacingTokens.md,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(RadiusTokens.md),
-                      ),
-                    ),
-                    child: Text(secondaryActionLabel!),
-                  ),
-                ),
-              if (primaryActionLabel != null && secondaryActionLabel != null)
-                const SizedBox(width: SpacingTokens.md),
-              if (primaryActionLabel != null)
-                Expanded(
-                  child: FilledButton(
-                    onPressed: onPrimaryAction,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: scheme.primary,
-                      foregroundColor: scheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: SpacingTokens.md,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(RadiusTokens.md),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (primaryActionLabel != null || secondaryActionLabel != null)
+              Row(
+                children: [
+                  if (secondaryActionLabel != null)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          if (onSecondaryAction != null) {
+                            onSecondaryAction!();
+                          } else {
+                            Navigator.pop(context);
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: SpacingTokens.md,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(RadiusTokens.md),
+                          ),
+                        ),
+                        child: Text(secondaryActionLabel!),
                       ),
                     ),
-                    child: Text(primaryActionLabel!),
-                  ),
+                  if (primaryActionLabel != null &&
+                      secondaryActionLabel != null)
+                    const SizedBox(width: SpacingTokens.md),
+                  if (primaryActionLabel != null)
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: onPrimaryAction,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: scheme.primary,
+                          foregroundColor: scheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: SpacingTokens.md,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(RadiusTokens.md),
+                          ),
+                        ),
+                        child: Text(primaryActionLabel!),
+                      ),
+                    ),
+                ],
+              ),
+            if (tertiaryActionLabel != null)
+              Padding(
+                padding: EdgeInsets.only(
+                  top: (primaryActionLabel != null ||
+                          secondaryActionLabel != null)
+                      ? SpacingTokens.sm
+                      : 0,
                 ),
-            ],
-          ),
+                child: TextButton(
+                  onPressed: () {
+                    if (onTertiaryAction != null) {
+                      onTertiaryAction!();
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text(tertiaryActionLabel!),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }

@@ -7,6 +7,7 @@ import 'package:qayd/presentation/pages/settings/audit_log_cubit.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:intl/intl.dart' as intl;
 
 class AuditLogPage extends StatelessWidget {
@@ -199,15 +200,17 @@ class _AuditEntryCard extends StatelessWidget {
             slot: QaydTextStyleSlot.labelSmall,
             color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(4),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: QaydText(entry.entityId,
+                slot: QaydTextStyleSlot.labelSmall,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
-          child: QaydText(entry.entityId,
-              slot: QaydTextStyleSlot.labelSmall,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -338,30 +341,19 @@ class _AuditEntryCard extends StatelessWidget {
   }
 
   void _showRollbackDialog(BuildContext context) {
-    // ... existing dialog logic remains or slightly improved
-    showDialog(
+    QaydDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const QaydText('تأكيد التراجع النظامي',
-            slot: QaydTextStyleSlot.titleMedium),
-        content: const Text(
-            'سيقوم النظام بإلغاء كافة العمليات التي تمت بعد هذه اللحظة الزمنية وإعادة التطبيق إلى حالته حينها. هل ترغب بالمتابعة؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AuditLogCubit>().rollbackTo(entry.id);
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, foregroundColor: Colors.white),
-            child: const Text('تأكيد التراجع'),
-          ),
-        ],
-      ),
+      icon: Icons.warning_rounded,
+      iconColor: Theme.of(context).colorScheme.error,
+      title: 'تأكيد التراجع النظامي',
+      content:
+          'سيقوم النظام بإلغاء كافة العمليات التي تمت بعد هذه اللحظة الزمنية وإعادة التطبيق إلى حالته حينها. هل ترغب بالمتابعة؟',
+      primaryActionLabel: 'تأكيد التراجع',
+      onPrimaryAction: () {
+        Navigator.pop(context);
+        context.read<AuditLogCubit>().rollbackTo(entry.id);
+      },
+      secondaryActionLabel: 'إلغاء',
     );
   }
 }

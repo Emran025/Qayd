@@ -11,6 +11,7 @@ import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/atomic/qayd_snackbar.dart';
@@ -183,29 +184,18 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     if (state is! StatementChatReady) return;
     final msg = state.messages.firstWhere((m) => m.voucherId == voucherId);
 
-    final action = await showDialog<String>(
+    final action = await QaydDialog.show<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.voucherWithdrawConfirmTitle),
-        content: Text(AppStringsAr.voucherWithdrawConfirmBody),
-        actions: [
-          // 1. Cancel
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, 'cancel'),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          // 2. Withdraw/Delete
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, 'withdraw'),
-            child: Text(AppStringsAr.voucherDeleteOrWithdraw),
-          ),
-          // 3. Redirect
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, 'edit_others'),
-            child: Text(AppStringsAr.voucherRedirectToOthers),
-          ),
-        ],
-      ),
+      icon: Icons.warning_amber_rounded,
+      iconColor: Theme.of(context).colorScheme.error,
+      title: AppStringsAr.voucherWithdrawConfirmTitle,
+      content: AppStringsAr.voucherWithdrawConfirmBody,
+      primaryActionLabel: AppStringsAr.voucherRedirectToOthers,
+      onPrimaryAction: () => Navigator.pop(context, 'edit_others'),
+      secondaryActionLabel: AppStringsAr.voucherDeleteOrWithdraw,
+      onSecondaryAction: () => Navigator.pop(context, 'withdraw'),
+      tertiaryActionLabel: AppStringsAr.templateEditCancel,
+      onTertiaryAction: () => Navigator.pop(context, 'cancel'),
     );
 
     if (action == 'withdraw') {
@@ -288,7 +278,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
           create: (_) => StatementChatCubit(
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
-            getCostCenterDetails: InjectionContainer.getCostCenterDetailsUseCase,
+            getCostCenterDetails:
+                InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: cpAccountId,
             myAccountId: myAccountId,
           )..load(),
@@ -507,72 +498,74 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         return Scaffold(
           backgroundColor: widget.isEmbedded ? Colors.transparent : null,
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: widget.isEmbedded ? null : Padding(
-            padding:
-                const EdgeInsets.only(bottom: 40.0), // Lift it a bit higher
-            child: FloatingActionButton.extended(
-              onPressed: () {
-                RequestTripartiteSheet.show(
-                  context,
-                  destinationAccountId: data.counterpartyAccountId,
-                  destinationName: data.counterpartyName,
-                );
-              },
-              // Swap positions: Text on right, Icon on left (in RTL)
-              icon: null,
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(AppStringsAr.tripartiteRequestFunds),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.send_rounded),
-                ],
-              ),
-              backgroundColor: custom.goldAccent,
-              foregroundColor: ColorTokens.navy950,
-            ),
-          ),
+          floatingActionButton: widget.isEmbedded
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.only(
+                      bottom: 40.0), // Lift it a bit higher
+                  child: FloatingActionButton.extended(
+                    onPressed: () {
+                      RequestTripartiteSheet.show(
+                        context,
+                        destinationAccountId: data.counterpartyAccountId,
+                        destinationName: data.counterpartyName,
+                      );
+                    },
+                    // Swap positions: Text on right, Icon on left (in RTL)
+                    icon: null,
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(AppStringsAr.tripartiteRequestFunds),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.send_rounded),
+                      ],
+                    ),
+                    backgroundColor: custom.goldAccent,
+                    foregroundColor: ColorTokens.navy950,
+                  ),
+                ),
           body: Column(
             children: [
               // ── Header ──
               if (!widget.isEmbedded)
                 _ChatHeader(
-                counterpartyName: data.counterpartyName,
-                counterpartyAccountId: data.counterpartyAccountId,
-                messageCount: data.messages.length,
-                hasFilters: data.hasActiveFilters,
-                showSearch: _showSearch,
-                isUnified: data.isUnified,
-                onProfileTap: () =>
-                    _openAccountProfile(data.counterpartyAccountId),
-                onSearchToggle: () {
-                  setState(() {
-                    _showSearch = !_showSearch;
-                    if (!_showSearch) {
-                      _searchController.clear();
-                      cubit.clearSearch();
-                    }
-                  });
-                },
-                onFilterTap: () => _openFilterSheet(cubit),
-                onExportPdf: () => shareStatementChatAsPdf(
-                  context,
-                  accountId: data.counterpartyAccountId,
-                  accountName: data.counterpartyName,
-                  filter: data.filter,
-                  messages: data.messages,
-                  broughtForwardMinorUnits: data.broughtForwardMinorUnits,
+                  counterpartyName: data.counterpartyName,
+                  counterpartyAccountId: data.counterpartyAccountId,
+                  messageCount: data.messages.length,
+                  hasFilters: data.hasActiveFilters,
+                  showSearch: _showSearch,
+                  isUnified: data.isUnified,
+                  onProfileTap: () =>
+                      _openAccountProfile(data.counterpartyAccountId),
+                  onSearchToggle: () {
+                    setState(() {
+                      _showSearch = !_showSearch;
+                      if (!_showSearch) {
+                        _searchController.clear();
+                        cubit.clearSearch();
+                      }
+                    });
+                  },
+                  onFilterTap: () => _openFilterSheet(cubit),
+                  onExportPdf: () => shareStatementChatAsPdf(
+                    context,
+                    accountId: data.counterpartyAccountId,
+                    accountName: data.counterpartyName,
+                    filter: data.filter,
+                    messages: data.messages,
+                    broughtForwardMinorUnits: data.broughtForwardMinorUnits,
+                  ),
+                  onExportExcel: () => shareStatementChatAsExcel(
+                    context,
+                    accountId: data.counterpartyAccountId,
+                    accountName: data.counterpartyName,
+                    filter: data.filter,
+                    messages: data.messages,
+                    broughtForwardMinorUnits: data.broughtForwardMinorUnits,
+                    currencyDigits: data.currencyDigits,
+                  ),
                 ),
-                onExportExcel: () => shareStatementChatAsExcel(
-                  context,
-                  accountId: data.counterpartyAccountId,
-                  accountName: data.counterpartyName,
-                  filter: data.filter,
-                  messages: data.messages,
-                  broughtForwardMinorUnits: data.broughtForwardMinorUnits,
-                  currencyDigits: data.currencyDigits,
-                ),
-              ),
 
               // ── Search bar ──
               if (_showSearch)
