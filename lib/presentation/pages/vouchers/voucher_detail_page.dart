@@ -678,11 +678,11 @@ class _VoucherDetailBody extends StatelessWidget {
             ),
 
             // ── Tripartite flow diagram ──────────────────────────────────
-            // if (data.isTripartite) ...[
-            const SizedBox(height: SpacingTokens.sm),
-            _TripartiteFlowDiagram(data: data),
-            const SizedBox(height: SpacingTokens.sm),
-            // ],
+            if (data.transferGroupId != null) ...[
+              const SizedBox(height: SpacingTokens.sm),
+              _TripartiteFlowDiagram(data: data),
+              const SizedBox(height: SpacingTokens.sm),
+            ],
 
             if (data.referenceNumber != null &&
                 data.referenceNumber!.isNotEmpty)

@@ -45,16 +45,23 @@ abstract final class TemplateBindingMaps {
 
     String signatureLabel;
     if (sigParts.isEmpty) {
-      signatureLabel = 'مشمول بالتوقيع الإلكتروني';
+      signatureLabel = 'مشمول بالتوثيق الرقمي';
     } else {
       final names = sigParts.join(' و ');
-      final hex = d.senderSignatureHex ?? d.receiverSignatureHex;
-      final truncatedHex = hex != null ? ' (${hex.substring(0, 8)}...)' : '';
-      signatureLabel = 'موقع من $names$truncatedHex';
+      signatureLabel = 'تم التوقيع بواسطة: $names';
+      
+      // If only one signature, we can append a truncated hex for quick reference
+      if (sigParts.length == 1) {
+        final hex = d.senderSignatureHex ?? d.receiverSignatureHex;
+        if (hex != null) {
+          signatureLabel += ' (${hex.substring(0, 8)})';
+        }
+      }
     }
 
     return {
-      'customer': d.counterpartyName, // Always the external party, never the cashbox
+      'customer':
+          d.counterpartyName, // Always the external party, never the cashbox
       'counterparty': d.counterpartyName,
       'sender_party': senderParty,
       'receiver_party': receiverParty,
@@ -83,17 +90,30 @@ abstract final class TemplateBindingMaps {
   }
 
   static String _buildSignatureVerificationString(GetVoucherDetailsOutput d) {
-    if (d.senderSignatureHex == null && d.receiverSignatureHex == null) {
+    final hasSender = d.senderSignatureHex != null;
+    final hasReceiver = d.receiverSignatureHex != null;
+
+    if (!hasSender && !hasReceiver) {
       return 'مُصدّر آلياً وموثق رقمياً عبر نظام قيد';
     }
 
-    final buffer = StringBuffer('تم التحقق رقمياً:');
-    if (d.senderSignatureHex != null) {
-      buffer.write('\n- توقيع المرسل: ${d.senderSignatureHex}');
+    final buffer = StringBuffer('التوثيق الرقمي (Blockchain Verification):');
+
+    if (hasSender) {
+      final label = (d.transferGroupId != null || d.isTripartite) && d.typeCode == 'receipt'
+          ? 'توقيع الطرف المرسل'
+          : 'توقيع مُصدر السند';
+      buffer.write('\n- $label: ${d.senderSignatureHex}');
     }
-    if (d.receiverSignatureHex != null) {
-      buffer.write('\n- توقيع المستلم: ${d.receiverSignatureHex}');
+
+    if (hasReceiver) {
+      final label = (d.transferGroupId != null || d.isTripartite) && d.typeCode == 'payment'
+          ? 'توقيع الطرف المستلم'
+          : 'توقيع الطرف المقابل';
+      buffer.write('\n- $label: ${d.receiverSignatureHex}');
     }
+
+    buffer.write('\n-- تم التحقق من صحة التواقيع عبر نظام قيد --');
     return buffer.toString();
   }
 

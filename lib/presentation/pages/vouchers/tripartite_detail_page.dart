@@ -126,7 +126,7 @@ class _ShareMenu extends StatelessWidget {
       onSelected: (val) {
         switch (val) {
           case 'share_text':
-            shareVoucherAsText(context, shareData);
+            shareTripartiteAsText(context, data);
             break;
           case 'share_image':
             shareVoucherAsFormattedImage(context, shareData,
