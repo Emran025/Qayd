@@ -129,9 +129,9 @@ Future<void> shareVoucherAsFormattedImage(
         final voucherType =
             data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
-        shareText = 'مرفق لكم $voucherType من حساب ${data.affectedName}.\n'
+        shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
             'المبلغ: $amountTextFormatter\n'
-            'الطرف الآخر: ${data.counterpartyName}\n'
+            'الحساب: ${data.affectedName}\n'
             'المرجع: ${data.referenceNumber ?? shortId}\n'
             '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
       }

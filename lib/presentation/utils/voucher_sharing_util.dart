@@ -33,8 +33,8 @@ Future<void> shareVoucherAsText(
     buffer.writeln('إشعار $type');
     buffer.writeln('التاريخ: $date');
     buffer.writeln('المبلغ: $amount');
+    buffer.writeln('العميل: ${data.counterpartyName}');
     buffer.writeln('الحساب: ${data.affectedName}');
-    buffer.writeln('الطرف الآخر: ${data.counterpartyName}');
     if (data.description != null && data.description!.isNotEmpty) {
       buffer.writeln('البيان: ${data.description}');
     }

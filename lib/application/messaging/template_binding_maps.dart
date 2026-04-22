@@ -9,9 +9,23 @@ abstract final class TemplateBindingMaps {
     final date = DateFormat.yMMMd('ar').format(DateTime.parse(d.dateIso));
     final typeAr = d.typeCode == 'receipt' ? 'قبض' : 'صرف';
 
-    // Tripartite / Dual Transfer "Smart" labels
-    String senderParty = d.counterpartyName;
-    String receiverParty = d.affectedName;
+    // ── Smart party labels ────────────────────────────────────────────────
+    // For standard (non-transfer) vouchers:
+    //   counterpartyName = always the external party (receivables/payables)
+    //   affectedName     = always the cashbox (liquid assets)
+    // The "customer" should ALWAYS be the external party, never the cashbox.
+    String senderParty;
+    String receiverParty;
+
+    if (d.typeCode == 'receipt') {
+      // Receipt: money flows FROM counterparty TO cashbox
+      senderParty = d.counterpartyName;
+      receiverParty = d.affectedName;
+    } else {
+      // Payment: money flows FROM cashbox TO counterparty
+      senderParty = d.affectedName;
+      receiverParty = d.counterpartyName;
+    }
     String affectedAccountLabel = d.affectedName;
 
     if (d.transferGroupId != null || d.isTripartite) {
@@ -40,8 +54,8 @@ abstract final class TemplateBindingMaps {
     }
 
     return {
-      'customer': d.typeCode == 'receipt' ? senderParty : receiverParty,
-      'counterparty': d.typeCode == 'receipt' ? senderParty : receiverParty,
+      'customer': d.counterpartyName, // Always the external party, never the cashbox
+      'counterparty': d.counterpartyName,
       'sender_party': senderParty,
       'receiver_party': receiverParty,
       'amount': MoneyFormatter.formatWithSymbol(
