@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/create_account_input.dart';
+import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
+import 'package:qayd/application/accounts/dtos/update_account_input.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
@@ -9,12 +11,11 @@ import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/account_edit_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/phone_zone.dart';
-import 'package:qayd/presentation/pages/accounts/counterparty_qr_scanner_page.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
-import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -29,6 +30,8 @@ class AccountCreatePage extends StatefulWidget {
     this.parentStandardKind,
     this.forcedIsChild = false,
     this.allowedStandardKinds,
+    // Edit-mode: when provided the page behaves as an edit form.
+    this.editData,
   });
 
   final String? parentAccountId;
@@ -37,6 +40,12 @@ class AccountCreatePage extends StatefulWidget {
   final bool forcedIsChild;
   final List<StandardAccountClassificationKind>? allowedStandardKinds;
 
+  /// When set, the page enters **edit mode**: form fields are pre-filled with
+  /// existing account data and saving calls [AccountEditCubit] instead of
+  /// [AccountCreateCubit].
+  final GetAccountDetailsOutput? editData;
+
+  bool get isEditMode => editData != null;
   bool get isChild => forcedIsChild || parentAccountId != null;
 
   @override
@@ -47,7 +56,6 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _customClassController = TextEditingController();
-
   final _phoneZoneController = TextEditingController();
   final _phoneController = TextEditingController();
   final _whatsappZoneController = TextEditingController();
@@ -59,38 +67,82 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
   String? _parentName;
   String? _parentStandardKind;
 
-  @override
-  void initState() {
-    super.initState();
-    _parentId = widget.parentAccountId;
-    _parentName = widget.parentName;
-    _parentStandardKind = widget.parentStandardKind;
-
-    if (widget.allowedStandardKinds != null &&
-        widget.allowedStandardKinds!.isNotEmpty) {
-      _standardKind = widget.allowedStandardKinds!.first;
-    }
-  }
-
   StandardAccountClassificationKind _standardKind =
       StandardAccountClassificationKind.liquidAssets;
   bool _useCustomRootClassification = false;
   AccountNature _customNature = AccountNature.debit;
 
-  // Stored data from QR scan
   CounterpartyQrData? _scannedData;
-
   List<CostCenterTagInput> _costCenterTags = [];
 
-  bool get _showPartyDetails {
-    if (!widget.isChild) return false;
-    final kind = _parentStandardKind;
-    return kind == StandardAccountClassificationKind.receivables.name ||
-        kind == StandardAccountClassificationKind.payables.name;
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.isEditMode) {
+      _prefillFromEditData(widget.editData!);
+    } else {
+      _parentId = widget.parentAccountId;
+      _parentName = widget.parentName;
+      _parentStandardKind = widget.parentStandardKind;
+      if (widget.allowedStandardKinds?.isNotEmpty == true) {
+        _standardKind = widget.allowedStandardKinds!.first;
+      }
+    }
+  }
+
+  /// Pre-fills all form controllers from the existing account details.
+  void _prefillFromEditData(GetAccountDetailsOutput d) {
+    _nameController.text = d.name;
+    _parentId = d.parentId;
+    _parentName = d.parentName;
+    _parentStandardKind = d.standardClassificationKind;
+
+    if (d.standardClassificationKind != null) {
+      _useCustomRootClassification = false;
+      try {
+        _standardKind = StandardAccountClassificationKind.values
+            .byName(d.standardClassificationKind!);
+      } catch (_) {}
+    } else {
+      _useCustomRootClassification = true;
+      _customClassController.text = d.customClassificationName ?? '';
+      _customNature =
+          d.natureCode == 'credit' ? AccountNature.credit : AccountNature.debit;
+    }
+
+    void split(
+        String? raw, TextEditingController zone, TextEditingController num) {
+// ... existing split logic ...
+      if (raw == null || raw.isEmpty) return;
+      final p = raw.replaceAll(RegExp(r'[^\d]'), '');
+      if (p.length >= 9) {
+        num.text = p.substring(p.length - 9);
+        zone.text = p.substring(0, p.length - 9);
+      } else {
+        num.text = p;
+      }
+    }
+
+    split(d.phoneNumber, _phoneZoneController, _phoneController);
+    split(d.whatsappNumber, _whatsappZoneController, _whatsappController);
+
+    _bankInfoController.text = d.bankAccountInfo ?? '';
+    _partyTypeController.text = d.partyType ?? '';
+
+    _costCenterTags = d.defaultCostCenters
+        .map(
+          (cc) => CostCenterTagInput(
+            costCenterId: cc.costCenterId,
+            dimensionIds: cc.dimensionIds,
+          ),
+        )
+        .toList();
   }
 
   @override
   void dispose() {
+// ...
     _nameController.dispose();
     _customClassController.dispose();
     _phoneZoneController.dispose();
@@ -102,54 +154,103 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     super.dispose();
   }
 
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  bool get _isChild =>
+      widget.forcedIsChild ||
+      widget.parentAccountId != null ||
+      (widget.isEditMode && widget.editData?.parentId != null);
+
+  bool get _showPartyDetails {
+    if (widget.isEditMode) {
+      // For existing accounts, we use the CURRENT state's kind to decide if we show party fields.
+      // If the user is BUSY reclassifying it in the UI, we might want to adapt,
+      // but for now let's stick to the loaded classification's requirement.
+      final kind = _isChild
+          ? _parentStandardKind
+          : (_useCustomRootClassification ? null : _standardKind.name);
+      return kind == StandardAccountClassificationKind.receivables.name ||
+          kind == StandardAccountClassificationKind.payables.name;
+    }
+    if (!_isChild) return false;
+    final kind = _parentStandardKind;
+    return kind == StandardAccountClassificationKind.receivables.name ||
+        kind == StandardAccountClassificationKind.payables.name;
+  }
+
+  String _buildPhone(TextEditingController zone, TextEditingController num) =>
+      (zone.text + num.text).replaceAll(' ', '').replaceAll('+', '');
+
+  // ---------------------------------------------------------------------------
+  // Submit
+  // ---------------------------------------------------------------------------
+
   Future<void> _submit() async {
     final messenger = ScaffoldMessenger.of(context);
-    if (!(_formKey.currentState?.validate() ?? false)) {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    // ── Edit mode ─────────────────────────────────────────────────────────────
+    if (widget.isEditMode) {
+      final input = UpdateAccountInput(
+        accountId: widget.editData!.accountId,
+        newName: _nameController.text.trim(),
+        parentAccountId: _isChild ? _parentId : null,
+        rootStandardKind:
+            !_isChild && !_useCustomRootClassification ? _standardKind : null,
+        customClassificationName: !_isChild && _useCustomRootClassification
+            ? _customClassController.text.trim()
+            : null,
+        customClassificationNature:
+            !_isChild && _useCustomRootClassification ? _customNature : null,
+        phoneNumber: _showPartyDetails
+            ? _buildPhone(_phoneZoneController, _phoneController)
+            : null,
+        whatsappNumber: _showPartyDetails
+            ? _buildPhone(_whatsappZoneController, _whatsappController)
+            : null,
+        bankAccountInfo:
+            _showPartyDetails ? _bankInfoController.text.trim() : null,
+        partyType: _showPartyDetails ? _partyTypeController.text.trim() : null,
+        defaultCostCenters: _costCenterTags,
+      );
+      await context.read<AccountEditCubit>().submit(input);
       return;
     }
-    if (!widget.isChild && _useCustomRootClassification) {
+
+    // ── Create mode ───────────────────────────────────────────────────────────
+    if (!_isChild && _useCustomRootClassification) {
       if (_customClassController.text.trim().isEmpty) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(AppStringsAr.customClassificationNameRequired),
-          ),
-        );
+        messenger.showSnackBar(SnackBar(
+          content: Text(AppStringsAr.customClassificationNameRequired),
+        ));
         return;
       }
     }
-
-    if (widget.isChild && _parentId == null) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(AppStringsAr.pickAccountTitle),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    if (_isChild && _parentId == null) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(AppStringsAr.pickAccountTitle),
+        behavior: SnackBarBehavior.floating,
+      ));
       return;
     }
 
     final input = CreateAccountInput(
       name: _nameController.text,
       parentAccountId: _parentId,
-      rootStandardKind: !widget.isChild && !_useCustomRootClassification
-          ? _standardKind
-          : null,
-      customClassificationName: !widget.isChild && _useCustomRootClassification
+      rootStandardKind:
+          !_isChild && !_useCustomRootClassification ? _standardKind : null,
+      customClassificationName: !_isChild && _useCustomRootClassification
           ? _customClassController.text.trim()
           : null,
       customClassificationNature:
-          !widget.isChild && _useCustomRootClassification
-              ? _customNature
-              : null,
+          !_isChild && _useCustomRootClassification ? _customNature : null,
       phoneNumber: _showPartyDetails
-          ? (_phoneZoneController.text + _phoneController.text)
-              .replaceAll(' ', '')
-              .replaceAll('+', '')
+          ? _buildPhone(_phoneZoneController, _phoneController)
           : null,
       whatsappNumber: _showPartyDetails
-          ? (_whatsappZoneController.text + _whatsappController.text)
-              .replaceAll(' ', '')
-              .replaceAll('+', '')
+          ? _buildPhone(_whatsappZoneController, _whatsappController)
           : null,
       bankAccountInfo:
           _showPartyDetails ? _bankInfoController.text.trim() : null,
@@ -161,321 +262,377 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       defaultCostCenters: _costCenterTags,
       metadata: {},
     );
-
     await context.read<AccountCreateCubit>().submit(input);
   }
 
   Future<void> _scanCounterparty() async {
-    final data = await Navigator.of(context).push<CounterpartyQrData?>(
-      QaydPageRoute.slideFromStart<CounterpartyQrData?>(
-        builder: (ctx) => const CounterpartyQrScannerPage(),
-      ),
-    );
-
-    if (data != null) {
-      setState(() {
-        _scannedData = data;
-        _nameController.text = data.name;
-
-        // Simple phone splitting (last 9 digits for phone, rest for zone)
-        // or just put all in phone and rely on manual adjustment if needed.
-        // Protocol §3 says phone is immutable on import, but UI should reflect it.
-        if (data.phone.isNotEmpty) {
-          final p = data.phone.replaceAll('+', '').replaceAll(' ', '');
-          if (p.length >= 9) {
-            _phoneController.text = p.substring(p.length - 9);
-            _phoneZoneController.text = p.substring(0, p.length - 9);
-          } else {
-            _phoneController.text = p;
-          }
-        }
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStringsAr.identityQrScanSuccess),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+// ...
   }
+
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
-    final title = widget.isChild
-        ? AppStringsAr.newChildAccountTitle
-        : AppStringsAr.newRootAccountTitle;
-
-    return BlocConsumer<AccountCreateCubit, AccountCreateState>(
-      listener: (context, state) {
-        if (state is AccountCreateSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppStringsAr.accountCreatedSuccess),
+// ...
+    if (widget.isEditMode) {
+      return BlocConsumer<AccountEditCubit, AccountEditState>(
+        listener: (ctx, state) {
+          if (state is AccountEditSuccess) {
+            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+              content: Text(AppStringsAr.accountUpdatedSuccess),
               behavior: SnackBarBehavior.floating,
-            ),
-          );
-          Navigator.of(context).pop(true);
-        }
-        if (state is AccountCreateFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            ));
+            Navigator.of(ctx).pop(true);
+          }
+          if (state is AccountEditFailure) {
+            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
               content: Text(state.failure.messageAr),
               behavior: SnackBarBehavior.floating,
-            ),
-          );
+            ));
+          }
+        },
+        builder: (ctx, state) =>
+            _buildScaffold(submitting: state is AccountEditSubmitting),
+      );
+    }
+
+    return BlocConsumer<AccountCreateCubit, AccountCreateState>(
+      listener: (ctx, state) {
+// ...
+        if (state is AccountCreateSuccess) {
+          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+            content: Text(AppStringsAr.accountCreatedSuccess),
+            behavior: SnackBarBehavior.floating,
+          ));
+          Navigator.of(ctx).pop(true);
+        }
+        if (state is AccountCreateFailure) {
+          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+            content: Text(state.failure.messageAr),
+            behavior: SnackBarBehavior.floating,
+          ));
         }
       },
-      builder: (context, state) {
-        final submitting = state is AccountCreateSubmitting;
+      builder: (ctx, state) =>
+          _buildScaffold(submitting: state is AccountCreateSubmitting),
+    );
+  }
 
-        return Scaffold(
-          appBar: QaydAppBar(
-            title: title,
-            actions: [
-              if (_showPartyDetails)
-                IconButton(
-                  tooltip: AppStringsAr.identityQrScanTitle,
-                  icon: const Icon(Icons.qr_code_scanner_rounded),
-                  onPressed: _scanCounterparty,
+  Widget _buildScaffold({required bool submitting}) {
+    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
+
+    final title = widget.isEditMode
+        ? AppStringsAr.editAccountTitle
+        : _isChild
+            ? AppStringsAr.newChildAccountTitle
+            : AppStringsAr.newRootAccountTitle;
+
+    return Scaffold(
+      appBar: QaydAppBar(
+        title: title,
+        actions: [
+          if (_showPartyDetails && !widget.isEditMode)
+            IconButton(
+              tooltip: AppStringsAr.identityQrScanTitle,
+              icon: const Icon(Icons.qr_code_scanner_rounded),
+              onPressed: _scanCounterparty,
+            ),
+        ],
+      ),
+      body: AbsorbPointer(
+        absorbing: submitting,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(SpacingTokens.lg),
+            children: [
+              // ── Classification / parent ──────────────────────────────────
+              if (_isChild) ...[
+                _ParentAccountPicker(
+                  parentId: _parentId,
+                  parentName: _parentName,
+                  gold: gold,
+                  submitting: submitting,
+                  allowedStandardKinds: widget.allowedStandardKinds,
+                  onPicked: (id, name, kind) => setState(() {
+                    _parentId = id;
+                    _parentName = name;
+                    _parentStandardKind = kind;
+                  }),
                 ),
-            ],
-          ),
-          body: AbsorbPointer(
-            absorbing: submitting,
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(SpacingTokens.lg),
-                children: [
-                  if (widget.isChild) ...[
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: submitting
-                            ? null
-                            : () async {
-                                final root = await showAccountPickerSheet(
-                                  context,
-                                  listAccounts:
-                                      InjectionContainer.listAccountsUseCase,
-                                  requireNoRoot: false,
-                                  rootAllowed: true,
-                                  onlyRoots: true,
-                                  hideSterileRoots: true,
-                                  allowedClassifications: widget
-                                      .allowedStandardKinds
-                                      ?.map((k) => k.name)
-                                      .toList(),
-                                );
-                                if (root != null && mounted) {
-                                  setState(() {
-                                    _parentId = root.id;
-                                    _parentName = root.name;
-                                    _parentStandardKind =
-                                        root.standardClassificationKind;
-                                  });
-                                }
-                              },
-                        borderRadius: BorderRadius.circular(RadiusTokens.md),
-                        child: Container(
-                          padding: const EdgeInsets.all(SpacingTokens.md),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outlineVariant,
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              RadiusTokens.md,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    QaydText(
-                                      _parentName ??
-                                          AppStringsAr.pickAccountTitle,
-                                      slot: QaydTextStyleSlot.titleMedium,
-                                      color: _parentId != null
-                                          ? gold
-                                          : Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                    ),
-                                    const SizedBox(height: SpacingTokens.xs),
-                                    QaydText(
-                                      AppStringsAr.parentAccountLabel,
-                                      slot: QaydTextStyleSlot.bodySmall,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.arrow_drop_down_rounded),
-                            ],
-                          ),
-                        ),
-                      ),
+                const SizedBox(height: SpacingTokens.md),
+              ] else ...[
+                QaydText(
+                  AppStringsAr.classificationSectionTitle,
+                  slot: QaydTextStyleSlot.titleMedium,
+                ),
+                const SizedBox(height: SpacingTokens.sm),
+                SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment<bool>(
+                      value: false,
+                      label: Text(AppStringsAr.standardClassificationTab),
                     ),
-                    const SizedBox(height: SpacingTokens.md),
+                    ButtonSegment<bool>(
+                      value: true,
+                      label: Text(AppStringsAr.customClassificationTab),
+                    ),
                   ],
-                  if (!widget.isChild) ...[
-                    QaydText(
-                      AppStringsAr.classificationSectionTitle,
-                      slot: QaydTextStyleSlot.titleMedium,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    SegmentedButton<bool>(
-                      segments: const [
-                        ButtonSegment<bool>(
-                          value: false,
-                          label: Text(AppStringsAr.standardClassificationTab),
-                        ),
-                        ButtonSegment<bool>(
-                          value: true,
-                          label: Text(AppStringsAr.customClassificationTab),
-                        ),
-                      ],
-                      selected: {_useCustomRootClassification},
-                      onSelectionChanged: (s) {
-                        setState(() => _useCustomRootClassification = s.first);
-                      },
-                    ),
-                    const SizedBox(height: SpacingTokens.md),
-                    if (!_useCustomRootClassification)
-                      _StandardKindSelector(
-                        selected: _standardKind,
-                        allowedKinds: widget.allowedStandardKinds,
-                        onChanged: (k) => setState(() => _standardKind = k),
-                      )
-                    else ...[
-                      QaydTextField(
-                        controller: _customClassController,
-                        label: AppStringsAr.customClassificationNameLabel,
-                        validator: (v) {
-                          if (!_useCustomRootClassification) {
-                            return null;
-                          }
-                          if (v == null || v.trim().isEmpty) {
-                            return AppStringsAr
-                                .customClassificationNameRequired;
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: SpacingTokens.md),
-                      QaydText(
-                        AppStringsAr.customNatureLabel,
-                        slot: QaydTextStyleSlot.bodyMedium,
-                      ),
-                      const SizedBox(height: SpacingTokens.xs),
-                      SegmentedButton<AccountNature>(
-                        segments: [
-                          ButtonSegment<AccountNature>(
-                            value: AccountNature.debit,
-                            label: Text(AppStringsAr.natureDebitShort),
-                          ),
-                          ButtonSegment<AccountNature>(
-                            value: AccountNature.credit,
-                            label: Text(AppStringsAr.natureCreditShort),
-                          ),
-                        ],
-                        selected: {_customNature},
-                        onSelectionChanged: (s) {
-                          setState(() => _customNature = s.first);
-                        },
-                      ),
-                    ],
-                    const SizedBox(height: SpacingTokens.lg),
-                  ],
+                  selected: {_useCustomRootClassification},
+                  onSelectionChanged: (s) =>
+                      setState(() => _useCustomRootClassification = s.first),
+                ),
+                const SizedBox(height: SpacingTokens.md),
+                if (!_useCustomRootClassification)
+                  _StandardKindSelector(
+                    selected: _standardKind,
+                    allowedKinds: widget.allowedStandardKinds,
+                    onChanged: (k) => setState(() => _standardKind = k),
+                  )
+                else ...[
                   QaydTextField(
-                    controller: _nameController,
-                    label: AppStringsAr.accountNameLabel,
-                    textInputAction: _showPartyDetails
-                        ? TextInputAction.next
-                        : TextInputAction.done,
+                    controller: _customClassController,
+                    label: AppStringsAr.customClassificationNameLabel,
                     validator: (v) {
+                      if (!_useCustomRootClassification) return null;
                       if (v == null || v.trim().isEmpty) {
-                        return AppStringsAr.accountNameRequired;
+                        return AppStringsAr.customClassificationNameRequired;
                       }
                       return null;
                     },
                   ),
-                  const SizedBox(height: SpacingTokens.xl),
-                  if (_showPartyDetails) ...[
-                    QaydText(
-                      AppStringsAr.partyDetailsSection,
-                      slot: QaydTextStyleSlot.titleMedium,
-                    ),
-                    const SizedBox(height: SpacingTokens.md),
-                    PhoneZoneForm(
-                      zoneController: _phoneZoneController,
-                      phoneController: _phoneController,
-                      label: AppStringsAr.partyPhoneLabel,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    PhoneZoneForm(
-                      zoneController: _whatsappZoneController,
-                      phoneController: _whatsappController,
-                      label: AppStringsAr.partyWhatsappLabel,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    QaydNumericField(
-                      controller: _bankInfoController,
-                      label: AppStringsAr.partyBankInfoLabel,
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: SpacingTokens.sm),
-                    QaydTextField(
-                      controller: _partyTypeController,
-                      label: AppStringsAr.partyTypeLabel,
-                      textInputAction: TextInputAction.done,
-                    ),
-                    const SizedBox(height: SpacingTokens.xl),
-                  ],
-                  QaydText(
-                    'مراكز التكلفة الافتراضية',
-                    slot: QaydTextStyleSlot.titleSmall,
-                  ),
                   const SizedBox(height: SpacingTokens.md),
-                  CostCenterTagSelector(
-                    initialTags: _costCenterTags,
-                    onChanged: (tags) => setState(() => _costCenterTags = tags),
-                    label: 'إضافة مركز تكلفة افتراضي',
+                  QaydText(
+                    AppStringsAr.customNatureLabel,
+                    slot: QaydTextStyleSlot.bodyMedium,
                   ),
-                  const SizedBox(height: SpacingTokens.xl),
-                  FilledButton(
-                    onPressed: submitting ? null : _submit,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: gold,
-                      foregroundColor: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    child: submitting
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(AppStringsAr.saveAccount),
+                  const SizedBox(height: SpacingTokens.xs),
+                  SegmentedButton<AccountNature>(
+                    segments: [
+                      ButtonSegment<AccountNature>(
+                        value: AccountNature.debit,
+                        label: Text(AppStringsAr.natureDebitShort),
+                      ),
+                      ButtonSegment<AccountNature>(
+                        value: AccountNature.credit,
+                        label: Text(AppStringsAr.natureCreditShort),
+                      ),
+                    ],
+                    selected: {_customNature},
+                    onSelectionChanged: (s) =>
+                        setState(() => _customNature = s.first),
                   ),
                 ],
+              ],
+
+              if (widget.isEditMode) ...[
+                const SizedBox(height: SpacingTokens.sm),
+                Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded,
+                        size: 14, color: Colors.orange.shade800),
+                    const SizedBox(width: SpacingTokens.xs),
+                    Expanded(
+                      child: QaydText(
+                        'تعديل التصنيف أو الحساب الأب قد يؤثر على توازن التقارير السابقة.',
+                        slot: QaydTextStyleSlot.labelSmall,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: SpacingTokens.lg),
+
+              // ── Account name ───────────────────────────────────────────────
+              QaydTextField(
+                controller: _nameController,
+                label: AppStringsAr.accountNameLabel,
+                textInputAction: _showPartyDetails
+                    ? TextInputAction.next
+                    : TextInputAction.done,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return AppStringsAr.accountNameRequired;
+                  }
+                  return null;
+                },
               ),
-            ),
+              const SizedBox(height: SpacingTokens.xl),
+
+              // ── Party details ──────────────────────────────────────────────
+              if (_showPartyDetails) ...[
+                QaydText(
+                  AppStringsAr.partyDetailsSection,
+                  slot: QaydTextStyleSlot.titleMedium,
+                ),
+                const SizedBox(height: SpacingTokens.md),
+                PhoneZoneForm(
+                  zoneController: _phoneZoneController,
+                  phoneController: _phoneController,
+                  label: AppStringsAr.partyPhoneLabel,
+                ),
+                const SizedBox(height: SpacingTokens.sm),
+                PhoneZoneForm(
+                  zoneController: _whatsappZoneController,
+                  phoneController: _whatsappController,
+                  label: AppStringsAr.partyWhatsappLabel,
+                ),
+                const SizedBox(height: SpacingTokens.sm),
+                QaydNumericField(
+                  controller: _bankInfoController,
+                  label: AppStringsAr.partyBankInfoLabel,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: SpacingTokens.sm),
+                QaydTextField(
+                  controller: _partyTypeController,
+                  label: AppStringsAr.partyTypeLabel,
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: SpacingTokens.xl),
+              ],
+
+              // ── Default cost centres ───────────────────────────────────────
+              QaydText(
+                'مراكز التكلفة الافتراضية',
+                slot: QaydTextStyleSlot.titleSmall,
+              ),
+              const SizedBox(height: SpacingTokens.md),
+              CostCenterTagSelector(
+                initialTags: _costCenterTags,
+                onChanged: (tags) => setState(() => _costCenterTags = tags),
+                label: 'إضافة مركز تكلفة افتراضي',
+              ),
+              const SizedBox(height: SpacingTokens.xl),
+
+              // ── Save button ────────────────────────────────────────────────
+              FilledButton(
+                onPressed: submitting ? null : _submit,
+                style: FilledButton.styleFrom(
+                  backgroundColor: gold,
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                ),
+                child: submitting
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        widget.isEditMode
+                            ? AppStringsAr.saveAccountChanges
+                            : AppStringsAr.saveAccount,
+                      ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
+
+// ── Parent account picker (create-only widget) ──────────────────────────────
+
+class _ParentAccountPicker extends StatelessWidget {
+  const _ParentAccountPicker({
+    required this.parentId,
+    required this.parentName,
+    required this.gold,
+    required this.submitting,
+    required this.allowedStandardKinds,
+    required this.onPicked,
+    // required this.editMode,
+  });
+
+  final String? parentId;
+  final String? parentName;
+  final Color gold;
+  final bool submitting;
+  final List<StandardAccountClassificationKind>? allowedStandardKinds;
+  final void Function(String id, String name, String? kind) onPicked;
+  // final bool editMode;
+
+  @override
+  Widget build(BuildContext context) {
+    // We EXCLUDE specific sensitive/system classifications to allow for future expansion.
+    final excludedKinds = [
+      StandardAccountClassificationKind.liquidAssets.name,
+      StandardAccountClassificationKind.personalExpenses.name,
+      StandardAccountClassificationKind.fixedDepreciableAssets.name,
+      StandardAccountClassificationKind.fixedProfitableAssets.name,
+      StandardAccountClassificationKind.clearingRemittances.name,
+      StandardAccountClassificationKind.remittanceFees.name,
+    ];
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: submitting
+            ? null
+            : () async {
+                final root = await showAccountPickerSheet(
+                  context,
+                  listAccounts: InjectionContainer.listAccountsUseCase,
+                  requireNoRoot: false,
+                  rootAllowed: true,
+                  onlyRoots: true,
+                  hideSterileRoots: true,
+                  // We pass null to allowedClassifications and filter manually, 
+                  // or just pass a long list. For now, let's filter the values.
+                  allowedClassifications: StandardAccountClassificationKind.values
+                      .map((k) => k.name)
+                      .where((n) => !excludedKinds.contains(n))
+                      .toList(),
+                );
+                if (root != null) {
+                  onPicked(root.id, root.name, root.standardClassificationKind);
+                }
+              },
+        borderRadius: BorderRadius.circular(RadiusTokens.md),
+        child: Container(
+          padding: const EdgeInsets.all(SpacingTokens.md),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+            borderRadius: BorderRadius.circular(RadiusTokens.md),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    QaydText(
+                      parentName ?? AppStringsAr.pickAccountTitle,
+                      slot: QaydTextStyleSlot.titleMedium,
+                      color: parentId != null
+                          ? gold
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: SpacingTokens.xs),
+                    QaydText(
+                      AppStringsAr.parentAccountLabel,
+                      slot: QaydTextStyleSlot.bodySmall,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_drop_down_rounded),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Standard kind selector (unchanged) ─────────────────────────────────────
 
 class _StandardKindSelector extends StatelessWidget {
   const _StandardKindSelector({
@@ -490,13 +647,20 @@ class _StandardKindSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // We EXCLUDE specific sensitive/system classifications to allow for future expansion.
+    final excludedKinds = {
+      StandardAccountClassificationKind.liquidAssets,
+      StandardAccountClassificationKind.personalExpenses,
+      StandardAccountClassificationKind.fixedDepreciableAssets,
+      StandardAccountClassificationKind.fixedProfitableAssets,
+      StandardAccountClassificationKind.clearingRemittances,
+      StandardAccountClassificationKind.remittanceFees,
+    };
+
     final kinds = (allowedKinds ?? StandardAccountClassificationKind.values)
-        .where(
-          (k) =>
-              k != StandardAccountClassificationKind.fixedDepreciableAssets &&
-              k != StandardAccountClassificationKind.fixedProfitableAssets,
-        )
+        .where((k) => !excludedKinds.contains(k))
         .toList();
+
     return Wrap(
       spacing: SpacingTokens.sm,
       runSpacing: SpacingTokens.sm,

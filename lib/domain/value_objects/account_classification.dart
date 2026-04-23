@@ -18,13 +18,13 @@ final class AccountClassification {
     defaultNature: AccountNature.debit,
   );
 
-  /// Standard: ذمم مدينة (Receivables)
+  /// Standard: ذمم دائنة (عليك) (Receivables)
   static const AccountClassification receivables = AccountClassification._(
     standardKind: StandardAccountClassificationKind.receivables,
     defaultNature: AccountNature.debit,
   );
 
-  /// Standard: ذمم دائنة (Payables)
+  /// Standard: ذمم مدينة (لك) (Payables)
   static const AccountClassification payables = AccountClassification._(
     standardKind: StandardAccountClassificationKind.payables,
     defaultNature: AccountNature.credit,
@@ -95,6 +95,23 @@ final class AccountClassification {
       customName: n,
       defaultNature: nature,
     );
+  }
+
+  factory AccountClassification.standard(StandardAccountClassificationKind kind) {
+    return switch (kind) {
+      StandardAccountClassificationKind.liquidAssets => liquidAssets,
+      StandardAccountClassificationKind.receivables => receivables,
+      StandardAccountClassificationKind.payables => payables,
+      StandardAccountClassificationKind.settlements => settlements,
+      StandardAccountClassificationKind.personalExpenses => personalExpenses,
+      StandardAccountClassificationKind.personalRevenues => personalRevenues,
+      StandardAccountClassificationKind.clearingRemittances => clearingRemittances,
+      StandardAccountClassificationKind.remittanceFees => remittanceFees,
+      StandardAccountClassificationKind.fixedDepreciableAssets =>
+        fixedDepreciableAssets,
+      StandardAccountClassificationKind.fixedProfitableAssets =>
+        fixedProfitableAssets,
+    };
   }
 
   bool get isStandard => standardKind != null;

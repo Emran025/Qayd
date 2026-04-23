@@ -6,6 +6,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
@@ -206,7 +207,19 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 
   Future<void> _pickCounterparty() async {
-    final allowedClasses = ['receivables', 'payables'];
+    // Exclude classifications that don't make sense as a counterparty (like Cash or Fixed Assets)
+    final excludedClasses = [
+      StandardAccountClassificationKind.liquidAssets.name,
+      StandardAccountClassificationKind.fixedDepreciableAssets.name,
+      StandardAccountClassificationKind.fixedProfitableAssets.name,
+      StandardAccountClassificationKind.clearingRemittances.name,
+      StandardAccountClassificationKind.remittanceFees.name,
+    ];
+    final allowedClasses = StandardAccountClassificationKind.values
+        .map((k) => k.name)
+        .where((n) => !excludedClasses.contains(n))
+        .toList();
+
     final a = await showAccountPickerSheet(
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,

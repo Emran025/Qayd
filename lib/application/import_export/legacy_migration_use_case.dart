@@ -222,7 +222,7 @@ class LegacyMigrationUseCase {
           final newAccount = Account.createRoot(
             id: newId,
             name: conflict.name.isNotEmpty ? conflict.name : 'حساب مستورد',
-            // Legacy customer accounts are receivables (ذمم مدينة) by default.
+            // Legacy customer accounts are receivables (ذمم دائنة (عليك)) by default.
             // The user can reclassify later from inside the app.
             classification: AccountClassification.receivables,
             createdAt: DateTime.now(),

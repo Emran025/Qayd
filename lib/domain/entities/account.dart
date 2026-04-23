@@ -133,6 +133,36 @@ class Account {
     );
   }
 
+  Account move(AccountId? newParentId, AccountNature newNature) {
+    return Account._(
+      id: id,
+      name: name,
+      nature: newNature,
+      classification: classification,
+      parentId: newParentId,
+      isDefault: isDefault,
+      createdAt: createdAt,
+      isActive: isActive,
+      isArchived: isArchived,
+      metadata: metadata,
+    );
+  }
+
+  Account reclassify(AccountClassification newClassification, AccountNature newNature) {
+    return Account._(
+      id: id,
+      name: name,
+      nature: newNature,
+      classification: newClassification,
+      parentId: parentId,
+      isDefault: isDefault,
+      createdAt: createdAt,
+      isActive: isActive,
+      isArchived: isArchived,
+      metadata: metadata,
+    );
+  }
+
   Account updateMetadata(Map<String, dynamic> newMetadata) {
     return Account._(
       id: id,

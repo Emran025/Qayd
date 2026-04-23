@@ -124,6 +124,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final h = MediaQuery.sizeOf(context).height * 0.7;
     final filtered = widget.accounts.where((a) {
       if (_query.isEmpty) return true;
@@ -174,8 +175,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
                     horizontal: SpacingTokens.md,
                   ),
                   filled: true,
-                  fillColor:
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  fillColor: scheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(SpacingTokens.sm),
                     borderSide: BorderSide.none,
@@ -187,21 +187,90 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
             SizedBox(
               height: h,
               child: ListView.builder(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
                 itemCount: filtered.length,
                 itemBuilder: (context, i) {
                   final a = filtered[i];
-                  return ListTile(
-                    title: QaydText(
-                      a.name,
-                      slot: QaydTextStyleSlot.bodyLarge,
+
+                  // Pick an icon based on classification
+                  IconData icon;
+                  Color iconColor;
+                  switch (a.standardClassificationKind) {
+                    case 'receivables':
+                      icon = Icons.person_add_alt_1_rounded;
+                      iconColor = Colors.blue;
+                      break;
+                    case 'payables':
+                      icon = Icons.person_remove_alt_1_rounded;
+                      iconColor = Colors.orange;
+                      break;
+                    case 'liquidAssets':
+                      icon = Icons.account_balance_wallet_rounded;
+                      iconColor = Colors.green;
+                      break;
+                    case 'personalExpenses':
+                      icon = Icons.shopping_bag_rounded;
+                      iconColor = Colors.red;
+                      break;
+                    case 'personalRevenues':
+                      icon = Icons.trending_up_rounded;
+                      iconColor = Colors.teal;
+                      break;
+                    case 'settlements':
+                      icon = Icons.swap_horiz_rounded;
+                      iconColor = Colors.purple;
+                      break;
+                    default:
+                      icon = a.isRoot
+                          ? Icons.folder_rounded
+                          : Icons.account_circle_rounded;
+                      iconColor = scheme.onSurfaceVariant;
+                  }
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: SpacingTokens.sm),
+                    decoration: BoxDecoration(
+                      color: scheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: scheme.primary.withValues(alpha: 0.15),
+                      ),
                     ),
-                    subtitle: a.isRoot
-                        ? QaydText(
-                            AppStringsAr.accountTypeRoot,
-                            slot: QaydTextStyleSlot.bodySmall,
-                          )
-                        : null,
-                    onTap: () => widget.onSelected(a),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: SpacingTokens.md,
+                        vertical: SpacingTokens.xs,
+                      ),
+                      leading: Container(
+                        padding: const EdgeInsets.all(SpacingTokens.sm),
+                        decoration: BoxDecoration(
+                          color: iconColor.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: iconColor, size: 20),
+                      ),
+                      title: QaydText(
+                        a.name,
+                        slot: QaydTextStyleSlot.bodyLarge,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: QaydText(
+                        a.isRoot
+                            ? AppStringsAr.accountTypeRoot
+                            : (a.standardClassificationKind != null
+                                ? AppStringsAr.standardClassificationLabel(
+                                    a.standardClassificationKind!)
+                                : ''),
+                        slot: QaydTextStyleSlot.bodySmall,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                      trailing: Icon(
+                        Icons.chevron_left_rounded,
+                        color: scheme.primary.withValues(alpha: 0.4),
+                      ), // Arabic RTL
+                      onTap: () => widget.onSelected(a),
+                    ),
                   );
                 },
               ),

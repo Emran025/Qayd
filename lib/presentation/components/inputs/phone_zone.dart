@@ -44,23 +44,33 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     super.initState();
     selectedCountry = widget.initialCountry;
 
+    // If a zone code is already present in the controller, try to find the matching country.
+    if (selectedCountry == null && widget.zoneController.text.isNotEmpty) {
+      final normalizedInput =
+          widget.zoneController.text.replaceAll(RegExp(r'[^\d]'), '');
+      try {
+        selectedCountry = countries.firstWhere(
+          (c) =>
+              c.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '') ==
+              normalizedInput,
+        );
+      } catch (_) {}
+    }
+
     // Default to Yemen (YE) if no initial country or zone code was provided.
     if (selectedCountry == null && widget.zoneController.text.isEmpty) {
       try {
         selectedCountry = countries.firstWhere((c) => c.status == 'YE');
       } catch (_) {
-        // Fallback to first country if Yemen is not found for some reason.
         if (countries.isNotEmpty) selectedCountry = countries.first;
       }
     }
 
     if (selectedCountry != null && widget.zoneController.text.isEmpty) {
-      // Normalize calling code to digits only since we show a fixed '+' label
       widget.zoneController.text =
           selectedCountry!.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '');
     }
 
-    // Add focus listeners to update the border color when fields gain focus.
     for (var node in focusNodes) {
       node.addListener(_onFocusChange);
     }

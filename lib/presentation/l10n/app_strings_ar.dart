@@ -198,6 +198,14 @@ abstract final class AppStringsAr {
   static const String customNatureLabel = 'طبيعة التصنيف';
   static const String saveAccount = 'حفظ';
   static const String accountCreatedSuccess = 'تم إنشاء الحساب بنجاح.';
+
+  // Accounts — edit
+  static const String editAccountTitle = 'تعديل الحساب';
+  static const String editAccountTooltip = 'تعديل بيانات الحساب';
+  static const String saveAccountChanges = 'حفظ التعديلات';
+  static const String accountUpdatedSuccess = 'تم تحديث بيانات الحساب بنجاح.';
+  static const String editAccountClassificationLocked =
+      'لا يمكن تغيير التصنيف بعد إنشاء الحساب.';
   static const String partyDetailsSection = 'بيانات الطرف (اختياري)';
   static const String partyPhoneLabel = 'رقم الهاتف';
   static const String partyWhatsappLabel = 'رقم الواتساب';

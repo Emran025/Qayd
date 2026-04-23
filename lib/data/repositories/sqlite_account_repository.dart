@@ -127,11 +127,19 @@ ORDER BY a.name COLLATE NOCASE
   Future<Result<void>> save(Account account) async {
     try {
       final map = AccountMapper.toModel(account).toMap();
-      await _db.insert(
+      // Use update instead of replace to avoid breaking foreign key constraints
+      // (REPLACE is actually DELETE + INSERT in SQLite).
+      final rowsAffected = await _db.update(
         _table,
         map,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        where: 'id = ?',
+        whereArgs: [account.id.value],
       );
+
+      if (rowsAffected == 0) {
+        await _db.insert(_table, map);
+      }
+
       return const Success(null);
     } catch (_) {
       return const FailureResult(
@@ -221,11 +229,16 @@ ORDER BY a.name COLLATE NOCASE
             _encodeKeyHistory(details.publicKeyHistoryHex),
         'server_account_id': details.serverAccountId,
       };
-      await _db.insert(
+      final rowsAffected = await _db.update(
         'party_details',
         map,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+        where: 'account_id = ?',
+        whereArgs: [details.accountId.value],
       );
+
+      if (rowsAffected == 0) {
+        await _db.insert('party_details', map);
+      }
       return const Success(null);
     } catch (_) {
       return const FailureResult(

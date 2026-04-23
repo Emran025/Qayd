@@ -16,7 +16,10 @@ import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/account_edit_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_page.dart';
 import 'package:qayd/presentation/pages/accounts/widgets/account_default_cost_centers_section.dart';
@@ -29,10 +32,42 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 class AccountDetailPage extends StatelessWidget {
   const AccountDetailPage({super.key});
 
+  Future<void> _openEdit(
+    BuildContext context,
+    GetAccountDetailsOutput data,
+  ) async {
+    final cubit = context.read<AccountDetailCubit>();
+    final refreshed = await Navigator.of(context).push<bool>(
+      QaydPageRoute.slideFromStart<bool>(
+        builder: (ctx) => MultiBlocProvider(
+          providers: [
+            // AccountCreateCubit is still required by the page's create-mode
+            // BlocConsumer, even though it won't be called in edit mode.
+            BlocProvider(
+              create: (_) => AccountCreateCubit(
+                InjectionContainer.createAccountUseCase,
+              ),
+            ),
+            BlocProvider(
+              create: (_) => AccountEditCubit(
+                InjectionContainer.updateAccountUseCase,
+              ),
+            ),
+          ],
+          child: AccountCreatePage(editData: data),
+        ),
+      ),
+    );
+    if (refreshed == true && context.mounted) {
+      cubit.load(data.accountId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AccountDetailCubit, AccountDetailState>(
       builder: (context, state) {
+        final scheme = Theme.of(context).colorScheme;
         return Scaffold(
           appBar: QaydAppBar(
             title: state is AccountDetailReady
@@ -40,61 +75,111 @@ class AccountDetailPage extends StatelessWidget {
                 : AppStringsAr.accountDetailTitle,
             actions: [
               if (state is AccountDetailReady) ...[
-                IconButton(
-                  tooltip: AppStringsAr.accountSendMessageTooltip,
-                  icon: const Icon(Icons.chat_bubble_outline_rounded),
-                  onPressed: () {
-                    Navigator.of(context).push<void>(
-                      QaydPageRoute.slideFromStart<void>(
-                        builder: (ctx) => NotificationPreviewPage(
-                          mode:
-                              NotificationPreviewAccount(state.data.accountId),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  tooltip: 'محادثة كشف الحساب',
-                  icon: const Icon(Icons.forum_outlined),
-                  onPressed: () => Navigator.of(context).push<void>(
-                    QaydPageRoute.slideFromStart<void>(
-                      builder: (ctx) => BlocProvider(
-                        create: (_) => StatementChatCubit(
-                          listStatement: InjectionContainer
-                              .listAccountStatementChatUseCase,
-                          listAccounts: InjectionContainer.listAccountsUseCase,
-                          getCostCenterDetails:
-                              InjectionContainer.getCostCenterDetailsUseCase,
-                          counterpartyAccountId: state.data.accountId,
-                        )..load(),
-                        child: AccountStatementChatPage(
-                          counterpartyAccountId: state.data.accountId,
-                        ),
-                      ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert_rounded),
+                  color: scheme.surface,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(RadiusTokens.md),
+                    side: BorderSide(
+                      color: scheme.outlineVariant,
+                      width: 1,
                     ),
                   ),
-                ),
-                IconButton(
-                  tooltip: AppStringsAr.accountStatementExportPdfTooltip,
-                  icon: const Icon(Icons.picture_as_pdf_outlined),
-                  onPressed: () => shareAccountStatementAsPdf(
-                    context,
-                    accountId: state.data.accountId,
-                  ),
-                ),
-                IconButton(
-                  tooltip: AppStringsAr.refreshBalanceTooltip,
-                  icon: const Icon(Icons.refresh_rounded),
-                  onPressed: () => context
-                      .read<AccountDetailCubit>()
-                      .load(state.data.accountId),
-                ),
-                IconButton(
-                  tooltip: AppStringsAr.archiveAccountAction,
-                  icon: const Icon(Icons.archive_outlined),
-                  onPressed: () =>
-                      confirmAndArchiveAccount(context, state.data.accountId),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'edit':
+                        _openEdit(context, state.data);
+                        break;
+                      case 'message':
+                        Navigator.of(context).push<void>(
+                          QaydPageRoute.slideFromStart<void>(
+                            builder: (ctx) => NotificationPreviewPage(
+                              mode: NotificationPreviewAccount(
+                                  state.data.accountId),
+                            ),
+                          ),
+                        );
+                        break;
+                      case 'chat':
+                        Navigator.of(context).push<void>(
+                          QaydPageRoute.slideFromStart<void>(
+                            builder: (ctx) => BlocProvider(
+                              create: (_) => StatementChatCubit(
+                                listStatement: InjectionContainer
+                                    .listAccountStatementChatUseCase,
+                                listAccounts:
+                                    InjectionContainer.listAccountsUseCase,
+                                getCostCenterDetails: InjectionContainer
+                                    .getCostCenterDetailsUseCase,
+                                counterpartyAccountId: state.data.accountId,
+                              )..load(),
+                              child: AccountStatementChatPage(
+                                counterpartyAccountId: state.data.accountId,
+                              ),
+                            ),
+                          ),
+                        );
+                        break;
+                      case 'export_pdf':
+                        shareAccountStatementAsPdf(
+                          context,
+                          accountId: state.data.accountId,
+                        );
+                        break;
+                      case 'refresh':
+                        context
+                            .read<AccountDetailCubit>()
+                            .load(state.data.accountId);
+                        break;
+                      case 'archive':
+                        confirmAndArchiveAccount(context, state.data.accountId);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) {
+                    final scheme = Theme.of(context).colorScheme;
+                    return [
+                      _buildMenuItem(
+                        value: 'edit',
+                        icon: Icons.edit_outlined,
+                        label: AppStringsAr.editAccountTooltip,
+                        iconColor: scheme.primary,
+                      ),
+                      _buildMenuItem(
+                        value: 'message',
+                        icon: Icons.chat_bubble_outline_rounded,
+                        label: AppStringsAr.accountSendMessageTooltip,
+                        iconColor: Colors.blueAccent,
+                      ),
+                      _buildMenuItem(
+                        value: 'chat',
+                        icon: Icons.forum_outlined,
+                        label: 'محادثة كشف الحساب',
+                        iconColor: Colors.teal,
+                      ),
+                      _buildMenuItem(
+                        value: 'export_pdf',
+                        icon: Icons.picture_as_pdf_outlined,
+                        label: AppStringsAr.accountStatementExportPdfTooltip,
+                        iconColor: Colors.redAccent,
+                      ),
+                      const PopupMenuDivider(),
+                      _buildMenuItem(
+                        value: 'refresh',
+                        icon: Icons.refresh_rounded,
+                        label: AppStringsAr.refreshBalanceTooltip,
+                        iconColor: scheme.onSurfaceVariant,
+                      ),
+                      _buildMenuItem(
+                        value: 'archive',
+                        icon: Icons.archive_outlined,
+                        label: AppStringsAr.archiveAccountAction,
+                        iconColor: scheme.error,
+                      ),
+                    ];
+                  },
                 ),
               ],
             ],
@@ -117,6 +202,24 @@ class AccountDetailPage extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  PopupMenuItem<String> _buildMenuItem({
+    required String value,
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: iconColor),
+          const SizedBox(width: SpacingTokens.md),
+          QaydText(label, slot: QaydTextStyleSlot.bodyMedium),
+        ],
+      ),
     );
   }
 }
