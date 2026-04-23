@@ -203,14 +203,15 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     );
   }
 
-  Future<Result<void>> sendWhatsApp() async {
+  Future<Result<void>> sendWhatsApp(WhatsAppFlavor flavor) async {
     final s = state;
     if (s is! NotificationPreviewReady) {
       return const Success(null);
     }
     final targetNumber = s.account?.whatsappNumber ?? s.account?.phoneNumber;
-    final ok = await MessagingIntentLauncher.openWhatsAppWithText(
-      s.bodyText,
+    final ok = await MessagingIntentLauncher.shareToWhatsApp(
+      flavor: flavor,
+      message: s.bodyText,
       phoneNumber: targetNumber,
     );
     if (!ok) {

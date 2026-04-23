@@ -29,14 +29,41 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
-class TripartiteListPage extends StatelessWidget {
-  const TripartiteListPage({super.key});
+class TripartiteListPage extends StatefulWidget {
+  const TripartiteListPage({super.key, this.isActive = true});
+  final bool isActive;
+
+  @override
+  State<TripartiteListPage> createState() => _TripartiteListPageState();
+}
+
+class _TripartiteListPageState extends State<TripartiteListPage> {
+  late final TripartiteListCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _cubit = TripartiteListCubit(InjectionContainer.listVouchersUseCase)..load();
+  }
+
+  @override
+  void didUpdateWidget(TripartiteListPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _cubit.load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _cubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          TripartiteListCubit(InjectionContainer.listVouchersUseCase)..load(),
+    return BlocProvider.value(
+      value: _cubit,
       child: const _TripartiteListView(),
     );
   }

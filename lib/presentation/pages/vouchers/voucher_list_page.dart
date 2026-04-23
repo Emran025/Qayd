@@ -31,17 +31,45 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/voucher_state_codec.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
-class VoucherListPage extends StatelessWidget {
-  const VoucherListPage({super.key});
+class VoucherListPage extends StatefulWidget {
+  const VoucherListPage({super.key, this.isActive = true});
+  final bool isActive;
+
+  @override
+  State<VoucherListPage> createState() => _VoucherListPageState();
+}
+
+class _VoucherListPageState extends State<VoucherListPage> {
+  late final VoucherListCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _cubit = VoucherListCubit(
+      InjectionContainer.listVouchersUseCase,
+      InjectionContainer.notificationMessageRepository,
+      isInternalOnly: false,
+    )..load();
+  }
+
+  @override
+  void didUpdateWidget(VoucherListPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _cubit.load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _cubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => VoucherListCubit(
-        InjectionContainer.listVouchersUseCase,
-        InjectionContainer.notificationMessageRepository,
-        isInternalOnly: false,
-      )..load(),
+    return BlocProvider.value(
+      value: _cubit,
       child: const _VoucherListView(),
     );
   }

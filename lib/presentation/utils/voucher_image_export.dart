@@ -15,6 +15,10 @@ import 'package:qayd/presentation/utils/numerical_styling.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
+import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
+import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
+import 'package:qayd/core/result/result.dart';
 
 /// Shows a professional voucher overlay, captures it as a high-res PNG,
 /// then shares via [share_plus].
@@ -147,10 +151,37 @@ Future<void> shareVoucherAsFormattedImage(
     if (editedText == null) return; // Cancelled
     shareText = editedText;
 
-    await Share.shareXFiles(
-      [XFile(file.path, mimeType: 'image/png')],
-      text: shareText,
-    );
+    final method = await ShareMethodPicker.show(context);
+    if (method == null) return;
+
+    if (method == ShareMethod.system) {
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'image/png')],
+        text: shareText,
+      );
+    } else {
+      final flavor = method == ShareMethod.whatsappStandard
+          ? WhatsAppFlavor.standard
+          : WhatsAppFlavor.business;
+
+      String? phoneNumber;
+      if (data.counterpartyAccountId.isNotEmpty) {
+        final aR = await InjectionContainer.getAccountDetailsUseCase(
+          GetAccountDetailsInput(accountId: data.counterpartyAccountId),
+        );
+        if (aR.isSuccess) {
+          final account = aR.valueOrNull!;
+          phoneNumber = account.whatsappNumber ?? account.phoneNumber;
+        }
+      }
+
+      await MessagingIntentLauncher.shareToWhatsApp(
+        flavor: flavor,
+        message: shareText,
+        fileAbsolutePath: file.path,
+        phoneNumber: phoneNumber,
+      );
+    }
   } catch (e) {
     // Ensure cleanup on failure
     if (overlay.mounted) overlay.remove();
@@ -441,9 +472,8 @@ class VoucherImageCard extends StatelessWidget {
       final senderName = isReceiptLeg
           ? data.counterpartyName
           : (data.linkedPartyName ?? data.counterpartyName);
-      final receiverName = isReceiptLeg
-          ? (data.linkedPartyName ?? '—')
-          : data.counterpartyName;
+      final receiverName =
+          isReceiptLeg ? (data.linkedPartyName ?? '—') : data.counterpartyName;
 
       if (isDebit) {
         sectionLabel = 'بيانات القيد (المدين) — من حساب المُرسِل:';
@@ -453,7 +483,8 @@ class VoucherImageCard extends StatelessWidget {
             : (data.isContingent
                 ? 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).'
                 : 'تحويل مالي مزدوج عبر الصندوق — خصم من حساب $senderName وإضافة إلى حساب $receiverName.');
-        notesText = 'يُعتبر هذا الإشعار توثيقاً رسمياً بالخصم من حساب المُرسِل.';
+        notesText =
+            'يُعتبر هذا الإشعار توثيقاً رسمياً بالخصم من حساب المُرسِل.';
       } else {
         sectionLabel = 'بيانات القيد (الدائن) — إلى حساب المُستلِم:';
         accountName = receiverName;

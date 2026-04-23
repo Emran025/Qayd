@@ -12,6 +12,7 @@ import 'package:qayd/presentation/pages/messaging/notification_preview_state.dar
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
 
 class NotificationPreviewPage extends StatelessWidget {
   const NotificationPreviewPage({super.key, required this.mode});
@@ -200,9 +201,13 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                                   foregroundColor: ColorTokens.navy950,
                                 ),
                                 onPressed: () async {
+                                  final flavor = await WhatsAppFlavorPicker.show(context);
+                                  if (flavor == null) return;
+                                  if (!context.mounted) return;
+
                                   final r = await context
                                       .read<NotificationPreviewCubit>()
-                                      .sendWhatsApp();
+                                      .sendWhatsApp(flavor);
                                   if (!context.mounted) {
                                     return;
                                   }

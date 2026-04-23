@@ -7,9 +7,15 @@ import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/data/dtos/voucher_report_dto.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
-import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
+import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
+import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
+import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
+import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
 
 Future<void> shareVoucherAsPdf(
   BuildContext context,
@@ -142,7 +148,42 @@ Future<void> shareVoucherAsPdf(
     if (editedText == null) return; // Cancelled
     shareText = editedText;
 
-    await sharePdfBytes(bytes, 'qayd_voucher_${data.id}.pdf', text: shareText);
+    final method = await ShareMethodPicker.show(context);
+    if (method == null) return;
+
+    final dir = await getTemporaryDirectory();
+    final path = p.join(dir.path, 'qayd_voucher_${data.id}.pdf');
+    final file = File(path);
+    await file.writeAsBytes(bytes, flush: true);
+
+    if (method == ShareMethod.system) {
+      await Share.shareXFiles(
+        [XFile(path, mimeType: 'application/pdf')],
+        text: shareText,
+      );
+    } else {
+      final flavor = method == ShareMethod.whatsappStandard
+          ? WhatsAppFlavor.standard
+          : WhatsAppFlavor.business;
+
+      String? phoneNumber;
+      if (data.counterpartyAccountId.isNotEmpty) {
+        final aR = await InjectionContainer.getAccountDetailsUseCase(
+          GetAccountDetailsInput(accountId: data.counterpartyAccountId),
+        );
+        if (aR.isSuccess) {
+          final account = aR.valueOrNull!;
+          phoneNumber = account.whatsappNumber ?? account.phoneNumber;
+        }
+      }
+
+      await MessagingIntentLauncher.shareToWhatsApp(
+        flavor: flavor,
+        message: shareText,
+        fileAbsolutePath: path,
+        phoneNumber: phoneNumber,
+      );
+    }
   } catch (_) {
     messenger.showSnackBar(
       SnackBar(content: Text(AppStringsAr.exportPdfShareError)),

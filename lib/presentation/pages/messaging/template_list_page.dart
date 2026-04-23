@@ -401,8 +401,9 @@ class _TemplateListScaffold extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: kTemplateVariables.where((v) {
-          if (v.kindRestricted != null && v.kindRestricted != currentKind)
+          if (v.kindRestricted != null && v.kindRestricted != currentKind) {
             return false;
+          }
           return true;
         }).map((v) {
           return Padding(

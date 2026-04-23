@@ -38,9 +38,10 @@ class _AppShellPageState extends State<AppShellPage> {
   }
 
   void _listenToNotifications() {
-    InjectionContainer.nativeNotificationService.onNotificationTap.listen((payload) {
+    InjectionContainer.nativeNotificationService.onNotificationTap
+        .listen((payload) {
       if (payload == null || !mounted) return;
-      
+
       try {
         // Implementation note: In a real app, use a proper router or deep link handler.
         // For 'Qayd', we parse a simple string or JSON for navigation.
@@ -56,7 +57,7 @@ class _AppShellPageState extends State<AppShellPage> {
 
   void _navigateToChat(String cpId) {
     if (!mounted) return;
-    
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (ctx) => BlocProvider(
@@ -64,7 +65,8 @@ class _AppShellPageState extends State<AppShellPage> {
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
             counterpartyAccountId: cpId,
-            getCostCenterDetails: InjectionContainer.getCostCenterDetailsUseCase,
+            getCostCenterDetails:
+                InjectionContainer.getCostCenterDetailsUseCase,
           )..load(),
           child: AccountStatementChatPage(counterpartyAccountId: cpId),
         ),
@@ -115,9 +117,9 @@ class _AppShellPageState extends State<AppShellPage> {
           IndexedStack(
             index: _index,
             children: [
-              const VoucherListPage(),
-              const TripartiteListPage(),
-              const AccountListPage(),
+              VoucherListPage(isActive: _index == 0),
+              TripartiteListPage(isActive: _index == 1),
+              AccountListPage(isActive: _index == 2),
               TrialBalancePage(key: ValueKey('reports_$_reportKeyId')),
               const InternalManagementPage(),
             ],

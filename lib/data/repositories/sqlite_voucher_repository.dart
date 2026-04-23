@@ -408,7 +408,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
         if (updated == 0) {
           await txn.insert(_vouchers, map);
         }
-        
+
         // Clean up any existing ledger entries for this voucher (e.g. from a previous confirmation before withdrawal/rejection)
         // to prevent double-counting when re-confirming an edited voucher.
         await txn.delete(
@@ -416,7 +416,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
           where: 'voucher_id = ?',
           whereArgs: [voucher.id.value],
         );
-        
+
         for (final e in ledgerEntries) {
           await txn.insert(
             _ledger,

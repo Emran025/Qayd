@@ -29,18 +29,48 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
-class AccountListPage extends StatelessWidget {
-  const AccountListPage({super.key, this.isRootMode = false});
+class AccountListPage extends StatefulWidget {
+  const AccountListPage(
+      {super.key, this.isRootMode = false, this.isActive = true});
   final bool isRootMode;
+  final bool isActive;
+
+  @override
+  State<AccountListPage> createState() => _AccountListPageState();
+}
+
+class _AccountListPageState extends State<AccountListPage> {
+  late final AccountListCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _cubit = AccountListCubit(InjectionContainer.listAccountsUseCase,
+        initialTypeFilter: widget.isRootMode
+            ? AccountTypeFilter.root
+            : AccountTypeFilter.child)
+      ..load();
+  }
+
+  @override
+  void didUpdateWidget(AccountListPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _cubit.load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _cubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AccountListCubit(InjectionContainer.listAccountsUseCase,
-          initialTypeFilter:
-              isRootMode ? AccountTypeFilter.root : AccountTypeFilter.child)
-        ..load(),
-      child: _AccountListScaffold(isRootMode: isRootMode),
+    return BlocProvider.value(
+      value: _cubit,
+      child: _AccountListScaffold(isRootMode: widget.isRootMode),
     );
   }
 }
@@ -114,11 +144,12 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
       QaydPageRoute.slideFromStart<void>(
         builder: (ctx) => BlocProvider(
           create: (_) => StatementChatCubit(
-            listStatement: InjectionContainer.listAccountStatementChatUseCase,
-            listAccounts: InjectionContainer.listAccountsUseCase,
-            counterpartyAccountId: accountId,
-            getCostCenterDetails: InjectionContainer.getCostCenterDetailsUseCase
-          )..load(),
+              listStatement: InjectionContainer.listAccountStatementChatUseCase,
+              listAccounts: InjectionContainer.listAccountsUseCase,
+              counterpartyAccountId: accountId,
+              getCostCenterDetails:
+                  InjectionContainer.getCostCenterDetailsUseCase)
+            ..load(),
           child: AccountStatementChatPage(counterpartyAccountId: accountId),
         ),
       ),

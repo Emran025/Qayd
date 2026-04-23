@@ -11,6 +11,11 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
+import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
+import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
+import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
+import 'package:qayd/core/result/result.dart';
 
 Future<void> shareVoucherAsText(
     BuildContext context, GetVoucherDetailsOutput data) async {
@@ -55,7 +60,33 @@ Future<void> shareVoucherAsText(
   if (editedText == null) return; // Cancelled
   shareText = editedText;
 
-  await Share.share(shareText);
+  final method = await ShareMethodPicker.show(context);
+  if (method == null) return;
+
+  if (method == ShareMethod.system) {
+    await Share.share(shareText);
+  } else {
+    final flavor = method == ShareMethod.whatsappStandard
+        ? WhatsAppFlavor.standard
+        : WhatsAppFlavor.business;
+
+    String? phoneNumber;
+    if (data.counterpartyAccountId.isNotEmpty) {
+      final aR = await InjectionContainer.getAccountDetailsUseCase(
+        GetAccountDetailsInput(accountId: data.counterpartyAccountId),
+      );
+      if (aR.isSuccess) {
+        final account = aR.valueOrNull!;
+        phoneNumber = account.whatsappNumber ?? account.phoneNumber;
+      }
+    }
+
+    await MessagingIntentLauncher.shareToWhatsApp(
+      flavor: flavor,
+      message: shareText,
+      phoneNumber: phoneNumber,
+    );
+  }
 }
 
 Future<void> shareTripartiteAsText(
@@ -129,8 +160,35 @@ Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey,
     if (editedText == null) return; // Cancelled
     shareText = editedText;
 
-    await Share.shareXFiles([XFile(file.path, mimeType: 'image/png')],
-        text: shareText);
+    final method = await ShareMethodPicker.show(context);
+    if (method == null) return;
+
+    if (method == ShareMethod.system) {
+      await Share.shareXFiles([XFile(file.path, mimeType: 'image/png')],
+          text: shareText);
+    } else {
+      final flavor = method == ShareMethod.whatsappStandard
+          ? WhatsAppFlavor.standard
+          : WhatsAppFlavor.business;
+
+      String? phoneNumber;
+      if (data.counterpartyAccountId.isNotEmpty) {
+        final aR = await InjectionContainer.getAccountDetailsUseCase(
+          GetAccountDetailsInput(accountId: data.counterpartyAccountId),
+        );
+        if (aR.isSuccess) {
+          final account = aR.valueOrNull!;
+          phoneNumber = account.whatsappNumber ?? account.phoneNumber;
+        }
+      }
+
+      await MessagingIntentLauncher.shareToWhatsApp(
+        flavor: flavor,
+        message: shareText,
+        fileAbsolutePath: file.path,
+        phoneNumber: phoneNumber,
+      );
+    }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('تعذر مشاركة الإيصال كصورة: $e')),
