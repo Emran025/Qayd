@@ -1,5 +1,5 @@
 import 'dart:ui';
-
+import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart' as picker;
 import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +36,8 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
   CountryModel? selectedCountry;
   final List<FocusNode> focusNodes = [FocusNode(), FocusNode()];
   String? _errorText;
+  final picker.FlutterNativeContactPicker _contactPicker =
+      picker.FlutterNativeContactPicker();
 
   @override
   void initState() {
@@ -144,6 +146,73 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
         _errorText = null;
       });
     }
+  }
+
+  Future<void> _pickContact() async {
+    try {
+      final contact = await _contactPicker.selectContact();
+      if (contact != null &&
+          contact.phoneNumbers != null &&
+          contact.phoneNumbers!.isNotEmpty) {
+        final rawPhone = contact.phoneNumbers!.first;
+        _applyPhoneNumber(rawPhone);
+      }
+    } catch (e) {
+      // Handle potential errors (e.g. permission denied)
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تعذر الوصول لجهات الاتصال: $e')),
+        );
+      }
+    }
+  }
+
+  void _applyPhoneNumber(String rawPhone) {
+    // 1. Sanitize the phone number
+    var phone = rawPhone.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // 2. Handle international format
+    if (phone.startsWith('+')) {
+      final digits = phone.substring(1);
+      // Try to find the longest matching country code
+      CountryModel? bestMatch;
+      int bestLen = 0;
+
+      for (var c in countries) {
+        final cCode = c.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '');
+        if (digits.startsWith(cCode) && cCode.length > bestLen) {
+          bestMatch = c;
+          bestLen = cCode.length;
+        }
+      }
+
+      if (bestMatch != null) {
+        setState(() {
+          selectedCountry = bestMatch;
+          widget.zoneController.text =
+              bestMatch!.countryCallingCode.replaceAll(RegExp(r'[^\d]'), '');
+          widget.phoneController.text = digits.substring(bestLen);
+          widget.onCountryChanged?.call();
+        });
+      } else {
+        // Fallback: just put everything in phone
+        widget.phoneController.text = digits;
+      }
+    } else {
+      // If no '+' but starts with 00, treat as international
+      if (phone.startsWith('00')) {
+        _applyPhoneNumber('+' + phone.substring(2));
+        return;
+      }
+
+      // Local format or unknown - if it matches current country's typical length but starts with 0
+      // Many countries use '0' as a trunk prefix. We might want to strip it if we are sure.
+      // But for now, let's keep it simple.
+      widget.phoneController.text = phone;
+    }
+
+    _updateFullNumber();
+    _clearError();
   }
 
   @override
@@ -321,6 +390,20 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                     ),
                   ),
                 ),
+
+                // Contact Picker Button
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: IconButton(
+                    onPressed: _pickContact,
+                    icon: Icon(
+                      Icons.contact_phone_outlined,
+                      color: accentColor.withValues(alpha: 0.7),
+                      size: 22,
+                    ),
+                    tooltip: 'اختر من جهات الاتصال',
+                  ),
+                ),
               ],
             ),
           ),
@@ -380,3 +463,4 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     );
   }
 }
+

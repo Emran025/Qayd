@@ -71,6 +71,7 @@ dependencies:
   permission_handler: ^12.0.1
   fl_chart: ^1.2.0
   flutter_local_notifications: ^21.0.0
+  flutter_native_contact_picker: ^0.0.11
 
 dev_dependencies:
   flutter_test:
