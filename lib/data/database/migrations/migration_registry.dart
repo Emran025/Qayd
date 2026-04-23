@@ -24,6 +24,7 @@ import 'package:qayd/data/database/migrations/migration_023_fix_fts_triggers.dar
 import 'package:qayd/data/database/migrations/migration_024_audit_logs.dart';
 import 'package:qayd/data/database/migrations/migration_025_account_archive.dart';
 import 'package:qayd/data/database/migrations/migration_026_account_default_cost_centers.dart';
+import 'package:qayd/data/database/migrations/migration_027_gold_silver_currencies.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -58,6 +59,7 @@ final class MigrationRegistry {
     Migration024AuditLogs(),
     Migration025AccountArchive(),
     Migration026AccountDefaultCostCenters(),
+    Migration027GoldSilverCurrencies(),
   ];
 
   static List<SchemaMigration> get ordered {

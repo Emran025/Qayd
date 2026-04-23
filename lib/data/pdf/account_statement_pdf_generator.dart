@@ -67,7 +67,7 @@ final class CairoAccountStatementPdfGenerator
         periodLabel = '$a — $b';
       }
 
-      final natureAr = report.natureCode == 'debit' ? 'مدين' : 'دائن';
+      final natureAr = report.natureCode == 'debit' ? 'دائن' : 'مدين';
 
       // Calculate totals
       int totalDebit = 0;
@@ -417,7 +417,7 @@ final class CairoAccountStatementPdfGenerator
         4: const pw.FlexColumnWidth(2.0), // دائن
         5: const pw.FlexColumnWidth(2.0), // الرصيد
       },
-      headers: ['التاريخ', 'البيان', 'رقم السند', 'مدين', 'دائن', 'الرصيد'],
+      headers: ['التاريخ', 'البيان', 'رقم السند', 'دائن', 'مدين', 'الرصيد'],
       data: [
         ...report.lines.map((l) {
           final d = dateFmt.format(DateTime.parse(l.dateIso));

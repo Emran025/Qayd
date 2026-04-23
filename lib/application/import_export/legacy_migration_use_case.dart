@@ -1,12 +1,14 @@
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/account.dart';
+import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
@@ -164,6 +166,15 @@ class LegacyMigrationUseCase {
           }
         }
 
+        // 3. Try WhatsApp match
+        if (existing == null && phone.isNotEmpty) {
+          final waResult = await _accountRepo.findAccountByWhatsApp(phone);
+          if (waResult is Success<AccountId?> && waResult.value != null) {
+            final accResult = await _accountRepo.getById(waResult.value!);
+            if (accResult is Success<Account>) existing = accResult.value;
+          }
+        }
+
         final conflictType = existing == null
             ? AccountConflictType.noMatch
             : (existing.name.trim().toLowerCase() == name.toLowerCase()
@@ -195,12 +206,37 @@ class LegacyMigrationUseCase {
   /// the user chose [ResolutionAction.createNew]), and builds the final
   /// `legacyId → qaydAccountId` mapping used by [executeImport].
   ///
+  /// New accounts are created as **children** of the appropriate parent root:
+  ///   - classification == 'payables' (موردين)  → child of ذمم مدينة (لك)
+  ///   - classification == 'receivables' / default → child of ذمم دائنة (عليك)
+  ///
   /// [userResolutions] — user choices keyed by legacy account ID string.
   Future<Result<Map<String, String>>> resolveAccounts({
     required MigrationAnalysisResult analysis,
     required Map<String, AccountResolution> userResolutions,
   }) async {
     final resolved = <String, String>{};
+
+    // ── Locate parent root accounts for receivables & payables ──────────
+    final allResult = await _accountRepo.getAll();
+    final allAccounts =
+        allResult is Success<List<Account>> ? allResult.value : <Account>[];
+
+    // Find the receivables root (ذمم دائنة (عليك))
+    final receivablesRoot = allAccounts
+        .where((a) =>
+            a.isRoot &&
+            a.classification.standardKind ==
+                StandardAccountClassificationKind.receivables)
+        .firstOrNull;
+
+    // Find the payables root (ذمم مدينة (لك))
+    final payablesRoot = allAccounts
+        .where((a) =>
+            a.isRoot &&
+            a.classification.standardKind ==
+                StandardAccountClassificationKind.payables)
+        .firstOrNull;
 
     for (final conflict in analysis.accountConflicts) {
       final legacyId = conflict.legacyIdStr;
@@ -217,22 +253,49 @@ class LegacyMigrationUseCase {
           break;
 
         case ResolutionAction.createNew:
-          // Build a minimal account from legacy data.
           final newId = AccountId(const Uuid().v4());
-          final newAccount = Account.createRoot(
-            id: newId,
-            name: conflict.name.isNotEmpty ? conflict.name : 'حساب مستورد',
-            // Legacy customer accounts are receivables (ذمم دائنة (عليك)) by default.
-            // The user can reclassify later from inside the app.
-            classification: AccountClassification.receivables,
-            createdAt: DateTime.now(),
-            metadata: {
-              'source': 'legacy_import',
-              'original_id': conflict.legacyData['legacy_id'],
-              'group': conflict.groupName,
-              if (conflict.phone.isNotEmpty) 'phone': conflict.phone,
-            },
-          );
+          final accountName =
+              conflict.name.isNotEmpty ? conflict.name : 'حساب مستورد';
+
+          // Determine parent based on bundle classification from the web tool.
+          final legacyClassification =
+              conflict.legacyData['classification']?.toString() ?? '';
+          final isPayable = legacyClassification == 'payables';
+          final parentAccount = isPayable ? payablesRoot : receivablesRoot;
+
+          final Account newAccount;
+          if (parentAccount != null) {
+            // Create as child under the correct receivables / payables root.
+            newAccount = Account.createChild(
+              id: newId,
+              name: accountName,
+              parent: parentAccount,
+              createdAt: DateTime.now(),
+              metadata: {
+                'source': 'legacy_import',
+                'original_id': conflict.legacyData['legacy_id'],
+                'group': conflict.groupName,
+                if (conflict.phone.isNotEmpty) 'phone': conflict.phone,
+              },
+            );
+          } else {
+            // Fallback: if no parent root exists, create as root with
+            // the appropriate classification.
+            newAccount = Account.createRoot(
+              id: newId,
+              name: accountName,
+              classification: isPayable
+                  ? AccountClassification.payables
+                  : AccountClassification.receivables,
+              createdAt: DateTime.now(),
+              metadata: {
+                'source': 'legacy_import',
+                'original_id': conflict.legacyData['legacy_id'],
+                'group': conflict.groupName,
+                if (conflict.phone.isNotEmpty) 'phone': conflict.phone,
+              },
+            );
+          }
 
           final saveResult = await _accountRepo.save(newAccount);
           if (saveResult is FailureResult) {
@@ -243,6 +306,17 @@ class LegacyMigrationUseCase {
               ),
             );
           }
+
+          // Save party details (phone, customer type) if available.
+          if (conflict.phone.isNotEmpty) {
+            final partyDetails = PartyDetails(
+              accountId: newId,
+              phoneNumber: conflict.phone,
+              partyType: conflict.legacyData['customer_type_name']?.toString(),
+            );
+            await _accountRepo.savePartyDetails(partyDetails);
+          }
+
           resolved[legacyId] = newId.value;
           break;
       }
@@ -493,6 +567,8 @@ class LegacyMigrationUseCase {
       'JOD': 'دينار أردني',
       'EUR': 'يورو',
       'GBP': 'جنيه إسترليني',
+      'XAU': 'جرام ذهب',
+      'XAG': 'جرام فضة',
     };
     return map[code] ?? 'عملة $code';
   }
@@ -511,6 +587,8 @@ class LegacyMigrationUseCase {
       'KWD': 'د.ك',
       'BHD': 'د.ب',
       'JOD': 'د.أ',
+      'XAU': 'ج.ذ',
+      'XAG': 'ج.ف',
     };
     return map[code] ?? code;
   }

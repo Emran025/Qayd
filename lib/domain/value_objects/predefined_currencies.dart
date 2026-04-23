@@ -78,6 +78,20 @@ abstract final class PredefinedCurrencies {
     fractionalDigits: 3,
     isActive: false,
   );
+  static const xau = CurrencyCode(
+    code: 'XAU',
+    nameAr: 'جرام ذهب',
+    symbol: 'ج.ذ',
+    fractionalDigits: 2,
+    isActive: false,
+  );
+  static const xag = CurrencyCode(
+    code: 'XAG',
+    nameAr: 'جرام فضة',
+    symbol: 'ج.ف',
+    fractionalDigits: 2,
+    isActive: false,
+  );
 
   static const List<CurrencyCode> all = [
     sar,
@@ -91,5 +105,7 @@ abstract final class PredefinedCurrencies {
     qar,
     egp,
     jod,
+    xau,
+    xag,
   ];
 }

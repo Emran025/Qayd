@@ -200,135 +200,134 @@ final class TrialBalancePdfGenerator {
     }
 
     return pw.Table(
-          border: pw.TableBorder.all(
-              color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
-          columnWidths: const {
-            0: pw.FlexColumnWidth(3.5),
-            1: pw.FixedColumnWidth(40),
-            2: pw.FlexColumnWidth(2.5),
-            3: pw.FlexColumnWidth(2.5),
-            4: pw.FlexColumnWidth(2.5),
-          },
+      border:
+          pw.TableBorder.all(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(3.5),
+        1: pw.FixedColumnWidth(40),
+        2: pw.FlexColumnWidth(2.5),
+        3: pw.FlexColumnWidth(2.5),
+        4: pw.FlexColumnWidth(2.5),
+      },
+      children: [
+        // ── Header row ──────────────────────────────────────────────────
+        pw.TableRow(
+          decoration: const pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFF0F2741)), // _navy
           children: [
-            // ── Header row ──────────────────────────────────────────────────
-            pw.TableRow(
-              decoration: const pw.BoxDecoration(
-                  color: PdfColor.fromInt(0xFF0F2741)), // _navy
-              children: [
-                _headerCell(font, 'الحساب'),
-                _headerCell(font, 'العملة'),
-                _headerCell(font, 'الأرصدة الافتتاحية',
-                    subHeaders: ['مدين', 'دائن']),
-                _headerCell(font, 'حركة الفترة', subHeaders: ['مدين', 'دائن']),
-                _headerCell(font, 'الأرصدة الختامية',
-                    subHeaders: ['مدين', 'دائن']),
-              ],
-            ),
-            // ── Data rows ───────────────────────────────────────────────────
-            ...groups.values.map((group) {
-              final first = group.first;
-              final isBold = first.isParent || first.accountLevel == 0;
-              final indent = (first.accountLevel * 10).toDouble();
+            _headerCell(font, 'الحساب'),
+            _headerCell(font, 'العملة'),
+            _headerCell(font, 'الأرصدة الافتتاحية',
+                subHeaders: ['دائن', 'مدين']),
+            _headerCell(font, 'حركة الفترة', subHeaders: ['دائن', 'مدين']),
+            _headerCell(font, 'الأرصدة الختامية', subHeaders: ['دائن', 'مدين']),
+          ],
+        ),
+        // ── Data rows ───────────────────────────────────────────────────
+        ...groups.values.map((group) {
+          final first = group.first;
+          final isBold = first.isParent || first.accountLevel == 0;
+          final indent = (first.accountLevel * 10).toDouble();
 
-              return pw.TableRow(
-                decoration: first.isParent
-                    ? const pw.BoxDecoration(color: PdfColors.grey50)
-                    : null,
-                children: [
-                  // 1. Merged Account Info Formatted
-                  pw.Container(
-                    alignment: pw.Alignment.centerRight,
-                    padding: pw.EdgeInsets.only(
-                      right: indent,
-                      left: 5,
-                      top: 4,
-                      bottom: 4,
-                    ),
-                    child: pw.RichText(
-                      text: pw.TextSpan(
-                        children: [
-                          if (first.accountCode.isNotEmpty)
-                            pw.TextSpan(
-                              text: '[${first.accountCode}] ',
-                              style: pw.TextStyle(
-                                font: font,
-                                fontSize: 7,
-                                color: _muted,
+          return pw.TableRow(
+            decoration: first.isParent
+                ? const pw.BoxDecoration(color: PdfColors.grey50)
+                : null,
+            children: [
+              // 1. Merged Account Info Formatted
+              pw.Container(
+                alignment: pw.Alignment.centerRight,
+                padding: pw.EdgeInsets.only(
+                  right: indent,
+                  left: 5,
+                  top: 4,
+                  bottom: 4,
+                ),
+                child: pw.RichText(
+                  text: pw.TextSpan(
+                    children: [
+                      if (first.accountCode.isNotEmpty)
+                        pw.TextSpan(
+                          text: '[${first.accountCode}] ',
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 7,
+                            color: _muted,
+                          ),
+                        ),
+                      pw.TextSpan(
+                        text: first.accountName,
+                        style: pw.TextStyle(
+                          font: font,
+                          fontSize: 8,
+                          fontWeight: isBold
+                              ? pw.FontWeight.bold
+                              : pw.FontWeight.normal,
+                          color: _navy,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 2. Currencies Column
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                children: group.map((l) {
+                  return pw.Container(
+                    alignment: pw.Alignment.center,
+                    padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                    decoration: l == group.last
+                        ? null
+                        : const pw.BoxDecoration(
+                            border: pw.Border(
+                              bottom: pw.BorderSide(
+                                color: PdfColor.fromInt(0xFFCBD5E1),
+                                width: 0.5,
                               ),
-                            ),
-                          pw.TextSpan(
-                            text: first.accountName,
-                            style: pw.TextStyle(
-                              font: font,
-                              fontSize: 8,
-                              fontWeight: isBold
-                                  ? pw.FontWeight.bold
-                                  : pw.FontWeight.normal,
-                              color: _navy,
                             ),
                           ),
-                        ],
-                      ),
+                    child: pw.Text(
+                      l.currencyCode,
+                      style:
+                          pw.TextStyle(font: font, fontSize: 7, color: _muted),
                     ),
-                  ),
+                  );
+                }).toList(),
+              ),
 
-                  // 2. Currencies Column
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                    children: group.map((l) {
-                      return pw.Container(
-                        alignment: pw.Alignment.center,
-                        padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                        decoration: l == group.last
-                            ? null
-                            : const pw.BoxDecoration(
-                                border: pw.Border(
-                                  bottom: pw.BorderSide(
-                                    color: PdfColor.fromInt(0xFFCBD5E1),
-                                    width: 0.5,
-                                  ),
-                                ),
-                              ),
-                        child: pw.Text(
-                          l.currencyCode,
-                          style: pw.TextStyle(
-                              font: font, fontSize: 7, color: _muted),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+              // 3. Opening Column
+              _buildGroupedDualColumn(
+                font,
+                group,
+                (l) => l.openingDebitMinorUnits,
+                (l) => l.openingCreditMinorUnits,
+                isBold,
+              ),
 
-                  // 3. Opening Column
-                  _buildGroupedDualColumn(
-                    font,
-                    group,
-                    (l) => l.openingDebitMinorUnits,
-                    (l) => l.openingCreditMinorUnits,
-                    isBold,
-                  ),
+              // 4. Period Column
+              _buildGroupedDualColumn(
+                font,
+                group,
+                (l) => l.periodDebitMinorUnits,
+                (l) => l.periodCreditMinorUnits,
+                isBold,
+              ),
 
-                  // 4. Period Column
-                  _buildGroupedDualColumn(
-                    font,
-                    group,
-                    (l) => l.periodDebitMinorUnits,
-                    (l) => l.periodCreditMinorUnits,
-                    isBold,
-                  ),
-
-                  // 5. Closing Column
-                  _buildGroupedDualColumn(
-                    font,
-                    group,
-                    (l) => l.closingDebitMinorUnits,
-                    (l) => l.closingCreditMinorUnits,
-                    isBold,
-                  ),
-                ],
-              );
-            }),
-          ],
-        );
+              // 5. Closing Column
+              _buildGroupedDualColumn(
+                font,
+                group,
+                (l) => l.closingDebitMinorUnits,
+                (l) => l.closingCreditMinorUnits,
+                isBold,
+              ),
+            ],
+          );
+        }),
+      ],
+    );
   }
 
   pw.Widget _buildGroupedDualColumn(
@@ -400,7 +399,7 @@ final class TrialBalancePdfGenerator {
                     )),
                 pw.Expanded(child: pw.SizedBox()),
                 pw.Row(children: [
-                  pw.Text('مدين ',
+                  pw.Text('دائن',
                       style: pw.TextStyle(
                           font: font, fontSize: 8, color: debitColor)),
                   pw.RichText(
@@ -422,7 +421,7 @@ final class TrialBalancePdfGenerator {
                       width: 0.5, height: 12, color: PdfColors.grey300),
                 ),
                 pw.Row(children: [
-                  pw.Text('دائن ',
+                  pw.Text('مدين',
                       style: pw.TextStyle(
                           font: font, fontSize: 8, color: creditColor)),
                   pw.RichText(
@@ -486,7 +485,8 @@ final class TrialBalancePdfGenerator {
                             decoration: pw.BoxDecoration(
                               color: PdfColors.white,
                               borderRadius: pw.BorderRadius.circular(12),
-                              border: pw.Border.all(color: statusColor, width: 0.5),
+                              border:
+                                  pw.Border.all(color: statusColor, width: 0.5),
                             ),
                             child: pw.Text(
                               isBalanced ? 'متوازن ✓' : 'غير متوازن',
@@ -616,8 +616,10 @@ final class TrialBalancePdfGenerator {
           ),
           pw.Table(
             border: const pw.TableBorder(
-              top: pw.BorderSide(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
-              verticalInside: pw.BorderSide(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+              top: pw.BorderSide(
+                  color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+              verticalInside: pw.BorderSide(
+                  color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
             ),
             children: [
               pw.TableRow(

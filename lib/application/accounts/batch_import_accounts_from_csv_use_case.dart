@@ -47,10 +47,10 @@ final class BatchImportAccountsFromCsvUseCase {
   ) {
     final h = row.natureHint?.trim().toLowerCase();
     if (h == null || h.isEmpty) return defaultKind;
-    if (h == 'مدين' || h == 'debit' || h == 'dr' || h == 'd' || h == 'مديني') {
+    if (h == 'دائن' || h == 'debit' || h == 'dr' || h == 'd' || h == 'مديني') {
       return StandardAccountClassificationKind.receivables;
     }
-    if (h == 'دائن' || h == 'credit' || h == 'cr' || h == 'c' || h == 'دائني') {
+    if (h == 'مدين' || h == 'credit' || h == 'cr' || h == 'c' || h == 'دائني') {
       return StandardAccountClassificationKind.payables;
     }
     return defaultKind;

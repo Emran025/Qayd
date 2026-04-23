@@ -77,13 +77,13 @@ void main() {
     test('relocateUnder rejects parent with different classification', () {
       final debitRoot = Account.createRoot(
         id: AccountId('d'),
-        name: 'مدين',
+        name: 'دائن',
         classification: AccountClassification.liquidAssets,
         createdAt: now,
       );
       final creditRoot = Account.createRoot(
         id: AccountId('cr'),
-        name: 'دائن',
+        name: 'مدين',
         classification: AccountClassification.payables,
         createdAt: now,
       );

@@ -141,8 +141,8 @@ Uint8List buildAccountStatementExcelBytes({
     'رقم السند',
     'البيان',
     'الحالة',
-    'مدين',
     'دائن',
+    'مدين',
     'الرصيد',
   ];
   final rows = <List<Object?>>[];

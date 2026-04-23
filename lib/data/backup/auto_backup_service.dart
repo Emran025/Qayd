@@ -175,8 +175,12 @@ class AutoBackupService {
 
     if (extDir == null) return null;
     final dir = Directory(p.join(extDir.path, _backupDirName));
-    if (!dir.existsSync()) await dir.create(recursive: true);
-    return dir;
+    try {
+      if (!dir.existsSync()) await dir.create(recursive: true);
+      return dir;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _pruneOld(Directory dir) async {
@@ -198,28 +202,32 @@ class AutoBackupService {
   /// Finds the latest available local backup across all known locations.
   /// Used during app reinstall to offer restoration.
   Future<File?> latestLocalBackup() async {
-    final internalDir = await _localBackupDir();
-    final externalDir = await _externalBackupDir();
+    try {
+      final internalDir = await _localBackupDir();
+      final externalDir = await _externalBackupDir();
 
-    final allFiles = <File>[];
-    if (internalDir.existsSync()) {
-      allFiles.addAll(internalDir
-          .listSync()
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.db')));
+      final allFiles = <File>[];
+      if (internalDir.existsSync()) {
+        allFiles.addAll(internalDir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.db')));
+      }
+      if (externalDir != null && externalDir.existsSync()) {
+        allFiles.addAll(externalDir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.db')));
+      }
+
+      if (allFiles.isEmpty) return null;
+
+      allFiles.sort((a, b) =>
+          b.path.compareTo(a.path)); // Newest first by timestamp in name
+      return allFiles.first;
+    } catch (_) {
+      return null;
     }
-    if (externalDir != null && externalDir.existsSync()) {
-      allFiles.addAll(externalDir
-          .listSync()
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.db')));
-    }
-
-    if (allFiles.isEmpty) return null;
-
-    allFiles.sort((a, b) =>
-        b.path.compareTo(a.path)); // Newest first by timestamp in name
-    return allFiles.first;
   }
 
   /// Attempts to find the DB encryption key file alongside the given backup file.

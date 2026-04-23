@@ -89,15 +89,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       return;
     }
 
-    // Step 2: Check for local/cloud backups (database files)
-    await _checkBackups();
-
-    if (_hasLocalBackup || _hasDriveBackup) {
-      if (mounted) setState(() => _phase = _GatePhase.backupRestore);
-      return;
-    }
-
-    // Step 3: Check server for existing public key identity
+    // Step 2: Check server for existing public key identity FIRST
     await _checkServerIdentity();
 
     if (_serverCheckFailed) {
@@ -107,15 +99,24 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       return;
     }
 
-    if (_hasServerIdentity) {
-      // Server has identity but local doesn't → prompt for primary key recovery
-      if (mounted) setState(() => _phase = _GatePhase.identityDecision);
+    if (!_hasServerIdentity) {
+      // New account (no server identity) -> skip backup check, create new identity.
+      if (mounted) setState(() => _phase = _GatePhase.identitySetup);
+      _navigateToSeedSetup();
       return;
     }
 
-    // Step 4: No identity anywhere → create new one
-    if (mounted) setState(() => _phase = _GatePhase.identitySetup);
-    _navigateToSeedSetup();
+    // Step 3: Server identity exists. This is a returning user.
+    // Check for local/cloud backups (database files)
+    await _checkBackups();
+
+    if (_hasLocalBackup || _hasDriveBackup) {
+      if (mounted) setState(() => _phase = _GatePhase.backupRestore);
+      return;
+    }
+
+    // Step 4: Server identity exists, but no backups found. Prompt for primary key recovery.
+    if (mounted) setState(() => _phase = _GatePhase.identityDecision);
   }
 
   Future<void> _checkBackups() async {

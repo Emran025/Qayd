@@ -80,8 +80,17 @@ final class GoogleDriveBackupService {
       await _storage.write(key: _kAccountEmail, value: account.email);
       return Success(account.email);
     } catch (e) {
+      String msg = 'فشل تسجيل الدخول إلى Google: $e';
+      final eStr = e.toString();
+      if (eStr.contains('sign_in_failed')) {
+        if (eStr.contains('10:')) {
+          msg = 'تعذر الاتصال بخدمات Google: يجب تكوين بصمة التطبيق (SHA-1) في إعدادات Firebase.';
+        } else {
+          msg = 'تم إلغاء أو فشل تسجيل الدخول إلى حساب Google.';
+        }
+      }
       return FailureResult(
-        AuthFailure(messageAr: 'فشل تسجيل الدخول إلى Google: $e'),
+        AuthFailure(messageAr: msg),
       );
     }
   }

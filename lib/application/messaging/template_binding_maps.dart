@@ -49,7 +49,7 @@ abstract final class TemplateBindingMaps {
     } else {
       final names = sigParts.join(' و ');
       signatureLabel = 'تم التوقيع بواسطة: $names';
-      
+
       // If only one signature, we can append a truncated hex for quick reference
       if (sigParts.length == 1) {
         final hex = d.senderSignatureHex ?? d.receiverSignatureHex;
@@ -100,14 +100,16 @@ abstract final class TemplateBindingMaps {
     final buffer = StringBuffer('التوثيق الرقمي (Blockchain Verification):');
 
     if (hasSender) {
-      final label = (d.transferGroupId != null || d.isTripartite) && d.typeCode == 'receipt'
+      final label = (d.transferGroupId != null || d.isTripartite) &&
+              d.typeCode == 'receipt'
           ? 'توقيع الطرف المرسل'
           : 'توقيع مُصدر السند';
       buffer.write('\n- $label: ${d.senderSignatureHex}');
     }
 
     if (hasReceiver) {
-      final label = (d.transferGroupId != null || d.isTripartite) && d.typeCode == 'payment'
+      final label = (d.transferGroupId != null || d.isTripartite) &&
+              d.typeCode == 'payment'
           ? 'توقيع الطرف المستلم'
           : 'توقيع الطرف المقابل';
       buffer.write('\n- $label: ${d.receiverSignatureHex}');
@@ -122,7 +124,7 @@ abstract final class TemplateBindingMaps {
         .map((e) =>
             '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${e.key}')
         .join(', ');
-    final nature = d.natureCode == 'debit' ? 'مدين' : 'دائن';
+    final nature = d.natureCode == 'debit' ? 'دائن' : 'مدين';
     return {
       'account_name': d.name,
       'balance': balanceStr,

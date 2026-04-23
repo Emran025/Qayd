@@ -430,7 +430,7 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'مدين',
+                'دائن',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -447,7 +447,7 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'دائن',
+                'مدين',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -1077,7 +1077,7 @@ class _SummaryRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('مدين ',
+              Text('دائن',
                   style:
                       TextStyle(fontSize: 9, color: qayd.debit.withAlpha(150))),
               QaydMoneyDisplay(
@@ -1098,7 +1098,7 @@ class _SummaryRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('دائن ',
+              Text('مدين',
                   style: TextStyle(
                       fontSize: 9, color: qayd.credit.withAlpha(150))),
               QaydMoneyDisplay(
