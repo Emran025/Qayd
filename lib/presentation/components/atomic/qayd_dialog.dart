@@ -149,14 +149,17 @@ class QaydDialog extends StatelessWidget {
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
-                            vertical: SpacingTokens.md,
+                            vertical: SpacingTokens.sm,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius:
                                 BorderRadius.circular(RadiusTokens.md),
                           ),
                         ),
-                        child: Text(secondaryActionLabel!),
+                        child: QaydText(
+                          secondaryActionLabel!,
+                          slot: QaydTextStyleSlot.labelLarge,
+                        ),
                       ),
                     ),
                   if (primaryActionLabel != null &&
@@ -170,14 +173,18 @@ class QaydDialog extends StatelessWidget {
                           backgroundColor: scheme.primary,
                           foregroundColor: scheme.onPrimary,
                           padding: const EdgeInsets.symmetric(
-                            vertical: SpacingTokens.md,
+                            vertical: SpacingTokens.sm,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius:
                                 BorderRadius.circular(RadiusTokens.md),
                           ),
                         ),
-                        child: Text(primaryActionLabel!),
+                        child: QaydText(
+                          primaryActionLabel!,
+                          slot: QaydTextStyleSlot.labelLarge,
+                          color: scheme.onPrimary,
+                        ),
                       ),
                     ),
                 ],
@@ -198,7 +205,11 @@ class QaydDialog extends StatelessWidget {
                       Navigator.pop(context);
                     }
                   },
-                  child: Text(tertiaryActionLabel!),
+                  child: QaydText(
+                    tertiaryActionLabel!,
+                    slot: QaydTextStyleSlot.labelLarge,
+                    color: scheme.primary,
+                  ),
                 ),
               ),
           ],

@@ -51,6 +51,9 @@ class SyncCoordinatorService {
   bool _isProcessingQueue = false;
   bool _hasPendingPull = false;
 
+  /// Whether the coordinator is currently active.
+  bool get isRunning => _periodicTimer != null || _socketSubscription != null;
+
   /// Initiate the synchronization lifecycle
   void start() {
     // 1. Instantly enqueue task to fetch any missed nodes while disconnected
@@ -118,8 +121,11 @@ class SyncCoordinatorService {
   /// Stop sync lifecycle (e.g. app goes completely dormant or user logs out)
   void stop() {
     _periodicTimer?.cancel();
+    _periodicTimer = null;
     _expiryTimer?.cancel();
+    _expiryTimer = null;
     _socketSubscription?.cancel();
+    _socketSubscription = null;
     socketService.disconnect();
   }
 

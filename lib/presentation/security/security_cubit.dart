@@ -103,9 +103,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     }
 
     // 6. Retry any pending server key registration (non-blocking).
-    InjectionContainer.setupIdentityUseCase
-        .ensureServerRegistration()
-        .ignore();
+    InjectionContainer.setupIdentityUseCase.ensureServerRegistration().ignore();
 
     emit(
       shouldPinLock
@@ -359,6 +357,30 @@ class SecurityCubit extends Cubit<SecurityState> {
     final start = await _licenseVault.readTrialStart();
     if (start == null) return LicenseVault.trialDurationDays;
     return _licenseVault.daysRemainingInTrial(start);
+  }
+  // ── Auth & Logout ─────────────────────────────────────────────────────────
+
+  Future<void> logout() async {
+    // 1. Clear session from vault (JWT and License Data)
+    await _licenseVault.writeJwt('');
+    await _licenseVault.writeLicenseData({});
+
+    // 2. Stop background services if running
+    if (InjectionContainer.syncCoordinatorService.isRunning) {
+      InjectionContainer.syncCoordinatorService.stop();
+    }
+
+    // 3. Close database and reset epoch
+    // NOTE: This will trigger UI rebuilds and force the bootstrapper to re-evaluate
+    await InjectionContainer.closeDatabaseForRestore();
+
+    // 4. Emit pending status to force redirect to login
+    emit(
+      const SecurityUnlocked(
+        licenseStatus: LicenseStatus.pending,
+        trialDaysRemaining: LicenseVault.trialDurationDays,
+      ),
+    );
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

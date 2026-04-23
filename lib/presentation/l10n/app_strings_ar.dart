@@ -1243,4 +1243,9 @@ abstract final class AppStringsAr {
       'إنشاء هوية جديدة (حساب جديد تماماً)';
   static const String gateNetworkCreateNewWarning =
       'تحذير: إذا كنت تمتلك هوية سابقة، فستفقد القدرة على التعامل مع السندات الموقعة بها.';
+
+  // Logout
+  static const String logoutAction = 'تسجيل الخروج';
+  static const String logoutConfirmTitle = 'تأكيد تسجيل الخروج';
+  static const String logoutConfirmBody = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
 }

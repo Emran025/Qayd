@@ -19,6 +19,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/pages/settings/audit_log_page.dart';
 import 'package:qayd/presentation/pages/settings/audit_log_cubit.dart';
 import 'package:qayd/presentation/pages/settings/sync_privacy_settings_section.dart';
+import 'package:qayd/presentation/components/settings/logout_button.dart';
 
 class SettingsSidebar extends StatelessWidget {
   const SettingsSidebar({super.key});
@@ -192,6 +193,13 @@ class SettingsSidebar extends StatelessWidget {
                   title: AppStringsAr.settingsGroupSupport,
                   onTap: () => _navTo(context, const SupportSettingsPage()),
                 ),
+                const Divider(
+                  indent: 20,
+                  endIndent: 20,
+                  height: 30,
+                  thickness: 0.5,
+                ),
+                const LogoutButton(),
               ],
             ),
           ),
