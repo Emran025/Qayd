@@ -67,6 +67,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
   bool _showSearch = false;
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
+  final Map<String, GlobalKey> _messageKeys = {};
 
   @override
   void dispose() {
@@ -169,7 +170,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   'amountMinorUnits': msg.amountMinorUnits,
                   'description': msg.description,
                   'counterpartyAccountId': msg.otherPartyId,
-                  'originVoucherId': msg.voucherId,
+                  'currencyCode': msg.currencyCode,
+                  'editingVoucherId': msg.voucherId,
                 },
               ),
             ),
@@ -243,13 +245,25 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     'amountMinorUnits': msg.amountMinorUnits,
                     'description': msg.description,
                     'counterpartyAccountId': msg.otherPartyId,
-                    'originVoucherId': msg.voucherId,
+                    'currencyCode': msg.currencyCode,
+                    'editingVoucherId': msg.voucherId,
                   },
                 ),
               ),
             ),
           )
           .then((_) => cubit.reload());
+    }
+  }
+
+  void _scrollToMessage(String voucherId) {
+    final key = _messageKeys[voucherId];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
     }
   }
 
@@ -409,20 +423,26 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
 
   List<List<_BalanceSnapshot>> _calculateAllRollingSnapshots(
     List<AccountStatementChatMessageDto> history,
-    int initialBalanceForPrimary,
+    Map<String, int> initialBalances,
   ) {
     final List<List<_BalanceSnapshot>> snapshotsList = [];
     final Map<String, _BalanceSnapshot> currentBalances = {};
 
-    if (history.isNotEmpty) {
-      final first = history.first;
-      currentBalances[first.currencyCode] = _BalanceSnapshot(
-        code: first.currencyCode,
-        symbol: first.currencySymbol,
-        digits: first.currencyDigits,
-        amount: initialBalanceForPrimary,
-      );
+    // Collect symbols from history to use for initial balances
+    final Map<String, AccountStatementChatMessageDto> symbolLookup = {};
+    for (final m in history) {
+      symbolLookup.putIfAbsent(m.currencyCode, () => m);
     }
+
+    initialBalances.forEach((code, amount) {
+      final dto = symbolLookup[code];
+      currentBalances[code] = _BalanceSnapshot(
+        code: code,
+        symbol: dto?.currencySymbol ?? code,
+        digits: dto?.currencyDigits ?? 2,
+        amount: amount,
+      );
+    });
 
     for (final m in history) {
       final current = currentBalances[m.currencyCode] ??
@@ -445,6 +465,26 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     }
 
     return snapshotsList;
+  }
+
+  List<_BalanceSnapshot> _calculateInitialSnapshots(
+    Map<String, int> initialBalances,
+    List<AccountStatementChatMessageDto> history,
+  ) {
+    final Map<String, AccountStatementChatMessageDto> symbolLookup = {};
+    for (final m in history) {
+      symbolLookup.putIfAbsent(m.currencyCode, () => m);
+    }
+
+    return initialBalances.entries.map((e) {
+      final dto = symbolLookup[e.key];
+      return _BalanceSnapshot(
+        code: e.key,
+        symbol: dto?.currencySymbol ?? e.key,
+        digits: dto?.currencyDigits ?? 2,
+        amount: e.value,
+      );
+    }).toList();
   }
 
   // ── Build ──
@@ -554,7 +594,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     accountName: data.counterpartyName,
                     filter: data.filter,
                     messages: data.messages,
-                    broughtForwardMinorUnits: data.broughtForwardMinorUnits,
+                    broughtForwardByCurrency: data.broughtForwardByCurrency,
                   ),
                   onExportExcel: () => shareStatementChatAsExcel(
                     context,
@@ -562,7 +602,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     accountName: data.counterpartyName,
                     filter: data.filter,
                     messages: data.messages,
-                    broughtForwardMinorUnits: data.broughtForwardMinorUnits,
+                    broughtForwardByCurrency: data.broughtForwardByCurrency,
                     currencyDigits: data.currencyDigits,
                   ),
                 ),
@@ -593,15 +633,6 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                 mode: data.filter.viewMode,
                 onChanged: (m) => cubit.setViewMode(m),
               ),
-
-              // ── Brought Forward Balance card ──
-              if (data.broughtForwardMinorUnits != 0 &&
-                  data.filter.includePreviousBalance)
-                _BroughtForwardCard(
-                  balanceMinorUnits: data.broughtForwardMinorUnits,
-                  currencySymbol: data.currencySymbol,
-                  currencyDigits: data.currencyDigits,
-                ),
 
               // ── Messages list ──
               Expanded(
@@ -636,8 +667,11 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                             // Pre-calculate all chronology snapshots in one go (O(N))
                             final allSnapshots = _calculateAllRollingSnapshots(
                               data.messages,
-                              data.broughtForwardMinorUnits,
+                              data.broughtForwardByCurrency,
                             );
+                            final showBF = data.filter.includePreviousBalance &&
+                                data.broughtForwardByCurrency.values
+                                    .any((v) => v != 0);
 
                             return ListView.builder(
                               controller: _scrollController,
@@ -645,13 +679,26 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                 left: SpacingTokens.sm,
                                 right: SpacingTokens.sm,
                                 top: SpacingTokens.sm,
-                                bottom:
-                                    110.0, // Extra padding so FAB doesn't cover numbers
+                                bottom: 110.0,
                               ),
-                              itemCount: data.messages.length,
+                              itemCount:
+                                  data.messages.length + (showBF ? 1 : 0),
                               itemBuilder: (context, i) {
-                                final msg = data.messages[i];
-                                final balances = allSnapshots[i];
+                                if (showBF && i == 0) {
+                                  return _BroughtForwardCard(
+                                    balances: allSnapshots.isEmpty
+                                        ? []
+                                        : _calculateInitialSnapshots(
+                                            data.broughtForwardByCurrency,
+                                            data.messages,
+                                          ),
+                                  );
+                                }
+                                final msgIdx = showBF ? i - 1 : i;
+                                final msg = data.messages[msgIdx];
+                                final key = _messageKeys.putIfAbsent(
+                                    msg.voucherId, () => GlobalKey());
+                                final balances = allSnapshots[msgIdx];
 
                                 final msgWidget = _MessageBubble(
                                   msg: msg,
@@ -663,6 +710,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                       _withdrawVoucher(context, id),
                                   onResubmit: (id) =>
                                       _resubmitVoucher(context, id),
+                                  onOriginTap: _scrollToMessage,
                                   onTap: () => data.isUnified
                                       ? _navigateToCounterpartyChat(
                                           context,
@@ -676,6 +724,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                 );
 
                                 final itemWidget = Column(
+                                  key: key,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     if (i == firstUnreadIndex)
@@ -701,10 +750,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
               // ── Summary footer ──
               if (data.messages.isNotEmpty)
                 _SummaryFooter(
-                  finalBalanceMinorUnits: data.finalBalanceMinorUnits,
+                  finalBalancesByCurrency: data.finalBalanceByCurrency,
                   messageCount: data.messages.length,
-                  currencySymbol: data.currencySymbol,
-                  currencyDigits: data.currencyDigits,
                 ),
             ],
           ),
@@ -1072,21 +1119,14 @@ class _ActiveFilterChips extends StatelessWidget {
 // ══════════════════════════════════════════════════════════════════════════════
 
 class _BroughtForwardCard extends StatelessWidget {
-  const _BroughtForwardCard({
-    required this.balanceMinorUnits,
-    required this.currencySymbol,
-    required this.currencyDigits,
-  });
+  const _BroughtForwardCard({required this.balances});
 
-  final int balanceMinorUnits;
-  final String currencySymbol;
-  final int currencyDigits;
+  final List<_BalanceSnapshot> balances;
 
   @override
   Widget build(BuildContext context) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
-    final isPositive = balanceMinorUnits >= 0;
-    final color = isPositive ? custom.credit : ColorTokens.errorDeep;
+    final color = custom.confirmedState;
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -1099,21 +1139,30 @@ class _BroughtForwardCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(RadiusTokens.md),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(Icons.history_rounded, size: 20, color: color),
-          const SizedBox(width: SpacingTokens.sm),
-          Expanded(
-            child: QaydText(
-              AppStringsAr.statementBroughtForward,
-              slot: QaydTextStyleSlot.bodyMedium,
-            ),
-          ),
-          _BalanceAmountText(
-            minorUnits: balanceMinorUnits,
-            currencySymbol: currencySymbol,
-            currencyDigits: currencyDigits,
-          ),
+          if (balances.isNotEmpty) ...[
+            ...balances.map((b) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Text(
+                        b.code,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: color,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const Spacer(),
+                      _BalanceAmountText(
+                        minorUnits: b.amount,
+                        currencySymbol: b.symbol,
+                        currencyDigits: b.digits,
+                      ),
+                    ],
+                  ),
+                )),
+          ],
         ],
       ),
     );
@@ -1186,33 +1235,17 @@ class _UnreadSessionDivider extends StatelessWidget {
 
 class _SummaryFooter extends StatelessWidget {
   const _SummaryFooter({
-    required this.finalBalanceMinorUnits,
+    required this.finalBalancesByCurrency,
     required this.messageCount,
-    required this.currencySymbol,
-    required this.currencyDigits,
   });
 
-  final int finalBalanceMinorUnits;
+  final Map<String, int> finalBalancesByCurrency;
   final int messageCount;
-  final String currencySymbol;
-  final int currencyDigits;
 
   @override
   Widget build(BuildContext context) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
     final scheme = Theme.of(context).colorScheme;
-    final isPositive = finalBalanceMinorUnits > 0;
-    final isNegative = finalBalanceMinorUnits < 0;
-    final statusLabel = isPositive
-        ? AppStringsAr.statementBalanceForYou
-        : isNegative
-            ? AppStringsAr.statementBalanceAgainstYou
-            : AppStringsAr.statementBalanceSettled;
-    final statusColor = isPositive
-        ? custom.credit
-        : isNegative
-            ? ColorTokens.errorDeep
-            : custom.confirmedState;
 
     return Container(
       decoration: BoxDecoration(
@@ -1227,47 +1260,75 @@ class _SummaryFooter extends StatelessWidget {
         top: SpacingTokens.sm + 2,
         bottom: MediaQuery.paddingOf(context).bottom + SpacingTokens.sm + 2,
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Status indicator
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: SpacingTokens.sm),
-          // Labels
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
+          Row(
+            children: [
+              Expanded(
+                child: Text(
                   AppStringsAr.statementFinalBalance,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
                 ),
-                Text(
-                  statusLabel,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            ),
+              ),
+              Text(
+                '$messageCount ${AppStringsAr.statementVoucherCount}',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    ),
+              ),
+            ],
           ),
-          // Balance amount
-          _BalanceAmountText(
-            minorUnits: finalBalanceMinorUnits,
-            currencySymbol: currencySymbol,
-            currencyDigits: currencyDigits,
-            large: true,
-          ),
+          const SizedBox(height: SpacingTokens.xs),
+          ...finalBalancesByCurrency.entries.map((e) {
+            final isPositive = e.value > 0;
+            final isNegative = e.value < 0;
+            final statusLabel = isPositive
+                ? AppStringsAr.statementBalanceAgainstYou
+                : isNegative
+                    ? AppStringsAr.statementBalanceForYou
+                    : AppStringsAr.statementBalanceSettled;
+            final statusColor = isPositive
+                ? ColorTokens.errorDeep
+                : isNegative
+                    ? custom.credit
+                    : custom.confirmedState;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: SpacingTokens.sm),
+                  Expanded(
+                    child: Text(
+                      '${e.key}: $statusLabel',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: statusColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                  _BalanceAmountText(
+                    minorUnits: e.value,
+                    currencySymbol:
+                        e.key, // Fallback to code as symbol in footer for now
+                    currencyDigits: 2,
+                    large: true,
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -1370,15 +1431,15 @@ class _ChronologySummaryTable extends StatelessWidget {
               final isPositive = b.amount > 0;
               final isNegative = b.amount < 0;
               final color = isPositive
-                  ? custom.credit
+                  ? ColorTokens.errorDeep
                   : isNegative
-                      ? ColorTokens.errorDeep
+                      ? custom.credit
                       : custom.confirmedState;
 
               final label = isPositive
-                  ? 'دائن (لك)'
+                  ? ' دائن (عليك)'
                   : isNegative
-                      ? 'مدين (عليك)'
+                      ? 'مدين (لك)'
                       : 'متعادل';
 
               return Container(
@@ -1436,6 +1497,7 @@ class _MessageBubble extends StatelessWidget {
     required this.onResubmit,
     required this.onTap,
     required this.onLongPress,
+    this.onOriginTap,
   });
 
   final AccountStatementChatMessageDto msg;
@@ -1447,6 +1509,7 @@ class _MessageBubble extends StatelessWidget {
   final Future<void> Function(String voucherId) onResubmit;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
+  final void Function(String originId)? onOriginTap;
 
   bool get _isIncoming => msg.direction == 'incoming';
   bool get _isOutgoing => msg.direction == 'outgoing';
@@ -1584,6 +1647,41 @@ class _MessageBubble extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (msg.originVoucherId != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              SpacingTokens.md,
+                              SpacingTokens.xs,
+                              SpacingTokens.md,
+                              0,
+                            ),
+                            child: InkWell(
+                              onTap: () =>
+                                  onOriginTap?.call(msg.originVoucherId!),
+                              borderRadius:
+                                  BorderRadius.circular(RadiusTokens.sm),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.reply_rounded,
+                                      size: 14, color: statusColor),
+                                  const SizedBox(width: SpacingTokens.xs),
+                                  Expanded(
+                                    child: Text(
+                                      AppStringsAr.voucherReplyHeader,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
                         // ──── Header: type + badge + ticks ────
                         Container(
                           padding: const EdgeInsets.fromLTRB(
@@ -2060,9 +2158,9 @@ class _BalanceAmountText extends StatelessWidget {
     final isPositive = minorUnits > 0;
     final isNegative = minorUnits < 0;
     final color = isPositive
-        ? custom.credit
+        ? ColorTokens.errorDeep
         : isNegative
-            ? ColorTokens.errorDeep
+            ? custom.credit
             : custom.confirmedState;
 
     num divisor = 1;
@@ -2073,7 +2171,7 @@ class _BalanceAmountText extends StatelessWidget {
     final major = abs / divisor;
     final formatted = major.toStringAsFixed(currencyDigits);
 
-    final effectiveFontSize = fontSize ?? (large ? 18.0 : 13.0);
+    final effectiveFontSize = fontSize ?? (large ? 14.0 : 12.0);
     final text = '$formatted $currencySymbol';
 
     return Text.rich(

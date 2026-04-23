@@ -14,18 +14,17 @@ import 'package:qayd/domain/value_objects/voucher_type.dart';
 class StatementChatOutput {
   const StatementChatOutput({
     required this.messages,
-    required this.broughtForwardMinorUnits,
-    required this.finalBalanceMinorUnits,
+    required this.broughtForwardByCurrency,
+    required this.finalBalanceByCurrency,
   });
 
   final List<AccountStatementChatMessageDto> messages;
 
-  /// Opening balance calculated from vouchers before [fromDate].
-  /// Zero when [includePreviousBalance] is false or no date range is set.
-  final int broughtForwardMinorUnits;
+  /// Opening balances per currency before the filtered date range.
+  final Map<String, int> broughtForwardByCurrency;
 
-  /// Closing balance after all filtered messages.
-  final int finalBalanceMinorUnits;
+  /// Closing balances per currency after all filtered messages.
+  final Map<String, int> finalBalanceByCurrency;
 }
 
 final class ListAccountStatementChatUseCase {
@@ -164,7 +163,7 @@ final class ListAccountStatementChatUseCase {
         return false;
       }
 
-      int broughtForward = 0;
+      Map<String, int> broughtForwardByCurrency = {};
       List<Voucher> periodVouchers = allVouchers;
 
       if (filter.fromDate != null) {
@@ -178,7 +177,6 @@ final class ListAccountStatementChatUseCase {
           final priorVouchers =
               allVouchers.where((v) => v.date.isBefore(fromStart)).toList();
 
-          broughtForward = 0;
           for (final v in priorVouchers) {
             final dir = _directionFromPerspective(
               v: v,
@@ -191,10 +189,11 @@ final class ListAccountStatementChatUseCase {
               final isWithdrawn = v.state.isWithdrawn;
 
               if (!isRejected && !isWithdrawn) {
+                final cur = v.currency.code;
                 if (dir == 'incoming') {
-                  broughtForward += v.amount.minorUnits;
+                  broughtForwardByCurrency[cur] = (broughtForwardByCurrency[cur] ?? 0) + v.amount.minorUnits;
                 } else {
-                  broughtForward -= v.amount.minorUnits;
+                  broughtForwardByCurrency[cur] = (broughtForwardByCurrency[cur] ?? 0) - v.amount.minorUnits;
                 }
               }
             }
@@ -267,7 +266,7 @@ final class ListAccountStatementChatUseCase {
       }
 
       // ── Build DTOs with running balance ──
-      int runningBalance = broughtForward;
+      Map<String, int> runningBalances = Map.from(broughtForwardByCurrency);
       final messages = <AccountStatementChatMessageDto>[];
 
       for (final v in filtered) {
@@ -281,10 +280,11 @@ final class ListAccountStatementChatUseCase {
         final isWithdrawn = v.state.isWithdrawn;
 
         if (!isRejected && !isWithdrawn) {
+          final cur = v.currency.code;
           if (direction == 'incoming') {
-            runningBalance += v.amount.minorUnits;
+            runningBalances[cur] = (runningBalances[cur] ?? 0) + v.amount.minorUnits;
           } else {
-            runningBalance -= v.amount.minorUnits;
+            runningBalances[cur] = (runningBalances[cur] ?? 0) - v.amount.minorUnits;
           }
         }
 
@@ -313,7 +313,7 @@ final class ListAccountStatementChatUseCase {
           description: mergedDescription,
           otherPartyId: otherId,
           otherPartyName: otherName,
-          runningBalanceMinorUnits: runningBalance,
+          runningBalanceMinorUnits: runningBalances[v.currency.code] ?? 0,
           referenceNumber: v.referenceNumber,
           mediatorAccountId: v.tripartiteMeta?.mediatorAccountId?.value,
           mediatorName: v.tripartiteMeta?.mediatorAccountId != null
@@ -321,13 +321,14 @@ final class ListAccountStatementChatUseCase {
               : null,
           feeAmountMinorUnits: v.tripartiteMeta?.feeAmount?.minorUnits,
           isCreator: isCreator,
+          originVoucherId: v.originVoucherId?.value,
         ));
       }
 
       return Success(StatementChatOutput(
         messages: messages,
-        broughtForwardMinorUnits: broughtForward,
-        finalBalanceMinorUnits: runningBalance,
+        broughtForwardByCurrency: broughtForwardByCurrency,
+        finalBalanceByCurrency: runningBalances,
       ));
     } catch (e, _) {
       return FailureResult(failureFromDomainException(e));

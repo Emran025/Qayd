@@ -397,9 +397,11 @@ class Voucher {
     String? notes,
     List<String>? tags,
   }) {
-    if (!state.isDraft && !state.isWithdrawn) {
+    final canEdit = canWithdraw || state.isWithdrawn;
+    if (!canEdit) {
       throw const ImmutableEntityException(
-        messageAr: 'لا يمكن تعديل السند إلا إذا كان مسودة أو تم سحبه.',
+        messageAr:
+            'لا يمكن تعديل السند إلا إذا كان مسودة، مسحوباً، أو قيد انتظار موافقة الطرف الآخر.',
         code: 'voucher_not_editable',
       );
     }

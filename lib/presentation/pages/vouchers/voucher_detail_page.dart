@@ -383,6 +383,7 @@ class _VoucherDetailBody extends StatelessWidget {
                                     'description': data.description,
                                     'counterpartyAccountId':
                                         data.counterpartyAccountId,
+                                    'currencyCode': data.currencyCode,
                                     'editingVoucherId': data.id,
                                   },
                                 ),

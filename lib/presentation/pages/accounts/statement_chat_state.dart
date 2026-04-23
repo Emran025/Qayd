@@ -21,8 +21,8 @@ final class StatementChatReady extends StatementChatState {
     required this.counterpartyAccountId,
     required this.counterpartyName,
     required this.messages,
-    required this.broughtForwardMinorUnits,
-    required this.finalBalanceMinorUnits,
+    required this.broughtForwardByCurrency,
+    required this.finalBalanceByCurrency,
     required this.filter,
     required this.searchQuery,
     this.isUnified = false,
@@ -35,8 +35,8 @@ final class StatementChatReady extends StatementChatState {
   final String counterpartyAccountId;
   final String counterpartyName;
   final List<AccountStatementChatMessageDto> messages;
-  final int broughtForwardMinorUnits;
-  final int finalBalanceMinorUnits;
+  final Map<String, int> broughtForwardByCurrency;
+  final Map<String, int> finalBalanceByCurrency;
   final StatementChatFilterInput filter;
   final String searchQuery;
   final bool isUnified;
@@ -48,8 +48,8 @@ final class StatementChatReady extends StatementChatState {
 
   StatementChatReady copyWith({
     List<AccountStatementChatMessageDto>? messages,
-    int? broughtForwardMinorUnits,
-    int? finalBalanceMinorUnits,
+    Map<String, int>? broughtForwardByCurrency,
+    Map<String, int>? finalBalanceByCurrency,
     StatementChatFilterInput? filter,
     String? searchQuery,
     bool? isUnified,
@@ -62,10 +62,10 @@ final class StatementChatReady extends StatementChatState {
       counterpartyAccountId: counterpartyAccountId,
       counterpartyName: counterpartyName,
       messages: messages ?? this.messages,
-      broughtForwardMinorUnits:
-          broughtForwardMinorUnits ?? this.broughtForwardMinorUnits,
-      finalBalanceMinorUnits:
-          finalBalanceMinorUnits ?? this.finalBalanceMinorUnits,
+      broughtForwardByCurrency:
+          broughtForwardByCurrency ?? this.broughtForwardByCurrency,
+      finalBalanceByCurrency:
+          finalBalanceByCurrency ?? this.finalBalanceByCurrency,
       filter: filter ?? this.filter,
       searchQuery: searchQuery ?? this.searchQuery,
       isUnified: isUnified ?? this.isUnified,

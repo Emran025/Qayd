@@ -144,10 +144,10 @@ abstract final class AppStringsAr {
   static const String chartOfAccountsTitle = 'دليل الحسابات الأساسية';
   static const String searchAccountsHint = 'بحث باسم الحساب…';
   static const String filterNatureAll = 'الكل';
-  static const String filterNatureDebit = 'مدين (عليك)';
-  static const String filterNatureCredit = 'دائن (لك)';
-  static const String natureDebitShort = 'مدين (عليك)';
-  static const String natureCreditShort = 'دائن (لك)';
+  static const String filterNatureDebit = 'مدين (لك)';
+  static const String filterNatureCredit = ' دائن (عليك)';
+  static const String natureDebitShort = 'مدين (لك)';
+  static const String natureCreditShort = ' دائن (عليك)';
   static const String accountBalanceLabel = 'الرصيد';
   static const String addAccountFab = 'حساب جديد';
   static const String retryAction = 'إعادة المحاولة';
@@ -392,8 +392,8 @@ abstract final class AppStringsAr {
   // Trial balance
   static const String trialBalanceTitle = 'ميزان المراجعة';
   static const String trialBalanceColAccount = 'اسم الحساب';
-  static const String trialBalanceColDebit = 'إجمالي المدين (لك)';
-  static const String trialBalanceColCredit = 'إجمالي الدائن (عليك)';
+  static const String trialBalanceColDebit = 'إجمالي الدائن (عليك)';
+  static const String trialBalanceColCredit = 'إجمالي المدين (لك)';
   static const String trialBalanceGrandTotal = 'الإجمالي';
   static const String trialBalanceBalanced =
       'متوازن — إجمالي المدين يساوي إجمالي الدائن';
@@ -749,7 +749,8 @@ abstract final class AppStringsAr {
   static const String tripartiteDisabledError =
       'خيار التحويل عبر مقاصة الحوالات غير مفعل من الإعدادات.';
   static const String tripartiteGoToSettings = 'الإعدادات';
-  static const String tripartiteDisabledDialogTitle = 'خيار التحويل الوسيط غير مفعل';
+  static const String tripartiteDisabledDialogTitle =
+      'خيار التحويل الوسيط غير مفعل';
   static const String tripartiteDisabledDialogContent =
       'يجب تفعيل خيار التحويل عبر مقاصة الحوالات من الإعدادات لتتمكن من استخدام هذا النوع من التحويلات.';
 
@@ -856,7 +857,7 @@ abstract final class AppStringsAr {
   static const String statementBroughtForward = 'رصيد مرحّل';
   static const String statementFinalBalance = 'الرصيد النهائي';
   static const String statementBalanceForYou = 'لصالحك';
-  static const String statementBalanceAgainstYou = 'مدين (عليك)';
+  static const String statementBalanceAgainstYou = 'مدين (لك)';
   static const String statementBalanceSettled = 'مسوّى';
   static const String statementRunningBalance = 'الرصيد';
   static const String statementVoucherCount = 'سند';

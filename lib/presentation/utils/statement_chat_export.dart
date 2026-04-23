@@ -21,7 +21,7 @@ Future<void> shareStatementChatAsPdf(
   required String accountName,
   required StatementChatFilterInput filter,
   required List<AccountStatementChatMessageDto> messages,
-  required int broughtForwardMinorUnits,
+  required Map<String, int> broughtForwardByCurrency,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
   showDialog<void>(
@@ -40,21 +40,22 @@ Future<void> shareStatementChatAsPdf(
   final now = DateTime.now().toIso8601String();
   final lines = <AccountStatementLineReportDto>[];
 
-  // Add Brought Forward Balance
-  if (filter.includePreviousBalance &&
-      broughtForwardMinorUnits != 0 &&
-      filter.fromDate != null) {
-    bool isPositive = broughtForwardMinorUnits >= 0;
-    lines.add(
-      AccountStatementLineReportDto(
-        dateIso: filter.fromDate!.toIso8601String(),
-        description: AppStringsAr.statementBroughtForward,
-        debitMinorUnits: isPositive ? 0 : broughtForwardMinorUnits.abs(),
-        creditMinorUnits: isPositive ? broughtForwardMinorUnits : 0,
-        balanceMinorUnits: broughtForwardMinorUnits,
-        voucherId: '-',
-      ),
-    );
+  // Add Brought Forward Balances
+  if (filter.includePreviousBalance && filter.fromDate != null) {
+    broughtForwardByCurrency.forEach((code, amount) {
+      if (amount == 0) return;
+      bool isPositive = amount >= 0;
+      lines.add(
+        AccountStatementLineReportDto(
+          dateIso: filter.fromDate!.toIso8601String(),
+          description: '${AppStringsAr.statementBroughtForward} ($code)',
+          debitMinorUnits: isPositive ? 0 : amount.abs(),
+          creditMinorUnits: isPositive ? amount : 0,
+          balanceMinorUnits: amount,
+          voucherId: '-',
+        ),
+      );
+    });
   }
 
   // Add Messages
@@ -114,7 +115,7 @@ Future<void> shareStatementChatAsExcel(
   required String accountName,
   required StatementChatFilterInput filter,
   required List<AccountStatementChatMessageDto> messages,
-  required int broughtForwardMinorUnits,
+  required Map<String, int> broughtForwardByCurrency,
   required int currencyDigits,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
@@ -141,30 +142,31 @@ Future<void> shareStatementChatAsExcel(
     int totalCreditMinor = 0;
 
     // Brought Forward
-    if (filter.includePreviousBalance &&
-        broughtForwardMinorUnits != 0 &&
-        filter.fromDate != null) {
-      final isPositive = broughtForwardMinorUnits >= 0;
-      final bfMinorAbs = broughtForwardMinorUnits.abs() / divisor;
-      final balance = broughtForwardMinorUnits / divisor;
-      final debitVal = isPositive ? 0 : bfMinorAbs;
-      final creditVal = isPositive ? bfMinorAbs : 0;
+    if (filter.includePreviousBalance && filter.fromDate != null) {
+      broughtForwardByCurrency.forEach((code, amount) {
+        if (amount == 0) return;
+        final isPositive = amount >= 0;
+        final bfMinorAbs = amount.abs() / divisor;
+        final balance = amount / divisor;
+        final debitVal = isPositive ? 0 : bfMinorAbs;
+        final creditVal = isPositive ? bfMinorAbs : 0;
 
-      rows.add([
-        dateFmtAr.format(filter.fromDate!),
-        '-',
-        '-',
-        '-',
-        debitVal == 0 ? '' : _fmtNum(debitVal, currencyDigits),
-        creditVal == 0 ? '' : _fmtNum(creditVal, currencyDigits),
-        _fmtNum(balance, currencyDigits),
-      ]);
+        rows.add([
+          dateFmtAr.format(filter.fromDate!),
+          '-',
+          '${AppStringsAr.statementBroughtForward} ($code)',
+          '-',
+          debitVal == 0 ? '' : _fmtNum(debitVal, currencyDigits),
+          creditVal == 0 ? '' : _fmtNum(creditVal, currencyDigits),
+          _fmtNum(balance, currencyDigits),
+        ]);
 
-      if (!isPositive) {
-        totalDebitMinor += broughtForwardMinorUnits.abs();
-      } else {
-        totalCreditMinor += broughtForwardMinorUnits;
-      }
+        if (!isPositive) {
+          totalDebitMinor += amount.abs();
+        } else {
+          totalCreditMinor += amount;
+        }
+      });
     }
 
     rows.addAll(messages.map((m) {
@@ -231,9 +233,13 @@ Future<void> shareStatementChatAsExcel(
       statementDate: stmtDate,
       referenceNumber:
           accountId.length > 12 ? accountId.substring(0, 12) : accountId,
-      openingBalance: broughtForwardMinorUnits != 0
-          ? _fmtNum(broughtForwardMinorUnits / divisor, currencyDigits)
-          : null,
+      openingBalance: broughtForwardByCurrency.isEmpty
+          ? null
+          : broughtForwardByCurrency.entries
+              .where((e) => e.value != 0)
+              .map((e) =>
+                  '${e.key}: ${_fmtNum(e.value / divisor, currencyDigits)}')
+              .join(' | '),
       periodFrom: periodFromStr,
       periodTo: periodToStr,
       totalDebit: totalDebitStr,

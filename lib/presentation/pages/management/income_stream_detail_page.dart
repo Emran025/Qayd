@@ -113,8 +113,8 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                       accountName: summary.name,
                       filter: chatState.filter,
                       messages: chatState.messages,
-                      broughtForwardMinorUnits:
-                          chatState.broughtForwardMinorUnits,
+                      broughtForwardByCurrency:
+                          chatState.broughtForwardByCurrency,
                     );
                   } else {
                     shareAccountStatementAsPdf(context, accountId: summary.id);
@@ -128,8 +128,8 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                       accountName: summary.name,
                       filter: chatState.filter,
                       messages: chatState.messages,
-                      broughtForwardMinorUnits:
-                          chatState.broughtForwardMinorUnits,
+                      broughtForwardByCurrency:
+                          chatState.broughtForwardByCurrency,
                       currencyDigits: chatState.currencyDigits,
                     );
                   }
@@ -426,7 +426,8 @@ class _IncomeStreamDetailBody extends StatelessWidget {
           ..sort((a, b) => a.dateIso.compareTo(b.dateIso));
 
     List<FlSpot> spots = [];
-    double runningBalance = state.broughtForwardMinorUnits / 100.0;
+    final firstMsg = chronologicalMsgs.first;
+    double runningBalance = (state.broughtForwardByCurrency[firstMsg.currencyCode] ?? 0) / 100.0;
 
     // If it's an expense, we show pure cumulative spending
     // If an asset, we track running balance
@@ -618,7 +619,11 @@ class _IncomeStreamDetailBody extends StatelessWidget {
     // Reverse chronologically for the list so newest is top
     final messages = List<AccountStatementChatMessageDto>.from(state.messages);
 
-    double currentBalanceMinor = state.finalBalanceMinorUnits.toDouble();
+    // Pick currency from newest message if available
+    final newestMsg = messages.isNotEmpty ? messages.first : null;
+    final balanceCurrency = newestMsg?.currencyCode ?? '';
+
+    double currentBalanceMinor = (state.finalBalanceByCurrency[balanceCurrency] ?? 0).toDouble();
     final List<Map<String, dynamic>> ledgerRows = [];
 
     for (int i = 0; i < messages.length; i++) {

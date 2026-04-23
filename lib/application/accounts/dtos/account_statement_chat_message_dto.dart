@@ -20,6 +20,7 @@ class AccountStatementChatMessageDto {
     this.mediatorName,
     this.feeAmountMinorUnits,
     required this.isCreator,
+    this.originVoucherId,
   });
 
   final String voucherId;
@@ -66,4 +67,7 @@ class AccountStatementChatMessageDto {
 
   /// Indicates if the current user (perspective) is the creator of this voucher.
   final bool isCreator;
+
+  /// The ID of the original voucher if this is a correction or reply.
+  final String? originVoucherId;
 }
