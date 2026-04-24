@@ -136,10 +136,15 @@ class SecurityCubit extends Cubit<SecurityState> {
     final data = await _licenseVault.readLicenseData();
     if (data != null) {
       final status = data['status'] as String? ?? '';
-      if (status == 'FORCE_REVOKE' || status == 'revoked') {
+      final hasFormalLicense = data['has_formal_license'] as bool? ?? false;
+      final accountClosed = data['account_closed'] as bool? ?? false;
+      final isActive = data['is_active'] as bool? ?? true;
+
+      if (status == 'FORCE_REVOKE' || status == 'revoked' || !isActive) {
         return LicenseStatus.revoked;
       }
-      if (status == 'active') return LicenseStatus.active;
+      if (accountClosed) return LicenseStatus.revoked;
+      if (hasFormalLicense || status == 'active') return LicenseStatus.active;
       if (status == 'suspended') return LicenseStatus.suspended;
     }
 
@@ -278,16 +283,21 @@ class SecurityCubit extends Cubit<SecurityState> {
       final oldUserId = oldLicenseData?['id'] as int?;
       final newUserId = result.licenseData['id'] as int?;
 
-      final dbExists = File(await DatabaseProvider.databaseFilePath()).existsSync();
+      final dbExists =
+          File(await DatabaseProvider.databaseFilePath()).existsSync();
 
-      final isDifferentAccount = oldUserId != null && newUserId != null && oldUserId != newUserId;
-      final isStaleAccountWithoutId = oldUserId == null && dbExists && newUserId != null;
-      
-      // Fallback: If IDs match but server has NO public key while local DOES, 
+      final isDifferentAccount =
+          oldUserId != null && newUserId != null && oldUserId != newUserId;
+      final isStaleAccountWithoutId =
+          oldUserId == null && dbExists && newUserId != null;
+
+      // Fallback: If IDs match but server has NO public key while local DOES,
       // the server DB might have been wiped/reset. We must wipe local to match.
       final oldPublicKey = oldLicenseData?['public_key'] as String?;
       final newPublicKey = result.licenseData['public_key'] as String?;
-      final isServerWiped = oldPublicKey != null && oldPublicKey.isNotEmpty && (newPublicKey == null || newPublicKey.isEmpty);
+      final isServerWiped = oldPublicKey != null &&
+          oldPublicKey.isNotEmpty &&
+          (newPublicKey == null || newPublicKey.isEmpty);
 
       if (isDifferentAccount || isStaleAccountWithoutId || isServerWiped) {
         // A DIFFERENT user logged into this device (or server was reset). We MUST wipe the old data
@@ -309,9 +319,18 @@ class SecurityCubit extends Cubit<SecurityState> {
       final emailUnverified = emailVerifiedAt == null;
 
       if (status.isEmpty || status == 'trial') {
-        final trialStart = await _licenseVault.readTrialStart();
-        if (trialStart == null) {
-          await _licenseVault.writeTrialStart(DateTime.now().toUtc());
+        final serverTrialStart =
+            result.licenseData['trial_started_at'] as String?;
+        if (serverTrialStart != null) {
+          final dt = DateTime.tryParse(serverTrialStart);
+          if (dt != null) {
+            await _licenseVault.writeTrialStart(dt);
+          }
+        } else {
+          final trialStart = await _licenseVault.readTrialStart();
+          if (trialStart == null) {
+            await _licenseVault.writeTrialStart(DateTime.now().toUtc());
+          }
         }
       }
 
@@ -335,9 +354,10 @@ class SecurityCubit extends Cubit<SecurityState> {
       return ProvisioningResult.success(emailUnverified: emailUnverified);
     } on AuthException catch (e) {
       return ProvisioningResult.failure(e.messageAr);
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('Provisioning Error: $e\n$stack');
       return ProvisioningResult.failure(
-        'تعذر الاتصال بالخادم. تحقق من الاتصال.',
+        'حدث خطأ غير متوقع أثناء تهيئة الجهاز. يرجى المحاولة لاحقاً.',
       );
     }
   }
@@ -387,12 +407,13 @@ class SecurityCubit extends Cubit<SecurityState> {
   // ── Auth & Logout ─────────────────────────────────────────────────────────
 
   Future<void> logout() async {
-    // 1. Clear session from vault (JWT) but retain User ID and Public Key 
+    // 1. Clear session from vault (JWT) but retain User ID and Public Key
     // to identify returning users and prevent accidental data wipes.
     final oldData = await _licenseVault.readLicenseData() ?? {};
     final retainedData = <String, dynamic>{};
     if (oldData.containsKey('id')) retainedData['id'] = oldData['id'];
-    if (oldData.containsKey('public_key')) retainedData['public_key'] = oldData['public_key'];
+    if (oldData.containsKey('public_key'))
+      retainedData['public_key'] = oldData['public_key'];
 
     await _licenseVault.writeJwt('');
     await _licenseVault.writeLicenseData(retainedData);

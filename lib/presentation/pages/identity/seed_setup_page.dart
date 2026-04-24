@@ -11,6 +11,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:qayd/presentation/pages/identity/seed_recovery_page.dart';
 
 class SeedSetupPage extends StatefulWidget {
   const SeedSetupPage({super.key});
@@ -29,7 +30,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   @override
   void initState() {
     super.initState();
-    _generateMnemonic();
+    // Do NOT auto-generate in initState to prevent silent registration.
   }
 
   Future<void> _generateMnemonic() async {
@@ -120,83 +121,116 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               ),
               const SizedBox(height: SpacingTokens.xl),
 
-              // ── Warning Banner (Professional Style) ─────────────────────────
-              _buildWarningBanner(context),
-              const SizedBox(height: SpacingTokens.xl),
+              if (_mnemonic == null) ...[
+                _buildIntroSection(context),
+              ] else ...[
+                // ── Warning Banner (Professional Style) ─────────────────────────
+                _buildWarningBanner(context),
+                const SizedBox(height: SpacingTokens.xl),
 
-              // ── Seed Words Grid (Professional Style) ────────────────────────
-              _buildSectionLabel(context, AppStringsAr.identityViewSeed),
-              const SizedBox(height: SpacingTokens.sm),
-              Container(
-                padding: const EdgeInsets.all(SpacingTokens.md),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                      color: Theme.of(context)
-                          .dividerColor
-                          .withValues(alpha: 0.05)),
+                // ── Seed Words Grid (Professional Style) ────────────────────────
+                _buildSectionLabel(context, AppStringsAr.identityViewSeed),
+                const SizedBox(height: SpacingTokens.sm),
+                Container(
+                  padding: const EdgeInsets.all(SpacingTokens.md),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                        color: theme.dividerColor.withValues(alpha: 0.05)),
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: words.asMap().entries.map((entry) {
+                      return _buildWordCard(context, entry.key + 1, entry.value);
+                    }).toList(),
+                  ),
                 ),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: words.asMap().entries.map((entry) {
-                    return _buildWordCard(context, entry.key + 1, entry.value);
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: SpacingTokens.xl),
+                const SizedBox(height: SpacingTokens.xl),
 
-              // Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionBtn(
-                      context,
-                      icon: Icons.copy_rounded,
-                      label: AppStringsAr.identitySeedCopy,
-                      onTap: _copyPhrase,
+                // Actions
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionBtn(
+                        context,
+                        icon: Icons.copy_rounded,
+                        label: AppStringsAr.identitySeedCopy,
+                        onTap: _copyPhrase,
+                      ),
+                    ),
+                    const SizedBox(width: SpacingTokens.md),
+                    Expanded(
+                      child: _buildActionBtn(
+                        context,
+                        icon: Icons.ios_share_rounded,
+                        label: AppStringsAr.identitySeedShare,
+                        onTap: _sharePhrase,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: SpacingTokens.xxl),
+
+                AuthSubmitButton(
+                  label: AppStringsAr.seedBackupConfirmAction,
+                  loading: _isLoading,
+                  onPressed: _confirmBackup,
+                ),
+                const SizedBox(height: SpacingTokens.lg),
+
+                TextButton(
+                  onPressed: () => _confirmBackup(),
+                  child: Text(
+                    AppStringsAr.seedBackupSkipAction,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.7),
+                      fontSize: 13,
                     ),
                   ),
-                  const SizedBox(width: SpacingTokens.md),
-                  Expanded(
-                    child: _buildActionBtn(
-                      context,
-                      icon: Icons.ios_share_rounded,
-                      label: AppStringsAr.identitySeedShare,
-                      onTap: _sharePhrase,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: SpacingTokens.xxl),
-
-              AuthSubmitButton(
-                label: AppStringsAr.seedBackupConfirmAction,
-                loading: _isLoading,
-                onPressed: _confirmBackup,
-              ),
-              const SizedBox(height: SpacingTokens.lg),
-
-              TextButton(
-                onPressed: () =>
-                    _confirmBackup(), // Skip/Later for now leads to same boot check
-                child: Text(
-                  AppStringsAr.seedBackupSkipAction,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant
-                        .withValues(alpha: 0.7),
-                    fontSize: 13,
-                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildIntroSection(BuildContext context) {
+    return Column(
+      children: [
+        const Text(
+          'سيتم الآن إنشاء هوية رقمية جديدة لتأمين وتشفير بياناتك على هذا الجهاز.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: ColorTokens.slate400, fontSize: 14, height: 1.5),
+        ),
+        const SizedBox(height: SpacingTokens.xl),
+        AuthSubmitButton(
+          label: 'إنشاء هوية جديدة',
+          loading: _isLoading,
+          onPressed: _generateMnemonic,
+        ),
+        const SizedBox(height: SpacingTokens.lg),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const SeedRecoveryPage()),
+            );
+          },
+          child: const Text(
+            'لدي مفتاح سابق (24 كلمة) بالفعل',
+            style: TextStyle(
+              color: ColorTokens.emerald500,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

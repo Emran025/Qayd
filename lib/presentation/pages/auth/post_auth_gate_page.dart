@@ -81,6 +81,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     // Step 1: Check local identity
     final hasLocalIdentity =
         await InjectionContainer.mnemonicVault.hasIdentity();
+    if (!mounted) return;
 
     // If user already has a local identity, skip all discovery.
     if (hasLocalIdentity) {
@@ -90,6 +91,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
 
     // Step 2: Check server for existing public key identity FIRST
     await _checkServerIdentity();
+    if (!mounted) return;
 
     if (_serverCheckFailed) {
       // Network failed — don't silently create a new identity.
@@ -108,16 +110,17 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     // Step 3: Server identity exists. This is a returning user.
     // Check for local/cloud backups (database files)
     await _checkBackups();
+    if (!mounted) return;
 
     if (_hasLocalBackup ||
         _hasDriveBackup ||
         !InjectionContainer.driveBackupService.isSignedIn) {
-      if (mounted) setState(() => _phase = _GatePhase.backupRestore);
+      setState(() => _phase = _GatePhase.backupRestore);
       return;
     }
 
     // Step 4: Server identity exists, but no backups found. Prompt for primary key recovery.
-    if (mounted) setState(() => _phase = _GatePhase.identityDecision);
+    setState(() => _phase = _GatePhase.identityDecision);
   }
 
   Future<void> _checkBackups() async {
@@ -274,6 +277,8 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
 
     // Check if device lock is already set up
     final hasPin = await InjectionContainer.securityCubit.hasPinConfigured();
+    if (!mounted) return;
+
     if (hasPin) {
       // Already configured — skip to complete
       _completeSetup();

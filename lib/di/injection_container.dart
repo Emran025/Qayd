@@ -567,8 +567,9 @@ abstract final class InjectionContainer {
     final derivedKey = await hwProvider.deriveKeyFromMnemonic(mnemonic);
     await hwProvider.updateCachedKey(derivedKey);
     final result = await initDatabase();
-    
-    if (result == DatabaseOpenResult.success || result == DatabaseOpenResult.freshCreated) {
+
+    if (result == DatabaseOpenResult.success ||
+        result == DatabaseOpenResult.freshCreated) {
       try {
         final phrase = MnemonicPhrase.fromPhrase(mnemonic);
         await setupIdentityUseCase.recoverFromMnemonic(phrase);
@@ -595,9 +596,9 @@ abstract final class InjectionContainer {
   static Future<void> closeDatabaseForRestore() async {
     if (_databaseReady) {
       syncCoordinatorService.stop();
+      await database.close();
+      _databaseReady = false;
     }
-    await database.close();
-    _databaseReady = false;
   }
 
   static Future<void> reopenDatabaseAfterRestore() async {
@@ -606,7 +607,7 @@ abstract final class InjectionContainer {
     databaseEpoch.value++;
   }
 
-  /// Wipes the local database and identity completely, without wiping the current 
+  /// Wipes the local database and identity completely, without wiping the current
   /// authentication session (JWT/LicenseVault).
   /// Used when switching accounts to prevent data mixing.
   static Future<void> wipeLocalDataForAccountSwitch() async {

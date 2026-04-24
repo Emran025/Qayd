@@ -170,8 +170,8 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
           ? _buildPreAuthApp()
           : MultiBlocProvider(
               providers: [
-                BlocProvider<SecurityCubit>(
-                  create: (_) => InjectionContainer.securityCubit,
+                BlocProvider<SecurityCubit>.value(
+                  value: InjectionContainer.securityCubit,
                 ),
                 BlocProvider<GovernanceCubit>(
                   create: (_) => GovernanceCubit(
@@ -179,8 +179,8 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
                     InjectionContainer.submitActivationUseCase,
                   )..scheduleBackgroundVerification(),
                 ),
-                BlocProvider<SyncStatusCubit>(
-                  create: (_) => InjectionContainer.syncStatusCubit,
+                BlocProvider<SyncStatusCubit>.value(
+                  value: InjectionContainer.syncStatusCubit,
                 ),
               ],
               child: const SecurityLifecycleObserver(child: QaydApp()),
