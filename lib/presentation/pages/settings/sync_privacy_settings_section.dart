@@ -4,6 +4,9 @@ import 'package:qayd/domain/value_objects/sync_privacy_policy.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/pages/settings/sync_privacy_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
+import 'package:qayd/core/result/result.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Settings page for managing sync privacy policy.
 ///
@@ -20,13 +23,13 @@ class SyncPrivacySettingsSection extends StatefulWidget {
 class _SyncPrivacySettingsSectionState
     extends State<SyncPrivacySettingsSection> {
   late final SyncPrivacyCubit _cubit;
-  final _phoneController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _cubit = SyncPrivacyCubit(
       identityRepository: InjectionContainer.identityRepository,
+      accountRepository: InjectionContainer.accountRepository,
     );
     _cubit.addListener(_onStateChange);
     _cubit.loadPolicy();
@@ -36,7 +39,6 @@ class _SyncPrivacySettingsSectionState
   void dispose() {
     _cubit.removeListener(_onStateChange);
     _cubit.dispose();
-    _phoneController.dispose();
     super.dispose();
   }
 
@@ -59,6 +61,42 @@ class _SyncPrivacySettingsSectionState
         SnackBar(content: Text(state.successMessage!)),
       );
       _cubit.clearMessages();
+    }
+  }
+
+  Future<void> _openMultiAccountPicker(String listType) async {
+    final state = _cubit.state;
+    final policy = state.policy;
+    if (policy == null) return;
+
+    final currentEntries =
+        listType == 'block' ? policy.blockList : policy.allowList;
+
+    // Resolve existing accounts to pre-select them
+    final List<String> initialSelectedIds = [];
+    for (final entry in currentEntries) {
+      final result =
+          await InjectionContainer.findAccountByPhoneUseCase(entry.targetPhone);
+      final accountId = result.valueOrNull;
+      if (accountId != null) {
+        initialSelectedIds.add(accountId);
+      }
+    }
+
+    if (!mounted) return;
+
+    final selected = await showMultiAccountPickerSheet(
+      context,
+      listAccounts: InjectionContainer.listAccountsUseCase,
+      allowedClassifications: ['receivables', 'payables'],
+      initialSelectedIds: initialSelectedIds,
+    );
+
+    if (selected != null && mounted) {
+      _cubit.syncListWithAccounts(
+        selectedAccounts: selected,
+        listType: listType,
+      );
     }
   }
 
@@ -114,46 +152,32 @@ class _SyncPrivacySettingsSectionState
                   ),
                   const SizedBox(height: SpacingTokens.md),
 
-                  // Add entry input
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _phoneController,
-                          decoration: InputDecoration(
-                            labelText: 'رقم الهاتف',
-                            hintText: '+966...',
-                            prefixIcon: const Icon(Icons.phone_outlined),
-                            border: const OutlineInputBorder(),
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                          ),
-                          keyboardType: TextInputType.phone,
-                          textDirection: TextDirection.ltr,
+                  // Manage list trigger
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: state.isUpdating
+                          ? null
+                          : () {
+                              final listType = policy.mode ==
+                                      SyncPolicyMode.openWithBlocklist
+                                  ? 'block'
+                                  : 'allow';
+                              _openMultiAccountPicker(listType);
+                            },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      const SizedBox(width: SpacingTokens.sm),
-                      FilledButton.icon(
-                        onPressed: state.isUpdating
-                            ? null
-                            : () {
-                                final phone = _phoneController.text.trim();
-                                if (phone.isEmpty) return;
-                                final listType = policy.mode ==
-                                        SyncPolicyMode.openWithBlocklist
-                                    ? 'block'
-                                    : 'allow';
-                                _cubit.addToList(
-                                    phone: phone, listType: listType);
-                                _phoneController.clear();
-                              },
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('إضافة'),
+                      icon: const Icon(Icons.group_add_outlined, size: 20),
+                      label: Text(
+                        policy.mode == SyncPolicyMode.openWithBlocklist
+                            ? 'إدارة قائمة الحظر'
+                            : 'إدارة قائمة السماح',
                       ),
-                    ],
+                    ),
                   ),
 
                   const SizedBox(height: SpacingTokens.md),
@@ -400,6 +424,15 @@ class _PolicyModeCard extends StatelessWidget {
   }
 }
 
+void _inviteByPhone(String name, String phone) {
+  final greeting = name.isNotEmpty ? 'مرحباً $name، ' : '';
+  final message =
+      '${greeting}أدعوك لاستخدام تطبيق "قيد" للمحاسبة والمزامنة السحابية.';
+  final uri = Uri.parse(
+      'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
+  launchUrl(uri, mode: LaunchMode.externalApplication);
+}
+
 // ── Access List Tile ──────────────────────────────────────────────────────────
 
 class _AccessListTile extends StatelessWidget {
@@ -416,51 +449,89 @@ class _AccessListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Dismissible(
-      key: ValueKey(entry.id),
-      direction: DismissDirection.endToStart,
-      onDismissed: (_) => onRemove(),
-      background: Container(
-        alignment: Alignment.centerLeft,
-        padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
-        color: colorScheme.error,
-        child: Icon(Icons.delete_outline, color: colorScheme.onError),
+    return Card(
+      margin: const EdgeInsets.only(bottom: SpacingTokens.xs),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side:
+            BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.05)),
       ),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: SpacingTokens.xs),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: entry.listType == 'block'
-                ? colorScheme.errorContainer
-                : colorScheme.primaryContainer,
-            child: Icon(
-              entry.listType == 'block'
-                  ? Icons.block
-                  : Icons.check_circle_outline,
-              color: entry.listType == 'block'
-                  ? colorScheme.onErrorContainer
-                  : colorScheme.onPrimaryContainer,
-              size: 20,
-            ),
+      child: ListTile(
+        leading: CircleAvatar(
+          radius: 18,
+          backgroundColor: entry.listType == 'block'
+              ? colorScheme.errorContainer.withValues(alpha: 0.5)
+              : colorScheme.primaryContainer.withValues(alpha: 0.5),
+          child: Icon(
+            entry.listType == 'block'
+                ? Icons.block
+                : Icons.check_circle_outline,
+            color: entry.listType == 'block'
+                ? colorScheme.error
+                : colorScheme.primary,
+            size: 18,
           ),
-          title: Text(
-            entry.targetName.isNotEmpty ? entry.targetName : entry.targetPhone,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+        ),
+        title: Text(
+          entry.targetName.isNotEmpty ? entry.targetName : entry.targetPhone,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+        ),
+        subtitle: entry.targetUserId == null
+            ? Row(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'غير مسجل',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            fontSize: 9,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () =>
+                        _inviteByPhone(entry.targetName, entry.targetPhone),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'دعوة الآن',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              fontSize: 10,
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                entry.targetPhone,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      fontSize: 10,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+        trailing: IconButton(
+          icon: Icon(
+            Icons.remove_circle_outline,
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            size: 20,
           ),
-          subtitle: entry.targetName.isNotEmpty
-              ? Text(
-                  entry.targetPhone,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textDirection: TextDirection.ltr,
-                )
-              : null,
-          trailing: IconButton(
-            icon: const Icon(Icons.remove_circle_outline, size: 20),
-            onPressed: isUpdating ? null : onRemove,
-            tooltip: 'حذف',
-          ),
+          onPressed: isUpdating ? null : onRemove,
         ),
       ),
     );

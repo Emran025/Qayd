@@ -54,7 +54,7 @@ enum SyncPolicyMode {
 class SyncAccessEntry {
   const SyncAccessEntry({
     required this.id,
-    required this.targetUserId,
+    this.targetUserId,
     required this.targetName,
     required this.targetPhone,
     this.targetEmail,
@@ -62,7 +62,7 @@ class SyncAccessEntry {
   });
 
   final int id;
-  final int targetUserId;
+  final int? targetUserId;
   final String targetName;
   final String targetPhone;
   final String? targetEmail;
@@ -74,7 +74,7 @@ class SyncAccessEntry {
     final target = json['target_user'] as Map<String, dynamic>;
     return SyncAccessEntry(
       id: json['id'] as int,
-      targetUserId: target['id'] as int,
+      targetUserId: target['id'] as int?,
       targetName: target['name'] as String? ?? '',
       targetPhone: target['phone'] as String? ?? '',
       targetEmail: target['email'] as String?,
@@ -110,6 +110,20 @@ class SyncPrivacyPolicy {
     return SyncPrivacyPolicy(
       mode: SyncPolicyMode.fromString(json['sync_policy'] as String? ?? 'open'),
       accessList: entries,
+    );
+  }
+
+  SyncPrivacyPolicy copyWith({
+    SyncPolicyMode? mode,
+    List<SyncAccessEntry>? allowList,
+    List<SyncAccessEntry>? blockList,
+  }) {
+    return SyncPrivacyPolicy(
+      mode: mode ?? this.mode,
+      accessList: [
+        if (allowList != null) ...allowList else ...this.allowList,
+        if (blockList != null) ...blockList else ...this.blockList,
+      ],
     );
   }
 }

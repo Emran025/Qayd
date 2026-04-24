@@ -71,11 +71,12 @@ final class PublicKeyLookupResult {
     required this.phone,
     this.email,
     this.whatsappNumber,
-    required this.publicKeyHex,
+    this.publicKeyHex,
     this.previousPublicKeysHex = const [],
-    required this.keyGeneration,
+    this.keyGeneration,
     required this.name,
     this.syncBlocked = false,
+    this.isRegistered = true,
   });
 
   final String phone;
@@ -83,18 +84,23 @@ final class PublicKeyLookupResult {
   final String? whatsappNumber;
 
   /// The most recent (active) public key.
-  final String publicKeyHex;
+  final String? publicKeyHex;
 
   /// History of rotated public keys for this identity.
   final List<String> previousPublicKeysHex;
 
-  final int keyGeneration;
+  final int? keyGeneration;
   final String name;
 
   /// Whether the target user has restricted sync access to the requester.
   final bool syncBlocked;
 
+  /// Whether the user has an account on the platform.
+  final bool isRegistered;
+
   /// All keys authorized to sign for this identity.
-  List<String> get allAuthorizedKeys =>
-      [publicKeyHex, ...previousPublicKeysHex];
+  List<String> get allAuthorizedKeys => [
+        if (publicKeyHex != null) publicKeyHex!,
+        ...previousPublicKeysHex
+      ];
 }

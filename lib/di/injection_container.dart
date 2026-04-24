@@ -216,7 +216,7 @@ abstract final class InjectionContainer {
   static late final IdentityRepository identityRepository;
   static late final SetupIdentityUseCase setupIdentityUseCase;
   static late final UpdateProfileUseCase updateProfileUseCase;
-  static late final SyncIdentityToInternalAccountsUseCase
+  static late SyncIdentityToInternalAccountsUseCase
       syncIdentityToInternalAccountsUseCase;
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
@@ -292,9 +292,9 @@ abstract final class InjectionContainer {
 
   static late final NativeNotificationService nativeNotificationService;
   static late final NotificationFilterService notificationFilterService;
-  static late final SyncCoordinatorService syncCoordinatorService;
+  static late SyncCoordinatorService syncCoordinatorService;
   static late final SyncSocketService syncSocketService;
-  static late final SyncPayloadProcessor syncPayloadProcessor;
+  static late SyncPayloadProcessor syncPayloadProcessor;
   static late final SyncRepository syncRepository;
   static late final E2EEEncryptionService e2eeService;
 
@@ -306,7 +306,7 @@ abstract final class InjectionContainer {
   static late AttachmentRepository attachmentRepository;
   static late CollateralRepository collateralRepository;
   static late VoucherKeyService voucherKeyService;
-  static late final CollateralExpiryChecker collateralExpiryChecker;
+  static late CollateralExpiryChecker collateralExpiryChecker;
   static late LiquidateCollateralUseCase liquidateCollateralUseCase;
 
   static late final AttachmentStorageService attachmentStorage;
@@ -326,7 +326,7 @@ abstract final class InjectionContainer {
   static late OutboxDao outboxDao;
   static late SyncWatermarkDao syncWatermarkDao;
   static late P2PSyncService p2pSyncService;
-  static late final SyncEventDispatcher syncEventDispatcher;
+  static late SyncEventDispatcher syncEventDispatcher;
 
   // ── Cost and Profit Centers ─────────────────────────────────────────────
   static late CostCenterRepository costCenterRepository;
@@ -347,7 +347,8 @@ abstract final class InjectionContainer {
   static late AuditLogRepository auditLogRepository;
   static late AuditLogService auditLogService;
   static late SeedExpenseAccountsUseCase seedExpenseAccountsUseCase;
-  static late ManageAccountDefaultCostCentersUseCase manageAccountDefaultCostCentersUseCase;
+  static late ManageAccountDefaultCostCentersUseCase
+      manageAccountDefaultCostCentersUseCase;
 
   // ── Legacy Migration ───────────────────────────────────────────────────────
   static late LegacyMigrationUseCase legacyMigrationUseCase;
@@ -543,18 +544,64 @@ abstract final class InjectionContainer {
       return DatabaseOpenResult.otherError;
     }
 
-    _registerSqliteStack();
-    _databaseReady = true;
-
-    // ── Bind DB-dependent services to the SecurityCubit ──────────────────────
-    securityCubit.syncIdentityUseCase =
-        syncIdentityToInternalAccountsUseCase;
+    await _initializeDatabaseDependentStack();
 
     autoBackupService.performIfDue().ignore();
     driveBackupService.performIfDue().ignore();
 
-    // ── Real-Time Sync Engine ────────────────────────────────────────────────
+    return dbFileExists
+        ? DatabaseOpenResult.success
+        : DatabaseOpenResult.freshCreated;
+  }
 
+  /// Attempts to open the database with a key derived from the user's mnemonic.
+  ///
+  /// Used when [initDatabase] returns [DatabaseOpenResult.keyMismatch].
+  /// Returns `true` if the database opened successfully.
+  static Future<bool> retryDatabaseWithMnemonic(String mnemonic) async {
+    final hwProvider =
+        _encryptionKeyProvider as HardwareBackedEncryptionKeyProvider;
+    final derivedKey = await hwProvider.deriveKeyFromMnemonic(mnemonic);
+    await hwProvider.updateCachedKey(derivedKey);
+    final result = await initDatabase();
+    return result == DatabaseOpenResult.success ||
+        result == DatabaseOpenResult.freshCreated;
+  }
+
+  /// Deletes the existing database file and creates a new empty one.
+  ///
+  /// Used when the user chooses to "start fresh" after a key mismatch.
+  static Future<DatabaseOpenResult> resetDatabaseAndInit() async {
+    final dbPath = await DatabaseProvider.databaseFilePath();
+    final file = File(dbPath);
+    if (file.existsSync()) {
+      await file.delete();
+    }
+    return initDatabase();
+  }
+
+  static Future<void> closeDatabaseForRestore() async {
+    if (_databaseReady) {
+      syncCoordinatorService.stop();
+    }
+    await database.close();
+    _databaseReady = false;
+  }
+
+  static Future<void> reopenDatabaseAfterRestore() async {
+    database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
+    await _initializeDatabaseDependentStack();
+    databaseEpoch.value++;
+  }
+
+  static Future<void> _initializeDatabaseDependentStack() async {
+    _registerSqliteStack();
+    _databaseReady = true;
+
+    // ── Bind DB-dependent services to the SecurityCubit ──────────────────────
+    securityCubit.syncIdentityUseCase = syncIdentityToInternalAccountsUseCase;
+
+    // ── Real-Time Sync Engine ────────────────────────────────────────────────
     syncPayloadProcessor = SyncPayloadProcessor(
       identityRepository: identityRepository,
       voucherRepository: voucherRepository,
@@ -600,6 +647,7 @@ abstract final class InjectionContainer {
     if (userId > 0) {
       syncCoordinatorService.start();
     }
+
     seedExpenseAccountsUseCase = SeedExpenseAccountsUseCase(
       accountRepository,
       createAccountUseCase,
@@ -607,46 +655,6 @@ abstract final class InjectionContainer {
       createCostCenterUseCase,
       manageDimensionsUseCase,
     );
-
-    return dbFileExists
-        ? DatabaseOpenResult.success
-        : DatabaseOpenResult.freshCreated;
-  }
-
-  /// Attempts to open the database with a key derived from the user's mnemonic.
-  ///
-  /// Used when [initDatabase] returns [DatabaseOpenResult.keyMismatch].
-  /// Returns `true` if the database opened successfully.
-  static Future<bool> retryDatabaseWithMnemonic(String mnemonic) async {
-    final hwProvider =
-        _encryptionKeyProvider as HardwareBackedEncryptionKeyProvider;
-    final derivedKey = await hwProvider.deriveKeyFromMnemonic(mnemonic);
-    await hwProvider.updateCachedKey(derivedKey);
-    final result = await initDatabase();
-    return result == DatabaseOpenResult.success ||
-        result == DatabaseOpenResult.freshCreated;
-  }
-
-  /// Deletes the existing database file and creates a new empty one.
-  ///
-  /// Used when the user chooses to "start fresh" after a key mismatch.
-  static Future<DatabaseOpenResult> resetDatabaseAndInit() async {
-    final dbPath = await DatabaseProvider.databaseFilePath();
-    final file = File(dbPath);
-    if (file.existsSync()) {
-      await file.delete();
-    }
-    return initDatabase();
-  }
-
-  static Future<void> closeDatabaseForRestore() async {
-    await database.close();
-  }
-
-  static Future<void> reopenDatabaseAfterRestore() async {
-    database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
-    _registerSqliteStack();
-    databaseEpoch.value++;
   }
 
   static void _registerSqliteStack() {

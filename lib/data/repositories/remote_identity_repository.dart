@@ -36,32 +36,20 @@ final class RemoteIdentityRepository implements IdentityRepository {
         queryParameters: {'phone': phone},
       );
 
-      // §6: Sync privacy — target user has restricted access.
-      if (data['sync_blocked'] == true) {
-        return PublicKeyLookupResult(
-          phone: data['phone'] as String? ?? phone,
-          publicKeyHex: '',
-          keyGeneration: 0,
-          name: data['name'] as String? ?? '',
-          syncBlocked: true,
-        );
-      }
-
-      if (data['public_key'] == null) return null;
-
-      // Parse historical public keys for cross-vector verification.
       final previousKeysRaw =
           data['previous_public_keys'] as List<dynamic>? ?? [];
       final previousKeys = previousKeysRaw.map((e) => e as String).toList();
 
       return PublicKeyLookupResult(
         phone: data['phone'] as String? ?? phone,
-        publicKeyHex: data['public_key'] as String,
+        publicKeyHex: data['public_key'] as String?,
         previousPublicKeysHex: previousKeys,
-        keyGeneration: (data['key_generation'] as int?) ?? 1,
+        keyGeneration: data['key_generation'] as int?,
         name: data['name'] as String? ?? '',
         email: data['email'] as String?,
         whatsappNumber: data['whatsapp_number'] as String?,
+        syncBlocked: data['sync_blocked'] == true,
+        isRegistered: data['registered'] != false, // Default to true for backward compatibility
       );
     } on AuthException {
       rethrow;
@@ -79,33 +67,20 @@ final class RemoteIdentityRepository implements IdentityRepository {
         queryParameters: {'email': email},
       );
 
-      // §6: Sync privacy — target user has restricted access.
-      if (data['sync_blocked'] == true) {
-        return PublicKeyLookupResult(
-          phone: data['phone'] as String? ?? '',
-          publicKeyHex: '',
-          keyGeneration: 0,
-          name: data['name'] as String? ?? '',
-          email: data['email'] as String?,
-          syncBlocked: true,
-        );
-      }
-
-      if (data['public_key'] == null) return null;
-
-      // Parse historical public keys for cross-vector verification.
       final previousKeysRaw =
           data['previous_public_keys'] as List<dynamic>? ?? [];
       final previousKeys = previousKeysRaw.map((e) => e as String).toList();
 
       return PublicKeyLookupResult(
         phone: data['phone'] as String? ?? '',
-        publicKeyHex: data['public_key'] as String,
+        publicKeyHex: data['public_key'] as String?,
         previousPublicKeysHex: previousKeys,
-        keyGeneration: (data['key_generation'] as int?) ?? 1,
+        keyGeneration: data['key_generation'] as int?,
         name: data['name'] as String? ?? '',
         email: data['email'] as String?,
         whatsappNumber: data['whatsapp_number'] as String?,
+        syncBlocked: data['sync_blocked'] == true,
+        isRegistered: data['registered'] != false,
       );
     } on AuthException {
       rethrow;
@@ -140,20 +115,22 @@ final class RemoteIdentityRepository implements IdentityRepository {
       for (final entry in entries) {
         final map = entry as Map<String, dynamic>;
         final phone = map['phone'] as String;
-        if (map['public_key'] != null) {
-          final previousKeysRaw =
-              map['previous_public_keys'] as List<dynamic>? ?? [];
-          final previousKeys = previousKeysRaw.map((e) => e as String).toList();
-          results[phone] = PublicKeyLookupResult(
-            phone: phone,
-            publicKeyHex: map['public_key'] as String,
-            previousPublicKeysHex: previousKeys,
-            keyGeneration: (map['key_generation'] as int?) ?? 1,
-            name: map['name'] as String? ?? '',
-            email: map['email'] as String?,
-            whatsappNumber: map['whatsapp_number'] as String?,
-          );
-        }
+
+        final previousKeysRaw =
+            map['previous_public_keys'] as List<dynamic>? ?? [];
+        final previousKeys = previousKeysRaw.map((e) => e as String).toList();
+
+        results[phone] = PublicKeyLookupResult(
+          phone: phone,
+          publicKeyHex: map['public_key'] as String?,
+          previousPublicKeysHex: previousKeys,
+          keyGeneration: map['key_generation'] as int?,
+          name: map['name'] as String? ?? '',
+          email: map['email'] as String?,
+          whatsappNumber: map['whatsapp_number'] as String?,
+          syncBlocked: map['sync_blocked'] == true,
+          isRegistered: map['registered'] != false,
+        );
       }
       return results;
     } catch (_) {
@@ -239,10 +216,9 @@ final class RemoteIdentityRepository implements IdentityRepository {
   @override
   Future<void> updateSyncPolicy(SyncPolicyMode mode) async {
     try {
-      await _client.post(
+      await _client.put(
         ApiEndpoints.syncPrivacyPolicy,
         body: {'sync_policy': mode.toApiString()},
-        options: Options(method: 'PUT'),
       );
     } on AuthException {
       rethrow;
@@ -274,10 +250,8 @@ final class RemoteIdentityRepository implements IdentityRepository {
   @override
   Future<void> removeFromSyncAccessList({required int entryId}) async {
     try {
-      // Use POST with DELETE method override since ApiClient lacks a native delete().
-      await _client.post(
+      await _client.delete(
         ApiEndpoints.syncPrivacyListRemove(entryId),
-        options: Options(method: 'DELETE'),
       );
     } on AuthException {
       rethrow;

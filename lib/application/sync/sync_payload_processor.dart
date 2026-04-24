@@ -109,6 +109,13 @@ class SyncPayloadProcessor {
 
         final counterpartPublicKey = counterpartIdentityResult.publicKeyHex;
 
+        if (counterpartPublicKey == null) {
+          debugPrint(
+            'Blocked SyncNode [${node.id}]: No public key available for Sender.',
+          );
+          continue; // DROP SILENTLY
+        }
+
         // 2. Decrypt Payload Enclave
         late final Map<String, dynamic> decryptedRawPayload;
         try {

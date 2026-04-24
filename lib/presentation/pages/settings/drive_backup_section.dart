@@ -5,6 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/backup/google_drive_backup_service.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 /// Google Drive backup section — fully functional.
@@ -69,22 +70,15 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
   }
 
   Future<void> _signOut() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await QaydDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.driveBackupSignOutTitle),
-        content: Text(AppStringsAr.driveBackupSignOutBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
-          ),
-        ],
-      ),
+      icon: Icons.logout_rounded,
+      title: AppStringsAr.driveBackupSignOutTitle,
+      content: AppStringsAr.driveBackupSignOutBody,
+      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.settingsProceed,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (confirmed != true || !mounted) return;
     setState(() => _working = true);
@@ -155,41 +149,37 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
     setState(() => _working = false);
 
     // 2. Confirm with user.
-    final confirmed = await showDialog<bool>(
+    final confirmed = await QaydDialog.show<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.driveBackupRestoreTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(AppStringsAr.driveBackupRestoreBody),
-            if (info.lastModified != null) ...[
-              const SizedBox(height: SpacingTokens.sm),
-              Text(
-                '${AppStringsAr.driveBackupLastDate}: '
-                '${DateFormat('yyyy/MM/dd – HH:mm').format(info.lastModified!)}',
-                style: Theme.of(ctx).textTheme.bodySmall,
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
+      icon: Icons.cloud_download_outlined,
+      title: AppStringsAr.driveBackupRestoreTitle,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            AppStringsAr.driveBackupRestoreBody,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-              backgroundColor: Theme.of(ctx).colorScheme.error,
+          if (info.lastModified != null) ...[
+            const SizedBox(height: SpacingTokens.md),
+            Text(
+              '${AppStringsAr.driveBackupLastDate}: '
+              '${DateFormat('yyyy/MM/dd – HH:mm').format(info.lastModified!)}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsRestoreConfirm),
-          ),
+          ],
         ],
       ),
+      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.settingsRestoreConfirm,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (confirmed != true || !mounted) return;
 

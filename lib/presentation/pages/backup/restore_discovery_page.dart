@@ -6,6 +6,8 @@ import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
+import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -149,67 +151,50 @@ class RestoreDiscoveryPage extends StatelessWidget {
 
   void _showPrimaryKeyDialog(BuildContext context, String path) {
     final controller = TextEditingController();
-    showDialog(
+    QaydDialog.show(
       context: context,
-      barrierDismissible: false,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A), // Slate 900
-        title: const Text(
-          'مفتاح التشفير مطلوب',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'الرجاء إدخال المفتاح الأساسي (كلمات الاسترداد الـ 24) لفك تشفير النسخة الاحتياطية.',
-              style: TextStyle(color: ColorTokens.slate400),
-            ),
-            const SizedBox(height: SpacingTokens.md),
-            TextField(
-              controller: controller,
-              maxLines: 4,
-              cursorColor: ColorTokens.emerald500,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF1E293B), // Slate 800
-                hintText: 'ادخل عبارة الاسترداد هنا...',
-                hintStyle: const TextStyle(color: ColorTokens.slate400),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
+      icon: Icons.vpn_key_rounded,
+      title: 'مفتاح التشفير مطلوب',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const QaydText(
+            'الرجاء إدخال المفتاح الأساسي (كلمات الاسترداد الـ 24) لفك تشفير النسخة الاحتياطية.',
+            slot: QaydTextStyleSlot.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: SpacingTokens.md),
+          TextField(
+            controller: controller,
+            maxLines: 4,
+            cursorColor: ColorTokens.emerald500,
+            style: const TextStyle(color: Colors.white, fontSize: 13),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFF1E293B), // Slate 800
+              hintText: 'ادخل عبارة الاسترداد هنا...',
+              hintStyle: const TextStyle(color: ColorTokens.slate400),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
               ),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dCtx),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(color: ColorTokens.slate400),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ColorTokens.emerald600,
-            ),
-            onPressed: () {
-              final phrase = controller.text.trim();
-              if (phrase.isNotEmpty) {
-                Navigator.pop(dCtx);
-                context.read<RestoreCubit>().restoreWithPrimaryKey(
-                      path,
-                      phrase,
-                    );
-              }
-            },
-            child: const Text('تأكيد وفك التشفير'),
           ),
         ],
       ),
+      secondaryActionLabel: 'إلغاء',
+      onSecondaryAction: () => Navigator.pop(context),
+      primaryActionLabel: 'تأكيد وفك التشفير',
+      onPrimaryAction: () {
+        final phrase = controller.text.trim();
+        if (phrase.isNotEmpty) {
+          Navigator.pop(context);
+          context.read<RestoreCubit>().restoreWithPrimaryKey(
+                path,
+                phrase,
+              );
+        }
+      },
     );
   }
 }

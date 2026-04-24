@@ -110,6 +110,34 @@ final class ApiClient {
     return _extractData(response);
   }
 
+  /// Performs a PUT request to [path] with optional [body].
+  Future<dynamic> put(
+    String path, {
+    Map<String, dynamic>? body,
+    Options? options,
+  }) async {
+    final response = await _dio.put<Map<String, dynamic>>(
+      path,
+      data: body,
+      options: options,
+    );
+    return _extractData(response);
+  }
+
+  /// Performs a DELETE request to [path] with optional [body].
+  Future<dynamic> delete(
+    String path, {
+    Map<String, dynamic>? body,
+    Options? options,
+  }) async {
+    final response = await _dio.delete<Map<String, dynamic>>(
+      path,
+      data: body,
+      options: options,
+    );
+    return _extractData(response);
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   dynamic _extractData(Response<Map<String, dynamic>> response) {
