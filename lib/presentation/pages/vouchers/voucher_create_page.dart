@@ -825,7 +825,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                 ),
                 const SizedBox(height: SpacingTokens.sm),
                 SizedBox(
-                  height: 132,
+                  height: 140,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: sug.suggestions.length,

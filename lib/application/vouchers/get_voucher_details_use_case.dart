@@ -9,6 +9,9 @@ import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/entry_id.dart';
+import 'package:qayd/domain/value_objects/entry_side.dart';
+import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/data/security/license_vault.dart';
@@ -16,6 +19,7 @@ import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
 import 'package:qayd/domain/entities/ledger_entry.dart';
+import 'package:qayd/domain/value_objects/voucher_type.dart';
 
 class GetVoucherDetailsUseCase {
   GetVoucherDetailsUseCase(
@@ -179,9 +183,22 @@ class GetVoucherDetailsUseCase {
             // Include everything up to the last entry of this voucher
             relevantEntries = allEntries.sublist(0, maxIdx + 1);
           } else {
-            // Voucher might not be in ledger yet (e.g. draft).
-            // We'll use all entries (current balance) as a best-effort.
-            relevantEntries = allEntries;
+            // Voucher might not be in ledger yet (e.g. draft or pending).
+            // We'll calculate balance as "Current Ledger Balance + This Voucher Impact"
+            final virtualEntry = LedgerEntry.create(
+              id: EntryId('virtual-total'),
+              transactionId: TransactionId('virtual-total'),
+              accountId: v.counterpartyId,
+              side: v.type == VoucherType.receipt
+                  ? EntrySide.credit
+                  : EntrySide.debit,
+              amount: v.amount,
+              currency: v.currency,
+              voucherId: v.id,
+              date: v.date,
+              createdAt: v.createdAt,
+            );
+            relevantEntries = [...allEntries, virtualEntry];
           }
 
           final balancesMap =

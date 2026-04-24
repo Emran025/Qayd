@@ -133,8 +133,22 @@ Future<void> shareVoucherAsFormattedImage(
             data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
         shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
-            'المبلغ: $amountTextFormatter\n'
-            'الحساب: ${data.affectedName}\n'
+            'المبلغ: $amountTextFormatter\n';
+
+        final balanceParts = data.counterpartyBalances.entries.map((e) {
+          final digits = (e.key == data.currencyCode) ? data.currencyDigits : 2;
+          final divisor = math.pow(10, digits).toDouble();
+          final fmt = intl.NumberFormat('#,##0.${'0' * digits}', 'en');
+          final value = e.value / divisor;
+          final absValue = value.abs();
+          final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+          return '${fmt.format(absValue)} ${e.key} $label'.trim();
+        }).toList();
+        if (balanceParts.isNotEmpty) {
+          shareText += 'الرصيد الإجمالي: ${balanceParts.join(", ")}\n';
+        }
+
+        shareText += 'الحساب: ${data.affectedName}\n'
             'المرجع: ${data.referenceNumber ?? shortId}\n'
             '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
       }
@@ -531,6 +545,33 @@ class VoucherImageCard extends StatelessWidget {
                         _text(accountName, 10, accent, bold: true),
                       ],
                     ),
+                    if (data.counterpartyBalances.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          _text('الرصيد الإجمالي:', 8.5, _muted, bold: true),
+                          const SizedBox(width: 4),
+                          _text(
+                            data.counterpartyBalances.entries.map((e) {
+                              final digits = (e.key == data.currencyCode)
+                                  ? data.currencyDigits
+                                  : 2;
+                              final divisor = math.pow(10, digits).toDouble();
+                              final fmt = intl.NumberFormat(
+                                  '#,##0.${'0' * digits}', 'en');
+                              final value = e.value / divisor;
+                              final absValue = value.abs();
+                              final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+                              return '${fmt.format(absValue)} ${e.key} $label'
+                                  .trim();
+                            }).join(' | '),
+                            8.5,
+                            _navy,
+                            bold: true,
+                          ),
+                        ],
+                      ),
+                    ],
                     if (_notEmpty(descText)) ...[
                       const SizedBox(height: 5),
                       _labeledLine(

@@ -39,6 +39,21 @@ Future<void> shareVoucherAsText(
     buffer.writeln('إشعار $type');
     buffer.writeln('التاريخ: $date');
     buffer.writeln('المبلغ: $amount');
+
+    // Include net balance in fallback if available
+    final balanceParts = data.counterpartyBalances.entries.map((e) {
+      final digits = (e.key == data.currencyCode) ? data.currencyDigits : 2;
+      final divisor = (digits == 0 ? 1 : (digits == 2 ? 100 : 1000)).toDouble();
+      final value = e.value / divisor;
+      final absValue = value.abs();
+      final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+      return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${e.key} $label'
+          .trim();
+    }).toList();
+    if (balanceParts.isNotEmpty) {
+      buffer.writeln('الرصيد الإجمالي: ${balanceParts.join(", ")}');
+    }
+
     buffer.writeln('العميل: ${data.counterpartyName}');
     buffer.writeln('الحساب: ${data.affectedName}');
     if (data.description != null && data.description!.isNotEmpty) {

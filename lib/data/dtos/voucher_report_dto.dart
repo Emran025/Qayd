@@ -31,6 +31,7 @@ class VoucherReportDto {
     this.receiverPublicKeyHex,
     required this.senderStatusCode,
     required this.receiverStatusCode,
+    this.counterpartyBalances = const {},
   });
 
   final String voucherId;
@@ -74,4 +75,7 @@ class VoucherReportDto {
   final String? receiverPublicKeyHex;
   final String senderStatusCode;
   final String receiverStatusCode;
+
+  /// Map of currency code to balance minor units.
+  final Map<String, int> counterpartyBalances;
 }

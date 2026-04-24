@@ -67,7 +67,7 @@ abstract final class TemplateBindingMaps {
       'receiver_party': receiverParty,
       'amount': MoneyFormatter.formatWithSymbol(
         d.amountMinorUnits /
-            (d.currencyDigits == 0 ? 1 : (d.currencyDigits == 2 ? 100 : 100)),
+            (d.currencyDigits == 0 ? 1 : (d.currencyDigits == 2 ? 100 : 1000)),
         d.currencySymbol,
         fractionalDigits: d.currencyDigits,
       ),
@@ -86,10 +86,15 @@ abstract final class TemplateBindingMaps {
       'sender_signature': d.senderSignatureHex ?? '',
       'receiver_signature': d.receiverSignatureHex ?? '',
       'signature_verification': _buildSignatureVerificationString(d),
-      'net_balance': d.counterpartyBalances.entries
-          .map((e) =>
-              '${MoneyFormatter.formatDecimal(e.value / 100)} ${e.key}')
-          .join(', '),
+      'net_balance': d.counterpartyBalances.entries.map((e) {
+        final digits = (e.key == d.currencyCode) ? d.currencyDigits : 2;
+        final divisor = digits == 0 ? 1 : (digits == 2 ? 100 : 1000);
+        final value = e.value / divisor;
+        final absValue = value.abs();
+        final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+        return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${e.key} $label'
+            .trim();
+      }).join(', '),
     };
   }
 

@@ -76,6 +76,7 @@ Future<void> shareVoucherAsPdf(
     receiverPublicKeyHex: data.receiverPublicKeyHex,
     senderStatusCode: data.senderStatusCode,
     receiverStatusCode: data.receiverStatusCode,
+    counterpartyBalances: data.counterpartyBalances,
   );
 
   Result<Uint8List> result;
@@ -131,8 +132,23 @@ Future<void> shareVoucherAsPdf(
             data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
         shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
-            'المبلغ: $amountTextFormatter\n'
-            'الحساب: ${data.affectedName}\n'
+            'المبلغ: $amountTextFormatter\n';
+
+        final balanceParts = data.counterpartyBalances.entries.map((e) {
+          final digits = (e.key == data.currencyCode) ? data.currencyDigits : 2;
+          final divisor =
+              (digits == 0 ? 1 : (digits == 2 ? 100 : 1000)).toDouble();
+          final value = e.value / divisor;
+          final absValue = value.abs();
+          final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+          return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${e.key} $label'
+              .trim();
+        }).toList();
+        if (balanceParts.isNotEmpty) {
+          shareText += 'الرصيد الإجمالي: ${balanceParts.join(", ")}\n';
+        }
+
+        shareText += 'الحساب: ${data.affectedName}\n'
             'المرجع: ${data.referenceNumber ?? shortId}\n'
             '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
       }

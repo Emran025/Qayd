@@ -35,7 +35,19 @@ class MainActivity: FlutterFragmentActivity() {
 
                     try {
                         val intent = Intent(Intent.ACTION_SEND)
-                        intent.type = if (filePath != null) "application/pdf" else "text/plain"
+                        val mimeType = if (filePath != null) {
+                            val file = File(filePath)
+                            when (file.extension.lowercase()) {
+                                "pdf" -> "application/pdf"
+                                "png" -> "image/png"
+                                "jpg", "jpeg" -> "image/jpeg"
+                                "webp" -> "image/webp"
+                                else -> "*/*"
+                            }
+                        } else {
+                            "text/plain"
+                        }
+                        intent.type = mimeType
                         intent.setPackage(packageName)
                         
                         // Set text message

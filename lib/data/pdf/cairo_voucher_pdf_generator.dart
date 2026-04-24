@@ -514,6 +514,49 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                     textAlign: pw.TextAlign.right,
                   ),
 
+                  // Total Balance display
+                  if (report.counterpartyBalances.isNotEmpty) ...[
+                    pw.SizedBox(height: 2),
+                    pw.RichText(
+                      text: pw.TextSpan(
+                        children: [
+                          pw.TextSpan(
+                            text: 'الرصيد الإجمالي: ',
+                            style: pw.TextStyle(
+                              font: font,
+                              fontSize: 9,
+                              color: _muted,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                          pw.TextSpan(
+                            text: report.counterpartyBalances.entries.map((e) {
+                              final digits = (e.key == report.currencyCode)
+                                  ? report.currencyDigits
+                                  : 2;
+                              final divisor = math.pow(10, digits).toDouble();
+                              final fmt =
+                                  NumberFormat('#,##0.${'0' * digits}', 'en');
+                              final value = e.value / divisor;
+                              final absValue = value.abs();
+                              final label =
+                                  value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+                              return '${fmt.format(absValue)} ${e.key} $label'
+                                  .trim();
+                            }).join(' | '),
+                            style: pw.TextStyle(
+                              font: font,
+                              fontSize: 9,
+                              color: _navy,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      textAlign: pw.TextAlign.right,
+                    ),
+                  ],
+
                   // Description
                   if (descriptionText.trim().isNotEmpty) ...[
                     pw.SizedBox(height: 4),
