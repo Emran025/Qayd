@@ -1,11 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
+import 'package:qayd/application/accounts/dtos/list_accounts_output.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
+import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -34,6 +39,8 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
 
   /// User decisions: legacyId → AccountResolution
   final Map<String, AccountResolution> _resolutions = {};
+
+  List<AccountSummaryDto> _rootAccounts = [];
 
   // ── File Picking ─────────────────────────────────────────────────────────────
 
@@ -83,12 +90,20 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
     // Pre-fill default resolutions: exact matches → merge, others → createNew
     _resolutions.clear();
     for (final c in analysis.accountConflicts) {
-      if (c.type == AccountConflictType.exactMatch && c.existingAccount != null) {
+      if (c.type == AccountConflictType.exactMatch &&
+          c.existingAccount != null) {
         _resolutions[c.legacyIdStr] =
             AccountResolution.merge(c.existingAccount!.id.value);
       } else {
         _resolutions[c.legacyIdStr] = const AccountResolution.createNew();
       }
+    }
+
+    final rootsResult =
+        await InjectionContainer.listAccountsUseCase(const ListAccountsInput());
+    if (rootsResult is Success<ListAccountsOutput>) {
+      _rootAccounts =
+          rootsResult.value.accounts.where((a) => a.isRoot).toList();
     }
 
     setState(() {
@@ -114,8 +129,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
 
     if (resolveResult is FailureResult) {
       setState(() {
-        _errorMessage =
-            (resolveResult as FailureResult).failure.messageAr;
+        _errorMessage = (resolveResult as FailureResult).failure.messageAr;
         _phase = _Phase.resolving;
       });
       return;
@@ -134,8 +148,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
 
     if (importResult is FailureResult) {
       setState(() {
-        _errorMessage =
-            (importResult as FailureResult).failure.messageAr;
+        _errorMessage = (importResult as FailureResult).failure.messageAr;
         _phase = _Phase.resolving;
       });
       return;
@@ -149,8 +162,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   void _reset() {
@@ -201,6 +213,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
               key: const ValueKey('resolving'),
               analysis: _analysis!,
               resolutions: _resolutions,
+              rootAccounts: _rootAccounts,
               onResolutionChanged: (id, r) =>
                   setState(() => _resolutions[id] = r),
               onConfirm: _startImport,
@@ -430,20 +443,21 @@ class _LoadingPage extends StatelessWidget {
 // ══════════════════════════════════════════════════════════════════════════════
 // Phase 3 — Conflict Resolution
 // ══════════════════════════════════════════════════════════════════════════════
-
 class _ResolvingPage extends StatelessWidget {
+  final MigrationAnalysisResult analysis;
+  final Map<String, AccountResolution> resolutions;
+  final List<AccountSummaryDto> rootAccounts;
+  final void Function(String legacyId, AccountResolution r) onResolutionChanged;
+  final VoidCallback onConfirm;
+
   const _ResolvingPage({
     super.key,
     required this.analysis,
     required this.resolutions,
+    required this.rootAccounts,
     required this.onResolutionChanged,
     required this.onConfirm,
   });
-
-  final MigrationAnalysisResult analysis;
-  final Map<String, AccountResolution> resolutions;
-  final void Function(String legacyId, AccountResolution r) onResolutionChanged;
-  final VoidCallback onConfirm;
 
   @override
   Widget build(BuildContext context) {
@@ -452,7 +466,8 @@ class _ResolvingPage extends StatelessWidget {
     final partialCount = analysis.partialMatchCount;
     final newCount = analysis.newAccountCount;
     final txCount =
-        (analysis.rawBundle['stats']?['transactions_count'] as num? ?? 0).toInt();
+        (analysis.rawBundle['stats']?['transactions_count'] as num? ?? 0)
+            .toInt();
     final scheme = Theme.of(context).colorScheme;
 
     return CustomScrollView(
@@ -538,6 +553,7 @@ class _ResolvingPage extends StatelessWidget {
               child: _ConflictCard(
                 conflict: conflict,
                 resolution: resolution,
+                rootAccounts: rootAccounts,
                 onResolutionChanged: (r) =>
                     onResolutionChanged(conflict.legacyIdStr, r),
               ),
@@ -579,11 +595,13 @@ class _ConflictCard extends StatelessWidget {
   const _ConflictCard({
     required this.conflict,
     required this.resolution,
+    required this.rootAccounts,
     required this.onResolutionChanged,
   });
 
   final AccountMigrationConflict conflict;
   final AccountResolution resolution;
+  final List<AccountSummaryDto> rootAccounts;
   final ValueChanged<AccountResolution> onResolutionChanged;
 
   Color _conflictColor(BuildContext context) => switch (conflict.type) {
@@ -742,14 +760,12 @@ class _ConflictCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: scheme.primaryContainer.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color:
-                          scheme.primary.withValues(alpha: 0.2)),
+                  border:
+                      Border.all(color: scheme.primary.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.link_rounded,
-                        size: 16, color: scheme.primary),
+                    Icon(Icons.link_rounded, size: 16, color: scheme.primary),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -812,10 +828,92 @@ class _ConflictCard extends StatelessWidget {
               ],
             ),
           ),
+          if (resolution.action == ResolutionAction.createNew) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(SpacingTokens.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ربط بالحساب الجذر:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(
+                    width: double.infinity,
+                    child: DropdownButtonFormField<String>(
+                      value: resolution.forcedParentId,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: scheme.surfaceContainerHigh,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: scheme.outlineVariant),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: scheme.outlineVariant),
+                        ),
+                      ),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: scheme.onSurface,
+                        fontFamily: 'Cairo',
+                      ),
+                      hint: Text(
+                        _getDefaultParentName(conflict, rootAccounts),
+                        style: TextStyle(color: scheme.primary),
+                      ),
+                      items: rootAccounts.map((root) {
+                        return DropdownMenuItem<String>(
+                          value: root.id,
+                          child: Text(root.name),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          onResolutionChanged(
+                            AccountResolution.createNew(forcedParentId: val),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
+}
+
+String _getDefaultParentName(
+  AccountMigrationConflict conflict,
+  List<AccountSummaryDto> roots,
+) {
+  final legacyClassification =
+      conflict.legacyData['classification']?.toString() ?? '';
+  final isPayable = legacyClassification == 'payables';
+  final kindName = isPayable
+      ? StandardAccountClassificationKind.payables.name
+      : StandardAccountClassificationKind.receivables.name;
+
+  final defaultRoot =
+      roots.where((a) => a.standardClassificationKind == kindName).firstOrNull;
+
+  return defaultRoot?.name ?? (isPayable ? 'التزامات وديون' : 'حقوق ومستحقات');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1000,8 +1098,7 @@ class _WarningBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: TextStyle(
-                  color: scheme.onErrorContainer, fontSize: 13),
+              style: TextStyle(color: scheme.onErrorContainer, fontSize: 13),
             ),
           ),
         ],
@@ -1057,8 +1154,7 @@ class _StepHint extends StatelessWidget {
           const SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(
-                  bottom: isLast ? 0 : SpacingTokens.md),
+              padding: EdgeInsets.only(bottom: isLast ? 0 : SpacingTokens.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1168,8 +1264,7 @@ class _ActionChip extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(icon,
-                  size: 18, color: isSelected ? color : scheme.outline),
+              Icon(icon, size: 18, color: isSelected ? color : scheme.outline),
               const SizedBox(height: 3),
               Text(
                 label,
@@ -1195,8 +1290,7 @@ class _BalanceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPos = amount >= 0;
-    final color =
-        isPos ? ColorTokens.creditGreen : ColorTokens.errorSoft;
+    final color = isPos ? ColorTokens.creditGreen : ColorTokens.errorSoft;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

@@ -40,17 +40,22 @@ class AccountResolution {
   /// Target Qayd account ID — required for [ResolutionAction.merge].
   final String? targetAccountId;
 
+  /// Optional: override the parent root account when creating a new account.
+  final String? forcedParentId;
+
   const AccountResolution.merge(String qaydId)
       : action = ResolutionAction.merge,
-        targetAccountId = qaydId;
+        targetAccountId = qaydId,
+        forcedParentId = null;
 
-  const AccountResolution.createNew()
+  const AccountResolution.createNew({this.forcedParentId})
       : action = ResolutionAction.createNew,
         targetAccountId = null;
 
   const AccountResolution.skip()
       : action = ResolutionAction.skip,
-        targetAccountId = null;
+        targetAccountId = null,
+        forcedParentId = null;
 }
 
 // ─── Conflict Model ───────────────────────────────────────────────────────────
@@ -257,11 +262,20 @@ class LegacyMigrationUseCase {
           final accountName =
               conflict.name.isNotEmpty ? conflict.name : 'حساب مستورد';
 
-          // Determine parent based on bundle classification from the web tool.
-          final legacyClassification =
-              conflict.legacyData['classification']?.toString() ?? '';
-          final isPayable = legacyClassification == 'payables';
-          final parentAccount = isPayable ? payablesRoot : receivablesRoot;
+          // Determine parent based on user override or bundle classification.
+          Account? parentAccount;
+          if (decision.forcedParentId != null) {
+            parentAccount = allAccounts
+                .where((a) => a.id.value == decision.forcedParentId)
+                .firstOrNull;
+          }
+
+          if (parentAccount == null) {
+            final legacyClassification =
+                conflict.legacyData['classification']?.toString() ?? '';
+            final isPayable = legacyClassification == 'payables';
+            parentAccount = isPayable ? payablesRoot : receivablesRoot;
+          }
 
           final Account newAccount;
           if (parentAccount != null) {
@@ -284,9 +298,7 @@ class LegacyMigrationUseCase {
             newAccount = Account.createRoot(
               id: newId,
               name: accountName,
-              classification: isPayable
-                  ? AccountClassification.payables
-                  : AccountClassification.receivables,
+              classification: parentAccount?.classification ?? AccountClassification.receivables,
               createdAt: DateTime.now(),
               metadata: {
                 'source': 'legacy_import',
