@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_state.dart';
@@ -110,7 +109,8 @@ class _VaultScreen extends StatelessWidget {
                 const SizedBox(height: SpacingTokens.lg),
                 Text(
                   config.titleAr,
-                  style: GoogleFonts.cairo(
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: ColorTokens.slate50,
@@ -121,7 +121,8 @@ class _VaultScreen extends StatelessWidget {
                 const SizedBox(height: SpacingTokens.sm),
                 Text(
                   config.bodyAr,
-                  style: GoogleFonts.cairo(
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: ColorTokens.slate400,
@@ -287,7 +288,8 @@ class SecurityTrialBadge extends StatelessWidget {
       ),
       child: Text(
         '$days ${AppStringsAr.vaultTrialDaysRemaining}',
-        style: GoogleFonts.cairo(
+        style: const TextStyle(
+          fontFamily: 'Cairo',
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: ColorTokens.emerald400,
@@ -338,7 +340,8 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
 
   @override
   Widget build(BuildContext context) {
-    final fieldStyle = GoogleFonts.cairo(
+    final fieldStyle = const TextStyle(
+      fontFamily: 'Cairo',
       fontSize: 14,
       color: ColorTokens.slate50,
     );
@@ -409,9 +412,10 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
           const SizedBox(height: SpacingTokens.sm),
           Text(
             _errorAr!,
-            style: GoogleFonts.cairo(
+            style: const TextStyle(
+              fontFamily: 'Cairo',
               fontSize: 13,
-              color: const Color(0xFFF87171), // red-400
+              color: Color(0xFFF87171), // red-400
             ),
             textAlign: TextAlign.center,
           ),
@@ -440,7 +444,8 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
                   )
                 : Text(
                     AppStringsAr.vaultActivateAction,
-                    style: GoogleFonts.cairo(
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
@@ -468,7 +473,8 @@ class _ContactBadge extends StatelessWidget {
       ),
       child: Text(
         messageAr,
-        style: GoogleFonts.cairo(fontSize: 12, color: ColorTokens.slate400),
+        style: const TextStyle(
+            fontFamily: 'Cairo', fontSize: 12, color: ColorTokens.slate400),
         textAlign: TextAlign.center,
       ),
     );

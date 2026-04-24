@@ -8,7 +8,6 @@ import 'package:intl/intl.dart' as intl;
 import 'package:path_provider/path_provider.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/presentation/utils/numerical_styling.dart';
@@ -593,7 +592,8 @@ class VoucherImageCard extends StatelessWidget {
         children: [
           TextSpan(
             text: '$label ',
-            style: GoogleFonts.cairo(
+            style: TextStyle(
+              fontFamily: 'Cairo',
               fontSize: 9,
               color: _navy,
               fontWeight: FontWeight.w700,
@@ -601,7 +601,7 @@ class VoucherImageCard extends StatelessWidget {
           ),
           TextSpan(
             text: value,
-            style: GoogleFonts.cairo(fontSize: 9, color: _muted),
+            style: const TextStyle(fontFamily: 'Cairo', fontSize: 9, color: _muted),
           ),
         ],
       ),
@@ -771,7 +771,8 @@ class VoucherImageCard extends StatelessWidget {
     TextAlign? align,
     TextDirection? dir,
   }) {
-    final style = GoogleFonts.cairo(
+    final style = TextStyle(
+      fontFamily: 'Cairo',
       fontSize: size,
       color: color,
       fontWeight: bold ? FontWeight.w700 : FontWeight.w400,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 
 class AuthAdminBadge extends StatelessWidget {
@@ -20,7 +19,8 @@ class AuthAdminBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: GoogleFonts.cairo(
+        style: const TextStyle(
+          fontFamily: 'Cairo',
           fontSize: 12,
           color: ColorTokens.goldAccent,
           fontWeight: FontWeight.w500,

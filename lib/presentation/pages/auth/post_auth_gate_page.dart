@@ -2,7 +2,6 @@ import 'package:qayd/core/result/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
-// import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
@@ -110,7 +109,9 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     // Check for local/cloud backups (database files)
     await _checkBackups();
 
-    if (_hasLocalBackup || _hasDriveBackup) {
+    if (_hasLocalBackup ||
+        _hasDriveBackup ||
+        !InjectionContainer.driveBackupService.isSignedIn) {
       if (mounted) setState(() => _phase = _GatePhase.backupRestore);
       return;
     }
@@ -139,19 +140,16 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     try {
       final licenseData =
           await InjectionContainer.licenseVault.readLicenseData();
-      final email = licenseData?['email'] as String?;
-      if (email != null && email.isNotEmpty) {
-        final lookup = await InjectionContainer.identityRepository
-            .lookupByEmail(email: email);
-        if (lookup == null) {
-          // Server responded successfully but no identity found.
-          _hasServerIdentity = false;
-        } else {
-          _hasServerIdentity = true;
-        }
+      final serverPublicKey = licenseData?['public_key'] as String?;
+
+      if (serverPublicKey != null && serverPublicKey.isNotEmpty) {
+        _hasServerIdentity = true;
+      } else {
+        _hasServerIdentity = false;
       }
     } catch (_) {
-      // Network or server error — we CAN'T determine if identity exists.
+      // Very unlikely since we are reading from local storage,
+      // but just in case JSON parsing fails.
       _hasServerIdentity = false;
       _serverCheckFailed = true;
     }
@@ -184,6 +182,36 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
         _advanceToDeviceLock();
       }
     });
+  }
+
+  Future<void> _signInAndCheckDrive() async {
+    setState(() => _phase = _GatePhase.checking);
+    final signInResult = await InjectionContainer.driveBackupService.signIn();
+
+    if (signInResult.isSuccess) {
+      await _checkBackups();
+      if (!_hasDriveBackup && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('لم يتم العثور على نسخة احتياطية في Google Drive'),
+            backgroundColor: ColorTokens.warningAmber,
+          ),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(signInResult.failureOrNull?.messageAr ??
+                'فشل تسجيل الدخول إلى Google'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+
+    // Re-evaluate state. If signed in but no backup, it will advance to identityDecision.
+    _evaluateState();
   }
 
   void _navigateToSeedSetup() {
@@ -423,10 +451,9 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
           const SizedBox(height: SpacingTokens.lg),
           Text(
             AppStringsAr.gateCheckingStatus,
-            style: const TextStyle(
-              color: ColorTokens.slate400,
-              fontSize: 14,
-            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),
@@ -464,13 +491,24 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
               color: const Color(0xFF4285F4), // Google Blue
               onTap: _navigateToRestoreDiscovery,
             ),
+          ] else if (!InjectionContainer.driveBackupService.isSignedIn) ...[
+            const SizedBox(height: SpacingTokens.sm),
+            _buildOptionCard(
+              icon: Icons.cloud_sync_rounded,
+              title: 'البحث في Google Drive',
+              subtitle: 'سجل الدخول بحساب Google للبحث عن نسخة احتياطية',
+              color: const Color(0xFF4285F4), // Google Blue
+              onTap: _signInAndCheckDrive,
+            ),
           ],
           const SizedBox(height: SpacingTokens.xl),
           TextButton(
             onPressed: _skipRestoreAndContinue,
-            child: const Text(
+            child: Text(
               AppStringsAr.gateSkipRestore,
-              style: TextStyle(color: ColorTokens.slate400, fontSize: 13),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ),
         ],
@@ -553,9 +591,11 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
 
           TextButton(
             onPressed: _skipDeviceLock,
-            child: const Text(
+            child: Text(
               AppStringsAr.gateSkipDeviceLock,
-              style: TextStyle(color: ColorTokens.slate400, fontSize: 13),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
           ),
         ],
@@ -645,45 +685,64 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
+      padding: const EdgeInsets.all(SpacingTokens.sm),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B), // Slate 800
+        color: isDark
+            ? theme.colorScheme.surfaceContainerHigh
+            : theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(SpacingTokens.md),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(
+          color: isDark
+              ? color.withValues(alpha: 0.3)
+              : theme.colorScheme.outlineVariant,
+        ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: ListTile(
         leading: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 20),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 13,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         subtitle: Text(
           subtitle,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: ColorTokens.slate400, fontSize: 12),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios_rounded,
-          color: color.withOpacity(0.6),
-          size: 16,
+          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+          size: 14,
         ),
         onTap: onTap,
       ),
     );
   }
 }
-
-

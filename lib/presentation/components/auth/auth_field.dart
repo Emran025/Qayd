@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 
 /// Standardised text field for auth screens (frosted-glass style).
@@ -29,8 +28,10 @@ class AuthField extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = accentColor ?? ColorTokens.emerald500;
     final borderColor = ColorTokens.slate200.withValues(alpha: 0.18);
-    final style = GoogleFonts.cairo(
-        fontSize: 14, color: Theme.of(context).colorScheme.onSurface);
+    final style = const TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 14,
+    ).copyWith(color: Theme.of(context).colorScheme.onSurface);
 
     final field = TextFormField(
       controller: controller,
@@ -45,7 +46,7 @@ class AuthField extends StatelessWidget {
         filled: true,
         fillColor: Theme.of(context).colorScheme.surfaceContainerHigh,
         suffixIcon: suffixIcon,
-        errorStyle: GoogleFonts.cairo(fontSize: 12),
+        errorStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 12),
         border: _border(borderColor),
         enabledBorder: _border(borderColor),
         focusedBorder: _border(accent.withValues(alpha: 0.7), width: 1.5),

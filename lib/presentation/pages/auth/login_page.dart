@@ -14,6 +14,7 @@ import 'package:qayd/presentation/pages/auth/register_page.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/di/injection_container.dart';
 
 /// First-run provisioning screen shown when [LicenseStatus.pending].
 ///
@@ -65,24 +66,36 @@ class _LoginPageState extends State<LoginPage> {
 
     if (result.success && result.emailUnverified) {
       // Redirect to OTP page
-      Navigator.push(
+      final otpSuccess = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
           builder: (_) => EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
         ),
       );
-      setState(() => _loading = false);
-      return;
+      
+      if (otpSuccess != true) {
+        setState(() => _loading = false);
+        return;
+      }
+      // If verified successfully, fall through to complete provisioning!
     }
 
     if (result.success) {
       // Notify parent to open database now that provisioning is done.
       if (widget.onProvisioningComplete != null) {
         await widget.onProvisioningComplete!();
-        if (!mounted) return;
-        setState(() => _loading = false);
-        return;
+      } else {
+        // If onProvisioningComplete is null, we are rendering LoginPage from within 
+        // QaydApp (after a logout). We need to reopen the database manually here.
+        await InjectionContainer.reopenDatabaseAfterRestore();
+        
+        // We must sync identity manually since SecurityCubit skipped it because DB wasn't ready.
+        InjectionContainer.syncIdentityToInternalAccountsUseCase.call().ignore();
       }
+      
+      if (!mounted) return;
+      setState(() => _loading = false);
+      return;
     }
 
     if (!mounted) return;

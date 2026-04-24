@@ -7,6 +7,7 @@ import 'package:qayd/data/backup/google_drive_backup_service.dart';
 import 'package:qayd/data/database/hardware_backed_encryption_key_provider.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
 import 'package:qayd/data/security/mnemonic_vault.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 
 abstract class RestoreState {}
@@ -146,9 +147,16 @@ class RestoreCubit extends Cubit<RestoreState> {
       final result = await _restoreUseCase.restore(path, customKey: customKey);
       if (result.isSuccess) {
         await _keyProvider.updateCachedKey(customKey);
-        // Save the mnemonic so identity is also restored
-        await _mnemonicVault
-            .writeMnemonic(MnemonicPhrase.fromPhrase(mnemonicPhrase));
+        
+        try {
+          final phrase = MnemonicPhrase.fromPhrase(mnemonicPhrase);
+          await InjectionContainer.setupIdentityUseCase.recoverFromMnemonic(phrase);
+        } catch (e) {
+          // Fallback just in case
+          await _mnemonicVault
+              .writeMnemonic(MnemonicPhrase.fromPhrase(mnemonicPhrase));
+        }
+        
         emit(RestoreSuccess());
       } else {
         emit(RestoreFailure(

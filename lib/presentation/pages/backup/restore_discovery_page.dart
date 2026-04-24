@@ -105,9 +105,10 @@ class RestoreDiscoveryPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
+              child: Text(
                 'تخطي والبدء بجهاز جديد',
-                style: TextStyle(color: ColorTokens.slate400),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
           ],
@@ -122,27 +123,29 @@ class RestoreDiscoveryPage extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B), // Slate 800
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(SpacingTokens.md),
-        border: Border.all(color: ColorTokens.emerald500.withOpacity(0.3)),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
       ),
       child: ListTile(
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(
+              color: theme.colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+              fontSize: 14),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: ColorTokens.slate400),
+          style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant, fontSize: 11),
         ),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.restore_rounded,
-          color: ColorTokens.emerald500,
+          color: theme.colorScheme.primary,
         ),
         onTap: onTap,
       ),
@@ -151,6 +154,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
 
   void _showPrimaryKeyDialog(BuildContext context, String path) {
     final controller = TextEditingController();
+    final theme = Theme.of(context);
     QaydDialog.show(
       context: context,
       icon: Icons.vpn_key_rounded,
@@ -167,13 +171,13 @@ class RestoreDiscoveryPage extends StatelessWidget {
           TextField(
             controller: controller,
             maxLines: 4,
-            cursorColor: ColorTokens.emerald500,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            cursorColor: theme.colorScheme.primary,
+            style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 13),
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFF1E293B), // Slate 800
+              fillColor: theme.colorScheme.surfaceContainerHighest,
               hintText: 'ادخل عبارة الاسترداد هنا...',
-              hintStyle: const TextStyle(color: ColorTokens.slate400),
+              hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,

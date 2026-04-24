@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/core/constants/app_constants.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
@@ -21,8 +20,6 @@ import 'package:qayd/presentation/utils/no_stretch_scroll_behavior.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
-
   // Phase A: only lightweight services (no database).
   await InjectionContainer.initPreAuth();
 
@@ -159,24 +156,35 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_databaseReady) return _buildPreAuthApp();
-
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<SecurityCubit>(
-          create: (_) => InjectionContainer.securityCubit,
-        ),
-        BlocProvider<GovernanceCubit>(
-          create: (_) => GovernanceCubit(
-            InjectionContainer.checkGovernanceStatusUseCase,
-            InjectionContainer.submitActivationUseCase,
-          )..scheduleBackgroundVerification(),
-        ),
-        BlocProvider<SyncStatusCubit>(
-          create: (_) => InjectionContainer.syncStatusCubit,
-        ),
-      ],
-      child: const SecurityLifecycleObserver(child: QaydApp()),
+    return BlocListener<SecurityCubit, SecurityState>(
+      bloc: InjectionContainer.securityCubit,
+      listenWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
+      listener: (context, state) {
+        if (state.licenseStatus == LicenseStatus.pending) {
+          if (_databaseReady) {
+            setState(() => _databaseReady = false);
+          }
+        }
+      },
+      child: !_databaseReady
+          ? _buildPreAuthApp()
+          : MultiBlocProvider(
+              providers: [
+                BlocProvider<SecurityCubit>(
+                  create: (_) => InjectionContainer.securityCubit,
+                ),
+                BlocProvider<GovernanceCubit>(
+                  create: (_) => GovernanceCubit(
+                    InjectionContainer.checkGovernanceStatusUseCase,
+                    InjectionContainer.submitActivationUseCase,
+                  )..scheduleBackgroundVerification(),
+                ),
+                BlocProvider<SyncStatusCubit>(
+                  create: (_) => InjectionContainer.syncStatusCubit,
+                ),
+              ],
+              child: const SecurityLifecycleObserver(child: QaydApp()),
+            ),
     );
   }
 
@@ -373,7 +381,17 @@ class _QaydAppState extends State<QaydApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      home: BlocBuilder<SecurityCubit, SecurityState>(
+      home: BlocConsumer<SecurityCubit, SecurityState>(
+        listenWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
+        listener: (context, state) {
+          if (state.licenseStatus == LicenseStatus.pending) {
+            // When a user logs out, we must reset the onboarding flag so the next
+            // user goes through the PostAuthGatePage for identity validation.
+            if (mounted) {
+              setState(() => _onboardingComplete = false);
+            }
+          }
+        },
         buildWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
         builder: (context, state) {
           if (state.licenseStatus == LicenseStatus.booting) {
@@ -394,9 +412,7 @@ class _QaydAppState extends State<QaydApp> {
               ),
             );
           }
-          if (state.licenseStatus == LicenseStatus.pending) {
-            return const LoginPage();
-          }
+          // Note: LicenseStatus.pending is handled by QaydAppBootstrapper unmounting this app.
 
           // ── Post-Auth Gate ─────────────────────────────────────────────
           // Show the onboarding gate for first-time setup.

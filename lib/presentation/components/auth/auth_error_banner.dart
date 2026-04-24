@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 
 /// A crimson-tinted inline error notice for auth forms.
@@ -22,8 +21,9 @@ class AuthErrorBanner extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: GoogleFonts.cairo(
+        style: TextStyle(
           fontSize: 13,
+          fontFamily: 'Cairo',
           color: const Color(0xFFFCA5A5), // red-300
         ),
         textAlign: TextAlign.center,

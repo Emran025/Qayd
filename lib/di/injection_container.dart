@@ -7,6 +7,7 @@ import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/application/suggestions/analyze_for_suggestions_use_case.dart';
 import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
+import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -221,7 +222,7 @@ abstract final class InjectionContainer {
       syncIdentityToInternalAccountsUseCase;
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
-  static late final CanSyncWithAccountUseCase canSyncWithAccountUseCase;
+  static late CanSyncWithAccountUseCase canSyncWithAccountUseCase;
 
   // ── Governance ─────────────────────────────────────────────────────────────
 
@@ -566,8 +567,17 @@ abstract final class InjectionContainer {
     final derivedKey = await hwProvider.deriveKeyFromMnemonic(mnemonic);
     await hwProvider.updateCachedKey(derivedKey);
     final result = await initDatabase();
-    return result == DatabaseOpenResult.success ||
-        result == DatabaseOpenResult.freshCreated;
+    
+    if (result == DatabaseOpenResult.success || result == DatabaseOpenResult.freshCreated) {
+      try {
+        final phrase = MnemonicPhrase.fromPhrase(mnemonic);
+        await setupIdentityUseCase.recoverFromMnemonic(phrase);
+      } catch (e) {
+        debugPrint('Failed to fully recover identity from mnemonic: $e');
+      }
+      return true;
+    }
+    return false;
   }
 
   /// Deletes the existing database file and creates a new empty one.
@@ -594,6 +604,31 @@ abstract final class InjectionContainer {
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
     await _initializeDatabaseDependentStack();
     databaseEpoch.value++;
+  }
+
+  /// Wipes the local database and identity completely, without wiping the current 
+  /// authentication session (JWT/LicenseVault).
+  /// Used when switching accounts to prevent data mixing.
+  static Future<void> wipeLocalDataForAccountSwitch() async {
+    await closeDatabaseForRestore();
+
+    final dbPath = await DatabaseProvider.databaseFilePath();
+    final file = File(dbPath);
+    if (file.existsSync()) {
+      await file.delete();
+    }
+
+    await mnemonicVault.deleteAll();
+    await appPinStorage.clearPinAndLock();
+    await identityFileStorage.delete();
+    await clockGuard.delete();
+
+    // Sign out of Google Drive to prevent the new user from syncing to the previous user's drive
+    try {
+      await driveBackupService.signOut();
+    } catch (_) {
+      // Ignore errors (e.g., no internet or play services missing)
+    }
   }
 
   static Future<void> _initializeDatabaseDependentStack() async {

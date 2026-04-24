@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Cairo-based type ramp aligned with `theming_and_design_system.md` §2.2.
 abstract final class TypeScale {
@@ -9,7 +8,8 @@ abstract final class TypeScale {
       required FontWeight weight,
       double height = 1.35,
     }) {
-      return GoogleFonts.cairo(
+      return TextStyle(
+        fontFamily: 'Cairo',
         fontSize: size,
         fontWeight: weight,
         height: height,
@@ -36,24 +36,25 @@ abstract final class TypeScale {
     );
   }
 
-  static TextStyle moneyLarge(ColorScheme scheme) => GoogleFonts.cairo(
+  static TextStyle moneyLarge(ColorScheme scheme) => const TextStyle(
+        fontFamily: 'Cairo',
         fontSize: 22,
         fontWeight: FontWeight.w700,
         height: 1.25,
-        color: scheme.onSurface,
-      );
+      ).copyWith(color: scheme.onSurface);
 
-  static TextStyle moneyMedium(ColorScheme scheme) => GoogleFonts.cairo(
+  static TextStyle moneyMedium(ColorScheme scheme) => const TextStyle(
+        fontFamily: 'Cairo',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         height: 1.25,
-        color: scheme.onSurface,
-      );
+      ).copyWith(color: scheme.onSurface);
 
-  static TextStyle moneySmall(ColorScheme scheme) => GoogleFonts.cairo(
+  static TextStyle moneySmall(ColorScheme scheme) => const TextStyle(
+        fontFamily: 'Cairo',
         fontSize: 14,
         fontWeight: FontWeight.w500,
         height: 1.25,
-        color: scheme.onSurface,
-      );
+      ).copyWith(color: scheme.onSurface);
 }
+

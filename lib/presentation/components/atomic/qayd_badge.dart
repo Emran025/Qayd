@@ -106,6 +106,7 @@ class QaydBadge extends StatelessWidget {
     final text = Text(
       label,
       style: textTheme.labelMedium?.copyWith(
+        fontSize: 8,
         color: fgColor,
         fontWeight: FontWeight.w700,
       ),

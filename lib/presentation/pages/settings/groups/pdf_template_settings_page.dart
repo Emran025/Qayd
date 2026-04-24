@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -565,7 +564,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
         ),
         child: Text(
           _config[key]!,
-          style: GoogleFonts.cairo(
+          style:  TextStyle(
+            fontFamily: 'Cairo',
             fontSize: size,
             color: color,
             fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
@@ -583,7 +583,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       text,
       textDirection: dir,
       textAlign: align,
-      style: GoogleFonts.cairo(
+      style:  TextStyle(
+        fontFamily: 'Cairo',
         fontSize: size,
         color: color,
         fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
@@ -609,8 +610,10 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             _directText(_config[key]!, 9, const Color(0xFF0F2741), bold: true),
             const SizedBox(width: 4),
             Text(value,
-                style: GoogleFonts.cairo(
-                    fontSize: 10, color: const Color(0xFF0F2741))),
+                style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 10,
+                    color: Color(0xFF0F2741))),
           ],
         ),
       ),
@@ -624,8 +627,10 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
         const SizedBox(width: 4),
         Expanded(
             child: Text(value,
-                style: GoogleFonts.cairo(
-                    fontSize: 9, color: const Color(0xFF64748B)))),
+                style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 9,
+                    color: Color(0xFF64748B)))),
       ],
     );
   }

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:qayd/presentation/theme/color_tokens.dart';
 
 /// Full-width submit button for auth forms.
 ///
@@ -18,38 +16,41 @@ class AuthSubmitButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool loading;
 
-  /// Button fill color. Defaults to [ColorTokens.emerald500].
+  /// Button fill color. Defaults to [ColorScheme.primary].
   final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final fillColor = color ?? ColorTokens.emerald500;
+    final theme = Theme.of(context);
+    final backgroundColor = color ?? theme.colorScheme.primary;
+    final foregroundColor = theme.colorScheme.onPrimary;
+
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: FilledButton(
         style: FilledButton.styleFrom(
-          backgroundColor: fillColor,
-          foregroundColor: Colors.black87,
+          backgroundColor: backgroundColor,
+          foregroundColor: foregroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
         onPressed: loading ? null : onPressed,
         child: loading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Colors.white,
+                  color: foregroundColor,
                 ),
               )
             : Text(
                 label,
-                style: GoogleFonts.cairo(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
       ),

@@ -346,10 +346,23 @@ class LegacyMigrationUseCase {
         return FailureResult(allResult.failure);
       }
       final allAccounts = (allResult as Success<List<Account>>).value;
+      
+      // We must restrict our search to liquid assets primarily, because other
+      // root accounts (like Fixed Assets) might also be marked as isDefault=true.
       final fundAccount = allAccounts
-          .where((a) =>
-              a.isDefault || a.name == 'الصندوق' || a.name.contains('قيد'))
-          .firstOrNull;
+              .where((a) =>
+                  a.classification.standardKind ==
+                      StandardAccountClassificationKind.liquidAssets &&
+                  (a.isDefault || a.name == 'الصندوق' || a.name.contains('قيد')))
+              .firstOrNull ??
+          allAccounts
+              .where((a) =>
+                  a.classification.standardKind ==
+                  StandardAccountClassificationKind.liquidAssets)
+              .firstOrNull ??
+          allAccounts
+              .where((a) => a.name == 'الصندوق' || a.name.contains('قيد'))
+              .firstOrNull;
 
       if (fundAccount == null) {
         return const FailureResult(

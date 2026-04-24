@@ -85,6 +85,7 @@ abstract final class AppTheme {
     final base = ThemeData(
       colorScheme: scheme,
       useMaterial3: true,
+      fontFamily: 'Cairo',
       brightness: scheme.brightness,
       scaffoldBackgroundColor: scheme.surface,
       canvasColor: scheme.surface,
