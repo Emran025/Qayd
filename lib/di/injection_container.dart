@@ -879,6 +879,7 @@ abstract final class InjectionContainer {
       attachmentRepository,
       collateralRepository,
       costCenterRepository,
+      ledgerRepository,
     );
 
     syncIdentityToInternalAccountsUseCase =

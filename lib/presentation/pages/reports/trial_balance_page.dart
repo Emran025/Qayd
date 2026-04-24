@@ -254,12 +254,13 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     final qayd = Theme.of(context).extension<QaydCustomColors>()!;
 
     if (widget.output.lines.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48),
-          child: QaydText(AppStringsAr.trialBalanceEmpty,
-              slot: QaydTextStyleSlot.bodyLarge,
-              color: scheme.onSurfaceVariant),
+      return Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 128),
+        child: QaydText(
+          AppStringsAr.trialBalanceEmpty,
+          slot: QaydTextStyleSlot.bodyLarge,
+          color: scheme.onSurfaceVariant,
         ),
       );
     }

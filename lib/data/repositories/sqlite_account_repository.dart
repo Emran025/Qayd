@@ -11,7 +11,6 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
-
 final class SqliteAccountRepository implements AccountRepository {
   SqliteAccountRepository(this._db);
 
@@ -51,20 +50,38 @@ final class SqliteAccountRepository implements AccountRepository {
   }) async {
     try {
       final conditions = <String>[];
-      if (activeOnly) conditions.add('is_active = 1');
-      if (excludeArchived) conditions.add('is_archived = 0');
-      
+      if (activeOnly) conditions.add('a.is_active = 1');
+      if (excludeArchived) conditions.add('a.is_archived = 0');
+
       final whereClause = conditions.isEmpty ? null : conditions.join(' AND ');
 
-      final rows = await _db.query(
-        _table,
-        where: whereClause,
-        orderBy: 'name COLLATE NOCASE',
+      final rows = await _db.rawQuery(
+        '''
+        SELECT a.*, p.phone_number, p.whatsapp_number
+        FROM $_table a
+        LEFT JOIN party_details p ON a.id = p.account_id
+        ${whereClause != null ? 'WHERE $whereClause' : ''}
+        ORDER BY a.name COLLATE NOCASE
+        ''',
       );
+
       return Success(
-        rows
-            .map((m) => AccountMapper.toEntity(AccountModel.fromMap(m)))
-            .toList(growable: false),
+        rows.map((row) {
+          final model = AccountModel.fromMap(row);
+          final entity = AccountMapper.toEntity(model);
+
+          // Inject phone/whatsapp into metadata for easy searching/display in UI
+          final phone = row['phone_number'] as String?;
+          final whatsapp = row['whatsapp_number'] as String?;
+
+          if (phone != null || whatsapp != null) {
+            return entity.updateMetadata({
+              if (phone != null) 'phone': phone,
+              if (whatsapp != null) 'whatsapp': whatsapp,
+            });
+          }
+          return entity;
+        }).toList(growable: false),
       );
     } catch (_) {
       return const FailureResult(

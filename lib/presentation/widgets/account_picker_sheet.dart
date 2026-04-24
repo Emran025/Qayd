@@ -24,6 +24,7 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
   List<String>? allowedClassifications,
   bool hideSterileRoots = false,
   bool showIdentityStatus = false,
+  String? initialSearchQuery,
 }) async {
   final data = await _loadAndFilterAccounts(
     context,
@@ -48,6 +49,7 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
         accounts: data.accounts,
         parentNames: data.parentNames,
         showIdentityStatus: showIdentityStatus,
+        initialSearchQuery: initialSearchQuery,
         onSelected: (a) => Navigator.of(ctx).pop(a),
       );
     },
@@ -67,6 +69,7 @@ Future<List<AccountSummaryDto>?> showMultiAccountPickerSheet(
   bool hideSterileRoots = false,
   List<String>? initialSelectedIds,
   bool showIdentityStatus = false,
+  String? initialSearchQuery,
 }) async {
   final data = await _loadAndFilterAccounts(
     context,
@@ -93,6 +96,7 @@ Future<List<AccountSummaryDto>?> showMultiAccountPickerSheet(
         isMultiSelect: true,
         initialSelectedIds: initialSelectedIds,
         showIdentityStatus: showIdentityStatus,
+        initialSearchQuery: initialSearchQuery,
         onMultiSelected: (list) => Navigator.of(ctx).pop(list),
       );
     },
@@ -195,6 +199,7 @@ class _AccountPickerContent extends StatefulWidget {
     this.isMultiSelect = false,
     this.initialSelectedIds,
     this.showIdentityStatus = false,
+    this.initialSearchQuery,
   });
 
   final List<AccountSummaryDto> accounts;
@@ -204,6 +209,7 @@ class _AccountPickerContent extends StatefulWidget {
   final bool isMultiSelect;
   final List<String>? initialSelectedIds;
   final bool showIdentityStatus;
+  final String? initialSearchQuery;
 
   @override
   State<_AccountPickerContent> createState() => _AccountPickerContentState();
@@ -211,7 +217,7 @@ class _AccountPickerContent extends StatefulWidget {
 
 class _AccountPickerContentState extends State<_AccountPickerContent> {
   final _searchController = TextEditingController();
-  String _query = '';
+  late String _query;
   late final Set<String> _selectedIds;
   final Map<String, PublicKeyLookupResult> _identityMap = {};
   bool _isCheckingIdentities = false;
@@ -219,6 +225,8 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
   @override
   void initState() {
     super.initState();
+    _query = widget.initialSearchQuery ?? '';
+    _searchController.text = _query;
     _selectedIds = Set.from(widget.initialSelectedIds ?? []);
     if (widget.showIdentityStatus) {
       _lookupIdentities();
@@ -317,8 +325,13 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
 
     // Fallback to standard classification
     if (a.standardClassificationKind != null) {
-      return AppStringsAr.standardClassificationLabel(
-          a.standardClassificationKind!);
+      final label =
+          AppStringsAr.standardClassificationLabel(a.standardClassificationKind!);
+      final phone = a.metadata?['phone'] ?? a.metadata?['whatsapp'];
+      if (phone != null) {
+        return '$label • $phone';
+      }
+      return label;
     }
 
     return '';
@@ -330,7 +343,17 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
     final h = MediaQuery.sizeOf(context).height * 0.7;
     final filtered = widget.accounts.where((a) {
       if (_query.isEmpty) return true;
-      return a.name.toLowerCase().contains(_query.toLowerCase());
+      final q = _query.toLowerCase();
+      if (a.name.toLowerCase().contains(q)) return true;
+
+      // Also search in phone/whatsapp metadata
+      final phone = a.metadata?['phone']?.toString().toLowerCase();
+      if (phone != null && phone.contains(q)) return true;
+
+      final whatsapp = a.metadata?['whatsapp']?.toString().toLowerCase();
+      if (whatsapp != null && whatsapp.contains(q)) return true;
+
+      return false;
     }).toList();
 
     return SafeArea(

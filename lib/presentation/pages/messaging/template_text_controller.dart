@@ -25,6 +25,7 @@ final List<TemplateVariable> kTemplateVariables = [
   const TemplateVariable('{{voucher_id}}', 'رقم السند', '\uE009'),
   const TemplateVariable('{{type}}', 'النوع', '\uE00A'),
   const TemplateVariable('{{signature}}', 'التوقيع الإلكتروني', '\uE00B'),
+  const TemplateVariable('{{net_balance}}', 'الرصيد الإجمالي', '\uE010'),
   // Account Specific
   const TemplateVariable('{{account_name}}', 'اسم الحساب', '\uE00C',
       kindRestricted: MessageTemplateKind.accountBalance),

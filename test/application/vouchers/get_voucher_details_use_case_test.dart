@@ -7,6 +7,7 @@ import 'package:qayd/domain/repositories/attachment_repository.dart';
 import 'package:qayd/domain/repositories/collateral_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/entities/voucher.dart';
@@ -33,11 +34,14 @@ class MockCollateralRepository extends Mock implements CollateralRepository {}
 
 class MockCostCenterRepository extends Mock implements CostCenterRepository {}
 
+class MockLedgerRepository extends Mock implements LedgerRepository {}
+
 class FakeVoucher extends Fake implements Voucher {}
 
 void main() {
   setUpAll(() {
     registerFallbackValue(VoucherId('dummy'));
+    registerFallbackValue(AccountId('dummy'));
     registerFallbackValue(FakeVoucher());
   });
   late GetVoucherDetailsUseCase useCase;
@@ -48,6 +52,7 @@ void main() {
   late MockAttachmentRepository mockAttachmentRepo;
   late MockCollateralRepository mockCollateralRepo;
   late MockCostCenterRepository mockCostCenterRepo;
+  late MockLedgerRepository mockLedgerRepo;
 
   setUp(() {
     mockVoucherRepo = MockVoucherRepository();
@@ -57,6 +62,7 @@ void main() {
     mockAttachmentRepo = MockAttachmentRepository();
     mockCollateralRepo = MockCollateralRepository();
     mockCostCenterRepo = MockCostCenterRepository();
+    mockLedgerRepo = MockLedgerRepository();
 
     useCase = GetVoucherDetailsUseCase(
       mockVoucherRepo,
@@ -66,7 +72,12 @@ void main() {
       mockAttachmentRepo,
       mockCollateralRepo,
       mockCostCenterRepo,
+      mockLedgerRepo,
     );
+
+    // Default stub for ledger entries to avoid breaking existing tests
+    when(() => mockLedgerRepo.getEntriesForAccount(any()))
+        .thenAnswer((_) async => const Success([]));
   });
 
   test('should return voucher details successfully', () async {

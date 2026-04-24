@@ -45,6 +45,7 @@ class GetVoucherDetailsOutput {
     this.successorVoucherId,
     this.costCenters = const [],
     this.isCreator = true,
+    this.counterpartyBalances = const {},
   });
 
   final String id;
@@ -108,6 +109,10 @@ class GetVoucherDetailsOutput {
 
   /// Whether the current user is the creator of this voucher
   final bool isCreator;
+
+  /// The running balance of the counterparty at the time of this voucher.
+  /// Key is currency code, value is minor units.
+  final Map<String, int> counterpartyBalances;
 }
 
 /// Lightweight summary of an attachment for display in the detail view.

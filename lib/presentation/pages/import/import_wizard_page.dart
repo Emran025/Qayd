@@ -13,6 +13,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
@@ -184,13 +185,27 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
         title: 'استيراد بيانات',
         actions: _phase == _Phase.resolving
             ? [
-                TextButton(
-                  onPressed: _startImport,
-                  child: Text(
-                    'بدء الاستيراد',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w700,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: SpacingTokens.sm, vertical: 8),
+                  child: FilledButton(
+                    onPressed: _startImport,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: ColorTokens.emerald600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: SpacingTokens.md),
+                      minimumSize: const Size(0, 32),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(RadiusTokens.md),
+                      ),
+                    ),
+                    child: const Text(
+                      'بدء الاستيراد',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ),
@@ -443,7 +458,7 @@ class _LoadingPage extends StatelessWidget {
 // ══════════════════════════════════════════════════════════════════════════════
 // Phase 3 — Conflict Resolution
 // ══════════════════════════════════════════════════════════════════════════════
-class _ResolvingPage extends StatelessWidget {
+class _ResolvingPage extends StatefulWidget {
   final MigrationAnalysisResult analysis;
   final Map<String, AccountResolution> resolutions;
   final List<AccountSummaryDto> rootAccounts;
@@ -460,13 +475,34 @@ class _ResolvingPage extends StatelessWidget {
   });
 
   @override
+  State<_ResolvingPage> createState() => _ResolvingPageState();
+}
+
+enum _Filter { all, exact, partial, newAccounts, vouchers }
+
+class _ResolvingPageState extends State<_ResolvingPage> {
+  _Filter _filter = _Filter.all;
+
+  @override
   Widget build(BuildContext context) {
-    final conflicts = analysis.accountConflicts;
-    final exactCount = analysis.exactMatchCount;
-    final partialCount = analysis.partialMatchCount;
-    final newCount = analysis.newAccountCount;
+    final conflicts = widget.analysis.accountConflicts;
+    final filteredConflicts = conflicts.where((c) {
+      if (_filter == _Filter.all) return true;
+      if (_filter == _Filter.exact) return c.type == AccountConflictType.exactMatch;
+      if (_filter == _Filter.partial)
+        return c.type == AccountConflictType.partialMatch;
+      if (_filter == _Filter.newAccounts) return c.type == AccountConflictType.noMatch;
+      return false;
+    }).toList();
+
+    final transactions = (widget.analysis.rawBundle['transactions'] as List? ?? [])
+        .cast<Map<String, dynamic>>();
+
+    final exactCount = widget.analysis.exactMatchCount;
+    final partialCount = widget.analysis.partialMatchCount;
+    final newCount = widget.analysis.newAccountCount;
     final txCount =
-        (analysis.rawBundle['stats']?['transactions_count'] as num? ?? 0)
+        (widget.analysis.rawBundle['stats']?['transactions_count'] as num? ?? 0)
             .toInt();
     final scheme = Theme.of(context).colorScheme;
 
@@ -487,30 +523,40 @@ class _ResolvingPage extends StatelessWidget {
                   label: 'حسابات',
                   value: '${conflicts.length}',
                   color: scheme.primary,
+                  isSelected: _filter == _Filter.all,
+                  onTap: () => setState(() => _filter = _Filter.all),
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
                   label: 'حركات',
                   value: '$txCount',
                   color: ColorTokens.emerald600,
+                  isSelected: _filter == _Filter.vouchers,
+                  onTap: () => setState(() => _filter = _Filter.vouchers),
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
                   label: 'تطابق تام',
                   value: '$exactCount',
                   color: ColorTokens.emerald700,
+                  isSelected: _filter == _Filter.exact,
+                  onTap: () => setState(() => _filter = _Filter.exact),
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
                   label: 'جزئي',
                   value: '$partialCount',
                   color: ColorTokens.warningAmber,
+                  isSelected: _filter == _Filter.partial,
+                  onTap: () => setState(() => _filter = _Filter.partial),
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
                   label: 'جديد',
                   value: '$newCount',
                   color: ColorTokens.debitBlue,
+                  isSelected: _filter == _Filter.newAccounts,
+                  onTap: () => setState(() => _filter = _Filter.newAccounts),
                 ),
               ],
             ),
@@ -527,7 +573,9 @@ class _ResolvingPage extends StatelessWidget {
               0,
             ),
             child: Text(
-              'راجع كل حساب وحدّد كيفية التعامل معه. القرار الافتراضي مُعيَّن تلقائياً.',
+              _filter == _Filter.vouchers
+                  ? 'قائمة السندات التي سيتم استيرادها في وضع المسودة.'
+                  : 'راجع كل حساب وحدّد كيفية التعامل معه. القرار الافتراضي مُعيَّن تلقائياً.',
               style: TextStyle(
                 color: scheme.onSurfaceVariant,
                 fontSize: 13,
@@ -536,45 +584,62 @@ class _ResolvingPage extends StatelessWidget {
           ),
         ),
 
-        // ── Account conflict cards ────────────────────────────────────────────
-        SliverList.builder(
-          itemCount: conflicts.length,
-          itemBuilder: (context, i) {
-            final conflict = conflicts[i];
-            final resolution = resolutions[conflict.legacyIdStr] ??
-                const AccountResolution.createNew();
-            return Padding(
-              padding: EdgeInsets.fromLTRB(
-                SpacingTokens.md,
-                SpacingTokens.sm,
-                SpacingTokens.md,
-                i == conflicts.length - 1 ? SpacingTokens.xl : 0,
-              ),
-              child: _ConflictCard(
-                conflict: conflict,
-                resolution: resolution,
-                rootAccounts: rootAccounts,
-                onResolutionChanged: (r) =>
-                    onResolutionChanged(conflict.legacyIdStr, r),
-              ),
-            );
-          },
-        ),
+        // ── Main list ────────────────────────────────────────────────────────
+        if (_filter == _Filter.vouchers)
+          SliverList.builder(
+            itemCount: transactions.length,
+            itemBuilder: (context, i) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  SpacingTokens.md,
+                  SpacingTokens.sm,
+                  SpacingTokens.md,
+                  0,
+                ),
+                child: _TransactionCard(tx: transactions[i]),
+              );
+            },
+          )
+        else
+          SliverList.builder(
+            itemCount: filteredConflicts.length,
+            itemBuilder: (context, i) {
+              final conflict = filteredConflicts[i];
+              final resolution = widget.resolutions[conflict.legacyIdStr] ??
+                  const AccountResolution.createNew();
+              return Padding(
+                padding: EdgeInsets.fromLTRB(
+                  SpacingTokens.md,
+                  SpacingTokens.sm,
+                  SpacingTokens.md,
+                  i == filteredConflicts.length - 1 ? SpacingTokens.xl : 0,
+                ),
+                child: _ConflictCard(
+                  conflict: conflict,
+                  resolution: resolution,
+                  rootAccounts: widget.rootAccounts,
+                  onResolutionChanged: (r) =>
+                      widget.onResolutionChanged(conflict.legacyIdStr, r),
+                ),
+              );
+            },
+          ),
 
         // ── Confirm button ────────────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
               SpacingTokens.md,
-              0,
+              SpacingTokens.xl,
               SpacingTokens.md,
               SpacingTokens.xl,
             ),
             child: FilledButton.icon(
-              onPressed: onConfirm,
+              onPressed: widget.onConfirm,
               icon: const Icon(Icons.download_done_rounded, size: 20),
               label: const Text('بدء الاستيراد'),
               style: FilledButton.styleFrom(
+                backgroundColor: ColorTokens.emerald600,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 textStyle: const TextStyle(
                   fontSize: 15,
@@ -798,6 +863,10 @@ class _ConflictCard extends StatelessWidget {
                       context,
                       listAccounts: InjectionContainer.listAccountsUseCase,
                       hideSterileRoots: true,
+                      rootAllowed: false,
+                      initialSearchQuery: conflict.phone.isNotEmpty
+                          ? conflict.phone
+                          : conflict.name,
                     );
                     if (picked == null) return;
                     onResolutionChanged(AccountResolution.merge(picked.id));
@@ -1187,41 +1256,63 @@ class _MiniStat extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    this.isSelected = false,
+    this.onTap,
   });
 
   final String label;
   final String value;
   final Color color;
+  final bool isSelected;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-              ),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? color : color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? color : color.withValues(alpha: 0.2),
+              width: isSelected ? 1.5 : 1,
             ),
-            Text(
-              label,
-              style: TextStyle(
-                color: color.withValues(alpha: 0.8),
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                : null,
+          ),
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : color,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
               ),
-            ),
-          ],
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.9)
+                      : color.withValues(alpha: 0.8),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1277,6 +1368,88 @@ class _ActionChip extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TransactionCard extends StatelessWidget {
+  const _TransactionCard({required this.tx});
+  final Map<String, dynamic> tx;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final type = tx['type']?.toString() ?? 'receipt';
+    final isReceipt = type == 'receipt';
+    final color = isReceipt ? ColorTokens.creditGreen : ColorTokens.errorSoft;
+    final amount = (tx['amount_raw'] as num? ?? 0).toDouble();
+    final currency = tx['currency_code']?.toString() ?? 'YER';
+    final date = tx['date']?.toString() ?? '';
+    final description = tx['description']?.toString() ?? 'بدون وصف';
+    final counterparty = tx['counterparty_name']?.toString() ?? 'طرف مجهول';
+
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isReceipt ? 'قبض' : 'صرف',
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              Text(
+                date,
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant,
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: SpacingTokens.sm),
+          Text(
+            counterparty,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+          ),
+          const SizedBox(height: SpacingTokens.sm),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${amount.toStringAsFixed(2)} $currency',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

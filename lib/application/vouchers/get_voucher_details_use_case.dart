@@ -13,6 +13,9 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
+import 'package:qayd/domain/repositories/ledger_repository.dart';
+import 'package:qayd/domain/services/balance_calculator.dart';
+import 'package:qayd/domain/entities/ledger_entry.dart';
 
 class GetVoucherDetailsUseCase {
   GetVoucherDetailsUseCase(
@@ -23,6 +26,7 @@ class GetVoucherDetailsUseCase {
     this._attachmentRepository,
     this._collateralRepository,
     this._costCenterRepository,
+    this._ledgerRepository,
   );
 
   final VoucherRepository _voucherRepository;
@@ -32,6 +36,7 @@ class GetVoucherDetailsUseCase {
   final AttachmentRepository _attachmentRepository;
   final CollateralRepository _collateralRepository;
   final CostCenterRepository _costCenterRepository;
+  final LedgerRepository _ledgerRepository;
 
   Future<Result<GetVoucherDetailsOutput>> call(
     GetVoucherDetailsInput input,
@@ -152,6 +157,45 @@ class GetVoucherDetailsUseCase {
         successorVoucherId = successorR.valueOrNull!.first.id.value;
       }
 
+      // ── Counterparty Balance calculation ────────────────────────────────
+      final Map<String, int> counterpartyBalances = {};
+      final cpAccountR = await _accountRepository.getById(v.counterpartyId);
+      if (cpAccountR.isSuccess) {
+        final cpAccount = cpAccountR.valueOrNull!;
+        final entriesR =
+            await _ledgerRepository.getEntriesForAccount(v.counterpartyId);
+        if (entriesR.isSuccess) {
+          final allEntries = entriesR.valueOrNull!;
+          // Find entries belonging to this voucher to calculate running balance
+          int maxIdx = -1;
+          for (int i = 0; i < allEntries.length; i++) {
+            if (allEntries[i].voucherId == v.id) {
+              maxIdx = i;
+            }
+          }
+
+          List<LedgerEntry> relevantEntries;
+          if (maxIdx != -1) {
+            // Include everything up to the last entry of this voucher
+            relevantEntries = allEntries.sublist(0, maxIdx + 1);
+          } else {
+            // Voucher might not be in ledger yet (e.g. draft).
+            // We'll use all entries (current balance) as a best-effort.
+            relevantEntries = allEntries;
+          }
+
+          final balancesMap =
+              const BalanceCalculator().signedBalanceMinorUnitsPerCurrency(
+            entries: relevantEntries,
+            accountId: v.counterpartyId,
+            nature: cpAccount.nature,
+          );
+          for (final entry in balancesMap.entries) {
+            counterpartyBalances[entry.key.code] = entry.value;
+          }
+        }
+      }
+
       // ── Protocol §2: Approval Permissions ────────────────────────────────
       bool canApprove = false;
 
@@ -239,6 +283,7 @@ class GetVoucherDetailsUseCase {
           successorVoucherId: successorVoucherId,
           costCenters: costCenters,
           isCreator: isMeSender,
+          counterpartyBalances: counterpartyBalances,
         ),
       );
     } catch (e) {

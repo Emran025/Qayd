@@ -64,7 +64,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
             'اختر العملة',
             textAlign: TextAlign.right,
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: scheme.onSurface,
             ),
@@ -93,18 +93,18 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: scheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         border: isSelected
                             ? Border.all(color: scheme.primary, width: 1.5)
                             : null,
                       ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
+                          horizontal: 12,
+                          // vertical: 6,
                         ),
                         leading: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? scheme.primary.withOpacity(0.1)
@@ -118,7 +118,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                                   ? scheme.primary
                                   : scheme.onSurface,
                               fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -128,6 +128,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                           style: TextStyle(
                             color: scheme.onSurface,
                             fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
                         subtitle: Text(
@@ -135,7 +136,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             color: scheme.onSurfaceVariant,
-                            fontSize: 12,
+                            fontSize: 11,
                           ),
                         ),
                         onTap: () => Navigator.pop(context, c),

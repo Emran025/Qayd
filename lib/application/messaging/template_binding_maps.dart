@@ -86,6 +86,10 @@ abstract final class TemplateBindingMaps {
       'sender_signature': d.senderSignatureHex ?? '',
       'receiver_signature': d.receiverSignatureHex ?? '',
       'signature_verification': _buildSignatureVerificationString(d),
+      'net_balance': d.counterpartyBalances.entries
+          .map((e) =>
+              '${MoneyFormatter.formatDecimal(e.value / 100)} ${e.key}')
+          .join(', '),
     };
   }
 
