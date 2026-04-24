@@ -5,7 +5,6 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/pages/settings/sync_privacy_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
-import 'package:qayd/core/result/result.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Settings page for managing sync privacy policy.
@@ -48,10 +47,32 @@ class _SyncPrivacySettingsSectionState
 
     final state = _cubit.state;
     if (state.error != null) {
+      final theme = Theme.of(context);
+      final isInternetError = state.error!.contains('فشل الاتصال بالإنترنت') ||
+          state.error!.contains('SocketException');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(state.error!),
-          backgroundColor: Theme.of(context).colorScheme.error,
+          content: Row(
+            children: [
+              Icon(
+                isInternetError
+                    ? Icons.cloud_off_rounded
+                    : Icons.error_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: Text(state.error!)),
+            ],
+          ),
+          backgroundColor: isInternetError
+              ? Colors.orange.shade800
+              : theme.colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(SpacingTokens.md),
         ),
       );
       _cubit.clearMessages();
@@ -73,15 +94,10 @@ class _SyncPrivacySettingsSectionState
         listType == 'block' ? policy.blockList : policy.allowList;
 
     // Resolve existing accounts to pre-select them
-    final List<String> initialSelectedIds = [];
-    for (final entry in currentEntries) {
-      final result =
-          await InjectionContainer.findAccountByPhoneUseCase(entry.targetPhone);
-      final accountId = result.valueOrNull;
-      if (accountId != null) {
-        initialSelectedIds.add(accountId);
-      }
-    }
+    final initialSelectedIds = currentEntries
+        .map((e) => e.localAccountId)
+        .whereType<String>()
+        .toList();
 
     if (!mounted) return;
 
@@ -90,6 +106,7 @@ class _SyncPrivacySettingsSectionState
       listAccounts: InjectionContainer.listAccountsUseCase,
       allowedClassifications: ['receivables', 'payables'],
       initialSelectedIds: initialSelectedIds,
+      showIdentityStatus: true,
     );
 
     if (selected != null && mounted) {
@@ -132,7 +149,9 @@ class _SyncPrivacySettingsSectionState
                   ),
 
                 // ── Access List ────────────────────────────────────────
-                if (policy != null && policy.mode != SyncPolicyMode.open) ...[
+                if (policy != null &&
+                    (policy.mode == SyncPolicyMode.openWithBlocklist ||
+                     policy.mode == SyncPolicyMode.closedWithAllowlist)) ...[
                   const SizedBox(height: SpacingTokens.lg),
                   _buildSectionLabel(
                     context,
@@ -333,9 +352,13 @@ class _SyncPrivacySettingsSectionState
   }
 
   List<SyncAccessEntry> _relevantEntries(SyncPrivacyPolicy policy) {
-    return policy.mode == SyncPolicyMode.openWithBlocklist
-        ? policy.blockList
-        : policy.allowList;
+    if (policy.mode == SyncPolicyMode.openWithBlocklist) {
+      return policy.blockList;
+    }
+    if (policy.mode == SyncPolicyMode.closedWithAllowlist) {
+      return policy.allowList;
+    }
+    return [];
   }
 }
 
@@ -358,6 +381,8 @@ class _PolicyModeCard extends StatelessWidget {
         SyncPolicyMode.open => Icons.lock_open_outlined,
         SyncPolicyMode.openWithBlocklist => Icons.block_outlined,
         SyncPolicyMode.closedWithAllowlist => Icons.verified_user_outlined,
+        SyncPolicyMode.openToContacts => Icons.people_outline_rounded,
+        SyncPolicyMode.closed => Icons.lock_outlined,
       };
 
   @override
@@ -492,30 +517,33 @@ class _AccessListTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'غير مسجل',
+                      entry.targetPhone.isEmpty ? 'سجل محلي' : 'غير مسجل',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             fontSize: 9,
                             color: colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () =>
-                        _inviteByPhone(entry.targetName, entry.targetPhone),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'دعوة الآن',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                            ),
+                  if (entry.targetPhone.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () =>
+                          _inviteByPhone(entry.targetName, entry.targetPhone),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'دعوة الآن',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontSize: 10,
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               )
             : Text(

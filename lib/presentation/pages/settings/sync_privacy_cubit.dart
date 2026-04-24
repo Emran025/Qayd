@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
@@ -70,6 +71,55 @@ class SyncPrivacyCubit extends ChangeNotifier {
     _emit(_state.copyWith(isLoading: true, clearError: true));
     try {
       var policy = await _identityRepo.getSyncPolicy();
+
+      // Merge local overrides (for accounts without phones)
+      final allAccountsResult = await _accountRepo.getAll();
+      final localEntries = <SyncAccessEntry>[];
+      if (allAccountsResult.isSuccess) {
+        for (final account in allAccountsResult.valueOrNull!) {
+          final privacyMode = account.metadata['sync_privacy'] as String?;
+          if (privacyMode != null) {
+            // Check if this account already has a phone-based entry on server
+            // to avoid duplicates if they later added a phone.
+            final partyResult = await _accountRepo.getPartyDetails(account.id);
+            final phone = partyResult.valueOrNull?.phoneNumber ?? '';
+
+            bool alreadyOnServer = false;
+            if (phone.isNotEmpty) {
+              final cleaned = phone.replaceAll(RegExp(r'\s+'), '');
+              alreadyOnServer = policy.accessList.any((e) =>
+                  e.targetPhone.replaceAll(RegExp(r'\s+'), '') == cleaned);
+            }
+
+            if (!alreadyOnServer) {
+              localEntries.add(SyncAccessEntry(
+                id: -1 *
+                    int.parse(account.id.value.hashCode
+                        .toString()
+                        .substring(0, 6)), // Pseudo-id
+                targetName: account.name,
+                targetPhone: phone,
+                listType: privacyMode,
+                localAccountId: account.id.value,
+              ));
+            }
+          }
+        }
+      }
+
+      if (localEntries.isNotEmpty) {
+        policy = policy.copyWith(
+          allowList: [
+            ...policy.allowList,
+            ...localEntries.where((e) => e.listType == 'allow')
+          ],
+          blockList: [
+            ...policy.blockList,
+            ...localEntries.where((e) => e.listType == 'block')
+          ],
+        );
+      }
+
       policy = await _resolveLocalNames(policy);
       _emit(_state.copyWith(policy: policy, isLoading: false));
     } catch (e) {
@@ -83,30 +133,34 @@ class SyncPrivacyCubit extends ChangeNotifier {
   Future<SyncPrivacyPolicy> _resolveLocalNames(SyncPrivacyPolicy policy) async {
     final updatedAllow = await _resolveListNames(policy.allowList);
     final updatedBlock = await _resolveListNames(policy.blockList);
-    
+
     return policy.copyWith(
       allowList: updatedAllow,
       blockList: updatedBlock,
     );
   }
 
-  Future<List<SyncAccessEntry>> _resolveListNames(List<SyncAccessEntry> list) async {
+  Future<List<SyncAccessEntry>> _resolveListNames(
+      List<SyncAccessEntry> list) async {
     final List<SyncAccessEntry> resolved = [];
     for (final entry in list) {
       String localName = entry.targetName;
-      
+      String? localId = entry.localAccountId;
+
       if (entry.targetPhone.isNotEmpty) {
-        final phoneResult = await _accountRepo.findAccountByPhone(entry.targetPhone);
+        final phoneResult =
+            await _accountRepo.findAccountByPhone(entry.targetPhone);
         final accountId = phoneResult.valueOrNull;
         if (accountId != null) {
           final accountResult = await _accountRepo.getById(accountId);
           final account = accountResult.valueOrNull;
           if (account != null && account.name.isNotEmpty) {
             localName = account.name;
+            localId = account.id.value;
           }
         }
       }
-      
+
       resolved.add(SyncAccessEntry(
         id: entry.id,
         targetUserId: entry.targetUserId,
@@ -114,6 +168,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
         targetPhone: entry.targetPhone,
         targetEmail: entry.targetEmail,
         listType: entry.listType,
+        localAccountId: localId,
       ));
     }
     return resolved;
@@ -175,23 +230,25 @@ class SyncPrivacyCubit extends ChangeNotifier {
 
       // 2. Extract phones from selected accounts (cleaned)
       final Set<String> selectedPhones = {};
+      int skippedNoPhone = 0;
       for (final acc in selectedAccounts) {
         final partyResult =
             await _accountRepo.getPartyDetails(AccountId(acc.id));
         final party = partyResult.valueOrNull;
-        final phone = (party?.phoneNumber?.trim() ?? 
-                       party?.whatsappNumber?.trim() ?? 
-                       '')
-            .replaceAll(RegExp(r'\s+'), '');
-            
+        final phone =
+            (party?.phoneNumber?.trim() ?? party?.whatsappNumber?.trim() ?? '')
+                .replaceAll(RegExp(r'\s+'), '');
+
         if (phone.isNotEmpty) {
           selectedPhones.add(phone);
+        } else {
+          skippedNoPhone++;
         }
       }
 
       // 3. Determine additions and removals
       final toAdd = selectedPhones.where((p) => !phoneToEntryId.containsKey(p));
-      
+
       final toRemoveIds = <int>[];
       for (final entry in currentEntries) {
         final cleaned = entry.targetPhone.replaceAll(RegExp(r'\s+'), '');
@@ -206,21 +263,70 @@ class SyncPrivacyCubit extends ChangeNotifier {
             phone: phone, listType: listType);
       }
       for (final entryId in toRemoveIds) {
-        await _identityRepo.removeFromSyncAccessList(entryId: entryId);
+        if (entryId > 0) {
+          await _identityRepo.removeFromSyncAccessList(entryId: entryId);
+        }
+      }
+
+      // 4.1 Handle local-only overrides for phone-less accounts
+      for (final acc in selectedAccounts) {
+        final partyResult =
+            await _accountRepo.getPartyDetails(AccountId(acc.id));
+        final phone = partyResult.valueOrNull?.phoneNumber ?? '';
+        if (phone.isEmpty) {
+          final accountResult = await _accountRepo.getById(AccountId(acc.id));
+          if (accountResult.isSuccess) {
+            final account = accountResult.valueOrNull!;
+            await _accountRepo
+                .save(account.updateMetadata({'sync_privacy': listType}));
+          }
+        }
+      }
+
+      // 4.2 Clear local-only overrides for accounts UNSELECTED in this listType
+      final allAccountsResult = await _accountRepo.getAll();
+      final selectedIds = selectedAccounts.map((e) => e.id).toSet();
+      if (allAccountsResult.isSuccess) {
+        for (final account in allAccountsResult.valueOrNull!) {
+          if (account.metadata['sync_privacy'] == listType &&
+              !selectedIds.contains(account.id.value)) {
+            await _accountRepo
+                .save(account.updateMetadata({'sync_privacy': null}));
+          }
+        }
       }
 
       // 5. Reload fresh state
       var freshPolicy = await _identityRepo.getSyncPolicy();
       freshPolicy = await _resolveLocalNames(freshPolicy);
+
+      String successMsg = 'تم تحديث القائمة بنجاح.';
+      if (skippedNoPhone > 0) {
+        successMsg += ' (تم تخطي $skippedNoPhone حساب لعدم وجود رقم هاتف)';
+      }
+
       _emit(_state.copyWith(
         policy: freshPolicy,
         isUpdating: false,
-        successMessage: 'تم تحديث القائمة بنجاح.',
+        successMessage: successMsg,
       ));
     } on AuthException catch (e) {
       _emit(_state.copyWith(isUpdating: false, error: e.message));
+    } on DioException catch (e) {
+      String errorMsg = 'تعذّر تحديث القائمة.';
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.toString().contains('SocketException')) {
+        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+      }
+      _emit(_state.copyWith(isUpdating: false, error: errorMsg));
     } catch (e) {
-      _emit(_state.copyWith(isUpdating: false, error: 'تعذّر تحديث القائمة.'));
+      String errorMsg = 'تعذّر تحديث القائمة.';
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('connection')) {
+        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+      }
+      _emit(_state.copyWith(isUpdating: false, error: errorMsg));
     }
   }
 
@@ -249,10 +355,26 @@ class SyncPrivacyCubit extends ChangeNotifier {
         isUpdating: false,
         error: e.message,
       ));
-    } catch (e) {
+    } on DioException catch (e) {
+      String errorMsg = 'تعذّر إضافة المستخدم للقائمة.';
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.toString().contains('SocketException')) {
+        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+      }
       _emit(_state.copyWith(
         isUpdating: false,
-        error: 'تعذّر إضافة المستخدم للقائمة.',
+        error: errorMsg,
+      ));
+    } catch (e) {
+      String errorMsg = 'تعذّر إضافة المستخدم للقائمة.';
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('connection')) {
+        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+      }
+      _emit(_state.copyWith(
+        isUpdating: false,
+        error: errorMsg,
       ));
     }
   }
@@ -262,7 +384,24 @@ class SyncPrivacyCubit extends ChangeNotifier {
     _emit(_state.copyWith(
         isUpdating: true, clearError: true, clearSuccess: true));
     try {
-      await _identityRepo.removeFromSyncAccessList(entryId: entryId);
+      if (entryId > 0) {
+        await _identityRepo.removeFromSyncAccessList(entryId: entryId);
+      } else {
+        // Local-only removal
+        // Find account with this pseudo-id/metadata and clear it.
+        final accountsResult = await _accountRepo.getAll();
+        if (accountsResult.isSuccess) {
+          for (final account in accountsResult.valueOrNull!) {
+            final pseudoId = -1 *
+                int.parse(account.id.value.hashCode.toString().substring(0, 6));
+            if (pseudoId == entryId) {
+              await _accountRepo
+                  .save(account.updateMetadata({'sync_privacy': null}));
+              break;
+            }
+          }
+        }
+      }
       // Reload to get fresh list.
       var policy = await _identityRepo.getSyncPolicy();
       policy = await _resolveLocalNames(policy);
@@ -276,10 +415,26 @@ class SyncPrivacyCubit extends ChangeNotifier {
         isUpdating: false,
         error: e.message,
       ));
-    } catch (e) {
+    } on DioException catch (e) {
+      String errorMsg = 'تعذّر حذف المستخدم من القائمة.';
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.toString().contains('SocketException')) {
+        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+      }
       _emit(_state.copyWith(
         isUpdating: false,
-        error: 'تعذّر حذف المستخدم من القائمة.',
+        error: errorMsg,
+      ));
+    } catch (e) {
+      String errorMsg = 'تعذّر حذف المستخدم من القائمة.';
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('connection')) {
+        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+      }
+      _emit(_state.copyWith(
+        isUpdating: false,
+        error: errorMsg,
       ));
     }
   }

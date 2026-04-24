@@ -1,13 +1,17 @@
-/// Represents the three sync privacy policy modes.
+/// Represents the sync privacy policy modes.
 ///
 /// Controls who can discover the user's public key and sync vouchers with them:
 ///   - [open]: anyone can sync (default, backward-compatible).
 ///   - [openWithBlocklist]: everyone EXCEPT users in the block list.
 ///   - [closedWithAllowlist]: ONLY users in the allow list.
+///   - [openToContacts]: only users in my contacts/accounts can sync.
+///   - [closed]: nobody can sync.
 enum SyncPolicyMode {
   open,
   openWithBlocklist,
-  closedWithAllowlist;
+  closedWithAllowlist,
+  openToContacts,
+  closed;
 
   /// Parses the server's snake_case string into the enum value.
   static SyncPolicyMode fromString(String value) {
@@ -15,6 +19,8 @@ enum SyncPolicyMode {
       'open' => SyncPolicyMode.open,
       'open_with_blocklist' => SyncPolicyMode.openWithBlocklist,
       'closed_with_allowlist' => SyncPolicyMode.closedWithAllowlist,
+      'open_to_contacts' => SyncPolicyMode.openToContacts,
+      'closed' => SyncPolicyMode.closed,
       _ => SyncPolicyMode.open,
     };
   }
@@ -25,6 +31,8 @@ enum SyncPolicyMode {
       SyncPolicyMode.open => 'open',
       SyncPolicyMode.openWithBlocklist => 'open_with_blocklist',
       SyncPolicyMode.closedWithAllowlist => 'closed_with_allowlist',
+      SyncPolicyMode.openToContacts => 'open_to_contacts',
+      SyncPolicyMode.closed => 'closed',
     };
   }
 
@@ -34,6 +42,8 @@ enum SyncPolicyMode {
       SyncPolicyMode.open => 'مفتوح للجميع',
       SyncPolicyMode.openWithBlocklist => 'مفتوح مع قائمة حظر',
       SyncPolicyMode.closedWithAllowlist => 'مقيّد — قائمة سماح فقط',
+      SyncPolicyMode.openToContacts => 'مفتوح لجهات حساباتي فقط',
+      SyncPolicyMode.closed => 'مغلق عن الجميع',
     };
   }
 
@@ -46,6 +56,10 @@ enum SyncPolicyMode {
         'يسمح للجميع ما عدا المستخدمين في قائمة الحظر.',
       SyncPolicyMode.closedWithAllowlist =>
         'يسمح فقط للمستخدمين المحددين في قائمة السماح.',
+      SyncPolicyMode.openToContacts =>
+        'يسمح فقط لمن هم في جهات حساباتك بالمزامنة معك.',
+      SyncPolicyMode.closed =>
+        'يمنع الجميع من المزامنة معك بشكل كامل.',
     };
   }
 }
@@ -59,6 +73,7 @@ class SyncAccessEntry {
     required this.targetPhone,
     this.targetEmail,
     required this.listType,
+    this.localAccountId,
   });
 
   final int id;
@@ -66,6 +81,7 @@ class SyncAccessEntry {
   final String targetName;
   final String targetPhone;
   final String? targetEmail;
+  final String? localAccountId;
 
   /// 'block' or 'allow'
   final String listType;

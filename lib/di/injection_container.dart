@@ -50,6 +50,7 @@ import 'package:qayd/application/vouchers/create_dual_transfer_use_case.dart';
 import 'package:qayd/application/vouchers/create_tripartite_transfer_use_case.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/application/accounts/find_account_by_phone_use_case.dart';
+import 'package:qayd/application/identity/can_sync_with_account_use_case.dart';
 import 'package:qayd/application/identity/lookup_public_key_use_case.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/application/identity/update_profile_use_case.dart';
@@ -220,6 +221,7 @@ abstract final class InjectionContainer {
       syncIdentityToInternalAccountsUseCase;
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
+  static late final CanSyncWithAccountUseCase canSyncWithAccountUseCase;
 
   // ── Governance ─────────────────────────────────────────────────────────────
 
@@ -847,6 +849,11 @@ abstract final class InjectionContainer {
         SyncIdentityToInternalAccountsUseCase(
       accountRepository: accountRepository,
       licenseVault: licenseVault,
+    );
+
+    canSyncWithAccountUseCase = CanSyncWithAccountUseCase(
+      identityRepository: identityRepository,
+      accountRepository: accountRepository,
     );
 
     generateTrialBalanceUseCase = GenerateTrialBalanceUseCase(

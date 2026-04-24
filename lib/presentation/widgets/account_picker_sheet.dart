@@ -23,8 +23,9 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
   String? requireParentClassification,
   List<String>? allowedClassifications,
   bool hideSterileRoots = false,
+  bool showIdentityStatus = false,
 }) async {
-  final accounts = await _loadAndFilterAccounts(
+  final data = await _loadAndFilterAccounts(
     context,
     listAccounts: listAccounts,
     excludeAccountId: excludeAccountId,
@@ -36,7 +37,7 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
     hideSterileRoots: hideSterileRoots,
   );
 
-  if (accounts == null || !context.mounted) return null;
+  if (data == null || !context.mounted) return null;
 
   return showModalBottomSheet<AccountSummaryDto>(
     context: context,
@@ -44,7 +45,9 @@ Future<AccountSummaryDto?> showAccountPickerSheet(
     showDragHandle: true,
     builder: (ctx) {
       return _AccountPickerContent(
-        accounts: accounts,
+        accounts: data.accounts,
+        parentNames: data.parentNames,
+        showIdentityStatus: showIdentityStatus,
         onSelected: (a) => Navigator.of(ctx).pop(a),
       );
     },
@@ -63,8 +66,9 @@ Future<List<AccountSummaryDto>?> showMultiAccountPickerSheet(
   List<String>? allowedClassifications,
   bool hideSterileRoots = false,
   List<String>? initialSelectedIds,
+  bool showIdentityStatus = false,
 }) async {
-  final accounts = await _loadAndFilterAccounts(
+  final data = await _loadAndFilterAccounts(
     context,
     listAccounts: listAccounts,
     excludeAccountId: excludeAccountId,
@@ -76,7 +80,7 @@ Future<List<AccountSummaryDto>?> showMultiAccountPickerSheet(
     hideSterileRoots: hideSterileRoots,
   );
 
-  if (accounts == null || !context.mounted) return null;
+  if (data == null || !context.mounted) return null;
 
   return showModalBottomSheet<List<AccountSummaryDto>>(
     context: context,
@@ -84,16 +88,24 @@ Future<List<AccountSummaryDto>?> showMultiAccountPickerSheet(
     showDragHandle: true,
     builder: (ctx) {
       return _AccountPickerContent(
-        accounts: accounts,
+        accounts: data.accounts,
+        parentNames: data.parentNames,
         isMultiSelect: true,
         initialSelectedIds: initialSelectedIds,
+        showIdentityStatus: showIdentityStatus,
         onMultiSelected: (list) => Navigator.of(ctx).pop(list),
       );
     },
   );
 }
 
-Future<List<AccountSummaryDto>?> _loadAndFilterAccounts(
+class _PickerData {
+  final List<AccountSummaryDto> accounts;
+  final Map<String, String> parentNames;
+  const _PickerData(this.accounts, this.parentNames);
+}
+
+Future<_PickerData?> _loadAndFilterAccounts(
   BuildContext context, {
   required ListAccountsUseCase listAccounts,
   String? excludeAccountId,
@@ -125,8 +137,9 @@ Future<List<AccountSummaryDto>?> _loadAndFilterAccounts(
   // Map parent standard classification to child
   final roots = result.valueOrNull!.accounts.where((a) => a.isRoot).toList();
   final classMap = {for (final r in roots) r.id: r.standardClassificationKind};
+  final parentNamesMap = {for (final r in roots) r.id: r.name};
 
-  return result.valueOrNull!.accounts.where((a) {
+  final filteredAccounts = result.valueOrNull!.accounts.where((a) {
     if (a.id == excludeAccountId) return false;
     if (requireNoRoot && a.isRoot) return false;
     if (!rootAllowed && a.isRoot) return false;
@@ -141,8 +154,9 @@ Future<List<AccountSummaryDto>?> _loadAndFilterAccounts(
 
     if (requireParentClassification != null) {
       if (a.isRoot) {
-        if (a.standardClassificationKind != requireParentClassification)
+        if (a.standardClassificationKind != requireParentClassification) {
           return false;
+        }
       } else {
         if (a.parentId != null) {
           final pClass = classMap[a.parentId!];
@@ -168,22 +182,28 @@ Future<List<AccountSummaryDto>?> _loadAndFilterAccounts(
 
     return true;
   }).toList(growable: false);
+
+  return _PickerData(filteredAccounts, parentNamesMap);
 }
 
 class _AccountPickerContent extends StatefulWidget {
   const _AccountPickerContent({
     required this.accounts,
+    required this.parentNames,
     this.onSelected,
     this.onMultiSelected,
     this.isMultiSelect = false,
     this.initialSelectedIds,
+    this.showIdentityStatus = false,
   });
 
   final List<AccountSummaryDto> accounts;
+  final Map<String, String> parentNames;
   final ValueChanged<AccountSummaryDto>? onSelected;
   final ValueChanged<List<AccountSummaryDto>>? onMultiSelected;
   final bool isMultiSelect;
   final List<String>? initialSelectedIds;
+  final bool showIdentityStatus;
 
   @override
   State<_AccountPickerContent> createState() => _AccountPickerContentState();
@@ -200,7 +220,9 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
   void initState() {
     super.initState();
     _selectedIds = Set.from(widget.initialSelectedIds ?? []);
-    _lookupIdentities();
+    if (widget.showIdentityStatus) {
+      _lookupIdentities();
+    }
   }
 
   Future<void> _lookupIdentities() async {
@@ -278,6 +300,28 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  String _getAccountSubtitle(AccountSummaryDto a) {
+    if (a.isRoot) {
+      return AppStringsAr.accountTypeRoot;
+    }
+
+    // Attempt to find the direct parent's name
+    if (a.parentId != null) {
+      final parentName = widget.parentNames[a.parentId];
+      if (parentName != null) {
+        return parentName;
+      }
+    }
+
+    // Fallback to standard classification
+    if (a.standardClassificationKind != null) {
+      return AppStringsAr.standardClassificationLabel(
+          a.standardClassificationKind!);
+    }
+
+    return '';
   }
 
   @override
@@ -436,16 +480,12 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           QaydText(
-                            a.isRoot
-                                ? AppStringsAr.accountTypeRoot
-                                : (a.standardClassificationKind != null
-                                    ? AppStringsAr.standardClassificationLabel(
-                                        a.standardClassificationKind!)
-                                    : ''),
+                            _getAccountSubtitle(a),
                             slot: QaydTextStyleSlot.bodySmall,
                             color: scheme.onSurfaceVariant,
                           ),
-                          if (_identityMap.containsKey(a.id)) ...[
+                          if (widget.showIdentityStatus &&
+                              _identityMap.containsKey(a.id)) ...[
                             const SizedBox(height: 4),
                             _buildIdentityStatus(
                                 context, _identityMap[a.id]!, a),
