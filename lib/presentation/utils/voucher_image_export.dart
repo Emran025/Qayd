@@ -11,7 +11,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/presentation/utils/numerical_styling.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/di/injection_container.dart';
+
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
@@ -142,7 +144,8 @@ Future<void> shareVoucherAsFormattedImage(
           final value = e.value / divisor;
           final absValue = value.abs();
           final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
-          return '${fmt.format(absValue)} ${e.key} $label'.trim();
+          return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
+              .trim();
         }).toList();
         if (balanceParts.isNotEmpty) {
           shareText += 'الرصيد الإجمالي: ${balanceParts.join(", ")}\n';
@@ -265,7 +268,8 @@ class VoucherImageCard extends StatelessWidget {
     final divisor = math.pow(10, data.currencyDigits).toDouble();
     final amount = data.amountMinorUnits / divisor;
     final fmt = intl.NumberFormat('#,##0.${'0' * data.currencyDigits}', 'en');
-    final amountStr = '#${fmt.format(amount)} ${data.currencyCode}#';
+    final amountStr =
+        '#${fmt.format(amount)} ${CurrencyUtil.getArabicName(data.currencyCode)}#';
 
     final qrPayload = data.qrData ?? data.id;
     final titleAr = _buildTitle(data, typeAr);
@@ -501,9 +505,11 @@ class VoucherImageCard extends StatelessWidget {
       } else {
         sectionLabel = 'بيانات القيد (الدائن) — إلى حساب المُستلِم:';
         accountName = receiverName;
-        descText = data.isContingent
-            ? 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).'
-            : 'تمت إضافة المبلغ إلى حساب $receiverName من حساب $senderName عبر الصندوق كتحويل مزدوج.';
+        descText = data.description?.isNotEmpty == true
+            ? data.description
+            : (data.isContingent
+                ? 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).'
+                : 'تمت إضافة المبلغ إلى حساب $receiverName من حساب $senderName عبر الصندوق كتحويل مزدوج.');
         notesText =
             'يُعتبر هذا الإشعار توثيقاً رسمياً بالإضافة إلى حساب المُستلِم.';
       }
@@ -561,8 +567,10 @@ class VoucherImageCard extends StatelessWidget {
                                   '#,##0.${'0' * digits}', 'en');
                               final value = e.value / divisor;
                               final absValue = value.abs();
-                              final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
-                              return '${fmt.format(absValue)} ${e.key} $label'
+                              final label = value < 0
+                                  ? 'لكم'
+                                  : (value > 0 ? 'عليكم' : '');
+                              return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
                                   .trim();
                             }).join(' | '),
                             8.5,
@@ -577,7 +585,7 @@ class VoucherImageCard extends StatelessWidget {
                       _labeledLine(
                           InjectionContainer.sharedPreferences
                                   .getString('pdf_label_description') ??
-                              'البيان التفصيلي:',
+                              'البيان:',
                           descText!),
                     ],
                     if (_notEmpty(notesText)) ...[
@@ -642,7 +650,8 @@ class VoucherImageCard extends StatelessWidget {
           ),
           TextSpan(
             text: value,
-            style: const TextStyle(fontFamily: 'Cairo', fontSize: 9, color: _muted),
+            style: const TextStyle(
+                fontFamily: 'Cairo', fontSize: 9, color: _muted),
           ),
         ],
       ),

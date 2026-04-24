@@ -2,6 +2,8 @@ import 'package:intl/intl.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
+import 'package:qayd/core/utils/currency_util.dart';
+
 
 /// Maps domain DTOs to `{{placeholder}}` keys for [PlaceholderResolver].
 abstract final class TemplateBindingMaps {
@@ -71,7 +73,8 @@ abstract final class TemplateBindingMaps {
         d.currencySymbol,
         fractionalDigits: d.currencyDigits,
       ),
-      'currency': d.currencyCode,
+      'currency': CurrencyUtil.getArabicName(d.currencyCode),
+
       'date': date,
       'affected_account': affectedAccountLabel,
       'reference': d.referenceNumber ?? '',
@@ -92,7 +95,8 @@ abstract final class TemplateBindingMaps {
         final value = e.value / divisor;
         final absValue = value.abs();
         final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
-        return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${e.key} $label'
+        return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
+
             .trim();
       }).join(', '),
     };
@@ -131,7 +135,8 @@ abstract final class TemplateBindingMaps {
   static Map<String, String> forAccount(GetAccountDetailsOutput d) {
     final balanceStr = d.balancesMinorUnits.entries
         .map((e) =>
-            '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${e.key}')
+            '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${CurrencyUtil.getArabicName(e.key)}')
+
         .join(', ');
     final nature = d.natureCode == 'debit' ? 'دائن' : 'مدين';
     return {

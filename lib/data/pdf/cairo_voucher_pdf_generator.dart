@@ -12,6 +12,7 @@ import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 
 /// Professional financial voucher PDF matching the Galal Nasser Exchange format.
@@ -71,7 +72,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       final fmt = report.currencyDigits > 0
           ? NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en')
           : NumberFormat('#,##0', 'en');
-      final amountStr = '${fmt.format(amount)} ${report.currencyCode}';
+      final amountStr =
+          '${fmt.format(amount)} ${CurrencyUtil.getArabicName(report.currencyCode)}';
 
       final qrPayload = report.qrData ?? report.voucherId;
 
@@ -98,7 +100,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       final labelDate = prefs.getString('pdf_label_date') ?? 'التاريخ:';
       final labelFrom = prefs.getString('pdf_label_from') ?? 'من حساب العميل:';
       final labelDescription =
-          prefs.getString('pdf_label_description') ?? 'البيان التفصيلي:';
+          prefs.getString('pdf_label_description') ?? 'البيان:';
+
       final mediatorName = prefs.getString('pdf_mediator_name') ??
           prefs.getString('company_name') ??
           'نظام قيد المالي';
@@ -539,9 +542,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                                   NumberFormat('#,##0.${'0' * digits}', 'en');
                               final value = e.value / divisor;
                               final absValue = value.abs();
-                              final label =
-                                  value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
-                              return '${fmt.format(absValue)} ${e.key} $label'
+                              final label = value < 0
+                                  ? 'لكم'
+                                  : (value > 0 ? 'عليكم' : '');
+                              return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
                                   .trim();
                             }).join(' | '),
                             style: pw.TextStyle(
@@ -875,7 +879,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             ? report.description!
             : 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).';
       } else {
-        return 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).';
+        return report.description?.isNotEmpty == true
+            ? report.description!
+            : 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).';
       }
     } else {
       if (isDebit) {
@@ -883,7 +889,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             ? report.description!
             : 'تحويل مالي مزدوج عبر الصندوق — خصم من حساب $senderName وإضافة إلى حساب $receiverName.';
       } else {
-        return 'تمت إضافة المبلغ إلى حساب $receiverName من حساب $senderName عبر الصندوق كتحويل مزدوج.';
+        return report.description?.isNotEmpty == true
+            ? report.description!
+            : 'تمت إضافة المبلغ إلى حساب $receiverName من حساب $senderName عبر الصندوق كتحويل مزدوج.';
       }
     }
   }

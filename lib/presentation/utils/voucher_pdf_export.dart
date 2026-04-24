@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/dtos/voucher_report_dto.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
@@ -141,7 +142,7 @@ Future<void> shareVoucherAsPdf(
           final value = e.value / divisor;
           final absValue = value.abs();
           final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
-          return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${e.key} $label'
+          return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
               .trim();
         }).toList();
         if (balanceParts.isNotEmpty) {

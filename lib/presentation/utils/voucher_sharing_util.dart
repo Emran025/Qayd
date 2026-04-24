@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qayd/application/vouchers/dtos/get_tripartite_detail_output.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
+import 'package:qayd/core/utils/currency_util.dart';
+
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart';
@@ -47,7 +49,8 @@ Future<void> shareVoucherAsText(
       final value = e.value / divisor;
       final absValue = value.abs();
       final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
-      return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${e.key} $label'
+      return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
+
           .trim();
     }).toList();
     if (balanceParts.isNotEmpty) {
@@ -110,9 +113,10 @@ Future<void> shareTripartiteAsText(
   final date = dateFmt.format(DateTime.parse(data.dateIso));
   final amount = MoneyFormatter.formatWithSymbol(
     data.amountMinorUnits / (data.currencyDigits == 0 ? 1 : 100),
-    data.currencySymbol,
+    CurrencyUtil.getArabicName(data.currencyCode),
     fractionalDigits: data.currencyDigits,
   );
+
 
   var shareText = await resolveTripartiteShareText(data);
 
