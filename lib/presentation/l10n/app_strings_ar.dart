@@ -865,7 +865,7 @@ abstract final class AppStringsAr {
   static const String statementBroughtForward = 'رصيد مرحّل';
   static const String statementFinalBalance = 'الرصيد النهائي';
   static const String statementBalanceForYou = 'لصالحك';
-  static const String statementBalanceAgainstYou = 'مدين (لك)';
+  static const String statementBalanceAgainstYou = 'دائن (عليك)';
   static const String statementBalanceSettled = 'مسوّى';
   static const String statementRunningBalance = 'الرصيد';
   static const String statementVoucherCount = 'سند';
@@ -1255,5 +1255,6 @@ abstract final class AppStringsAr {
   // Logout
   static const String logoutAction = 'تسجيل الخروج';
   static const String logoutConfirmTitle = 'تأكيد تسجيل الخروج';
-  static const String logoutConfirmBody = 'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
+  static const String logoutConfirmBody =
+      'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
 }
