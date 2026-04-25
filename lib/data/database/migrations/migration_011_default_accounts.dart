@@ -38,7 +38,7 @@ final class Migration011DefaultAccounts implements SchemaMigration {
     // Accounts Payable (can be deleted, is_default = 0)
     await db.insert('accounts', {
       'id': uuid(),
-      'name': 'ذمم مدينة (لك)', // Accounts payable
+      'name': 'ذمم دائنة (عليك)', // Accounts payable
       'nature': 'credit',
       'parent_id': null,
       'is_default': 0,
@@ -52,7 +52,7 @@ final class Migration011DefaultAccounts implements SchemaMigration {
     // Accounts Receivable (can be deleted, is_default = 0)
     await db.insert('accounts', {
       'id': uuid(),
-      'name': 'ذمم دائنة (عليك)', // Accounts receivable
+      'name': 'ذمم مدينة (لك)', // Accounts receivable
       'nature': 'debit',
       'parent_id': null,
       'is_default': 0,
