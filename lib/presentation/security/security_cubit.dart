@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:qayd/core/error/exceptions.dart';
-import 'package:qayd/data/database/database_provider.dart';
 import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/data/security/hardware_id_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
@@ -278,28 +275,86 @@ class SecurityCubit extends Cubit<SecurityState> {
         deviceId: hardwareId,
       );
 
+      return _handleAuthResponse(result, hardwareId);
+    } on AuthException catch (e) {
+      return ProvisioningResult.failure(e.messageAr);
+    } catch (e, stack) {
+      debugPrint('Provisioning Error: $e\n$stack');
+      return ProvisioningResult.failure(
+        'حدث خطأ غير متوقع أثناء تهيئة الجهاز. يرجى المحاولة لاحقاً.',
+      );
+    }
+  }
+
+  /// Register a new account and provision the device.
+  Future<ProvisioningResult> registerDevice({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    try {
+      final hardwareId = await _hardwareIdService.obtainHardwareId();
+
+      final result = await _authRepository.register(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+        deviceId: hardwareId,
+      );
+
+      return _handleAuthResponse(result, hardwareId);
+    } on AuthException catch (e) {
+      return ProvisioningResult.failure(e.messageAr);
+    } catch (e, stack) {
+      debugPrint('Registration Error: $e\n$stack');
+      return ProvisioningResult.failure(
+        'حدث خطأ غير متوقع أثناء إنشاء الحساب. يرجى المحاولة لاحقاً.',
+      );
+    }
+  }
+
+  Future<ProvisioningResult> _handleAuthResponse(
+    ({String jwt, Map<String, dynamic> licenseData, String serverSalt}) result,
+    String hardwareId,
+  ) async {
+    try {
       // --- ACCOUNT SWITCH DETECTION ---
       final oldLicenseData = await _licenseVault.readLicenseData();
       final oldUserId = oldLicenseData?['id'] as int?;
       final newUserId = result.licenseData['id'] as int?;
 
-      final dbExists =
-          File(await DatabaseProvider.databaseFilePath()).existsSync();
+      final localKeyPair = await InjectionContainer.mnemonicVault.readKeyPair();
+      final localPublicKey = localKeyPair?.publicKeyHex;
+      final serverPublicKey = result.licenseData['public_key'] as String?;
 
       final isDifferentAccount =
           oldUserId != null && newUserId != null && oldUserId != newUserId;
-      final isStaleAccountWithoutId =
-          oldUserId == null && dbExists && newUserId != null;
 
+      // Check if the identity restored from file storage belongs to a different user.
+      // If serverPublicKey is empty, it might be a fresh account on the server,
+      // so we don't treat it as "different" yet to allow for identity binding.
+      final isDifferentIdentity = localPublicKey != null &&
+          serverPublicKey != null &&
+          serverPublicKey.isNotEmpty &&
+          localPublicKey != serverPublicKey;
+
+      // If we have evidence of a DIFFERENT user (IDs don't match or keys don't match), we wipe.
+      // If it's a fresh install (oldUserId == null) but we found a restored identity
+      // that belongs to a different user, we wipe.
+      // We do NOT wipe if it's a fresh install and we found a restored database but no identity yet,
+      // to give the user a chance to recover via mnemonic if it's actually their account.
+      final isDifferentUserDetected = isDifferentAccount || isDifferentIdentity;
       // Fallback: If IDs match but server has NO public key while local DOES,
       // the server DB might have been wiped/reset. We must wipe local to match.
       final oldPublicKey = oldLicenseData?['public_key'] as String?;
-      final newPublicKey = result.licenseData['public_key'] as String?;
+      // Special case: if server was wiped (server key is empty but we had one before)
       final isServerWiped = oldPublicKey != null &&
           oldPublicKey.isNotEmpty &&
-          (newPublicKey == null || newPublicKey.isEmpty);
+          (serverPublicKey == null || serverPublicKey.isEmpty);
 
-      if (isDifferentAccount || isStaleAccountWithoutId || isServerWiped) {
+      if (isDifferentUserDetected || isServerWiped) {
         // A DIFFERENT user logged into this device (or server was reset). We MUST wipe the old data
         // to prevent data mixing and privacy breaches.
         await InjectionContainer.wipeLocalDataForAccountSwitch();
@@ -352,13 +407,30 @@ class SecurityCubit extends Cubit<SecurityState> {
       }
 
       return ProvisioningResult.success(emailUnverified: emailUnverified);
-    } on AuthException catch (e) {
-      return ProvisioningResult.failure(e.messageAr);
     } catch (e, stack) {
-      debugPrint('Provisioning Error: $e\n$stack');
+      debugPrint('Post-Auth Processing Error: $e\n$stack');
       return ProvisioningResult.failure(
-        'حدث خطأ غير متوقع أثناء تهيئة الجهاز. يرجى المحاولة لاحقاً.',
+        'حدث خطأ أثناء معالجة بيانات الحساب.',
       );
+    }
+  }
+
+  Future<bool> verifyEmailOtp(String code) async {
+    try {
+      final success = await _authRepository.verifyEmailOtp(code);
+      if (success) {
+        final licenseStatus = await _resolveLicenseStatus();
+        final trialDays = await trialDaysRemaining();
+        emit(
+          SecurityUnlocked(
+            licenseStatus: licenseStatus,
+            trialDaysRemaining: trialDays,
+          ),
+        );
+      }
+      return success;
+    } catch (e) {
+      rethrow;
     }
   }
 

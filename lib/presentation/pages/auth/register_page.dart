@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/core/error/exceptions.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/app_document.dart';
+import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/components/auth/auth_admin_badge.dart';
 import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_error_banner.dart';
@@ -64,49 +65,49 @@ class _RegisterPageState extends State<RegisterPage> {
       _errorAr = null;
     });
 
-    try {
-      final hardwareId =
-          await InjectionContainer.hardwareIdService.obtainHardwareId();
+    final result = await context.read<SecurityCubit>().registerDevice(
+          name: _nameCtrl.text.trim(),
+          email: _emailCtrl.text.trim(),
+          phone: (_zoneCtrl.text + _phoneCtrl.text)
+              .replaceAll(' ', '')
+              .replaceAll('+', ''),
+          password: _passwordCtrl.text,
+        );
 
-      final result = await InjectionContainer.authRepository.register(
-        name: _nameCtrl.text.trim(),
-        email: _emailCtrl.text.trim(),
-        phone: (_zoneCtrl.text + _phoneCtrl.text)
-            .replaceAll(' ', '')
-            .replaceAll('+', ''),
-        password: _passwordCtrl.text,
-        deviceId: hardwareId,
-      );
+    if (!mounted) return;
 
-      await InjectionContainer.licenseVault.writeJwt(result.jwt);
-      await InjectionContainer.licenseVault
-          .writeLicenseData(result.licenseData);
-      await InjectionContainer.licenseVault
-          .writeProvisionedHardwareId(hardwareId);
-      if (result.serverSalt.isNotEmpty) {
-        await InjectionContainer.licenseVault
-            .writeServerSalt(result.serverSalt);
-      }
-      await InjectionContainer.licenseVault
-          .writeTrialStart(DateTime.now().toUtc());
-
-      if (!mounted) return;
+    if (result.success && result.emailUnverified) {
       // Navigate to OTP verification page
-      Navigator.pushReplacement(
+      final otpSuccess = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
           builder: (_) =>
               EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
         ),
       );
-    } on AuthException catch (e) {
-      if (mounted) setState(() => _errorAr = e.messageAr);
-    } catch (_) {
-      if (mounted) {
-        setState(() => _errorAr = AppStringsAr.serverConnectionError);
+
+      if (otpSuccess != true) {
+        if (mounted) setState(() => _loading = false);
+        return;
       }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      // If verified successfully, we can proceed.
+    }
+
+    if (result.success) {
+      // Success! The SecurityCubit has already updated the license vault and handled any wipes.
+      // We pop back to LoginPage which will handle the onProvisioningComplete if it's the home page,
+      // or we can trigger it here if needed.
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _loading = false;
+        _errorAr = result.errorAr;
+      });
     }
   }
 

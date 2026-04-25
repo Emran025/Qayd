@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_error_banner.dart';
 import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
@@ -156,7 +158,7 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
 
     try {
       final success =
-          await InjectionContainer.authRepository.verifyEmailOtp(code);
+          await context.read<SecurityCubit>().verifyEmailOtp(code);
       if (success && mounted) {
         // Success! Return to LoginPage to trigger database initialization.
         Navigator.of(context).pop(true);
