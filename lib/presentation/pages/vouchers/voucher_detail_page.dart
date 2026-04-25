@@ -6,6 +6,7 @@ import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/core/utils/currency_util.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
@@ -152,7 +153,7 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                         );
                         break;
                       case 'withdraw':
-                        context.read<VoucherDetailCubit>().withdraw();
+                        _withdrawVoucher(context, state.data);
                         break;
                     }
                   },
@@ -198,13 +199,14 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                         state.data.stateCode != 'settled' &&
                         state.data.stateCode != 'withdrawn' &&
                         state.data.receiverStatusCode != 'accepted')
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'withdraw',
                         child: ListTile(
-                          leading:
-                              Icon(Icons.undo_rounded, color: Colors.orange),
-                          title: Text('سحب السند',
-                              style: TextStyle(color: Colors.orange)),
+                          leading: const Icon(Icons.undo_rounded,
+                              color: ColorTokens.errorDeep),
+                          title: Text(AppStringsAr.statementChatWithdraw,
+                              style: const TextStyle(
+                                  color: ColorTokens.errorDeep)),
                           dense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -268,6 +270,69 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
         );
       },
     );
+  }
+
+  Future<void> _withdrawVoucher(
+    BuildContext context,
+    GetVoucherDetailsOutput data,
+  ) async {
+    final cubit = context.read<VoucherDetailCubit>();
+
+    final action = await QaydDialog.show<String>(
+      context: context,
+      icon: Icons.warning_amber_rounded,
+      iconColor: Theme.of(context).colorScheme.error,
+      title: AppStringsAr.voucherWithdrawConfirmTitle,
+      content: AppStringsAr.voucherWithdrawConfirmBody,
+      primaryActionLabel: AppStringsAr.voucherRedirectToOthers,
+      onPrimaryAction: () => Navigator.pop(context, 'edit_others'),
+      secondaryActionLabel: AppStringsAr.voucherDeleteOrWithdraw,
+      onSecondaryAction: () => Navigator.pop(context, 'withdraw'),
+      tertiaryActionLabel: AppStringsAr.templateEditCancel,
+      onTertiaryAction: () => Navigator.pop(context, 'cancel'),
+    );
+
+    if (action == 'withdraw') {
+      await cubit.withdraw();
+    } else if (action == 'edit_others') {
+      if (!context.mounted) return;
+      Navigator.of(context)
+          .push(
+            QaydPageRoute.slideFromStart(
+              builder: (ctx) => MultiBlocProvider(
+                providers: [
+                  BlocProvider<VoucherCreateCubit>(
+                    create: (_) => VoucherCreateCubit(
+                      InjectionContainer.createVoucherUseCase,
+                      InjectionContainer.createTripartiteTransferUseCase,
+                    ),
+                  ),
+                  BlocProvider<VoucherSuggestionsCubit>(
+                    create: (_) => VoucherSuggestionsCubit(
+                      InjectionContainer.getAutoSuggestionsUseCase,
+                      InjectionContainer
+                          .markNotificationMessageProcessedUseCase,
+                    ),
+                  ),
+                ],
+                child: VoucherCreatePage(
+                  initialQrData: {
+                    'type': data.typeCode == 'payment'
+                        ? VoucherType.payment
+                        : VoucherType.receipt,
+                    'date': DateTime.parse(data.dateIso),
+                    'amountMinorUnits': data.amountMinorUnits,
+                    'description': data.description,
+                    'counterpartyAccountId': data.counterpartyAccountId,
+                    'currencyCode': data.currencyCode,
+                    'editingVoucherId': data.id,
+                  },
+                ),
+              ),
+            ),
+          )
+          .then((_) => cubit.load(data.id));
+    }
   }
 }
 
