@@ -5,7 +5,7 @@ import 'package:qayd/domain/value_objects/voucher_type.dart';
 void main() {
   group('SuggestionPatternExtractor', () {
     test('extracts amount and receipt keyword (Arabic)', () {
-      const text = 'استلمت حوالة واردة مبلغ 250 ريال';
+      const text = 'استلمت حوالة واردة مبلغ 250 ﷼';
       final ex = SuggestionPatternExtractor.extract(text);
       expect(ex.direction, SuggestionDirection.receipt);
       expect(ex.amountMinorUnits, 25000);

@@ -3,9 +3,9 @@ abstract final class CurrencyUtil {
   static String getArabicName(String code) {
     switch (code.toUpperCase()) {
       case 'SAR':
-        return 'ريال سعودي';
+        return '﷼ سعودي';
       case 'YER':
-        return 'ريال يمني';
+        return '﷼ يمني';
       case 'USD':
         return 'دولار أمريكي';
       case 'AED':
@@ -17,9 +17,9 @@ abstract final class CurrencyUtil {
       case 'BHD':
         return 'دينار بحريني';
       case 'OMR':
-        return 'ريال عماني';
+        return '﷼ عماني';
       case 'QAR':
-        return 'ريال قطري';
+        return '﷼ قطري';
       case 'TRY':
         return 'ليرة تركية';
       case 'EUR':

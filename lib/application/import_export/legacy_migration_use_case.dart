@@ -298,7 +298,8 @@ class LegacyMigrationUseCase {
             newAccount = Account.createRoot(
               id: newId,
               name: accountName,
-              classification: parentAccount?.classification ?? AccountClassification.receivables,
+              classification: parentAccount?.classification ??
+                  AccountClassification.receivables,
               createdAt: DateTime.now(),
               metadata: {
                 'source': 'legacy_import',
@@ -358,14 +359,16 @@ class LegacyMigrationUseCase {
         return FailureResult(allResult.failure);
       }
       final allAccounts = (allResult as Success<List<Account>>).value;
-      
+
       // We must restrict our search to liquid assets primarily, because other
       // root accounts (like Fixed Assets) might also be marked as isDefault=true.
       final fundAccount = allAccounts
               .where((a) =>
                   a.classification.standardKind ==
                       StandardAccountClassificationKind.liquidAssets &&
-                  (a.isDefault || a.name == 'الصندوق' || a.name.contains('قيد')))
+                  (a.isDefault ||
+                      a.name == 'الصندوق' ||
+                      a.name.contains('قيد')))
               .firstOrNull ??
           allAccounts
               .where((a) =>
@@ -580,14 +583,14 @@ class LegacyMigrationUseCase {
 
   String _fallbackNameAr(String code) {
     const map = {
-      'SAR': 'ريال سعودي',
-      'YER': 'ريال يمني',
+      'SAR': '﷼ سعودي',
+      'YER': '﷼ يمني',
       'USD': 'دولار أمريكي',
       'EGP': 'جنيه مصري',
       'AED': 'درهم إماراتي',
       'KWD': 'دينار كويتي',
-      'QAR': 'ريال قطري',
-      'OMR': 'ريال عماني',
+      'QAR': '﷼ قطري',
+      'OMR': '﷼ عماني',
       'BHD': 'دينار بحريني',
       'JOD': 'دينار أردني',
       'EUR': 'يورو',

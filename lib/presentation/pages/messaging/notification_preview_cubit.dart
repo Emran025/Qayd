@@ -16,6 +16,7 @@ import 'package:qayd/domain/services/placeholder_resolver.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_state.dart';
+import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 
 class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
   NotificationPreviewCubit({
@@ -76,7 +77,7 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
       }
     }
 
-    _emitReady(
+    await _emitReady(
       templates: templates,
       voucher: v,
       account: counterpartyAccount,
@@ -102,24 +103,35 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     }
     final templates = tR.valueOrNull!;
     final bindings = TemplateBindingMaps.forAccount(a);
-    _emitReady(
+    await _emitReady(
       templates: templates,
-      voucher: null,
       account: a,
+      voucher: null,
       bindings: bindings,
     );
   }
 
-  void _emitReady({
+  Future<void> _emitReady({
     required List<MessageTemplate> templates,
     required GetVoucherDetailsOutput? voucher,
     required GetAccountDetailsOutput? account,
     required Map<String, String> bindings,
-  }) {
+  }) async {
     final first = templates.isEmpty ? null : templates.first;
     final selectedId = first?.id;
-    final body =
-        first != null ? PlaceholderResolver.resolve(first.body, bindings) : '';
+
+    String body;
+    if (first != null) {
+      body = PlaceholderResolver.resolve(first.body, bindings);
+    } else if (voucher != null) {
+      body = await resolveVoucherShareTextWithFallback(voucher);
+    } else if (account != null) {
+      body =
+          'تحية طيبة، رصيد الحساب ${account.name} حالياً هو: ${bindings['balance']}.\n\nمُصدّر آلياً عبر نظام قيد المالي.';
+    } else {
+      body = '';
+    }
+
     emit(
       NotificationPreviewReady(
         templates: templates,

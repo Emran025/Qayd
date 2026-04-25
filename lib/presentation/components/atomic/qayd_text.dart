@@ -32,12 +32,14 @@ class QaydText extends StatelessWidget {
     this.overflow,
     this.softWrap = true,
     this.semanticsLabel,
+    this.fontWeight,
   });
 
   final String data;
   final QaydTextStyleSlot slot;
   final TextStyle? style;
   final Color? color;
+  final FontWeight? fontWeight;
   final TextAlign textAlign;
   final int? maxLines;
   final TextOverflow? overflow;
@@ -62,13 +64,17 @@ class QaydText extends StatelessWidget {
       QaydTextStyleSlot.labelMedium => theme.labelMedium,
       QaydTextStyleSlot.labelSmall => theme.labelSmall,
     };
+    var resolved = base;
     if (style != null) {
-      return base?.merge(style) ?? style;
+      resolved = resolved?.merge(style) ?? style;
     }
     if (color != null) {
-      return base?.copyWith(color: color) ?? base;
+      resolved = resolved?.copyWith(color: color) ?? resolved;
     }
-    return base;
+    if (fontWeight != null) {
+      resolved = resolved?.copyWith(fontWeight: fontWeight) ?? resolved;
+    }
+    return resolved;
   }
 
   @override

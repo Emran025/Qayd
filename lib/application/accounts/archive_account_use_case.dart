@@ -30,21 +30,20 @@ class ArchiveAccountUseCase {
       final gate = await _writeGuard.assertWritesPermitted();
       if (gate.isFailure) return FailureResult(gate.failureOrNull!);
 
-      final loaded =
-          await _accountRepository.getById(AccountId(accountIdRaw));
+      final loaded = await _accountRepository.getById(AccountId(accountIdRaw));
       if (loaded.isFailure) return FailureResult(loaded.failureOrNull!);
-      
+
       final account = loaded.valueOrNull!;
       final entriesR = await _ledgerRepository.getEntriesForAccount(account.id);
       if (entriesR.isFailure) return FailureResult(entriesR.failureOrNull!);
-      
+
       final entries = entriesR.valueOrNull!;
       final perCurrency = _balanceCalculator.signedBalanceMinorUnitsPerCurrency(
         entries: entries,
         accountId: account.id,
         nature: account.nature,
       );
-      
+
       final hasBalance = perCurrency.values.any((v) => v != 0);
       Money balanceCheck;
       if (hasBalance) {
@@ -52,9 +51,9 @@ class ArchiveAccountUseCase {
         balanceCheck = Money.nonNegative(entry.value.abs(), entry.key);
       } else {
         balanceCheck = Money.zero(
-            const CurrencyCode(code: 'SAR', nameAr: 'ريال', symbol: 'ر.س'));
+            const CurrencyCode(code: 'SAR', nameAr: '﷼', symbol: 'ر.س'));
       }
-      
+
       final archived = account.archive(balance: balanceCheck);
       final saved = await _accountRepository.save(archived);
 

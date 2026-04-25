@@ -102,53 +102,47 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
               :final templates,
               :final selectedTemplateId,
             ) =>
-              templates.isEmpty
-                  ? Center(
-                      child: QaydText(
-                        AppStringsAr.notificationNoTemplates,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        textAlign: TextAlign.center,
+              ListView(
+                padding: const EdgeInsets.all(SpacingTokens.lg),
+                children: [
+                  if (templates.isNotEmpty) ...[
+                    QaydText(
+                      AppStringsAr.notificationSelectTemplate,
+                      slot: QaydTextStyleSlot.labelLarge,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: SpacingTokens.sm),
+                    DropdownButtonFormField<String>(
+                      value: selectedTemplateId,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
                       ),
-                    )
-                  : ListView(
-                      padding: const EdgeInsets.all(SpacingTokens.lg),
-                      children: [
-                        QaydText(
-                          AppStringsAr.notificationSelectTemplate,
-                          slot: QaydTextStyleSlot.labelLarge,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(height: SpacingTokens.sm),
-                        DropdownButtonFormField<String>(
-                          value: selectedTemplateId,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      items: templates
+                          .map(
+                            (t) => DropdownMenuItem(
+                              value: t.id,
+                              child: Text(t.name),
                             ),
-                            filled: true,
-                          ),
-                          items: templates
-                              .map(
-                                (t) => DropdownMenuItem(
-                                  value: t.id,
-                                  child: Text(t.name),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (id) {
-                            if (id != null) {
-                              context
-                                  .read<NotificationPreviewCubit>()
-                                  .selectTemplate(id);
-                            }
-                          },
-                        ),
-                        const SizedBox(height: SpacingTokens.lg),
-                        QaydText(
-                          AppStringsAr.notificationMessageBody,
-                          slot: QaydTextStyleSlot.labelLarge,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                          )
+                          .toList(),
+                      onChanged: (id) {
+                        if (id != null) {
+                          context
+                              .read<NotificationPreviewCubit>()
+                              .selectTemplate(id);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: SpacingTokens.lg),
+                  ],
+                  QaydText(
+                    AppStringsAr.notificationMessageBody,
+                    slot: QaydTextStyleSlot.labelLarge,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                         const SizedBox(height: SpacingTokens.sm),
                         QaydTextField(
                           controller: _bodyController,

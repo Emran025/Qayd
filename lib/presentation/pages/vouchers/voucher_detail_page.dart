@@ -5,6 +5,7 @@ import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
@@ -649,10 +650,10 @@ class _VoucherDetailBody extends StatelessWidget {
                             ),
                             const SizedBox(width: SpacingTokens.xs),
                             QaydText(
-                              data.currencySymbol,
-                              slot: QaydTextStyleSlot.titleLarge,
+                              CurrencyUtil.getArabicName(data.currencyCode),
+                              slot: QaydTextStyleSlot.titleSmall,
                               color: gold,
-                              // weight: FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                             ),
                           ],
                         ),
@@ -1336,7 +1337,7 @@ class _CollateralSummaryCard extends StatelessWidget {
                     size: 14, color: scheme.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
-                  '$valueStr ${data.currencyCode}',
+                  '$valueStr ${CurrencyUtil.getArabicName(data.currencyCode)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),

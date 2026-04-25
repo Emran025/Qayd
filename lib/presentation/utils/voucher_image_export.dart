@@ -8,7 +8,6 @@ import 'package:intl/intl.dart' as intl;
 import 'package:path_provider/path_provider.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/presentation/utils/numerical_styling.dart';
 import 'package:qayd/core/utils/currency_util.dart';
@@ -101,66 +100,7 @@ Future<void> shareVoucherAsFormattedImage(
     final file = File('${dir.path}/$fileName');
     await file.writeAsBytes(pngBytes);
 
-    var shareText = await resolveVoucherShareText(data);
-
-    // Fallback if no template is found
-    if (shareText == null || shareText.isEmpty) {
-      final amountTextFormatter = MoneyFormatter.formatWithSymbol(
-        data.amountMinorUnits /
-            (data.currencyDigits == 0
-                ? 1
-                : (data.currencyDigits == 2 ? 100 : 100)),
-        data.currencySymbol,
-        fractionalDigits: data.currencyDigits,
-      );
-
-      if (data.isTripartite) {
-        final isReceiptLeg = data.tripartiteRole == 'receipt' ||
-            data.tripartiteRole == 'intermediary_receipt';
-        final sender = isReceiptLeg
-            ? data.counterpartyName
-            : (data.linkedPartyName ?? 'المرسل');
-        final receiver = isReceiptLeg
-            ? (data.linkedPartyName ?? 'المستلم')
-            : data.counterpartyName;
-
-        final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
-        shareText =
-            'مرفق لكم إشعار تحويل مالي من حساب $sender إلى حساب $receiver.\n'
-            'المبلغ: $amountTextFormatter\n'
-            'المرجع: ${data.referenceNumber ?? shortId}\n'
-            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
-      } else {
-        final voucherType =
-            data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
-        final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
-        shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
-            'المبلغ: $amountTextFormatter\n';
-
-        final balanceParts = data.counterpartyBalances.entries.map((e) {
-          final digits = (e.key == data.currencyCode) ? data.currencyDigits : 2;
-          final divisor = math.pow(10, digits).toDouble();
-          final fmt = intl.NumberFormat('#,##0.${'0' * digits}', 'en');
-          final value = e.value / divisor;
-          final absValue = value.abs();
-          final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
-          return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
-              .trim();
-        }).toList();
-        if (balanceParts.isNotEmpty) {
-          shareText += 'الرصيد الإجمالي: ${balanceParts.join(", ")}\n';
-        }
-
-        shareText += 'الحساب: ${data.affectedName}\n'
-            'المرجع: ${data.referenceNumber ?? shortId}\n'
-            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
-      }
-      if (data.senderSignatureHex != null ||
-          data.receiverSignatureHex != null) {
-        shareText +=
-            '\nبصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}';
-      }
-    }
+    var shareText = await resolveVoucherShareTextWithFallback(data);
 
     // Preview and edit Step
     final editedText = await VoucherSharePreviewSheet.show(context, shareText);
@@ -567,9 +507,7 @@ class VoucherImageCard extends StatelessWidget {
                                   '#,##0.${'0' * digits}', 'en');
                               final value = e.value / divisor;
                               final absValue = value.abs();
-                              final label = value < 0
-                                  ? 'لكم'
-                                  : (value > 0 ? 'عليكم' : '');
+                              final label = value < 0 ? 'عليكم' : 'لكم';
                               return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
                                   .trim();
                             }).join(' | '),

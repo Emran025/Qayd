@@ -981,7 +981,7 @@ abstract final class AppStringsAr {
   static const String costCenterDetailTitle = 'تفاصيل المركز';
   static const String costCenterNameLabel = 'اسم المركز';
   static const String costCenterDescriptionLabel = 'الوصف (اختياري)';
-  static const String costCenterBudgetLabel = 'الميزانية (اختياري — ريال)';
+  static const String costCenterBudgetLabel = 'الميزانية (اختياري — ﷼)';
   static const String costCenterTypeLabel = 'نوع المركز';
   static const String costCenterTypeCost = 'مركز تكلفة';
   static const String costCenterTypeProfit = 'مركز ربح';
@@ -1004,7 +1004,7 @@ abstract final class AppStringsAr {
   static const String costCenterNameHint = 'اسم المركز *';
   static const String costCenterNameValidator = 'يرجى إدخال الاسم.';
   static const String costCenterDescHint = 'الوصف (اختياري)';
-  static const String costCenterBudgetHint = 'الميزانية (اختياري — ريال)';
+  static const String costCenterBudgetHint = 'الميزانية (اختياري — ﷼)';
   static const String costCenterBudgetNoneHint = '0 = بلا حد';
   static const String costCenterSaveAction = 'إنشاء المركز';
   static const String costCenterCreatedSnackbar =

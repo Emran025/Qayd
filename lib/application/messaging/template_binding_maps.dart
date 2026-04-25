@@ -70,7 +70,7 @@ abstract final class TemplateBindingMaps {
       'amount': MoneyFormatter.formatWithSymbol(
         d.amountMinorUnits /
             (d.currencyDigits == 0 ? 1 : (d.currencyDigits == 2 ? 100 : 1000)),
-        d.currencySymbol,
+        CurrencyUtil.getArabicName(d.currencyCode),
         fractionalDigits: d.currencyDigits,
       ),
       'currency': CurrencyUtil.getArabicName(d.currencyCode),
@@ -94,7 +94,7 @@ abstract final class TemplateBindingMaps {
         final divisor = digits == 0 ? 1 : (digits == 2 ? 100 : 1000);
         final value = e.value / divisor;
         final absValue = value.abs();
-        final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+        final label = value < 0 ? 'عليكم' : 'لكم';
         return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
 
             .trim();

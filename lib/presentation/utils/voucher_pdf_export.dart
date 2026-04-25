@@ -141,7 +141,7 @@ Future<void> shareVoucherAsPdf(
               (digits == 0 ? 1 : (digits == 2 ? 100 : 1000)).toDouble();
           final value = e.value / divisor;
           final absValue = value.abs();
-          final label = value < 0 ? 'لكم' : (value > 0 ? 'عليكم' : '');
+          final label = value < 0 ? 'عليكم' : 'لكم';
           return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
               .trim();
         }).toList();

@@ -78,7 +78,7 @@ void main() {
 
   final currency = CurrencyCode(
     code: 'SAR',
-    nameAr: 'ريال سعودي',
+    nameAr: '﷼ودي',
     symbol: 'ر.س',
     fractionalDigits: 2,
   );

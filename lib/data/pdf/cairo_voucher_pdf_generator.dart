@@ -542,9 +542,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                                   NumberFormat('#,##0.${'0' * digits}', 'en');
                               final value = e.value / divisor;
                               final absValue = value.abs();
-                              final label = value < 0
-                                  ? 'لكم'
-                                  : (value > 0 ? 'عليكم' : '');
+                              final label = value < 0 ? 'عليكم' : 'لكم';
                               return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
                                   .trim();
                             }).join(' | '),

@@ -6,13 +6,13 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 abstract final class PredefinedCurrencies {
   static const sar = CurrencyCode(
     code: 'SAR',
-    nameAr: 'ريال سعودي',
+    nameAr: '﷼ سعودي',
     symbol: '﷼',
     fractionalDigits: 2,
   );
   static const yer = CurrencyCode(
     code: 'YER',
-    nameAr: 'ريال يمني',
+    nameAr: '﷼ يمني',
     symbol: '﷼',
     fractionalDigits: 2,
   );
@@ -52,14 +52,14 @@ abstract final class PredefinedCurrencies {
   );
   static const omr = CurrencyCode(
     code: 'OMR',
-    nameAr: 'ريال عماني',
+    nameAr: '﷼ عماني',
     symbol: '﷼',
     fractionalDigits: 3,
     isActive: false,
   );
   static const qar = CurrencyCode(
     code: 'QAR',
-    nameAr: 'ريال قطري',
+    nameAr: '﷼ قطري',
     symbol: '﷼',
     fractionalDigits: 2,
     isActive: false,

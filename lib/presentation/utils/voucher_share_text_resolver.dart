@@ -26,7 +26,48 @@ Future<String?> resolveVoucherShareText(GetVoucherDetailsOutput data) async {
   }
 }
 
-Future<String?> resolveTripartiteShareText(GetTripartiteDetailOutput data) async {
+Future<String> resolveVoucherShareTextWithFallback(
+    GetVoucherDetailsOutput data) async {
+  final templateText = await resolveVoucherShareText(data);
+  if (templateText != null && templateText.isNotEmpty) {
+    return templateText;
+  }
+
+  final bindings = TemplateBindingMaps.forVoucher(data);
+  final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
+  final reference = data.referenceNumber ?? shortId;
+
+  String body;
+  if (data.isTripartite) {
+    body =
+        'مرفق لكم إشعار تحويل مالي من حساب ${bindings['sender_party']} إلى حساب ${bindings['receiver_party']}.\n'
+        'المبلغ: ${bindings['amount']}\n'
+        'المرجع: $reference\n'
+        '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+  } else {
+    final voucherType = data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
+    body = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
+        'المبلغ: ${bindings['amount']}\n';
+
+    if (bindings['net_balance']?.isNotEmpty == true) {
+      body += 'الرصيد الإجمالي: ${bindings['net_balance']}\n';
+    }
+
+    body += 'الحساب: ${data.affectedName}\n'
+        'المرجع: $reference\n'
+        '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+  }
+
+  if (data.senderSignatureHex != null || data.receiverSignatureHex != null) {
+    body +=
+        '\nبصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}';
+  }
+
+  return body;
+}
+
+Future<String?> resolveTripartiteShareText(
+    GetTripartiteDetailOutput data) async {
   try {
     final buffer = StringBuffer();
 

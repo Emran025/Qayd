@@ -58,7 +58,7 @@ class DeactivateAccountUseCase {
         balanceCheck = Money.nonNegative(entry.value.abs(), entry.key);
       } else {
         balanceCheck = Money.zero(
-            const CurrencyCode(code: 'SAR', nameAr: 'ريال', symbol: 'ر.س'));
+            const CurrencyCode(code: 'SAR', nameAr: '﷼', symbol: 'ر.س'));
       }
       final deactivated = account.deactivate(balance: balanceCheck);
       final saved = await _accountRepository.save(deactivated);
