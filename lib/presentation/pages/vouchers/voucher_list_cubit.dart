@@ -98,7 +98,11 @@ class VoucherListCubit extends Cubit<VoucherListState> {
       (out) {
         _accountNamesById = out.accountNamesById;
         final sorted = [...out.vouchers]
-          ..sort((a, b) => b.dateIso.compareTo(a.dateIso));
+          ..sort((a, b) {
+            final dateCmp = b.dateIso.compareTo(a.dateIso);
+            if (dateCmp != 0) return dateCmp;
+            return b.createdAtIso.compareTo(a.createdAtIso);
+          });
         emit(
           VoucherListReady(
             vouchers: sorted,

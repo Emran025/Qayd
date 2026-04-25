@@ -4,6 +4,7 @@ class VoucherSummaryDto {
     required this.typeCode,
     required this.stateCode,
     required this.dateIso,
+    required this.createdAtIso,
     required this.amountMinorUnits,
     required this.currencyCode,
     required this.currencyNameAr,
@@ -30,6 +31,7 @@ class VoucherSummaryDto {
   final String typeCode;
   final String stateCode;
   final String dateIso;
+  final String createdAtIso;
   final int amountMinorUnits;
   final String currencyCode;
   final String currencyNameAr;

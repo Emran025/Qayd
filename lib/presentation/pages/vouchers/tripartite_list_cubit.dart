@@ -170,7 +170,18 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
         }
 
         final sorted = groups.values.toList()
-          ..sort((a, b) => b.dateIso.compareTo(a.dateIso));
+          ..sort((a, b) {
+            final dateCmp = b.dateIso.compareTo(a.dateIso);
+            if (dateCmp != 0) return dateCmp;
+
+            final bTime = b.receiptVoucher?.createdAtIso ??
+                b.paymentVoucher?.createdAtIso ??
+                '';
+            final aTime = a.receiptVoucher?.createdAtIso ??
+                a.paymentVoucher?.createdAtIso ??
+                '';
+            return bTime.compareTo(aTime);
+          });
 
         emit(
           TripartiteListReady(

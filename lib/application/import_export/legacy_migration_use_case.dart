@@ -351,6 +351,7 @@ class LegacyMigrationUseCase {
   Future<Result<ImportSummary>> executeImport({
     required Map<String, dynamic> bundle,
     required Map<String, String> accountResolutions,
+    void Function(int current, int total)? onProgress,
   }) async {
     try {
       // ── Locate fund account ──────────────────────────────────────────────
@@ -434,8 +435,10 @@ class LegacyMigrationUseCase {
       int imported = 0;
       int skipped = 0;
       int transfers = 0;
+      final int totalTx = legacyTransactions.length;
 
-      for (final tx in legacyTransactions) {
+      for (int i = 0; i < totalTx; i++) {
+        final tx = legacyTransactions[i];
         final cusLegacyId = tx['counterparty_legacy_id']?.toString() ?? '';
         final transferTargetId = tx['transfer_target_legacy_id'];
         final isTransfer = tx['type'] == 'transfer' && transferTargetId != null;
@@ -497,6 +500,14 @@ class LegacyMigrationUseCase {
           transfers++;
           if (fromId == null && toId == null) skipped++;
         }
+
+        if (onProgress != null && i % 5 == 0) {
+          onProgress(i + 1, totalTx);
+        }
+      }
+
+      if (onProgress != null && totalTx > 0) {
+        onProgress(totalTx, totalTx);
       }
 
       return Success(ImportSummary(

@@ -422,9 +422,11 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
   }
 
   List<List<_BalanceSnapshot>> _calculateAllRollingSnapshots(
-    List<AccountStatementChatMessageDto> history,
+    List<AccountStatementChatMessageDto> historyReversed,
     Map<String, int> initialBalances,
   ) {
+    final List<AccountStatementChatMessageDto> history =
+        historyReversed.reversed.toList();
     final List<List<_BalanceSnapshot>> snapshotsList = [];
     final Map<String, _BalanceSnapshot> currentBalances = {};
 
@@ -464,7 +466,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       snapshotsList.add(currentBalances.values.toList());
     }
 
-    return snapshotsList;
+    return snapshotsList.reversed.toList();
   }
 
   List<_BalanceSnapshot> _calculateInitialSnapshots(
@@ -529,7 +531,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         final cubit = context.read<StatementChatCubit>();
         final custom = Theme.of(context).extension<QaydCustomColors>()!;
 
-        final int firstUnreadIndex = data.messages.indexWhere(
+        final int firstUnreadIndex = data.messages.lastIndexWhere(
           (m) =>
               m.direction == 'incoming' &&
               m.signatureStatusCode == 'underRequest',
@@ -675,16 +677,17 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
 
                             return ListView.builder(
                               controller: _scrollController,
+                              reverse: true,
                               padding: const EdgeInsets.only(
                                 left: SpacingTokens.sm,
                                 right: SpacingTokens.sm,
-                                top: SpacingTokens.sm,
-                                bottom: 110.0,
+                                top: 110.0,
+                                bottom: SpacingTokens.sm,
                               ),
                               itemCount:
                                   data.messages.length + (showBF ? 1 : 0),
                               itemBuilder: (context, i) {
-                                if (showBF && i == 0) {
+                                if (showBF && i == data.messages.length) {
                                   return _BroughtForwardCard(
                                     balances: allSnapshots.isEmpty
                                         ? []
@@ -694,7 +697,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                           ),
                                   );
                                 }
-                                final msgIdx = showBF ? i - 1 : i;
+                                final msgIdx = i;
                                 final msg = data.messages[msgIdx];
                                 final key = _messageKeys.putIfAbsent(
                                     msg.voucherId, () => GlobalKey());

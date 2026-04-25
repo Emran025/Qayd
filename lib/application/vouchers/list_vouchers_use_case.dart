@@ -68,6 +68,7 @@ class ListVouchersUseCase {
                   typeCode: v.type.name,
                   stateCode: v.state.name,
                   dateIso: v.date.toIso8601String(),
+                  createdAtIso: v.createdAt.toIso8601String(),
                   amountMinorUnits: v.amount.minorUnits,
                   currencyCode: v.currency.code,
                   currencyNameAr: v.currency.nameAr,

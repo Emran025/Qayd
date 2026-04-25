@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
@@ -41,6 +42,20 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
   @override
   void initState() {
     super.initState();
+    for (int i = 0; i < 6; i++) {
+      _focusNodes[i].onKeyEvent = (node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (_controllers[i].text.isEmpty && i > 0) {
+            _focusNodes[i - 1].requestFocus();
+            // It feels more natural to also clear the previous field when jumping back
+            _controllers[i - 1].clear();
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      };
+    }
     _startTimer();
     _listenForLiveVerification();
   }
@@ -129,7 +144,10 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
 
   Future<void> _verify() async {
     final code = _controllers.map((c) => c.text).join();
-    if (code.length < 6) return;
+    if (code.length < 6) {
+      setState(() => _errorAr = 'الرجاء إدخال رمز التحقق بالكامل.');
+      return;
+    }
 
     setState(() {
       _loading = true;
@@ -275,46 +293,66 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
   }
 
   Widget _buildOtpBox(int index) {
-    return Container(
-      width: 45,
-      height: 60,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _controllers[index],
-        focusNode: _focusNodes[index],
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        maxLength: 1,
-        style: const TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            height: 1.2),
-        decoration: InputDecoration(
-          counterText: '',
-          border: InputBorder.none,
-          focusedBorder: OutlineInputBorder(
+    final scheme = Theme.of(context).colorScheme;
+    return AnimatedBuilder(
+      animation: _focusNodes[index],
+      builder: (context, child) {
+        final isFocused = _focusNodes[index].hasFocus;
+        return Container(
+          width: 45,
+          height: 60,
+          decoration: BoxDecoration(
+            color: scheme.surface,
             borderRadius: BorderRadius.circular(16),
-            borderSide:
-                const BorderSide(color: ColorTokens.emerald500, width: 2),
+            border: Border.all(
+              color: isFocused ? ColorTokens.emerald500 : scheme.outlineVariant,
+              width: isFocused ? 2 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: scheme.shadow.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          child: Center(
+            child: TextField(
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              maxLength: 1,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  if (newValue.text.isEmpty) return newValue;
+                  if (oldValue.text.isNotEmpty) return oldValue;
+                  return newValue;
+                }),
+              ],
+              style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: scheme.onSurface),
+              decoration: InputDecoration(
+                counterText: '',
+                contentPadding: EdgeInsets.zero,
+                border: InputBorder.none,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              onChanged: (v) => _onChanged(v, index),
+            ),
           ),
-        ),
-        onChanged: (v) => _onChanged(v, index),
-      ),
+        );
+      },
     );
   }
 }

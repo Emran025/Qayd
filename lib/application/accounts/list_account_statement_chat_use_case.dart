@@ -326,7 +326,7 @@ final class ListAccountStatementChatUseCase {
       }
 
       return Success(StatementChatOutput(
-        messages: messages,
+        messages: messages.reversed.toList(),
         broughtForwardByCurrency: broughtForwardByCurrency,
         finalBalanceByCurrency: runningBalances,
       ));

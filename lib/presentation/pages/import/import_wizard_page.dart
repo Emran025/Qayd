@@ -37,6 +37,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
   MigrationAnalysisResult? _analysis;
   ImportSummary? _summary;
   String? _errorMessage;
+  double? _importProgress;
 
   /// User decisions: legacyId → AccountResolution
   final Map<String, AccountResolution> _resolutions = {};
@@ -118,7 +119,10 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
   Future<void> _startImport() async {
     final analysis = _analysis!;
 
-    setState(() => _phase = _Phase.importing);
+    setState(() {
+      _phase = _Phase.importing;
+      _importProgress = 0.0;
+    });
 
     // Phase 2a: Resolve accounts (create new / assign merges)
     final resolveResult =
@@ -144,6 +148,12 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
         await InjectionContainer.legacyMigrationUseCase.executeImport(
       bundle: analysis.rawBundle,
       accountResolutions: finalResolutions,
+      onProgress: (current, total) {
+        if (!mounted) return;
+        setState(() {
+          _importProgress = total > 0 ? current / total : null;
+        });
+      },
     );
     if (!mounted) return;
 
@@ -172,6 +182,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
       _analysis = null;
       _summary = null;
       _errorMessage = null;
+      _importProgress = null;
       _resolutions.clear();
     });
   }
@@ -233,9 +244,10 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
                   setState(() => _resolutions[id] = r),
               onConfirm: _startImport,
             ),
-          _Phase.importing => const _LoadingPage(
-              key: ValueKey('importing'),
+          _Phase.importing => _LoadingPage(
+              key: const ValueKey('importing'),
               message: 'جاري استيراد البيانات...',
+              progress: _importProgress,
             ),
           _Phase.done => _DonePage(
               key: const ValueKey('done'),
@@ -422,34 +434,62 @@ class _PickFilePage extends StatelessWidget {
 // ══════════════════════════════════════════════════════════════════════════════
 
 class _LoadingPage extends StatelessWidget {
-  const _LoadingPage({super.key, required this.message});
+  const _LoadingPage({super.key, required this.message, this.progress});
 
   final String message;
+  final double? progress;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 60,
-            height: 60,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: scheme.primary,
-            ),
-          ),
-          const SizedBox(height: SpacingTokens.lg),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (progress == null)
+              SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: scheme.primary,
                 ),
-          ),
-        ],
+              )
+            else
+              Column(
+                children: [
+                  Text(
+                    '${(progress! * 100).toInt()}%',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: SpacingTokens.md),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      color: scheme.primary,
+                      backgroundColor: scheme.primary.withValues(alpha: 0.15),
+                    ),
+                  ),
+                ],
+              ),
+            const SizedBox(height: SpacingTokens.lg),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
