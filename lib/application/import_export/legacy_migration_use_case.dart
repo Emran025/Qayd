@@ -8,6 +8,7 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
@@ -17,6 +18,15 @@ import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'dart:math';
+
+import 'package:qayd/domain/services/entry_generator.dart';
+import 'package:qayd/core/utils/id_generator.dart';
+import 'package:qayd/domain/value_objects/transaction_id.dart';
+import 'package:qayd/domain/value_objects/entry_id.dart';
+import 'package:qayd/domain/services/receipt_signing_service.dart';
+import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
+import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/domain/value_objects/signable_receipt.dart';
 
 // ─── Enums & Value Types ──────────────────────────────────────────────────────
 
@@ -124,12 +134,24 @@ class LegacyMigrationUseCase {
   final AccountRepository _accountRepo;
   final VoucherRepository _voucherRepo;
   final CurrencyRepository _currencyRepo;
+  final EntryGenerator _entryGenerator;
+  final IdGenerator _idGenerator;
+  final ReceiptSigningService? _signingService;
+  final Future<CryptoKeyPair?> Function()? _getKeyPair;
+  final LicenseVault? _licenseVault;
 
   const LegacyMigrationUseCase(
     this._accountRepo,
     this._voucherRepo,
     this._currencyRepo,
-  );
+    this._entryGenerator,
+    this._idGenerator, {
+    ReceiptSigningService? signingService,
+    Future<CryptoKeyPair?> Function()? getKeyPair,
+    LicenseVault? licenseVault,
+  })  : _signingService = signingService,
+        _getKeyPair = getKeyPair,
+        _licenseVault = licenseVault;
 
   // ── Phase 1: Analyse ────────────────────────────────────────────────────────
 
@@ -432,6 +454,14 @@ class LegacyMigrationUseCase {
       final legacyTransactions =
           (bundle['transactions'] as List? ?? []).cast<Map<String, dynamic>>();
 
+      CryptoKeyPair? keyPair;
+      String myPhone = '';
+      if (_signingService != null && _getKeyPair != null) {
+        keyPair = await _getKeyPair?.call();
+        final licenseData = await _licenseVault?.readLicenseData();
+        myPhone = licenseData?['phone'] as String? ?? '';
+      }
+
       int imported = 0;
       int skipped = 0;
       int transfers = 0;
@@ -451,15 +481,34 @@ class LegacyMigrationUseCase {
             continue;
           }
 
-          final voucher = _buildVoucher(
+          final voucher = await _buildVoucher(
             tx: tx,
             counterpartyId: AccountId(targetId),
             fundAccountId: fundAccount.id,
             resolveCurrency: resolveCurrency,
+            keyPair: keyPair,
+            myPhone: myPhone,
           );
 
           // Save as draft — user confirms in app (pending state).
-          await _voucherRepo.save(voucher);
+          // As requested, we sign/confirm imported vouchers so they appear on account cards.
+          final now = DateTime.now();
+          final transactionId = TransactionId(_idGenerator.next());
+          final debitId = EntryId(_idGenerator.next());
+          final creditId = EntryId(_idGenerator.next());
+
+          final entries = _entryGenerator.generateForConfirmedVoucher(
+            voucher: voucher,
+            transactionId: transactionId,
+            debitEntryId: debitId,
+            creditEntryId: creditId,
+            ledgerCreatedAt: now,
+          );
+
+          await _voucherRepo.saveWithLedgerEntries(
+            voucher: voucher,
+            ledgerEntries: entries,
+          );
           imported++;
         } else {
           // ── Transfer: cus_id → t_cus_id through the fund ─────────────
@@ -469,7 +518,7 @@ class LegacyMigrationUseCase {
 
           // Create receipt leg (from → fund)
           if (fromId != null) {
-            final receiptVoucher = _buildVoucher(
+            final receiptVoucher = await _buildVoucher(
               tx: tx,
               counterpartyId: AccountId(fromId),
               fundAccountId: fundAccount.id,
@@ -477,14 +526,33 @@ class LegacyMigrationUseCase {
               forceType: VoucherType.receipt,
               extraNotes:
                   'تحويل إلى: ${_lookupAccountName(legacyTransactions, toIdStr)}',
+              keyPair: keyPair,
+              myPhone: myPhone,
             );
-            await _voucherRepo.save(receiptVoucher);
+
+            final now = DateTime.now();
+            final transactionId = TransactionId(_idGenerator.next());
+            final debitId = EntryId(_idGenerator.next());
+            final creditId = EntryId(_idGenerator.next());
+
+            final entries = _entryGenerator.generateForConfirmedVoucher(
+              voucher: receiptVoucher,
+              transactionId: transactionId,
+              debitEntryId: debitId,
+              creditEntryId: creditId,
+              ledgerCreatedAt: now,
+            );
+
+            await _voucherRepo.saveWithLedgerEntries(
+              voucher: receiptVoucher,
+              ledgerEntries: entries,
+            );
             imported++;
           }
 
           // Create payment leg (fund → to)
           if (toId != null) {
-            final paymentVoucher = _buildVoucher(
+            final paymentVoucher = await _buildVoucher(
               tx: tx,
               counterpartyId: AccountId(toId),
               fundAccountId: fundAccount.id,
@@ -492,8 +560,27 @@ class LegacyMigrationUseCase {
               forceType: VoucherType.payment,
               extraNotes:
                   'تحويل من: ${_lookupAccountName(legacyTransactions, cusLegacyId)}',
+              keyPair: keyPair,
+              myPhone: myPhone,
             );
-            await _voucherRepo.save(paymentVoucher);
+
+            final now = DateTime.now();
+            final transactionId = TransactionId(_idGenerator.next());
+            final debitId = EntryId(_idGenerator.next());
+            final creditId = EntryId(_idGenerator.next());
+
+            final entries = _entryGenerator.generateForConfirmedVoucher(
+              voucher: paymentVoucher,
+              transactionId: transactionId,
+              debitEntryId: debitId,
+              creditEntryId: creditId,
+              ledgerCreatedAt: now,
+            );
+
+            await _voucherRepo.saveWithLedgerEntries(
+              voucher: paymentVoucher,
+              ledgerEntries: entries,
+            );
             imported++;
           }
 
@@ -523,14 +610,16 @@ class LegacyMigrationUseCase {
 
   // ── Private Helpers ─────────────────────────────────────────────────────────
 
-  Voucher _buildVoucher({
+  Future<Voucher> _buildVoucher({
     required Map<String, dynamic> tx,
     required AccountId counterpartyId,
     required AccountId fundAccountId,
     required CurrencyCode Function(String) resolveCurrency,
     VoucherType? forceType,
     String? extraNotes,
-  }) {
+    CryptoKeyPair? keyPair,
+    String? myPhone,
+  }) async {
     final typeStr = tx['type']?.toString() ?? 'receipt';
     final voucherType = forceType ??
         (typeStr == 'payment' ? VoucherType.payment : VoucherType.receipt);
@@ -553,9 +642,9 @@ class LegacyMigrationUseCase {
       if (extraNotes != null) extraNotes,
     ].join(' | ');
 
-    // Voucher is saved as DRAFT — the account holder must confirm it.
-    return Voucher.draft(
-      id: VoucherId(const Uuid().v4()),
+    // Voucher is created as draft then immediately confirmed as per user request.
+    var voucher = Voucher.draft(
+      id: VoucherId(_idGenerator.next()),
       type: voucherType,
       date: date,
       amount: money,
@@ -566,6 +655,34 @@ class LegacyMigrationUseCase {
       description: description,
       notes: notes,
     );
+
+    // Apply real cryptographic signature if keys are available
+    if (keyPair != null && myPhone != null && _signingService != null) {
+      String cpPhone = '';
+      final cpParty = await _accountRepo.getPartyDetails(counterpartyId);
+      if (cpParty.isSuccess) {
+        cpPhone = cpParty.valueOrNull?.phoneNumber ?? '';
+      }
+
+      final signable = SignableReceipt(
+        amountMinor: money.minorUnits,
+        currencyCode: currCode,
+        senderPhone: myPhone,
+        receiverPhone: cpPhone,
+        dateIso: date.toIso8601String().split('T').first,
+        receiptUuid: voucher.id.value,
+      );
+
+      final signature = _signingService!.signReceipt(signable, keyPair);
+      voucher = voucher.attachSignature(
+        signatureHex: signature.signatureHex,
+        publicKeyHex: signature.signerPublicKeyHex,
+        isSender: true,
+        status: AgreementStatus.accepted,
+        signerPhone: myPhone,
+      );
+    }
+    return voucher.confirm(date);
   }
 
   Money _toMoney(double decimal, CurrencyCode currency) {

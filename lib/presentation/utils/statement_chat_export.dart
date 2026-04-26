@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
+import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
+import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
@@ -22,8 +25,15 @@ Future<void> shareStatementChatAsPdf(
   required StatementChatFilterInput filter,
   required List<AccountStatementChatMessageDto> messages,
   required Map<String, int> broughtForwardByCurrency,
+  required Map<String, int> finalBalanceByCurrency,
+  ShareMethod? shareMethod,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
+
+  final method = shareMethod ?? await ShareMethodPicker.show(context);
+  if (method == null) return;
+
+  if (!context.mounted) return;
   showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -53,6 +63,9 @@ Future<void> shareStatementChatAsPdf(
           creditMinorUnits: isPositive ? amount : 0,
           balanceMinorUnits: amount,
           voucherId: '-',
+          currencyCode: code,
+          currencySymbol: code, // Fallback to code as symbol for BF
+          currencyDigits: 2, // BF usually in standard digits or same as msg
         ),
       );
     });
@@ -68,6 +81,9 @@ Future<void> shareStatementChatAsPdf(
       creditMinorUnits: isIncoming ? m.amountMinorUnits : 0,
       balanceMinorUnits: m.runningBalanceMinorUnits,
       voucherId: m.voucherId,
+      currencyCode: m.currencyCode,
+      currencySymbol: m.currencySymbol,
+      currencyDigits: m.currencyDigits,
     );
   }));
 
@@ -80,6 +96,7 @@ Future<void> shareStatementChatAsPdf(
     periodFromIso: filter.fromDate?.toIso8601String(),
     periodToIso: filter.toDate?.toIso8601String(),
     lines: lines,
+    finalBalancesByCurrency: finalBalanceByCurrency,
   );
 
   final pdfR = await InjectionContainer.accountStatementPdfGenerator
@@ -97,7 +114,39 @@ Future<void> shareStatementChatAsPdf(
 
   try {
     final safeName = 'qayd_statement_$accountId.pdf';
-    await sharePdfBytes(pdfR.valueOrNull!, safeName);
+    final bytes = pdfR.valueOrNull!;
+
+    if (method == ShareMethod.system) {
+      await sharePdfBytes(bytes, safeName);
+    } else {
+      final dir = await getTemporaryDirectory();
+      final path = p.join(dir.path, safeName);
+      final file = File(path);
+      await file.writeAsBytes(bytes, flush: true);
+
+      final flavor = method == ShareMethod.whatsappStandard
+          ? WhatsAppFlavor.standard
+          : WhatsAppFlavor.business;
+
+      String? phoneNumber;
+      final aR = await InjectionContainer.getAccountDetailsUseCase(
+        GetAccountDetailsInput(accountId: accountId),
+      );
+      if (aR.isSuccess) {
+        phoneNumber =
+            aR.valueOrNull!.whatsappNumber ?? aR.valueOrNull!.phoneNumber;
+      }
+
+      final shareText =
+          'مرفق لكم كشف حساب $accountName.\n\nموثق رقمياً عبر نظام قيد.';
+
+      await MessagingIntentLauncher.shareToWhatsApp(
+        flavor: flavor,
+        message: shareText,
+        fileAbsolutePath: file.path,
+        phoneNumber: phoneNumber,
+      );
+    }
   } catch (_) {
     messenger.showSnackBar(
       SnackBar(content: Text(AppStringsAr.exportPdfShareError)),

@@ -624,10 +624,18 @@ class _AccountCard extends StatelessWidget {
       final isDebitSide = (dto.natureCode == 'debit' && minor >= 0) ||
           (dto.natureCode == 'credit' && minor < 0);
 
-      final sideLabel = isDebitSide
-          ? AppStringsAr.natureDebitShort
-          : AppStringsAr.natureCreditShort;
-      final sideColor = isDebitSide ? custom.debit : custom.credit;
+      final String sideLabel;
+      final Color sideColor;
+
+      if (minor == 0) {
+        sideLabel = AppStringsAr.statementBalanceSettled;
+        sideColor = custom.credit;
+      } else {
+        sideLabel = isDebitSide
+            ? AppStringsAr.natureDebitShort
+            : AppStringsAr.natureCreditShort;
+        sideColor = isDebitSide ? custom.credit : custom.debit;
+      }
 
       // Row separator (between rows only)
       if (i > 0) {

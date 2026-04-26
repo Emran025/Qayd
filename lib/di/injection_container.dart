@@ -1042,6 +1042,11 @@ abstract final class InjectionContainer {
       accountRepository,
       voucherRepository,
       currencyRepository,
+      entryGenerator,
+      _idGenerator,
+      signingService: receiptSigningService,
+      getKeyPair: () => setupIdentityUseCase.getKeyPair(),
+      licenseVault: licenseVault,
     );
   }
 }

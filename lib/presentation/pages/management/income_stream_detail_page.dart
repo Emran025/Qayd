@@ -115,6 +115,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                       messages: chatState.messages,
                       broughtForwardByCurrency:
                           chatState.broughtForwardByCurrency,
+                      finalBalanceByCurrency: chatState.finalBalanceByCurrency,
                     );
                   } else {
                     shareAccountStatementAsPdf(context, accountId: summary.id);

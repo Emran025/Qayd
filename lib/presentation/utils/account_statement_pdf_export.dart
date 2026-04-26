@@ -57,6 +57,9 @@ Future<void> shareAccountStatementAsPdf(
             creditMinorUnits: l.creditMinorUnits,
             balanceMinorUnits: l.balanceMinorUnits,
             voucherId: l.voucherId,
+            currencyCode: l.currencyCode,
+            currencySymbol: l.currencySymbol,
+            currencyDigits: l.currencyDigits,
           ),
         )
         .toList(growable: false),

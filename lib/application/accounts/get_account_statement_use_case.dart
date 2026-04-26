@@ -85,6 +85,9 @@ class GetAccountStatementUseCase {
             creditMinorUnits: creditCol,
             balanceMinorUnits: running,
             voucherId: e.voucherId.value,
+            currencyCode: e.currency.code,
+            currencySymbol: e.currency.symbol,
+            currencyDigits: e.currency.fractionalDigits,
           ),
         );
       }

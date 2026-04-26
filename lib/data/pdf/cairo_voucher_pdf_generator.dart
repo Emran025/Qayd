@@ -73,7 +73,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           ? NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en')
           : NumberFormat('#,##0', 'en');
       final amountStr =
-          '${fmt.format(amount)} ${CurrencyUtil.getArabicName(report.currencyCode)}';
+          '${fmt.format(amount)} ${CurrencyUtil.getArabicName(report.currencyCode).replaceAll('﷼', 'ريال')}';
 
       final qrPayload = report.qrData ?? report.voucherId;
 
@@ -543,7 +543,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                               final value = e.value / divisor;
                               final absValue = value.abs();
                               final label = value < 0 ? 'عليكم' : 'لكم';
-                              return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
+                              return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key).replaceAll('﷼', 'ريال')} $label'
                                   .trim();
                             }).join(' | '),
                             style: pw.TextStyle(

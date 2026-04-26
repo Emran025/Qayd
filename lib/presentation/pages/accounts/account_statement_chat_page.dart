@@ -34,6 +34,8 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/numerical_styling.dart';
 import 'package:qayd/presentation/utils/statement_chat_export.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
+import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 
 /// Chat-style "Statement of Account" between two parties (accounts).
 ///
@@ -440,7 +442,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       final dto = symbolLookup[code];
       currentBalances[code] = _BalanceSnapshot(
         code: code,
-        symbol: dto?.currencySymbol ?? code,
+        symbol: CurrencyUtil.getArabicName(code),
         digits: dto?.currencyDigits ?? 2,
         amount: amount,
       );
@@ -450,7 +452,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       final current = currentBalances[m.currencyCode] ??
           _BalanceSnapshot(
             code: m.currencyCode,
-            symbol: m.currencySymbol,
+            symbol: CurrencyUtil.getArabicName(m.currencyCode),
             digits: m.currencyDigits,
             amount: 0,
           );
@@ -482,7 +484,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       final dto = symbolLookup[e.key];
       return _BalanceSnapshot(
         code: e.key,
-        symbol: dto?.currencySymbol ?? e.key,
+        symbol: CurrencyUtil.getArabicName(e.key),
         digits: dto?.currencyDigits ?? 2,
         amount: e.value,
       );
@@ -597,7 +599,23 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     filter: data.filter,
                     messages: data.messages,
                     broughtForwardByCurrency: data.broughtForwardByCurrency,
+                    finalBalanceByCurrency: data.finalBalanceByCurrency,
                   ),
+                  onShareWhatsapp: () async {
+                    final method = await ShareMethodPicker.show(context);
+                    if (method == null || method == ShareMethod.system) return;
+                    if (!context.mounted) return;
+                    shareStatementChatAsPdf(
+                      context,
+                      accountId: data.counterpartyAccountId,
+                      accountName: data.counterpartyName,
+                      filter: data.filter,
+                      messages: data.messages,
+                      broughtForwardByCurrency: data.broughtForwardByCurrency,
+                      finalBalanceByCurrency: data.finalBalanceByCurrency,
+                      shareMethod: method,
+                    );
+                  },
                   onExportExcel: () => shareStatementChatAsExcel(
                     context,
                     accountId: data.counterpartyAccountId,
@@ -780,6 +798,7 @@ class _ChatHeader extends StatelessWidget {
     required this.onSearchToggle,
     required this.onFilterTap,
     required this.onExportPdf,
+    required this.onShareWhatsapp,
     required this.onExportExcel,
   });
 
@@ -793,6 +812,7 @@ class _ChatHeader extends StatelessWidget {
   final VoidCallback onSearchToggle;
   final VoidCallback onFilterTap;
   final VoidCallback onExportPdf;
+  final VoidCallback onShareWhatsapp;
   final VoidCallback onExportExcel;
 
   @override
@@ -906,9 +926,20 @@ class _ChatHeader extends StatelessWidget {
                 icon: const Icon(Icons.more_vert_rounded, size: 22),
                 onSelected: (val) {
                   if (val == 'pdf') onExportPdf();
+                  if (val == 'whatsapp') onShareWhatsapp();
                   if (val == 'excel') onExportExcel();
                 },
                 itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'excel',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.table_view_outlined, size: 20),
+                        const SizedBox(width: SpacingTokens.sm),
+                        Text(AppStringsAr.settingsExportStatementTitle),
+                      ],
+                    ),
+                  ),
                   PopupMenuItem(
                     value: 'pdf',
                     child: Row(
@@ -920,12 +951,13 @@ class _ChatHeader extends StatelessWidget {
                     ),
                   ),
                   PopupMenuItem(
-                    value: 'excel',
+                    value: 'whatsapp',
                     child: Row(
                       children: [
-                        const Icon(Icons.table_view_outlined, size: 20),
+                        const Icon(Icons.chat_bubble_outline_rounded,
+                            size: 20, color: Colors.green),
                         const SizedBox(width: SpacingTokens.sm),
-                        Text(AppStringsAr.settingsExportStatementTitle),
+                        Text(AppStringsAr.shareAsWhatsappTooltip),
                       ],
                     ),
                   ),
@@ -1276,11 +1308,27 @@ class _SummaryFooter extends StatelessWidget {
                       ),
                 ),
               ),
-              Text(
-                '$messageCount ${AppStringsAr.statementVoucherCount}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$messageCount ',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color:
+                                scheme.onSurfaceVariant.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
+                    TextSpan(
+                      text: AppStringsAr.statementVoucherCount,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color:
+                                scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                            fontSize: 9,
+                          ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -1314,7 +1362,7 @@ class _SummaryFooter extends StatelessWidget {
                   const SizedBox(width: SpacingTokens.sm),
                   Expanded(
                     child: Text(
-                      '${e.key}: $statusLabel',
+                      statusLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: statusColor,
                             fontWeight: FontWeight.w600,
@@ -1323,8 +1371,7 @@ class _SummaryFooter extends StatelessWidget {
                   ),
                   _BalanceAmountText(
                     minorUnits: e.value,
-                    currencySymbol:
-                        e.key, // Fallback to code as symbol in footer for now
+                    currencySymbol: CurrencyUtil.getArabicName(e.key),
                     currencyDigits: 2,
                     large: true,
                   ),
@@ -1579,7 +1626,7 @@ class _MessageBubble extends StatelessWidget {
 
     final currency = CurrencyCode(
       code: msg.currencyCode,
-      nameAr: msg.currencyCode,
+      nameAr: CurrencyUtil.getArabicName(msg.currencyCode),
       symbol: msg.currencySymbol,
       fractionalDigits: msg.currencyDigits,
     );
@@ -1792,7 +1839,7 @@ class _MessageBubble extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  msg.currencyCode,
+                                  CurrencyUtil.getArabicName(msg.currencyCode),
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
@@ -1968,7 +2015,8 @@ class _MessageBubble extends StatelessWidget {
                               ),
                               _BalanceAmountText(
                                 minorUnits: msg.runningBalanceMinorUnits,
-                                currencySymbol: msg.currencySymbol,
+                                currencySymbol: CurrencyUtil.getArabicName(
+                                    msg.currencyCode),
                                 currencyDigits: msg.currencyDigits,
                                 fontSize: 10,
                               ),
@@ -2175,17 +2223,27 @@ class _BalanceAmountText extends StatelessWidget {
     final formatted = major.toStringAsFixed(currencyDigits);
 
     final effectiveFontSize = fontSize ?? (large ? 14.0 : 12.0);
-    final text = '$formatted $currencySymbol';
-
     return Text.rich(
-      buildNumericalScaledSpan(
-        text,
-        TextStyle(
-          color: color,
-          fontWeight: large ? FontWeight.w800 : FontWeight.w600,
-          fontSize: effectiveFontSize,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
+      TextSpan(
+        children: [
+          buildNumericalScaledSpan(
+            formatted,
+            TextStyle(
+              color: color,
+              fontWeight: large ? FontWeight.w800 : FontWeight.w600,
+              fontSize: effectiveFontSize,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          TextSpan(
+            text: ' $currencySymbol',
+            style: TextStyle(
+              color: color.withValues(alpha: 0.7),
+              fontWeight: large ? FontWeight.bold : FontWeight.w500,
+              fontSize: effectiveFontSize * 0.75,
+            ),
+          ),
+        ],
       ),
       textDirection: TextDirection.ltr,
     );

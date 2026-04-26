@@ -10,6 +10,7 @@ import 'package:qayd/data/dtos/account_statement_report_dto.dart';
 import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 
 abstract interface class AccountStatementPdfGenerator {
@@ -127,6 +128,7 @@ final class CairoAccountStatementPdfGenerator
                       totalDebit: totalDebit,
                       totalCredit: totalCredit,
                       netBalance: netBalance,
+                      finalBalances: report.finalBalancesByCurrency,
                     ),
                   ],
                 ),
@@ -410,35 +412,58 @@ final class CairoAccountStatementPdfGenerator
       cellHeight: 22,
       headerHeight: 28,
       columnWidths: {
-        0: const pw.FlexColumnWidth(2.0), // التاريخ
+        0: const pw.FlexColumnWidth(1.8), // التاريخ
         1: const pw.FlexColumnWidth(3.0), // البيان
-        2: const pw.FlexColumnWidth(1.5), // رقم السند
-        3: const pw.FlexColumnWidth(2.0), // مدين
-        4: const pw.FlexColumnWidth(2.0), // دائن
-        5: const pw.FlexColumnWidth(2.0), // الرصيد
+        2: const pw.FlexColumnWidth(1.2), // العملة
+        3: const pw.FlexColumnWidth(1.5), // رقم السند
+        4: const pw.FlexColumnWidth(1.8), // مدين
+        5: const pw.FlexColumnWidth(1.8), // دائن
+        6: const pw.FlexColumnWidth(1.8), // الرصيد
       },
-      headers: ['التاريخ', 'البيان', 'رقم السند', 'دائن', 'مدين', 'الرصيد'],
+      headers: [
+        'التاريخ',
+        'البيان',
+        'العملة',
+        'رقم السند',
+        'دائن',
+        'مدين',
+        'الرصيد'
+      ],
       data: [
         ...report.lines.map((l) {
           final d = dateFmt.format(DateTime.parse(l.dateIso));
+          final divisor = l.currencyDigits == 0
+              ? 1
+              : (l.currencyDigits == 3
+                  ? 1000
+                  : 100); // Simple fallback for common cases
           final debit = l.debitMinorUnits > 0
-              ? MoneyFormatter.formatDecimal(l.debitMinorUnits / 100)
+              ? MoneyFormatter.formatDecimal(l.debitMinorUnits / divisor,
+                  minimumFractionDigits: l.currencyDigits,
+                  maximumFractionDigits: l.currencyDigits)
               : '—';
           final credit = l.creditMinorUnits > 0
-              ? MoneyFormatter.formatDecimal(l.creditMinorUnits / 100)
+              ? MoneyFormatter.formatDecimal(l.creditMinorUnits / divisor,
+                  minimumFractionDigits: l.currencyDigits,
+                  maximumFractionDigits: l.currencyDigits)
               : '—';
-          final bal = MoneyFormatter.formatDecimal(l.balanceMinorUnits / 100);
+          final balanceVal = l.balanceMinorUnits / divisor;
+          final balLabel = balanceVal < 0 ? 'عليكم' : 'لكم';
+          final bal =
+              '${MoneyFormatter.formatDecimal(balanceVal.abs(), minimumFractionDigits: l.currencyDigits, maximumFractionDigits: l.currencyDigits)} $balLabel';
           final desc = l.description.isEmpty ? '—' : l.description;
           final vId = l.voucherId.length > 10
               ? '${l.voucherId.substring(0, 8)}…'
               : l.voucherId;
+          final currencyName = CurrencyUtil.getArabicName(l.currencyCode)
+              .replaceAll('﷼', 'ريال');
 
-          return [d, desc, vId, debit, credit, bal];
+          return [d, desc, currencyName, vId, debit, credit, bal];
         }),
         // Add empty rows to fill up to minimum
         ...List.generate(
           (7 - report.lines.length).clamp(0, 7),
-          (_) => ['', '', '', '', '', ''],
+          (_) => ['', '', '', '', '', '', ''],
         ),
       ],
       oddRowDecoration: pw.BoxDecoration(color: _slate100),
@@ -462,118 +487,91 @@ final class CairoAccountStatementPdfGenerator
     required int totalDebit,
     required int totalCredit,
     required int netBalance,
+    required Map<String, int> finalBalances,
   }) {
-    final debitStr = MoneyFormatter.formatDecimal(totalDebit / 100);
-    final creditStr = MoneyFormatter.formatDecimal(totalCredit / 100);
-    final balStr = MoneyFormatter.formatDecimal(netBalance / 100);
-
-    return pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.end,
       children: [
-        // Notes section (right side in RTL)
-        pw.Expanded(
-          flex: 5,
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Text(
-                'شكراً لتعاملكم معنا!',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 10,
-                  fontWeight: pw.FontWeight.bold,
-                  color: _navy,
-                ),
-                textAlign: pw.TextAlign.right,
-              ),
-              pw.SizedBox(height: 4),
-              pw.Text(
-                'يرجى مراجعة الأرصدة والتأكد من صحتها.',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 9,
-                  color: _muted,
-                ),
-                textAlign: pw.TextAlign.right,
-              ),
-            ],
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          decoration: pw.BoxDecoration(
+            color: _navy,
+            borderRadius:
+                const pw.BorderRadius.vertical(top: pw.Radius.circular(4)),
           ),
-        ),
-
-        pw.SizedBox(width: 20),
-
-        // Totals section (left side in RTL)
-        pw.Expanded(
-          flex: 5,
-          child: pw.Column(
-            children: [
-              // Subtotal debit
-              _totalsRow(font, 'إجمالي المدين', debitStr, false),
-              pw.SizedBox(height: 3),
-              // Subtotal credit
-              _totalsRow(font, 'إجمالي الدائن', creditStr, false),
-              pw.SizedBox(height: 3),
-              // Net balance (bold total row)
-              _totalsRow(font, 'الرصيد الصافي', balStr, true),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  pw.Widget _totalsRow(
-    pw.Font font,
-    String label,
-    String value,
-    bool isTotalRow,
-  ) {
-    final decoration = isTotalRow
-        ? pw.BoxDecoration(
-            color: _slate50,
-            border: pw.Border.all(color: PdfColors.grey600, width: 0.8),
-          )
-        : const pw.BoxDecoration(
-            border: pw.Border(
-              bottom: pw.BorderSide(
-                color: PdfColors.grey300,
-                width: 0.5,
-                style: pw.BorderStyle.dotted,
-              ),
-            ),
-          );
-
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-      decoration: decoration,
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.RichText(
-            text: buildPdfNumericalScaledSpan(
-              value,
-              pw.TextStyle(
-                font: font,
-                fontSize: 9,
-                color: _navy,
-                fontWeight:
-                    isTotalRow ? pw.FontWeight.bold : pw.FontWeight.normal,
-              ),
-            ),
-            textAlign: pw.TextAlign.left,
-          ),
-          pw.Text(
-            label,
+          child: pw.Text(
+            'صافي الأرصدة الختامية',
             style: pw.TextStyle(
               font: font,
-              fontSize: 9,
-              color: _navy,
+              fontSize: 10,
               fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white,
             ),
             textAlign: pw.TextAlign.right,
           ),
-        ],
-      ),
+        ),
+        pw.SizedBox(height: 2),
+        ...finalBalances.entries.map((e) {
+          final amount = e.value / 100;
+          final absAmount = amount.abs();
+          final label = amount < 0 ? 'عليكم' : 'لكم';
+          final amountStr = MoneyFormatter.formatDecimal(absAmount);
+
+          return pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 2),
+            padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: pw.BoxDecoration(
+              color: _slate50,
+              border: pw.Border.all(color: _border, width: 0.5),
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Row(
+                  children: [
+                    pw.Text(
+                      label,
+                      style: pw.TextStyle(
+                        font: font,
+                        fontSize: 10,
+                        fontWeight: pw.FontWeight.bold,
+                        color:
+                            amount < 0 ? PdfColors.red800 : PdfColors.green800,
+                      ),
+                    ),
+                    pw.SizedBox(width: 8),
+                    pw.RichText(
+                      text: buildPdfNumericalScaledSpan(
+                        amountStr,
+                        pw.TextStyle(
+                            font: font,
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                            color: _navy),
+                      ),
+                    ),
+                    pw.SizedBox(width: 4),
+                    pw.Text(
+                      CurrencyUtil.getArabicName(e.key).replaceAll('﷼', 'ريال'),
+                      style:
+                          pw.TextStyle(font: font, fontSize: 10, color: _muted),
+                    ),
+                  ],
+                ),
+                pw.Text(
+                  'الرصيد (${CurrencyUtil.getArabicName(e.key).replaceAll('﷼', 'ريال')})',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 9,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 

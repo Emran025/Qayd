@@ -42,6 +42,8 @@ abstract final class AppStringsAr {
         return netLiabilitiesAndEquityLabel;
       case StringKeys.accountLabel:
         return accountLabel;
+      case StringKeys.shareAsWhatsappTooltip:
+        return shareAsWhatsappTooltip;
       default:
         return '';
     }
@@ -798,6 +800,7 @@ abstract final class AppStringsAr {
   static const String shareAsQr = 'رمز QR';
   static const String shareAsSms = 'رسالة نصية SMS';
   static const String shareViaWhatsApp = 'واتساب';
+  static const String shareAsWhatsappTooltip = 'مشاركة كشف الحساب';
   static const String shareAsPdf = 'مستند PDF';
   static const String shareAsImage = 'صورة';
   static const String receiptSignedBy = 'موقّع بواسطة';

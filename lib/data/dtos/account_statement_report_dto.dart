@@ -1,4 +1,3 @@
-/// Snapshot for account statement PDF (data → PDF engine boundary).
 class AccountStatementReportDto {
   const AccountStatementReportDto({
     required this.accountId,
@@ -8,6 +7,7 @@ class AccountStatementReportDto {
     required this.generatedAtIso,
     this.periodFromIso,
     this.periodToIso,
+    this.finalBalancesByCurrency = const {},
   });
 
   final String accountId;
@@ -19,6 +19,9 @@ class AccountStatementReportDto {
   final String generatedAtIso;
   final String? periodFromIso;
   final String? periodToIso;
+
+  /// Aggregated balances per currency for the summary section.
+  final Map<String, int> finalBalancesByCurrency;
 }
 
 class AccountStatementLineReportDto {
@@ -29,6 +32,9 @@ class AccountStatementLineReportDto {
     required this.creditMinorUnits,
     required this.balanceMinorUnits,
     required this.voucherId,
+    required this.currencyCode,
+    required this.currencySymbol,
+    required this.currencyDigits,
   });
 
   final String dateIso;
@@ -37,4 +43,7 @@ class AccountStatementLineReportDto {
   final int creditMinorUnits;
   final int balanceMinorUnits;
   final String voucherId;
+  final String currencyCode;
+  final String currencySymbol;
+  final int currencyDigits;
 }

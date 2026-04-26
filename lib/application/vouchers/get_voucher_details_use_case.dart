@@ -234,21 +234,18 @@ class GetVoucherDetailsUseCase {
           (v.senderPublicKeyHex != null && v.senderPublicKeyHex == myPubKey) ||
               (v.senderPublicKeyHex == null && isAffectedInternal);
 
-      if (!v.isWithdrawn &&
-          (v.state == VoucherState.draft ||
-              v.state == VoucherState.confirmed)) {
-        if (v.receiverStatus == AgreementStatus.underRequest) {
-          // Case A: Counterparty Signature (Approval)
-          // We can only approve if we are NOT the sender (we didn't create it).
-          if (!isMeSender) {
-            canApprove = true;
-          }
-        } else if (v.senderStatus == AgreementStatus.accepted &&
-            v.receiverStatus == AgreementStatus.accepted &&
-            v.state == VoucherState.draft) {
-          // Case B: Final Ledger Confirmation (تأكيد)
-          // Both have signed. Now the local user should confirm it into their accounts.
-          // This only applies if it's still in 'draft' state.
+      if (!v.isWithdrawn && v.state == VoucherState.draft) {
+        // The creator can always confirm their own draft into the ledger.
+        if (isMeSender) {
+          canApprove = true;
+        }
+        // The receiver can approve (sign) if it's under request.
+        else if (v.receiverStatus == AgreementStatus.underRequest) {
+          canApprove = true;
+        }
+      } else if (!v.isWithdrawn && v.state == VoucherState.confirmed) {
+        // If it's already confirmed but we are the receiver and haven't signed, we can still "Approve" (sign).
+        if (!isMeSender && v.receiverStatus == AgreementStatus.underRequest) {
           canApprove = true;
         }
       }
