@@ -1,5 +1,7 @@
+import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qayd/core/constants/countries_names.dart';
 
 enum WhatsAppFlavor {
   standard('com.whatsapp', 'واتساب'),
@@ -35,7 +37,6 @@ abstract final class MessagingIntentLauncher {
     }
   }
 
-  /// Uses Native Intent to share to a specific WhatsApp flavor.
   static Future<bool> shareToWhatsApp({
     required WhatsAppFlavor flavor,
     String? phoneNumber,
@@ -45,7 +46,7 @@ abstract final class MessagingIntentLauncher {
     try {
       String? cleanPhone;
       if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
-         cleanPhone = phoneNumber.replaceAll(RegExp(r'[\+\-\(\)\s]'), '');
+        cleanPhone = _formatPhoneNumber(phoneNumber);
       }
 
       await _channel.invokeMethod(
@@ -63,16 +64,44 @@ abstract final class MessagingIntentLauncher {
     }
   }
 
+  static String _formatPhoneNumber(String phoneNumber) {
+    var formattedPhone = phoneNumber.replaceAll(RegExp(r'[\+\-\(\)\s]'), '');
+    
+    // Remove leading '00' for international numbers
+    if (formattedPhone.startsWith('00')) {
+      return formattedPhone.substring(2);
+    }
+
+    String defaultDialCode = '967'; // Default fallback (Yemen)
+    try {
+      final isoCode = ui.PlatformDispatcher.instance.locale.countryCode;
+      if (isoCode != null) {
+        final country = countries.firstWhere((c) => c.status == isoCode);
+        defaultDialCode = country.countryCallingCode.replaceAll(RegExp(r'[^0-9]'), '');
+      }
+    } catch (_) {}
+
+    // Handle common local formats if missing country code
+    if (formattedPhone.startsWith('0')) {
+      // Most countries use 0 as a trunk prefix for local numbers
+      return '$defaultDialCode${formattedPhone.substring(1)}';
+    } else if (formattedPhone.length >= 8 && formattedPhone.length <= 10 && !formattedPhone.startsWith(defaultDialCode)) {
+      // Typical length of local numbers without the 0 prefix in Arab countries is 8 to 10 digits
+      return '$defaultDialCode$formattedPhone';
+    }
+
+    return formattedPhone;
+  }
+
   /// Legacy fallback for platforms where intents fail or for broad web fallback
   static Future<bool> openWhatsAppWithText(String text, {String? phoneNumber}) {
     String formattedPhone = '';
     if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
-      // Remove +, spaces, -, (, )
-      formattedPhone = phoneNumber.replaceAll(RegExp(r'[\+\-\(\)\s]'), '');
+      formattedPhone = _formatPhoneNumber(phoneNumber);
     }
 
     final uriStr = formattedPhone.isNotEmpty
-        ? 'https://wa.me/+$formattedPhone?text=${Uri.encodeComponent(text)}'
+        ? 'https://wa.me/$formattedPhone?text=${Uri.encodeComponent(text)}'
         : 'https://wa.me/?text=${Uri.encodeComponent(text)}';
     final uri = Uri.parse(
       uriStr,

@@ -34,37 +34,44 @@ class MainActivity: FlutterFragmentActivity() {
                     }
 
                     try {
-                        val intent = Intent(Intent.ACTION_SEND)
-                        val mimeType = if (filePath != null) {
+                        val intent: Intent
+                        if (filePath.isNullOrBlank()) {
+                            // Text-only message via ACTION_VIEW
+                            val cleanNumber = phoneNumber?.replace(Regex("[^0-9]"), "") ?: ""
+                            val uriString = if (cleanNumber.isNotBlank()) {
+                                "whatsapp://send?phone=$cleanNumber&text=${Uri.encode(message ?: "")}"
+                            } else {
+                                "whatsapp://send?text=${Uri.encode(message ?: "")}"
+                            }
+                            intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString))
+                            intent.setPackage(packageName)
+                        } else {
+                            // File sharing via ACTION_SEND
+                            intent = Intent(Intent.ACTION_SEND)
                             val file = File(filePath)
-                            when (file.extension.lowercase()) {
+                            val mimeType = when (file.extension.lowercase()) {
                                 "pdf" -> "application/pdf"
                                 "png" -> "image/png"
                                 "jpg", "jpeg" -> "image/jpeg"
                                 "webp" -> "image/webp"
                                 else -> "*/*"
                             }
-                        } else {
-                            "text/plain"
-                        }
-                        intent.type = mimeType
-                        intent.setPackage(packageName)
-                        
-                        // Set text message
-                        if (!message.isNullOrBlank()) {
-                            intent.putExtra(Intent.EXTRA_TEXT, message)
-                        }
+                            intent.type = mimeType
+                            intent.setPackage(packageName)
+                            
+                            // Set text message
+                            if (!message.isNullOrBlank()) {
+                                intent.putExtra(Intent.EXTRA_TEXT, message)
+                            }
 
-                        // Attach specific contact (JID)
-                        if (!phoneNumber.isNullOrBlank()) {
-                            // Format: Number must include country code, NO '+' sign. Example: 1234567890
-                            val cleanNumber = phoneNumber.replace(Regex("[^0-9]"), "")
-                            intent.putExtra("jid", "$cleanNumber@s.whatsapp.net")
-                        }
+                            // Attach specific contact (JID)
+                            if (!phoneNumber.isNullOrBlank()) {
+                                // Format: Number must include country code, NO '+' sign. Example: 1234567890
+                                val cleanNumber = phoneNumber.replace(Regex("[^0-9]"), "")
+                                intent.putExtra("jid", "$cleanNumber@s.whatsapp.net")
+                            }
 
-                        // Attach File via FileProvider
-                        if (!filePath.isNullOrBlank()) {
-                            val file = File(filePath)
+                            // Attach File via FileProvider
                             if (file.exists()) {
                                 val uri: Uri = FileProvider.getUriForFile(
                                     this, 
