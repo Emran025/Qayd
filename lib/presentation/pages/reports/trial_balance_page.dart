@@ -431,11 +431,11 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'دائن',
+                'مدين',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: qayd.debit,
+                  color: qayd.credit,
                 ),
               ),
             ),
@@ -448,11 +448,11 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'مدين',
+                'دائن',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: qayd.credit,
+                  color: qayd.debit,
                 ),
               ),
             ),

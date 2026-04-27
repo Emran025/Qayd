@@ -18,13 +18,13 @@ final class AccountClassification {
     defaultNature: AccountNature.debit,
   );
 
-  /// Standard: ذمم دائنة (عليك) (Receivables)
+  /// Standard: ذمم مدينة (لك) (Receivables)
   static const AccountClassification receivables = AccountClassification._(
     standardKind: StandardAccountClassificationKind.receivables,
     defaultNature: AccountNature.debit,
   );
 
-  /// Standard: ذمم مدينة (لك) (Payables)
+  /// Standard: ذمم دائنة (عليك) (Payables)
   static const AccountClassification payables = AccountClassification._(
     standardKind: StandardAccountClassificationKind.payables,
     defaultNature: AccountNature.credit,

@@ -158,6 +158,7 @@ import 'package:qayd/domain/repositories/audit_log_repository.dart';
 import 'package:qayd/data/repositories/sqlite_audit_log_repository.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/application/management/seed_expense_accounts_use_case.dart';
+import 'package:qayd/application/identity/delete_account_use_case.dart';
 
 /// Result of attempting to open the encrypted database.
 enum DatabaseOpenResult {
@@ -223,6 +224,7 @@ abstract final class InjectionContainer {
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
   static late CanSyncWithAccountUseCase canSyncWithAccountUseCase;
+  static late final DeleteAccountUseCase deleteAccountUseCase;
 
   // ── Governance ─────────────────────────────────────────────────────────────
 
@@ -692,6 +694,17 @@ abstract final class InjectionContainer {
       costCenterRepository,
       createCostCenterUseCase,
       manageDimensionsUseCase,
+    );
+
+    deleteAccountUseCase = DeleteAccountUseCase(
+      identityRepository: identityRepository,
+      autoBackupService: autoBackupService,
+      driveBackupService: driveBackupService,
+      mnemonicVault: mnemonicVault,
+      licenseVault: licenseVault,
+      appPinStorage: appPinStorage,
+      identityFileStorage: identityFileStorage,
+      database: database,
     );
   }
 

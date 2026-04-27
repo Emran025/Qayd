@@ -63,6 +63,9 @@ abstract interface class IdentityRepository {
 
   /// Removes an entry from the sync access list.
   Future<void> removeFromSyncAccessList({required int entryId});
+
+  /// Soft-deletes the user's account from the server.
+  Future<void> deleteAccount();
 }
 
 /// Result of a public key lookup from the server.

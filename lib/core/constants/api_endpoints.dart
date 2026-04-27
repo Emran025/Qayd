@@ -26,6 +26,7 @@ abstract final class ApiEndpoints {
   static const String authLogout = '$v1/auth/logout';
   static String get authProfile => '$v1/account/profile';
   static String get authProfileUpdate => '$v1/account/profile/update';
+  static String get authAccountDelete => '$v1/account/delete';
 
   // ── Password recovery ─────────────────────────────────────────────────────
   static const String passwordEmail = '$v1/auth/password/email';

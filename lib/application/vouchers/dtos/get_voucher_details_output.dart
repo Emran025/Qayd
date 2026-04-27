@@ -13,6 +13,8 @@ class GetVoucherDetailsOutput {
     required this.counterpartyName,
     required this.affectedAccountId,
     required this.affectedName,
+    this.counterpartyNature,
+    this.affectedNature,
     this.referenceNumber,
     this.description,
     this.notes,
@@ -113,6 +115,9 @@ class GetVoucherDetailsOutput {
   /// The running balance of the counterparty at the time of this voucher.
   /// Key is currency code, value is minor units.
   final Map<String, int> counterpartyBalances;
+
+  final String? counterpartyNature;
+  final String? affectedNature;
 }
 
 /// Lightweight summary of an attachment for display in the detail view.

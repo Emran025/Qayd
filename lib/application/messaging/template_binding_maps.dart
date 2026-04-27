@@ -4,7 +4,6 @@ import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/core/utils/currency_util.dart';
 
-
 /// Maps domain DTOs to `{{placeholder}}` keys for [PlaceholderResolver].
 abstract final class TemplateBindingMaps {
   static Map<String, String> forVoucher(GetVoucherDetailsOutput d) {
@@ -94,9 +93,14 @@ abstract final class TemplateBindingMaps {
         final divisor = digits == 0 ? 1 : (digits == 2 ? 100 : 1000);
         final value = e.value / divisor;
         final absValue = value.abs();
-        final label = value < 0 ? 'عليكم' : 'لكم';
+        final label = d.counterpartyNature == 'debit'
+            ? value < 0
+                ? 'عليكم'
+                : 'لكم'
+            : value > 0
+                ? 'عليكم'
+                : 'لكم';
         return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
-
             .trim();
       }).join(', '),
     };
@@ -136,7 +140,6 @@ abstract final class TemplateBindingMaps {
     final balanceStr = d.balancesMinorUnits.entries
         .map((e) =>
             '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${CurrencyUtil.getArabicName(e.key)}')
-
         .join(', ');
     final nature = d.natureCode == 'debit' ? 'دائن' : 'مدين';
     return {

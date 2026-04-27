@@ -73,9 +73,28 @@ final class ListAccountStatementChatUseCase {
         final myVouchers = r.valueOrNull!;
 
         allVouchers = myVouchers.where((v) {
-          final involvesCp = v.affectedAccountId == cpId ||
-              v.counterpartyId == cpId ||
-              v.tripartiteMeta?.linkedPartyId == cpId;
+          final bool involvesCp;
+
+          if (v.isTripartite) {
+            // For tripartite vouchers in bilateral mode, only include the leg
+            // where BOTH myId and cpId are direct participants (affected or
+            // counterparty). The linkedPartyId is contextual metadata linking
+            // to the other leg's party and should NOT cause this leg to appear
+            // in a bilateral chat it doesn't belong to.
+            //
+            // Example: Transfer A→Fund→B creates:
+            //   V1 (Receipt): affected=Fund, counterparty=A, linked=B
+            //   V2 (Payment): affected=Fund, counterparty=B, linked=A
+            // Chat Fund↔A should only show V1, not V2.
+            final cpIsDirect =
+                v.affectedAccountId == cpId || v.counterpartyId == cpId;
+            final myIsDirect =
+                v.affectedAccountId == myId || v.counterpartyId == myId;
+            involvesCp = cpIsDirect && myIsDirect;
+          } else {
+            involvesCp =
+                v.affectedAccountId == cpId || v.counterpartyId == cpId;
+          }
 
           if (!involvesCp) return false;
 
@@ -191,9 +210,13 @@ final class ListAccountStatementChatUseCase {
               if (!isRejected && !isWithdrawn) {
                 final cur = v.currency.code;
                 if (dir == 'incoming') {
-                  broughtForwardByCurrency[cur] = (broughtForwardByCurrency[cur] ?? 0) + v.amount.minorUnits;
+                  broughtForwardByCurrency[cur] =
+                      (broughtForwardByCurrency[cur] ?? 0) +
+                          v.amount.minorUnits;
                 } else {
-                  broughtForwardByCurrency[cur] = (broughtForwardByCurrency[cur] ?? 0) - v.amount.minorUnits;
+                  broughtForwardByCurrency[cur] =
+                      (broughtForwardByCurrency[cur] ?? 0) -
+                          v.amount.minorUnits;
                 }
               }
             }
@@ -282,9 +305,11 @@ final class ListAccountStatementChatUseCase {
         if (!isRejected && !isWithdrawn) {
           final cur = v.currency.code;
           if (direction == 'incoming') {
-            runningBalances[cur] = (runningBalances[cur] ?? 0) + v.amount.minorUnits;
+            runningBalances[cur] =
+                (runningBalances[cur] ?? 0) + v.amount.minorUnits;
           } else {
-            runningBalances[cur] = (runningBalances[cur] ?? 0) - v.amount.minorUnits;
+            runningBalances[cur] =
+                (runningBalances[cur] ?? 0) - v.amount.minorUnits;
           }
         }
 

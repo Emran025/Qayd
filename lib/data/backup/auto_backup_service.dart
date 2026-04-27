@@ -326,4 +326,19 @@ class AutoBackupService {
       return [];
     }
   }
+
+  /// Deletes all local backup files from internal and external storage.
+  Future<void> deleteAllBackups() async {
+    try {
+      final internalDir = await _localBackupDir();
+      if (internalDir.existsSync()) {
+        await internalDir.delete(recursive: true);
+      }
+      final externalDir = await _externalBackupDir();
+      if (externalDir != null && externalDir.existsSync()) {
+        await externalDir.delete(recursive: true);
+      }
+    } catch (_) {}
+    await _storage.delete(key: _kLastDate);
+  }
 }

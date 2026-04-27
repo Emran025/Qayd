@@ -35,7 +35,8 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
   final _valueController = TextEditingController();
   final _notesController = TextEditingController();
 
-  String _assetType = 'investment'; // 'investment' (profitable) or 'possession' (depreciable)
+  String _assetType =
+      'investment'; // 'investment' (profitable) or 'possession' (depreciable)
   bool _isSubmitting = false;
   bool _generatesIncome = true;
   CurrencyCode _purchaseCurrency = PredefinedCurrencies.sar;
@@ -57,7 +58,8 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
 
     if (rootId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('خطأ: لم يتم العثور على الحساب الجذر للأصول.')),
+        const SnackBar(
+            content: Text('خطأ: لم يتم العثور على الحساب الجذر للأصول.')),
       );
       return;
     }
@@ -65,9 +67,8 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
     setState(() => _isSubmitting = true);
 
     final value = double.tryParse(_valueController.text.trim()) ?? 0;
-    final sourceType = _assetType == 'investment'
-        ? 'investment_asset'
-        : 'possession';
+    final sourceType =
+        _assetType == 'investment' ? 'investment_asset' : 'possession';
 
     final metadata = <String, dynamic>{
       'income_source_type': sourceType,
@@ -116,8 +117,8 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
 
     return Scaffold(
       appBar: QaydAppBar(
-        title: _assetType == 'investment' 
-            ? AppStringsAr.assetWizardInvestmentTitle 
+        title: _assetType == 'investment'
+            ? AppStringsAr.assetWizardInvestmentTitle
             : AppStringsAr.assetWizardPossessionTitle,
       ),
       body: Form(
@@ -189,14 +190,18 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(RadiusTokens.md),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
                     ),
                     items: PredefinedCurrencies.all
-                        .where((c) => c.isActive || c == PredefinedCurrencies.sar)
+                        .where(
+                            (c) => c.isActive || c == PredefinedCurrencies.sar)
                         .map((c) => DropdownMenuItem(
                               value: c,
                               child: Text('${c.code} (${c.symbol})',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13)),
                             ))
                         .toList(),
                     onChanged: (val) {
@@ -217,14 +222,19 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.auto_graph_rounded, color: ColorTokens.emerald400),
+                    const Icon(Icons.auto_graph_rounded,
+                        color: ColorTokens.emerald400),
                     const SizedBox(width: SpacingTokens.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          QaydText(AppStringsAr.assetWizardIncomeSourceLabel, slot: QaydTextStyleSlot.labelLarge),
-                          const Text('سيقوم النظام بتتبع الأرباح الموزعة من هذا الأصل تلقائياً', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                          QaydText(AppStringsAr.assetWizardIncomeSourceLabel,
+                              slot: QaydTextStyleSlot.labelLarge),
+                          const Text(
+                              'سيقوم النظام بتتبع الأرباح الموزعة من هذا الأصل تلقائياً',
+                              style:
+                                  TextStyle(fontSize: 10, color: Colors.grey)),
                         ],
                       ),
                     ),
@@ -250,14 +260,15 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
               style: FilledButton.styleFrom(
                 backgroundColor: gold,
                 foregroundColor: ColorTokens.navy950,
-                minimumSize: const Size.fromHeight(60),
+                minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(RadiusTokens.lg)),
               ),
               child: _isSubmitting
                   ? const CircularProgressIndicator(color: Colors.black)
                   : const Text('تأكيد وتسجيل الأصل في المحفظة',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             ),
             const SizedBox(height: SpacingTokens.md),
             QaydText(
@@ -306,26 +317,35 @@ class _TypeCard extends StatelessWidget {
             color: isSelected ? color : scheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                      color: color.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4))
+                ]
+              : null,
         ),
         child: Column(
           children: [
             Icon(icon,
-                size: 32,
-                color: isSelected ? color : scheme.onSurfaceVariant),
+                size: 32, color: isSelected ? color : scheme.onSurfaceVariant),
             const SizedBox(height: SpacingTokens.sm),
             QaydText(title,
                 slot: QaydTextStyleSlot.labelLarge,
                 textAlign: TextAlign.center,
-                style: TextStyle(height: 1.1, color: isSelected ? scheme.onSurface : scheme.onSurfaceVariant)),
+                style: TextStyle(
+                    height: 1.1,
+                    color: isSelected
+                        ? scheme.onSurface
+                        : scheme.onSurfaceVariant)),
             const SizedBox(height: 4),
             Text(
               description,
               style: TextStyle(
                   fontSize: 9,
-                  color: isSelected ? scheme.onSurface : scheme.onSurfaceVariant),
+                  color:
+                      isSelected ? scheme.onSurface : scheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
           ],

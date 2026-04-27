@@ -1260,4 +1260,20 @@ abstract final class AppStringsAr {
   static const String logoutConfirmTitle = 'تأكيد تسجيل الخروج';
   static const String logoutConfirmBody =
       'هل أنت متأكد من رغبتك في تسجيل الخروج؟';
+
+  // ── Account Deletion ──────────────────────────────────────────────────
+  static const String profileDeleteAccountAction = 'حذف الحساب نهائياً';
+  static const String profileDeleteAccountWarningTitle =
+      'تحذير: حذف الحساب والبيانات';
+  static const String profileDeleteAccountWarningBody =
+      'هذا الإجراء سيقوم بما يلي:\n'
+      '• حذف جميع بياناتك المالية من هذا الجهاز.\n'
+      '• حذف جميع النسخ الاحتياطية المحلية وعلى Google Drive.\n'
+      '• تعطيل حسابك على السيرفر (Soft delete).\n\n'
+      'تحذير: لا يمكن التراجع عن هذا الإجراء أبداً.';
+  static const String profileDeleteAccountConfirmLabel =
+      'أوافق على محو جميع بياناتي نهائياً';
+  static const String profileDeleteAccountExecute = 'محو بيانات الحساب';
+  static const String profileDeleteAccountSuccess =
+      'تم محو الحساب وجميع البيانات بنجاح.';
 }

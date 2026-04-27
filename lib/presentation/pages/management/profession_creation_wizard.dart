@@ -181,8 +181,9 @@ class _ProfessionCreationWizardPageState
               controller: _nameController,
               label: AppStringsAr.professionAccountNameLabel,
               hint: AppStringsAr.professionAccountNameHint,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? AppStringsAr.professionAccountNameRequired : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? AppStringsAr.professionAccountNameRequired
+                  : null,
             ),
 
             const SizedBox(height: SpacingTokens.md),
@@ -191,8 +192,9 @@ class _ProfessionCreationWizardPageState
               controller: _professionNameController,
               label: AppStringsAr.professionNameLabel,
               hint: AppStringsAr.professionNameHint,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? AppStringsAr.professionNameRequired : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? AppStringsAr.professionNameRequired
+                  : null,
             ),
 
             const SizedBox(height: SpacingTokens.md),
@@ -259,7 +261,7 @@ class _ProfessionCreationWizardPageState
               style: FilledButton.styleFrom(
                 backgroundColor: gold,
                 foregroundColor: ColorTokens.navy950,
-                minimumSize: const Size.fromHeight(56),
+                minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(RadiusTokens.lg),
                 ),
@@ -271,7 +273,7 @@ class _ProfessionCreationWizardPageState
                       AppStringsAr.professionSubmitButton,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 13,
                       ),
                     ),
             ),

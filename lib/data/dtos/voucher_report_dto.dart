@@ -32,6 +32,8 @@ class VoucherReportDto {
     required this.senderStatusCode,
     required this.receiverStatusCode,
     this.counterpartyBalances = const {},
+    this.counterpartyNature,
+    this.affectedNature,
   });
 
   final String voucherId;
@@ -78,4 +80,7 @@ class VoucherReportDto {
 
   /// Map of currency code to balance minor units.
   final Map<String, int> counterpartyBalances;
+
+  final String? counterpartyNature;
+  final String? affectedNature;
 }

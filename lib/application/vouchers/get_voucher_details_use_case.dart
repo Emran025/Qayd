@@ -265,6 +265,8 @@ class GetVoucherDetailsUseCase {
           counterpartyName: counterpartyName,
           affectedAccountId: v.affectedAccountId.value,
           affectedName: affectedName,
+          counterpartyNature: cpAccountR.valueOrNull?.nature.name,
+          affectedNature: affectedRes.valueOrNull?.nature.name,
           referenceNumber: v.referenceNumber,
           description: v.description,
           notes: v.notes,

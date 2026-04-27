@@ -518,7 +518,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   ),
 
                   // Total Balance display
-                  if (report.counterpartyBalances.isNotEmpty) ...[
+                  if (report.counterpartyBalances.isNotEmpty &&
+                      !report.isTripartite) ...[
                     pw.SizedBox(height: 2),
                     pw.RichText(
                       text: pw.TextSpan(
@@ -542,7 +543,13 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                                   NumberFormat('#,##0.${'0' * digits}', 'en');
                               final value = e.value / divisor;
                               final absValue = value.abs();
-                              final label = value < 0 ? 'عليكم' : 'لكم';
+                              final label = report.counterpartyNature == 'debit'
+                                  ? value > 0
+                                      ? 'عليكم'
+                                      : 'لكم'
+                                  : value < 0
+                                      ? 'عليكم'
+                                      : 'لكم';
                               return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key).replaceAll('﷼', 'ريال')} $label'
                                   .trim();
                             }).join(' | '),

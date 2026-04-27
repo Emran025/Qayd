@@ -10,6 +10,7 @@ final class BalanceSheetLine {
     required this.accountId,
     required this.accountCode,
     required this.accountName,
+    required this.parentId,
     required this.level,
     required this.isParent,
     required this.currency,
@@ -18,6 +19,7 @@ final class BalanceSheetLine {
   });
 
   final String accountId;
+  final String? parentId;
   final String accountCode;
   final String accountName;
   final int level;
@@ -94,6 +96,7 @@ final class BalanceSheetGenerator {
 
         lines.add(BalanceSheetLine(
           accountId: account.id.value,
+          parentId: account.parentId?.value,
           accountCode: account.metadata['code']?.toString() ?? '',
           accountName: account.name,
           level: _calculateLevel(account, accountMap),

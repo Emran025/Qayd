@@ -218,9 +218,9 @@ final class TrialBalancePdfGenerator {
             _headerCell(font, 'الحساب'),
             _headerCell(font, 'العملة'),
             _headerCell(font, 'الأرصدة الافتتاحية',
-                subHeaders: ['دائن', 'مدين']),
-            _headerCell(font, 'حركة الفترة', subHeaders: ['دائن', 'مدين']),
-            _headerCell(font, 'الأرصدة الختامية', subHeaders: ['دائن', 'مدين']),
+                subHeaders: ['مدين', 'دائن']),
+            _headerCell(font, 'حركة الفترة', subHeaders: ['مدين', 'دائن']),
+            _headerCell(font, 'الأرصدة الختامية', subHeaders: ['مدين', 'دائن']),
           ],
         ),
         // ── Data rows ───────────────────────────────────────────────────

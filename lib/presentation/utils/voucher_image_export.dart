@@ -491,7 +491,8 @@ class VoucherImageCard extends StatelessWidget {
                         _text(accountName, 10, accent, bold: true),
                       ],
                     ),
-                    if (data.counterpartyBalances.isNotEmpty) ...[
+                    if (data.counterpartyBalances.isNotEmpty &&
+                        !_isTripartite) ...[
                       const SizedBox(height: 2),
                       Row(
                         children: [
@@ -507,7 +508,13 @@ class VoucherImageCard extends StatelessWidget {
                                   '#,##0.${'0' * digits}', 'en');
                               final value = e.value / divisor;
                               final absValue = value.abs();
-                              final label = value < 0 ? 'عليكم' : 'لكم';
+                              final label = data.counterpartyNature == 'debit'
+                                  ? value > 0
+                                      ? 'عليكم'
+                                      : 'لكم'
+                                  : value < 0
+                                      ? 'عليكم'
+                                      : 'لكم';
                               return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key)} $label'
                                   .trim();
                             }).join(' | '),

@@ -260,4 +260,16 @@ final class RemoteIdentityRepository implements IdentityRepository {
           'خطأ في حذف المستخدم من القائمة: ${e.toString().split('\n').first}');
     }
   }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      await _client.delete(ApiEndpoints.authAccountDelete);
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(
+          'خطأ في حذف الحساب من السيرفر: ${e.toString().split('\n').first}');
+    }
+  }
 }

@@ -78,6 +78,8 @@ Future<void> shareVoucherAsPdf(
     senderStatusCode: data.senderStatusCode,
     receiverStatusCode: data.receiverStatusCode,
     counterpartyBalances: data.counterpartyBalances,
+    counterpartyNature: data.counterpartyNature,
+    affectedNature: data.affectedNature,
   );
 
   Result<Uint8List> result;
@@ -141,7 +143,13 @@ Future<void> shareVoucherAsPdf(
               (digits == 0 ? 1 : (digits == 2 ? 100 : 1000)).toDouble();
           final value = e.value / divisor;
           final absValue = value.abs();
-          final label = value < 0 ? 'عليكم' : 'لكم';
+          final label = data.counterpartyNature == 'debit'
+              ? value < 0
+                  ? 'عليكم'
+                  : 'لكم'
+              : value > 0
+                  ? 'عليكم'
+                  : 'لكم';
           return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
               .trim();
         }).toList();

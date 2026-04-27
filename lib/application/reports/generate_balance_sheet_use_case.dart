@@ -78,10 +78,12 @@ class GenerateBalanceSheetUseCase {
   ) {
     // Only aggregate root-level (level == 0) lines to avoid double-counting
     // hierarchy children. Root accounts carry rolled-up balances.
-    final rootLines = lines.where((l) => l.level == 0);
+    // Sum totals based on classification. To avoid double-counting in a hierarchy,
+    // we only sum "leaf" accounts (those that are not parents).
+    final leafLines = lines.where((l) => !l.isParent);
 
     final perCurrency = <String, _CurrencyAccumulator>{};
-    for (final l in rootLines) {
+    for (final l in leafLines) {
       final acc = perCurrency.putIfAbsent(
         l.currencyCode,
         () => _CurrencyAccumulator(

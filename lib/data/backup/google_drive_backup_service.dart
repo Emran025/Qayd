@@ -416,6 +416,33 @@ final class GoogleDriveBackupService {
     }
     return false;
   }
+
+  /// Deletes all backup files from Drive's appDataFolder.
+  Future<Result<void>> deleteAllBackups() async {
+    try {
+      final token = await _getAccessToken();
+      if (token == null) return const Success(null);
+
+      final files = [
+        _driveDbFileName,
+        _driveIdentityFileName,
+        _driveDbKeyFileName
+      ];
+      for (final name in files) {
+        final info = await _findFile(token, name);
+        if (info != null) {
+          final id = info['id'] as String;
+          await _dio.delete('$_driveFilesUrl/$id',
+              options: _authHeaders(token));
+        }
+      }
+      return const Success(null);
+    } catch (e) {
+      return FailureResult(
+        FileSystemFailure(messageAr: 'فشل حذف الملفات من Drive: $e'),
+      );
+    }
+  }
 }
 
 /// Metadata about a backup stored on Drive.
