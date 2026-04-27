@@ -49,10 +49,10 @@ Future<void> shareVoucherAsText(
       final value = e.value / divisor;
       final absValue = value.abs();
       final label = data.counterpartyNature == 'debit'
-          ? value < 0
+          ? value > 0
               ? 'عليكم'
               : 'لكم'
-          : value > 0
+          : value < 0
               ? 'عليكم'
               : 'لكم';
       return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
