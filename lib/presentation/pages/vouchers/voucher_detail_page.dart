@@ -894,8 +894,7 @@ class _VoucherDetailBody extends StatelessWidget {
                       onTapViewDetails: () {
                         context
                             .read<VoucherDetailCubit>()
-                            .loadCollateralDetails(
-                                openDialogWhenReady: true);
+                            .loadCollateralDetails(openDialogWhenReady: true);
                       },
                     );
                   },
@@ -1434,150 +1433,159 @@ class _AttachmentsSection extends StatelessWidget {
             // ── File list ─────────────────────────────────────────────────
             if (attachments.isNotEmpty) ...[
               const SizedBox(height: SpacingTokens.sm),
-              ...attachments.asMap().entries.map((entry) {
-                final att = entry.value;
-                final isImage = att.mimeType.startsWith('image/');
-                final isPdf = att.mimeType.contains('pdf');
-                final isVideo = att.mimeType.startsWith('video/');
+              // Build a name→index map once so each tile can do O(1) lookup.
+              // Using Builder avoids re-allocating the map per rebuild frame.
+              Builder(builder: (ctx) {
+                final nameToIdx = <String, int>{};
+                for (var i = 0; i < imageNames.length; i++) {
+                  nameToIdx.putIfAbsent(imageNames[i], () => i);
+                }
+                return Column(
+                  children: attachments.map((att) {
+                    final isImage = att.mimeType.startsWith('image/');
+                    final isPdf = att.mimeType.contains('pdf');
+                    final isVideo = att.mimeType.startsWith('video/');
 
-                // Find decrypted image index (already in memory)
-                final imageIdx = isImage && decryptedImages.isNotEmpty
-                    ? imageNames.indexOf(att.fileName)
-                    : -1;
+                    // O(1) lookup: -1 when not yet decrypted
+                    final imageIdx = isImage && decryptedImages.isNotEmpty
+                        ? (nameToIdx[att.fileName] ?? -1)
+                        : -1;
 
-                // ── Tile content (shared between image and file tiles) ──
-                final tileContent = Container(
-                  padding: const EdgeInsets.all(SpacingTokens.sm),
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: scheme.outlineVariant.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      // Thumbnail for loaded images, icon otherwise
-                      if (isImage && imageIdx >= 0)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Image.memory(
-                            decryptedImages[imageIdx],
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      else
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: gold.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            _iconForMime(att.mimeType),
-                            size: 18,
-                            color: gold,
-                          ),
+                    // ── Tile content ─────────────────────────────────────
+                    final tileContent = Container(
+                      padding: const EdgeInsets.all(SpacingTokens.sm),
+                      decoration: BoxDecoration(
+                        color: scheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: scheme.outlineVariant.withValues(alpha: 0.3),
                         ),
-                      const SizedBox(width: SpacingTokens.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              att.fileName,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: scheme.onSurface,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                      ),
+                      child: Row(
+                        children: [
+                          // Thumbnail for loaded images, icon otherwise
+                          if (isImage && imageIdx >= 0)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.memory(
+                                decryptedImages[imageIdx],
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          else
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: gold.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                _iconForMime(att.mimeType),
+                                size: 18,
+                                color: gold,
+                              ),
                             ),
-                            const SizedBox(height: 2),
-                            Row(
+                          const SizedBox(width: SpacingTokens.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _formatFileSize(att.byteSize),
-                                  style: Theme.of(context)
+                                  att.fileName,
+                                  style: Theme.of(ctx)
                                       .textTheme
-                                      .labelSmall
+                                      .bodySmall
                                       ?.copyWith(
-                                        color: scheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.w600,
+                                        color: scheme.onSurface,
                                       ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: gold.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    isPdf
-                                        ? 'PDF'
-                                        : isVideo
-                                            ? 'فيديو'
-                                            : isImage
-                                                ? 'صورة'
-                                                : 'ملف',
-                                    style: TextStyle(
-                                      color: gold,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    Text(
+                                      _formatFileSize(att.byteSize),
+                                      style: Theme.of(ctx)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: scheme.onSurfaceVariant,
+                                          ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: gold.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        isPdf
+                                            ? 'PDF'
+                                            : isVideo
+                                                ? 'فيديو'
+                                                : isImage
+                                                    ? 'صورة'
+                                                    : 'ملف',
+                                        style: TextStyle(
+                                          color: gold,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          // Action icon
+                          Icon(
+                            isImage && imageIdx >= 0
+                                ? Icons.zoom_in_rounded
+                                : Icons.open_in_new_rounded,
+                            size: 16,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ],
                       ),
-                      // Action icon
-                      Icon(
-                        isImage && imageIdx >= 0
-                            ? Icons.zoom_in_rounded
-                            : Icons.open_in_new_rounded,
-                        size: 16,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ],
-                  ),
-                );
+                    );
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
-                  child: isImage
-                      // ── Image: open in gallery ───────────────────────
-                      ? InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: imageIdx >= 0
-                              ? () => AttachmentGalleryDialog.show(
-                                    context,
-                                    imageBytes: decryptedImages,
-                                    fileNames: imageNames,
-                                    initialIndex: imageIdx,
-                                  )
-                              : onTapView, // load+decrypt first
-                          child: tileContent,
-                        )
-                      // ── Non-image: decrypt → OS open ─────────────────
-                      : attachmentRepository != null &&
-                              attachmentStorage != null
-                          ? AttachmentFileTile(
-                              summary: att,
-                              attachmentRepository: attachmentRepository!,
-                              attachmentStorage: attachmentStorage!,
-                              voucherId: voucherId,
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: SpacingTokens.xs),
+                      child: isImage
+                          // ── Image: open gallery or trigger load ────────
+                          ? InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: imageIdx >= 0
+                                  ? () => AttachmentGalleryDialog.show(
+                                        ctx,
+                                        imageBytes: decryptedImages,
+                                        fileNames: imageNames,
+                                        initialIndex: imageIdx,
+                                      )
+                                  : onTapView,
                               child: tileContent,
                             )
-                          : tileContent,
+                          // ── Non-image: decrypt → OS open ───────────────
+                          : (attachmentRepository != null &&
+                                  attachmentStorage != null)
+                              ? AttachmentFileTile(
+                                  summary: att,
+                                  attachmentRepository: attachmentRepository!,
+                                  attachmentStorage: attachmentStorage!,
+                                  voucherId: voucherId,
+                                  child: tileContent,
+                                )
+                              : tileContent,
+                    );
+                  }).toList(),
                 );
               }),
             ],
@@ -1905,10 +1913,10 @@ class _CollateralSummaryCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                            // Always delegate to the cubit — it will open the
-                            // dialog via BlocListener once data is ready.
-                            onTapViewDetails?.call();
-                          },
+                      // Always delegate to the cubit — it will open the
+                      // dialog via BlocListener once data is ready.
+                      onTapViewDetails?.call();
+                    },
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
                         color: gold.withValues(alpha: 0.4),
@@ -1951,10 +1959,10 @@ class _CollateralSummaryCard extends StatelessWidget {
                         if (collId == null) return;
 
                         // Compute total debt: use counterparty running balance
-                        final totalDebt =
-                            data.counterpartyBalances[data.currencyCode]
-                                    ?.abs() ??
-                                data.amountMinorUnits;
+                        final totalDebt = data
+                                .counterpartyBalances[data.currencyCode]
+                                ?.abs() ??
+                            data.amountMinorUnits;
 
                         LiquidationWizardSheet.show(
                           context,

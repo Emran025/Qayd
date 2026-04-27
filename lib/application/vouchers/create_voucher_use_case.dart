@@ -1,6 +1,7 @@
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/core/error/failures.dart';
+import 'package:qayd/domain/entities/voucher_attachment.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_output.dart';
@@ -153,13 +154,16 @@ class CreateVoucherUseCase {
         );
       }
 
+      // Phase 1: Encrypt & store attachments to disk early (before voucher
+      // exists in DB). We do NOT yet write to the attachments table — that
+      // must happen after the voucher row is committed to satisfy the FK.
+      final List<VoucherAttachment> storedAttachments = [];
       final List<AttachmentRef> attachmentRefs = [];
-      if (input.attachments.isNotEmpty) {
+      try {
         final stored = await Future.wait(
           input.attachments.map((a) => _attachmentStorage.store(a, voucherId)),
         );
-        await _attachmentRepository.saveAll(stored);
-
+        storedAttachments.addAll(stored);
         attachmentRefs.addAll(stored.map((s) => AttachmentRef(
               id: s.id,
               storagePath: s.storagePath,
@@ -168,13 +172,16 @@ class CreateVoucherUseCase {
               encryptedBlobHash: s.encryptedBlobHash,
               sourceType: s.sourceType,
             )));
+      } catch (e) {
+        rethrow;
       }
 
       Voucher voucher;
       if (isEdit) {
         final existingRes = await _voucherRepository.getById(voucherId);
-        if (existingRes.isFailure)
+        if (existingRes.isFailure) {
           return FailureResult(existingRes.failureOrNull!);
+        }
         voucher = existingRes.valueOrNull!;
 
         final allRefs = [...voucher.attachmentRefs, ...attachmentRefs];
@@ -285,7 +292,7 @@ class CreateVoucherUseCase {
         saved = await _voucherRepository.save(voucher);
       }
 
-      // ── Handle Automted Internal Bridge ──────────────
+      // ── Handle Automated Internal Bridge ──────────────
       if (saved.isSuccess && isAutomatedExpensePosting) {
         final internalVoucherId = VoucherId(_idGenerator.next());
         final internalVoucher = Voucher.draft(
