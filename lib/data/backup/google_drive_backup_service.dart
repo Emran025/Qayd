@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/database/database_provider.dart';
 
 /// Google Drive backup service — mirrors WhatsApp's Drive backup model.
@@ -27,14 +28,20 @@ import 'package:qayd/data/database/database_provider.dart';
 ///   qayd_backup_latest.db        ← most recent database snapshot
 ///   qayd_identity.dat            ← encrypted identity (mnemonic + keys)
 ///   qayd_db_key.dat              ← DB encryption key
+///   qayd_attachments.zip         ← encrypted attachment files (images, PDFs, etc.)
 /// ```
 final class GoogleDriveBackupService {
-  GoogleDriveBackupService({FlutterSecureStorage? storage, Dio? dio})
-      : _storage = storage ?? const FlutterSecureStorage(),
-        _dio = dio ?? Dio();
+  GoogleDriveBackupService({
+    FlutterSecureStorage? storage,
+    Dio? dio,
+    AttachmentsZipBuilder? zipBuilder,
+  })  : _storage = storage ?? const FlutterSecureStorage(),
+        _dio = dio ?? Dio(),
+        _zipBuilder = zipBuilder ?? const AttachmentsZipBuilder();
 
   final FlutterSecureStorage _storage;
   final Dio _dio;
+  final AttachmentsZipBuilder _zipBuilder;
 
   static const _kEnabled = 'qayd_drive_backup_enabled_v1';
   static const _kLastDate = 'qayd_drive_backup_last_date_v1';
@@ -48,6 +55,7 @@ final class GoogleDriveBackupService {
   static const _driveDbFileName = 'qayd_backup_latest.db';
   static const _driveIdentityFileName = 'qayd_identity.dat';
   static const _driveDbKeyFileName = 'qayd_db_key.dat';
+  static const _driveAttachmentsZipFileName = AttachmentsZipBuilder.zipFileName;
 
   // Local identity file name (must match IdentityFileStorage._fileName).
   static const _localIdentityFileName = 'qayd_identity.dat';
@@ -157,6 +165,20 @@ final class GoogleDriveBackupService {
         try {
           await File(keyPath).delete();
         } catch (_) {}
+      }
+
+      // 4. Upload the attachments ZIP (best-effort — non-fatal if empty).
+      try {
+        final zipFile = await _zipBuilder.buildZipToTemp();
+        if (zipFile.existsSync() && zipFile.lengthSync() > 0) {
+          await _uploadFile(
+              token, zipFile.path, _driveAttachmentsZipFileName);
+          try {
+            await zipFile.delete();
+          } catch (_) {}
+        }
+      } catch (_) {
+        // Attachment ZIP is best-effort: don't fail the whole backup.
       }
 
       // Record the timestamp.
@@ -280,6 +302,19 @@ final class GoogleDriveBackupService {
         final docsDir = await getApplicationDocumentsDirectory();
         final destIdentity = p.join(docsDir.path, _localIdentityFileName);
         await File(identityPath).copy(destIdentity);
+      }
+
+      // 5. Restore attachments ZIP (best-effort).
+      try {
+        final zipPath =
+            p.join(downloadDir.path, _driveAttachmentsZipFileName);
+        final zipOk = await _downloadFile(
+            token, _driveAttachmentsZipFileName, zipPath);
+        if (zipOk && File(zipPath).existsSync()) {
+          await _zipBuilder.restoreFromZip(zipPath);
+        }
+      } catch (_) {
+        // Non-fatal: DB restore should still succeed.
       }
 
       return Success(dbPath);
@@ -426,7 +461,8 @@ final class GoogleDriveBackupService {
       final files = [
         _driveDbFileName,
         _driveIdentityFileName,
-        _driveDbKeyFileName
+        _driveDbKeyFileName,
+        _driveAttachmentsZipFileName,
       ];
       for (final name in files) {
         final info = await _findFile(token, name);

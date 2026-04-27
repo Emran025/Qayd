@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/database/database_provider.dart';
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
@@ -21,10 +22,14 @@ import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 /// - The user can disable automatic backups at any time.
 /// - All settings are stored in encrypted platform storage.
 class AutoBackupService {
-  AutoBackupService({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+  AutoBackupService({
+    FlutterSecureStorage? storage,
+    AttachmentsZipBuilder? zipBuilder,
+  })  : _storage = storage ?? const FlutterSecureStorage(),
+        _zipBuilder = zipBuilder ?? const AttachmentsZipBuilder();
 
   final FlutterSecureStorage _storage;
+  final AttachmentsZipBuilder _zipBuilder;
 
   static const _kEnabled = 'qayd_auto_backup_enabled_v1';
   static const _kLastDate = 'qayd_auto_backup_last_date_v1';
@@ -99,6 +104,7 @@ class AutoBackupService {
     final internalDest = p.join(internalDir.path, dbFileName);
     await File(srcPath).copy(internalDest);
     await _copyKeyAndIdentityTo(internalDir);
+    await _copyAttachmentsZipTo(internalDir);
     await _pruneOld(internalDir);
 
     // 2. Also backup to external storage (survives reinstall on Android).
@@ -108,6 +114,7 @@ class AutoBackupService {
         final externalDest = p.join(externalDir.path, dbFileName);
         await File(srcPath).copy(externalDest);
         await _copyKeyAndIdentityTo(externalDir);
+        await _copyAttachmentsZipTo(externalDir);
         await _pruneOld(externalDir);
       }
     } catch (_) {
@@ -139,6 +146,15 @@ class AutoBackupService {
         final dest = File(p.join(backupDir.path, _identityFileName));
         await identityFile.copy(dest.path);
       }
+    } catch (_) {}
+  }
+
+  /// Copies attachment ZIP alongside the backup (best-effort).
+  Future<void> _copyAttachmentsZipTo(Directory backupDir) async {
+    try {
+      final destPath =
+          p.join(backupDir.path, AttachmentsZipBuilder.zipFileName);
+      await _zipBuilder.buildZip(destPath);
     } catch (_) {}
   }
 
@@ -266,6 +282,8 @@ class AutoBackupService {
 
       // Also copy key and identity alongside.
       await _copyKeyAndIdentityTo(backupFolder);
+      // Also copy the attachments ZIP alongside.
+      await _copyAttachmentsZipTo(backupFolder);
 
       return Success(destPath);
     } catch (_) {

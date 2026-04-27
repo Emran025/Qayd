@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/backup/qayd_database_validator.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
@@ -17,9 +18,12 @@ import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 class BackupService {
   BackupService({
     required DatabaseEncryptionKeyProvider keyProvider,
-  }) : _keyProvider = keyProvider;
+    AttachmentsZipBuilder? zipBuilder,
+  })  : _keyProvider = keyProvider,
+        _zipBuilder = zipBuilder ?? const AttachmentsZipBuilder();
 
   final DatabaseEncryptionKeyProvider _keyProvider;
+  final AttachmentsZipBuilder _zipBuilder;
 
   // Must match IdentityFileStorage._fileName.
   static const String _identityFileName = 'qayd_identity.dat';
@@ -62,6 +66,15 @@ class BackupService {
         files.add(XFile(idCopy.path, mimeType: 'application/octet-stream'));
       }
 
+      // Include the attachments ZIP if it has content.
+      try {
+        final zipFile = await _zipBuilder.buildZipToTemp();
+        if (zipFile.existsSync() && zipFile.lengthSync() > 0) {
+          files.add(
+              XFile(zipFile.path, mimeType: 'application/zip'));
+        }
+      } catch (_) {}
+
       await SharePlus.instance.share(
         ShareParams(files: files),
       );
@@ -96,6 +109,14 @@ class BackupService {
         final idDest = File(p.join(destDir, _identityFileName));
         await idFile.copy(idDest.path);
       }
+
+      // Also save the attachments ZIP alongside.
+      try {
+        final destDir = File(destinationPath).parent.path;
+        final zipDest =
+            p.join(destDir, AttachmentsZipBuilder.zipFileName);
+        await _zipBuilder.buildZip(zipDest);
+      } catch (_) {}
 
       return const Success(null);
     } catch (_) {
@@ -145,6 +166,15 @@ class BackupService {
         final idDest = File(p.join(docsDir.path, _identityFileName));
         await idSource.copy(idDest.path);
       }
+
+      // Restore attachments ZIP if present alongside the backup.
+      try {
+        final zipSource =
+            File(p.join(backupDir, AttachmentsZipBuilder.zipFileName));
+        if (zipSource.existsSync()) {
+          await _zipBuilder.restoreFromZip(zipSource.path);
+        }
+      } catch (_) {}
 
       return const Success(null);
     } catch (_) {
