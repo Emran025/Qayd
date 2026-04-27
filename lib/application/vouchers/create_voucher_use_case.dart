@@ -31,6 +31,11 @@ import 'package:qayd/domain/value_objects/entry_id.dart';
 
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/repositories/collateral_repository.dart';
+import 'package:qayd/domain/entities/collateral.dart';
+import 'package:qayd/domain/value_objects/collateral_id.dart';
+import 'package:qayd/domain/value_objects/collateral_status.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CreateVoucherUseCase {
   final VoucherRepository _voucherRepository;
@@ -47,6 +52,7 @@ class CreateVoucherUseCase {
   final CostCenterRepository? _costCenterRepository;
   final EntryGenerator? _entryGenerator;
   final AuditLogService? _auditLogService;
+  final CollateralRepository? _collateralRepository;
 
   CreateVoucherUseCase(
     this._voucherRepository,
@@ -63,6 +69,7 @@ class CreateVoucherUseCase {
     CostCenterRepository? costCenterRepository,
     EntryGenerator? entryGenerator,
     AuditLogService? auditLogService,
+    CollateralRepository? collateralRepository,
   })  : _accountRepository = accountRepository,
         _signingService = signingService,
         _getKeyPair = getKeyPair,
@@ -70,7 +77,8 @@ class CreateVoucherUseCase {
         _syncEventDispatcher = syncEventDispatcher,
         _costCenterRepository = costCenterRepository,
         _entryGenerator = entryGenerator,
-        _auditLogService = auditLogService;
+        _auditLogService = auditLogService,
+        _collateralRepository = collateralRepository;
 
   Future<Result<CreateVoucherOutput>> call(CreateVoucherInput input) async {
     try {
@@ -165,9 +173,10 @@ class CreateVoucherUseCase {
       Voucher voucher;
       if (isEdit) {
         final existingRes = await _voucherRepository.getById(voucherId);
-        if (existingRes.isFailure) return FailureResult(existingRes.failureOrNull!);
+        if (existingRes.isFailure)
+          return FailureResult(existingRes.failureOrNull!);
         voucher = existingRes.valueOrNull!;
-        
+
         final allRefs = [...voucher.attachmentRefs, ...attachmentRefs];
         voucher = voucher.updateDraft(
           type: input.type,
@@ -327,6 +336,112 @@ class CreateVoucherUseCase {
 
       if (saved.isSuccess && input.confirm && _syncEventDispatcher != null) {
         _syncEventDispatcher!.dispatchVoucherClaim(voucher).ignore();
+      }
+
+      // ── Handle Collateral (رهن) ──────────────────────
+      if (saved.isSuccess &&
+          input.collateral != null &&
+          _collateralRepository != null) {
+        try {
+          final collInput = input.collateral!;
+
+          // 1. Save the collateral record FIRST (without images)
+          //    This ensures the collateral exists locally even if image
+          //    processing fails (e.g. file system error, Android permissions).
+          final collateralId = CollateralId(_idGenerator.next());
+          final collateralWithoutImages = Collateral(
+            id: collateralId,
+            voucherId: voucherId,
+            description: collInput.description,
+            estimatedValue:
+                Money.positiveAmount(collInput.estimatedValueMinor, currency),
+            currency: currency,
+            status: CollateralStatus.active,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+            expiryDate: collInput.expiryDate,
+            imageRefs: const [],
+          );
+          final saveResult =
+              await _collateralRepository!.save(collateralWithoutImages);
+          if (saveResult.isFailure) {
+            // Collateral save failed — voucher is still intact.
+            await _auditLogService?.log(
+              entityType: 'collateral',
+              entityId: voucher.id.value,
+              action: AuditAction.update,
+              newData: {
+                'error': saveResult.failureOrNull?.messageAr,
+                'context': 'collateral_initial_save'
+              },
+            );
+          }
+
+          // 2. Attempt image processing — if this fails the collateral
+          //    record is still safely stored (just without images).
+          if (collInput.imagePaths.isNotEmpty && saveResult.isSuccess) {
+            try {
+              final stored = await Future.wait(
+                collInput.imagePaths.map(
+                    (path) => _attachmentStorage.store(XFile(path), voucherId)),
+              );
+              await _attachmentRepository.saveAll(stored);
+              final collImageRefs = stored
+                  .map((s) => AttachmentRef(
+                        id: s.id,
+                        storagePath: s.storagePath,
+                        mimeType: s.mimeType,
+                        byteSize: s.byteSize,
+                        encryptedBlobHash: s.encryptedBlobHash,
+                        sourceType: s.sourceType,
+                      ))
+                  .toList();
+
+              // 3. Update the collateral record with image refs
+              final collateralWithImages = Collateral(
+                id: collateralId,
+                voucherId: voucherId,
+                description: collInput.description,
+                estimatedValue: Money.positiveAmount(
+                    collInput.estimatedValueMinor, currency),
+                currency: currency,
+                status: CollateralStatus.active,
+                createdAt: collateralWithoutImages.createdAt,
+                updatedAt: DateTime.now(),
+                expiryDate: collInput.expiryDate,
+                imageRefs: collImageRefs,
+              );
+              await _collateralRepository!.update(collateralWithImages);
+            } catch (imgErr) {
+              // Images failed — collateral record is already saved.
+              await _auditLogService?.log(
+                entityType: 'collateral',
+                entityId: voucher.id.value,
+                action: AuditAction.update,
+                newData: {
+                  'error': imgErr.toString(),
+                  'context': 'collateral_image_processing'
+                },
+              );
+            }
+          }
+
+          // 4. Dispatch sync event for collateral
+          if (input.confirm &&
+              _syncEventDispatcher != null &&
+              saveResult.isSuccess) {
+            _syncEventDispatcher!
+                .dispatchCollateralSync(voucher, collateralWithoutImages)
+                .ignore();
+          }
+        } catch (e) {
+          await _auditLogService?.log(
+            entityType: 'collateral',
+            entityId: voucher.id.value,
+            action: AuditAction.update,
+            newData: {'error': e.toString(), 'context': 'collateral_creation'},
+          );
+        }
       }
 
       if (saved.isSuccess) {

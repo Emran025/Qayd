@@ -76,7 +76,11 @@ class AttachmentStorageService {
     );
   }
 
-  /// Decrypts an image into a raw byte buffer for display.
+  /// Decrypts an attachment into a raw byte buffer for display or export.
+  ///
+  /// If [attachment.storagePath] no longer exists on disk (e.g. the app was
+  /// reinstalled and the external storage path changed), this falls back to
+  /// searching for the same file by name in the current [externalImagesDir].
   Future<Uint8List> decrypt(VoucherAttachment attachment) async {
     final encryptionKeyHex = await _keyProvider.obtainKey();
     final rawKey = _hexToBytes(encryptionKeyHex);
@@ -84,9 +88,32 @@ class AttachmentStorageService {
     final aesIv = Uint8List.fromList(
         sha256.convert(utf8.encode('attachment_iv')).bytes.sublist(0, 16));
 
-    final encryptedBytes = await File(attachment.storagePath).readAsBytes();
+    // Resolve the actual file path — fallback if the stored path is stale
+    final resolvedPath = await _resolvePath(attachment.storagePath);
+    final encryptedBytes = await File(resolvedPath).readAsBytes();
     return _encryptor.decrypt(
         Uint8List.fromList(encryptedBytes), aesKey, aesIv);
+  }
+
+  /// Resolves [storedPath] to an existing file.
+  ///
+  /// 1. Returns [storedPath] if the file exists (happy path).
+  /// 2. Falls back to `externalImagesDir/<filename>` if available.
+  /// 3. Returns [storedPath] unchanged so the caller gets a descriptive
+  ///    FileSystemException rather than a silent wrong-path error.
+  Future<String> _resolvePath(String storedPath) async {
+    if (File(storedPath).existsSync()) return storedPath;
+
+    // Try the current images directory with the same filename
+    final fileName = p.basename(storedPath);
+    final imagesDir = await _fileManager.externalImagesDir();
+    if (imagesDir != null) {
+      final candidate = p.join(imagesDir.path, fileName);
+      if (File(candidate).existsSync()) return candidate;
+    }
+
+    // Return original — caller gets a meaningful error
+    return storedPath;
   }
 
   Uint8List _hexToBytes(String hex) {

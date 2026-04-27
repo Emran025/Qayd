@@ -624,6 +624,15 @@ class _VoucherTile extends StatelessWidget {
                                   color: scheme.onSurfaceVariant,
                                 ),
                               ),
+                            if (dto.hasCollateral)
+                              Tooltip(
+                                message: AppStringsAr.voucherCollateralSection,
+                                child: Icon(
+                                  Icons.shield_rounded,
+                                  size: 16,
+                                  color: scheme.primary,
+                                ),
+                              ),
                             // ── Transaction Markers (Protocol §3.3) ─────────
                             if (dto.reversalCount > 0)
                               ActionChip(

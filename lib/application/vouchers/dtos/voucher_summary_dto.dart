@@ -19,6 +19,7 @@ class VoucherSummaryDto {
     this.tripartiteRole,
     this.linkedPartyId,
     this.isContingent = false,
+    this.hasCollateral = false,
     required this.senderStatusCode,
     required this.receiverStatusCode,
     this.originVoucherId,
@@ -54,4 +55,5 @@ class VoucherSummaryDto {
   final String? originVoucherId;
   final int reversalCount;
   final String? firstChildId;
+  final bool hasCollateral;
 }

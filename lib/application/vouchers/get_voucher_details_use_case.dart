@@ -291,6 +291,7 @@ class GetVoucherDetailsUseCase {
           attachmentCount: attachmentCount,
           attachments: attachmentSummaries,
           hasCollateral: hasCollateral,
+          collateralId: hasCollateral ? collR.valueOrNull!.id.value : null,
           collateralDescription: collateralDescription,
           collateralStatusCode: collateralStatusCode,
           collateralValueMinor: collateralValueMinor,

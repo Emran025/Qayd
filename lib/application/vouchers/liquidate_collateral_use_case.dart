@@ -68,10 +68,10 @@ class LiquidateCollateralUseCase {
       }
       final collateral = collateralResult.valueOrNull!;
 
-      if (!collateral.canLiquidate) {
+      if (collateral.isTerminal) {
         return FailureResult(ValidationFailure(
-          messageAr: 'لا يمكن تصفية هذا الرهن - يجب أن يكون منتهي الصلاحية.',
-          code: 'collateral_not_liquidatable',
+          messageAr: 'لا يمكن تسوية هذا الرهن — تمت تصفيته أو الإفراج عنه مسبقاً.',
+          code: 'collateral_already_terminal',
         ));
       }
 

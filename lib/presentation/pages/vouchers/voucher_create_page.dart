@@ -399,6 +399,14 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       originVoucherId: widget.initialQrData?['originVoucherId'] as String?,
       editingVoucherId: widget.initialQrData?['editingVoucherId'] as String?,
       costCenterTags: _costCenterTags,
+      collateral: _collateralInput == null
+          ? null
+          : CreateCollateralInput(
+              description: _collateralInput!.description,
+              estimatedValueMinor: _collateralInput!.estimatedValueMinor,
+              expiryDate: _collateralInput!.expiryDate,
+              imagePaths: _collateralInput!.imagePaths,
+            ),
     );
 
     await context.read<VoucherCreateCubit>().submit(input);

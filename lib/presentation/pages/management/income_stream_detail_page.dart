@@ -241,15 +241,15 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                 else if (chatState is StatementChatReady)
                   if (chatState.messages.isEmpty)
                     const SliverFillRemaining(
-                      child: Center(
-                          child: Text(AppStringsAr.incomeStreamNoData)),
+                      child:
+                          Center(child: Text(AppStringsAr.incomeStreamNoData)),
                     )
                   else
                     _buildLedgerList(context, chatState, primaryColor)
                 else if (chatState is StatementChatFailure)
                   SliverFillRemaining(
-                    child: Center(
-                        child: Text(AppStringsAr.incomeStreamLoadError)),
+                    child:
+                        Center(child: Text(AppStringsAr.incomeStreamLoadError)),
                   ),
 
                 const SliverToBoxAdapter(
@@ -376,7 +376,8 @@ class _IncomeStreamDetailBody extends StatelessWidget {
           if (metadata['hourly_rate'] != null)
             _MetaRibbonItem(
                 icon: Icons.timer_outlined,
-                label: '${metadata['hourly_rate']} ${AppStringsAr.incomeStreamPerHour}'),
+                label:
+                    '${metadata['hourly_rate']} ${AppStringsAr.incomeStreamPerHour}'),
           if (metadata['purchase_date'] != null)
             _MetaRibbonItem(
               icon: Icons.calendar_today_rounded,
@@ -395,7 +396,8 @@ class _IncomeStreamDetailBody extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          QaydText(AppStringsAr.ledgerMovement, slot: QaydTextStyleSlot.titleMedium),
+          QaydText(AppStringsAr.ledgerMovement,
+              slot: QaydTextStyleSlot.labelMedium),
           FilledButton.tonalIcon(
             onPressed: () async {
               final cubit = context.read<StatementChatCubit>();
@@ -404,7 +406,9 @@ class _IncomeStreamDetailBody extends StatelessWidget {
               if (result != null) cubit.setFilter(result);
             },
             icon: const Icon(Icons.filter_list_rounded, size: 18),
-            label: Text(state.hasActiveFilters ? AppStringsAr.filterApplied : AppStringsAr.filterLedger),
+            label: Text(state.hasActiveFilters
+                ? AppStringsAr.filterApplied
+                : AppStringsAr.filterLedger),
             style: FilledButton.styleFrom(
               visualDensity: VisualDensity.compact,
               backgroundColor: state.hasActiveFilters
@@ -428,7 +432,8 @@ class _IncomeStreamDetailBody extends StatelessWidget {
 
     List<FlSpot> spots = [];
     final firstMsg = chronologicalMsgs.first;
-    double runningBalance = (state.broughtForwardByCurrency[firstMsg.currencyCode] ?? 0) / 100.0;
+    double runningBalance =
+        (state.broughtForwardByCurrency[firstMsg.currencyCode] ?? 0) / 100.0;
 
     // If it's an expense, we show pure cumulative spending
     // If an asset, we track running balance
@@ -624,7 +629,8 @@ class _IncomeStreamDetailBody extends StatelessWidget {
     final newestMsg = messages.isNotEmpty ? messages.first : null;
     final balanceCurrency = newestMsg?.currencyCode ?? '';
 
-    double currentBalanceMinor = (state.finalBalanceByCurrency[balanceCurrency] ?? 0).toDouble();
+    double currentBalanceMinor =
+        (state.finalBalanceByCurrency[balanceCurrency] ?? 0).toDouble();
     final List<Map<String, dynamic>> ledgerRows = [];
 
     for (int i = 0; i < messages.length; i++) {

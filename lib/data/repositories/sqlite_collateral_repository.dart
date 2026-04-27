@@ -171,6 +171,26 @@ final class SqliteCollateralRepository implements CollateralRepository {
     }
   }
 
+  @override
+  Future<Result<Set<String>>> getVoucherIdsWithCollateral(
+      List<VoucherId> voucherIds) async {
+    if (voucherIds.isEmpty) return const Success({});
+    try {
+      final placeholders = List.filled(voucherIds.length, '?').join(',');
+      final rows = await _db.query(
+        _table,
+        columns: ['voucher_id'],
+        where: 'voucher_id IN ($placeholders)',
+        whereArgs: voucherIds.map((v) => v.value).toList(),
+      );
+      return Success(rows.map((r) => r['voucher_id'] as String).toSet());
+    } catch (e) {
+      return FailureResult(
+        DatabaseFailure(messageAr: 'فشل في فحص الرهونات للسندات.'),
+      );
+    }
+  }
+
   // ── Mapping helpers ─────────────────────────────────────────────────────
 
   Map<String, dynamic> _toRow(Collateral c) {

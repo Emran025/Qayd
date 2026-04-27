@@ -838,6 +838,7 @@ abstract final class InjectionContainer {
       costCenterRepository: costCenterRepository,
       entryGenerator: entryGenerator,
       auditLogService: auditLogService,
+      collateralRepository: collateralRepository,
     );
     createTripartiteTransferUseCase = CreateTripartiteTransferUseCase(
       voucherRepository,
@@ -882,6 +883,7 @@ abstract final class InjectionContainer {
     listVouchersUseCase = ListVouchersUseCase(
       voucherRepository,
       accountRepository,
+      collateralRepository,
     );
 
     getVoucherDetailsUseCase = GetVoucherDetailsUseCase(

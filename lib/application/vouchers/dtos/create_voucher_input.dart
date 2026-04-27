@@ -33,6 +33,7 @@ class CreateVoucherInput {
     this.editingVoucherId,
     this.confirm = false,
     this.costCenterTags = const [],
+    this.collateral,
   });
 
   final VoucherType type;
@@ -59,4 +60,21 @@ class CreateVoucherInput {
 
   /// Optional cost center and dimension tags for analytical tracking.
   final List<CostCenterTagInput> costCenterTags;
+
+  /// Optional collateral (رهن / ضمان) details.
+  final CreateCollateralInput? collateral;
+}
+
+class CreateCollateralInput {
+  const CreateCollateralInput({
+    required this.description,
+    required this.estimatedValueMinor,
+    this.expiryDate,
+    this.imagePaths = const [],
+  });
+
+  final String description;
+  final int estimatedValueMinor;
+  final DateTime? expiryDate;
+  final List<String> imagePaths;
 }

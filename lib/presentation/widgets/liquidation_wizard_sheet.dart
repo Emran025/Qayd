@@ -26,8 +26,9 @@ class LiquidationWizardSheet extends StatefulWidget {
   final int totalDebtMinor;
   final String currencyCode;
 
-  /// Called with (settlementType, saleValueMinor).
-  final void Function(String settlementType, int saleValueMinor) onConfirm;
+  /// Called with (settlementType, saleValueMinor). May be async.
+  final Future<void> Function(String settlementType, int saleValueMinor)
+      onConfirm;
 
   static Future<void> show(
     BuildContext context, {
@@ -35,7 +36,8 @@ class LiquidationWizardSheet extends StatefulWidget {
     required int voucherAmountMinor,
     required int totalDebtMinor,
     required String currencyCode,
-    required void Function(String settlementType, int saleValueMinor) onConfirm,
+    required Future<void> Function(String settlementType, int saleValueMinor)
+        onConfirm,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -97,9 +99,13 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
     if (_step > 0) setState(() => _step--);
   }
 
-  void _confirm() {
-    widget.onConfirm(_settlementType, _saleValueMinor);
-    Navigator.of(context).pop();
+  bool _confirming = false;
+
+  Future<void> _confirm() async {
+    if (_confirming) return;
+    setState(() => _confirming = true);
+    await widget.onConfirm(_settlementType, _saleValueMinor);
+    if (mounted) setState(() => _confirming = false);
   }
 
   String _formatMinor(int minor) =>
@@ -203,13 +209,22 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                     ),
                   if (_step == 2)
                     FilledButton.icon(
-                      onPressed: _confirm,
+                      onPressed: _confirming ? null : _confirm,
                       style: FilledButton.styleFrom(
                         backgroundColor: scheme.error,
                         foregroundColor: scheme.onError,
                       ),
-                      icon: const Icon(Icons.check_rounded, size: 18),
-                      label: const Text('تأكيد التصفية'),
+                      icon: _confirming
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.check_rounded, size: 18),
+                      label: Text(_confirming ? 'جاري التنفيذ...' : 'تأكيد التصفية'),
                     ),
                 ],
               ),

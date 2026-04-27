@@ -53,7 +53,9 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
 
   @override
   Future<Result<void>> saveAll(List<VoucherAttachment> attachments) async {
+    if (attachments.isEmpty) return const Success(null);
     try {
+      // Batch insert for performance
       final batch = _db.batch();
       for (final a in attachments) {
         batch.insert(
@@ -64,10 +66,27 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       }
       await batch.commit(noResult: true);
       return const Success(null);
-    } catch (e) {
-      return FailureResult(
-        DatabaseFailure(messageAr: 'فشل في حفظ المرفقات.'),
-      );
+    } catch (_) {
+      // Batch failed — fall back to sequential inserts so partial success
+      // is still captured (e.g. one attachment already exists vs. all failing)
+      var anyFailed = false;
+      for (final a in attachments) {
+        try {
+          await _db.insert(
+            _table,
+            _toRow(a),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        } catch (_) {
+          anyFailed = true;
+        }
+      }
+      if (anyFailed) {
+        return FailureResult(
+          DatabaseFailure(messageAr: 'فشل في حفظ بعض المرفقات.'),
+        );
+      }
+      return const Success(null);
     }
   }
 

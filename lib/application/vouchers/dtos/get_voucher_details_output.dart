@@ -39,6 +39,7 @@ class GetVoucherDetailsOutput {
     this.attachmentCount = 0,
     this.attachments = const [],
     this.hasCollateral = false,
+    this.collateralId,
     this.collateralDescription,
     this.collateralStatusCode,
     this.collateralValueMinor,
@@ -95,6 +96,7 @@ class GetVoucherDetailsOutput {
 
   // Collateral
   final bool hasCollateral;
+  final String? collateralId;
   final String? collateralDescription;
   final String? collateralStatusCode;
   final int? collateralValueMinor;

@@ -34,4 +34,7 @@ abstract interface class CollateralRepository {
   Future<Result<List<CollateralRevaluation>>> getRevaluationHistory(
     CollateralId id,
   );
+  
+  /// Returns a set of voucher IDs that have associated collateral from the given list.
+  Future<Result<Set<String>>> getVoucherIdsWithCollateral(List<VoucherId> voucherIds);
 }

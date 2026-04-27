@@ -8,15 +8,18 @@ import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/domain/repositories/collateral_repository.dart';
 
 class ListVouchersUseCase {
   ListVouchersUseCase(
     this._voucherRepository,
     this._accountRepository,
+    this._collateralRepository,
   );
 
   final VoucherRepository _voucherRepository;
   final AccountRepository _accountRepository;
+  final CollateralRepository _collateralRepository;
 
   Future<Result<ListVouchersOutput>> call(ListVouchersInput input) async {
     try {
@@ -58,6 +61,18 @@ class ListVouchersUseCase {
         return FailureResult(r.failureOrNull!);
       }
       final list = r.valueOrNull!;
+      
+      // Bulk lookup of which vouchers have collateral
+      final Set<String> collateralVoucherIds = {};
+      if (list.isNotEmpty) {
+        final collR = await _collateralRepository.getVoucherIdsWithCollateral(
+          list.map((v) => v.id).toList(),
+        );
+        if (collR.isSuccess) {
+          collateralVoucherIds.addAll(collR.valueOrNull!);
+        }
+      }
+
       return Success(
         ListVouchersOutput(
           accountNamesById: nameById,
@@ -85,6 +100,7 @@ class ListVouchersUseCase {
                   tripartiteRole: v.tripartiteMeta?.role.columnValue,
                   linkedPartyId: v.tripartiteMeta?.linkedPartyId.value,
                   isContingent: v.isContingent,
+                  hasCollateral: collateralVoucherIds.contains(v.id.value),
                   senderStatusCode: v.senderStatus.name,
                   receiverStatusCode: v.receiverStatus.name,
                   originVoucherId: v.originVoucherId?.value,
