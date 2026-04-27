@@ -8,6 +8,8 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/services/balance_sheet_generator.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
+import 'package:qayd/domain/value_objects/account_nature.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 
 class GenerateBalanceSheetUseCase {
   GenerateBalanceSheetUseCase(
@@ -44,6 +46,7 @@ class GenerateBalanceSheetUseCase {
       final dtoLines = lines
           .map((l) => BalanceSheetLineDto(
                 accountId: l.accountId,
+                parentId: l.parentId,
                 accountCode: l.accountCode,
                 accountName: l.accountName,
                 level: l.level,
@@ -78,12 +81,12 @@ class GenerateBalanceSheetUseCase {
   ) {
     // Only aggregate root-level (level == 0) lines to avoid double-counting
     // hierarchy children. Root accounts carry rolled-up balances.
-    // Sum totals based on classification. To avoid double-counting in a hierarchy,
-    // we only sum "leaf" accounts (those that are not parents).
-    final leafLines = lines.where((l) => !l.isParent);
+    // Aggregating only root-level (accounts with no parent) lines to avoid double-counting
+    // hierarchy children. Root accounts carry rolled-up balances.
+    final rootLines = lines.where((l) => l.parentId == null);
 
     final perCurrency = <String, _CurrencyAccumulator>{};
-    for (final l in leafLines) {
+    for (final l in rootLines) {
       final acc = perCurrency.putIfAbsent(
         l.currencyCode,
         () => _CurrencyAccumulator(
@@ -121,16 +124,29 @@ class GenerateBalanceSheetUseCase {
     };
   }
 
-  static bool _isAsset(AccountClassification c) =>
-      c == AccountClassification.liquidAssets ||
-      c == AccountClassification.receivables ||
-      c == AccountClassification.fixedProfitableAssets ||
-      c == AccountClassification.fixedDepreciableAssets;
+  static bool _isAsset(AccountClassification c) {
+    if (c.standardKind != null) {
+      return c.standardKind == StandardAccountClassificationKind.liquidAssets ||
+          c.standardKind == StandardAccountClassificationKind.receivables ||
+          c.standardKind ==
+              StandardAccountClassificationKind.fixedProfitableAssets ||
+          c.standardKind ==
+              StandardAccountClassificationKind.fixedDepreciableAssets;
+    }
+    // Fallback for custom classifications
+    return c.defaultNature == AccountNature.debit;
+  }
 
-  static bool _isLiability(AccountClassification c) =>
-      c == AccountClassification.payables ||
-      c == AccountClassification.settlements ||
-      c == AccountClassification.clearingRemittances;
+  static bool _isLiability(AccountClassification c) {
+    if (c.standardKind != null) {
+      return c.standardKind == StandardAccountClassificationKind.payables ||
+          c.standardKind == StandardAccountClassificationKind.settlements ||
+          c.standardKind ==
+              StandardAccountClassificationKind.clearingRemittances;
+    }
+    // Fallback for custom classifications
+    return c.defaultNature == AccountNature.credit;
+  }
 }
 
 /// Helper function for compute()

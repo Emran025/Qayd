@@ -1,5 +1,6 @@
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/domain/value_objects/account_classification.dart';
 
 /// One row in a trial balance report, containing hierarchical metadata and
 /// six balance columns (Opening, Period Movement, Closing) for both Debit and Credit.
@@ -11,6 +12,7 @@ final class TrialBalanceLine {
     required this.accountLevel,
     required this.isParent,
     required this.currency,
+    required this.classification,
     required this.openingDebitMinorUnits,
     required this.openingCreditMinorUnits,
     required this.periodDebitMinorUnits,
@@ -25,6 +27,7 @@ final class TrialBalanceLine {
   final int accountLevel;
   final bool isParent;
   final CurrencyCode currency;
+  final AccountClassification classification;
 
   // Opening Balance
   final int openingDebitMinorUnits;

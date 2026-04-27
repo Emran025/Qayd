@@ -2,6 +2,7 @@ import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/entities/ledger_entry.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/date_range.dart';
+import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/value_objects/trial_balance_line.dart';
 import 'package:qayd/domain/value_objects/trial_balance_report.dart';
 
@@ -101,6 +102,7 @@ final class TrialBalanceGenerator {
           accountLevel: _calculateLevel(account, accountMap),
           isParent: isParent,
           currency: currency,
+          classification: account.classification,
           openingDebitMinorUnits: a.openingDebit,
           openingCreditMinorUnits: a.openingCredit,
           periodDebitMinorUnits: a.periodDebit,
@@ -111,9 +113,56 @@ final class TrialBalanceGenerator {
       }
     }
 
-    // 5. Build Currency Sections (Totals from Root accounts).
+    // 5. Hierarchical Sort (Classification → Tree → Flat).
+    final List<TrialBalanceLine> sortedLines = [];
+
+    final groups = <int, List<TrialBalanceLine>>{};
+    for (final l in lines) {
+      final order = _classificationOrder(l.classification);
+      groups.putIfAbsent(order, () => []).add(l);
+    }
+
+    final sortedKeys = groups.keys.toList()..sort();
+
+    for (final key in sortedKeys) {
+      final classLines = groups[key]!;
+      final accountGroups = <dynamic, List<TrialBalanceLine>>{};
+      for (final l in classLines) {
+        accountGroups.putIfAbsent(l.accountId, () => []).add(l);
+      }
+
+      // Roots in this classification: level 0 or parent not in this list.
+      final rootIds = accountGroups.keys.where((id) {
+        final acc = accountMap[id]!;
+        return acc.parentId == null || !accountGroups.containsKey(acc.parentId);
+      }).toList();
+
+      // Sort roots by code then name.
+      rootIds.sort((idA, idB) => _compareAccounts(accountMap[idA]!, accountMap[idB]!));
+
+      void addAccountWithChildren(dynamic accountId) {
+        final accLines = accountGroups[accountId] ?? [];
+        accLines.sort((a, b) => a.currency.code.compareTo(b.currency.code));
+        sortedLines.addAll(accLines);
+
+        final childIds = accountGroups.keys
+            .where((id) => accountMap[id]?.parentId == accountId)
+            .toList();
+        childIds.sort((idA, idB) => _compareAccounts(accountMap[idA]!, accountMap[idB]!));
+
+        for (final cid in childIds) {
+          addAccountWithChildren(cid);
+        }
+      }
+
+      for (final rid in rootIds) {
+        addAccountWithChildren(rid);
+      }
+    }
+
+    // 6. Build Currency Sections (Totals from Root accounts).
     final sections = <CurrencyCode, TrialBalanceCurrencySection>{};
-    for (final line in lines) {
+    for (final line in sortedLines) {
       final account = accountMap[line.accountId];
       if (account == null || account.parentId != null) continue;
 
@@ -150,9 +199,33 @@ final class TrialBalanceGenerator {
       title: title,
       companyName: companyName,
       dateRange: dateRange,
-      lines: List.unmodifiable(lines),
+      lines: List.unmodifiable(sortedLines),
       currencySections: Map.unmodifiable(sections),
     );
+  }
+
+  int _compareAccounts(Account a, Account b) {
+    final codeA = a.metadata['code']?.toString() ?? '';
+    final codeB = b.metadata['code']?.toString() ?? '';
+    if (codeA.isNotEmpty || codeB.isNotEmpty) {
+      final res = codeA.compareTo(codeB);
+      if (res != 0) return res;
+    }
+    return a.name.compareTo(b.name);
+  }
+
+  int _classificationOrder(AccountClassification c) {
+    if (c == AccountClassification.liquidAssets) return 0;
+    if (c == AccountClassification.receivables) return 1;
+    if (c == AccountClassification.fixedProfitableAssets) return 2;
+    if (c == AccountClassification.fixedDepreciableAssets) return 3;
+    if (c == AccountClassification.payables) return 10;
+    if (c == AccountClassification.settlements) return 11;
+    if (c == AccountClassification.clearingRemittances) return 12;
+    if (c == AccountClassification.personalExpenses) return 20;
+    if (c == AccountClassification.personalRevenues) return 21;
+    if (c == AccountClassification.remittanceFees) return 22;
+    return 99;
   }
 
   List<Account> _sortAccountsByDepth(List<Account> accounts) {

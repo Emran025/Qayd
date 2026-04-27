@@ -12,7 +12,7 @@ Future<void> shareAccountStatementAsPdf(
   required String accountId,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
-  await showDialog<void>(
+  showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => const Center(

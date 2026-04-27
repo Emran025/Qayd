@@ -57,7 +57,7 @@ class UpdateAccountUseCase {
         if (parentRes.isFailure) return FailureResult(parentRes.failureOrNull!);
         final parent = parentRes.valueOrNull!;
 
-        updated = updated.move(parent.id, parent.nature);
+        updated = updated.move(parent.id, parent.nature, parent.classification);
       } else if (input.rootStandardKind != null) {
         // Changing root to a standard kind
         final classification =

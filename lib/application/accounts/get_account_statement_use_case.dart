@@ -60,8 +60,13 @@ class GetAccountStatementUseCase {
       });
 
       final voucherText = <String, String>{};
-      for (final id in entries.map((e) => e.voucherId).toSet()) {
-        final vr = await _voucherRepository.getById(id);
+      final uniqueVoucherIds = entries.map((e) => e.voucherId).toSet().toList();
+      final voucherResults = await Future.wait(
+        uniqueVoucherIds.map((id) => _voucherRepository.getById(id)),
+      );
+
+      for (var i = 0; i < uniqueVoucherIds.length; i++) {
+        final vr = voucherResults[i];
         if (vr.isFailure) {
           return FailureResult(vr.failureOrNull!);
         }

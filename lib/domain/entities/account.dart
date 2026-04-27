@@ -133,12 +133,12 @@ class Account {
     );
   }
 
-  Account move(AccountId? newParentId, AccountNature newNature) {
+  Account move(AccountId? newParentId, AccountNature newNature, AccountClassification newClassification) {
     return Account._(
       id: id,
       name: name,
       nature: newNature,
-      classification: classification,
+      classification: newClassification,
       parentId: newParentId,
       isDefault: isDefault,
       createdAt: createdAt,

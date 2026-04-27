@@ -4,6 +4,7 @@ import 'package:qayd/domain/value_objects/account_classification.dart';
 class BalanceSheetLineDto {
   const BalanceSheetLineDto({
     required this.accountId,
+    required this.parentId,
     required this.accountCode,
     required this.accountName,
     required this.level,
@@ -16,6 +17,7 @@ class BalanceSheetLineDto {
   });
 
   final String accountId;
+  final String? parentId;
   final String accountCode;
   final String accountName;
   final int level;

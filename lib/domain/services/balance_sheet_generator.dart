@@ -108,16 +108,59 @@ final class BalanceSheetGenerator {
       }
     }
 
-    // ── 5. Sort: classification order → account code ─────────────────────
-    lines.sort((a, b) {
-      final aIdx = _classificationOrder(a.classification);
-      final bIdx = _classificationOrder(b.classification);
-      final classOrder = aIdx.compareTo(bIdx);
-      if (classOrder != 0) return classOrder;
-      return a.accountCode.compareTo(b.accountCode);
-    });
+    // ── 5. Hierarchical Sort ─────────────────────────────────────────────
+    // We group by classification, then build a tree for each, then flatten.
+    final List<BalanceSheetLine> sortedLines = [];
 
-    return lines;
+    final groups = <int, List<BalanceSheetLine>>{};
+    for (final l in lines) {
+      final order = _classificationOrder(l.classification);
+      groups.putIfAbsent(order, () => []).add(l);
+    }
+
+    final sortedKeys = groups.keys.toList()..sort();
+
+    for (final key in sortedKeys) {
+      final classLines = groups[key]!;
+      final lineMap = {for (final l in classLines) l.accountId: l};
+
+      // Separate roots and children for this classification
+      final roots = classLines
+          .where((l) => l.parentId == null || !lineMap.containsKey(l.parentId))
+          .toList();
+      final children = classLines
+          .where((l) => l.parentId != null && lineMap.containsKey(l.parentId))
+          .toList();
+
+      // Sort roots
+      roots.sort(_compareLines);
+
+      // Recursive helper to add parent then children
+      void addWithChildren(BalanceSheetLine parent) {
+        sortedLines.add(parent);
+        final directChildren =
+            children.where((c) => c.parentId == parent.accountId).toList();
+        directChildren.sort(_compareLines);
+        for (final child in directChildren) {
+          addWithChildren(child);
+        }
+      }
+
+      for (final root in roots) {
+        addWithChildren(root);
+      }
+    }
+
+    return sortedLines;
+  }
+
+  int _compareLines(BalanceSheetLine a, BalanceSheetLine b) {
+    // Sort by code, then by name
+    if (a.accountCode.isNotEmpty || b.accountCode.isNotEmpty) {
+      final res = a.accountCode.compareTo(b.accountCode);
+      if (res != 0) return res;
+    }
+    return a.accountName.compareTo(b.accountName);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
@@ -163,7 +206,9 @@ final class BalanceSheetGenerator {
     int level = 0;
     Account? current = account;
     while (current?.parentId != null) {
-      current = accountMap[current!.parentId!];
+      final parent = accountMap[current!.parentId!];
+      if (parent == null) break;
+      current = parent;
       level++;
     }
     return level;
