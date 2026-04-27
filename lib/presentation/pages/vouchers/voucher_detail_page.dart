@@ -83,6 +83,12 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
         if (cur is VoucherDetailReady && cur.showPostConfirmMessage) {
           return true;
         }
+        // Auto-load attachments the first time the page becomes Ready.
+        if (prev is! VoucherDetailReady &&
+            cur is VoucherDetailReady &&
+            cur.data.attachmentCount > 0) {
+          return true;
+        }
         return false;
       },
       listener: (context, state) {
@@ -100,6 +106,13 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
             ),
           );
           context.read<VoucherDetailCubit>().clearPostConfirmMessage();
+        }
+        // Auto-trigger attachment image loading when page first becomes ready.
+        if (state is VoucherDetailReady &&
+            state.data.attachmentCount > 0 &&
+            state.decryptedAttachments.isEmpty &&
+            !state.loadingAttachments) {
+          context.read<VoucherDetailCubit>().loadAttachmentImages();
         }
       },
       builder: (context, state) {

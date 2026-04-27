@@ -11,7 +11,7 @@ import 'package:qayd/core/utils/currency_util.dart';
 
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -87,7 +87,7 @@ Future<void> shareVoucherAsText(
   if (method == null) return;
 
   if (method == ShareMethod.system) {
-    await Share.share(shareText);
+    await SharePlus.instance.share(ShareParams(text: shareText));
   } else {
     final flavor = method == ShareMethod.whatsappStandard
         ? WhatsAppFlavor.standard
@@ -152,7 +152,7 @@ Future<void> shareTripartiteAsText(
   if (editedText == null) return; // Cancelled
   shareText = editedText;
 
-  await Share.share(shareText);
+  await SharePlus.instance.share(ShareParams(text: shareText));
 }
 
 Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey,
@@ -187,8 +187,12 @@ Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey,
     if (method == null) return;
 
     if (method == ShareMethod.system) {
-      await Share.shareXFiles([XFile(file.path, mimeType: 'image/png')],
-          text: shareText);
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'image/png')],
+          text: shareText,
+        ),
+      );
     } else {
       final flavor = method == ShareMethod.whatsappStandard
           ? WhatsAppFlavor.standard

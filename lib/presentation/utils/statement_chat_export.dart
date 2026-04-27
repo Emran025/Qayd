@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
 import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
 import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
 import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
@@ -303,12 +303,14 @@ Future<void> shareStatementChatAsExcel(
     final file = File(path);
     await file.writeAsBytes(bytes, flush: true);
 
-    await Share.shareXFiles(
-      [
-        XFile(path,
-            mimeType:
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      ],
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [
+          XFile(path,
+              mimeType:
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        ],
+      ),
     );
   } catch (_) {
     messenger.showSnackBar(

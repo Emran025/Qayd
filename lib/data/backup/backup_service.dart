@@ -8,7 +8,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/backup/qayd_database_validator.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
 /// Copies the live encrypted DB and shares it, or restores from a validated backup.
 ///
@@ -62,7 +62,9 @@ class BackupService {
         files.add(XFile(idCopy.path, mimeType: 'application/octet-stream'));
       }
 
-      await Share.shareXFiles(files);
+      await SharePlus.instance.share(
+        ShareParams(files: files),
+      );
       return const Success(null);
     } catch (_) {
       return const FailureResult(

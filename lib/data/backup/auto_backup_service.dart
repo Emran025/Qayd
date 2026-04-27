@@ -7,7 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/database/database_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
 /// Manages automatic daily backups of [qayd_finance.db] to the device.
 ///
@@ -289,8 +289,10 @@ class AutoBackupService {
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final tmp = p.join(tmpDir.path, 'qayd_backup_$stamp.db');
       await File(srcPath).copy(tmp);
-      await Share.shareXFiles(
-        [XFile(tmp, mimeType: 'application/octet-stream')],
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(tmp, mimeType: 'application/octet-stream')],
+        ),
       );
       return const Success(null);
     } catch (_) {

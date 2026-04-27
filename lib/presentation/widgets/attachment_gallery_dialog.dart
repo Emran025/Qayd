@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 import 'package:path_provider/path_provider.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 
@@ -77,7 +77,12 @@ class _AttachmentGalleryDialogState extends State<AttachmentGalleryDialog> {
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/$name');
     await file.writeAsBytes(bytes);
-    await Share.shareXFiles([XFile(file.path)]);
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path)],
+        subject: name,
+      ),
+    );
   }
 
   @override

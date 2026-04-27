@@ -14,7 +14,7 @@ import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/di/injection_container.dart';
 
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
 import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
@@ -111,9 +111,11 @@ Future<void> shareVoucherAsFormattedImage(
     if (method == null) return;
 
     if (method == ShareMethod.system) {
-      await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'image/png')],
-        text: shareText,
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'image/png')],
+          text: shareText,
+        ),
       );
     } else {
       final flavor = method == ShareMethod.whatsappStandard

@@ -11,7 +11,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
 import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
@@ -182,9 +182,11 @@ Future<void> shareVoucherAsPdf(
     await file.writeAsBytes(bytes, flush: true);
 
     if (method == ShareMethod.system) {
-      await Share.shareXFiles(
-        [XFile(path, mimeType: 'application/pdf')],
-        text: shareText,
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(path, mimeType: 'application/pdf')],
+          text: shareText,
+        ),
       );
     } else {
       final flavor = method == ShareMethod.whatsappStandard
