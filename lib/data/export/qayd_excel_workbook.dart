@@ -212,6 +212,7 @@ abstract final class QaydExcelWorkbook {
     String? totalCredit,
     String? netBalance,
     String? notesText,
+    String? issuerName,
   }) {
     var safeName = accountName.replaceAll(RegExp(r'[/\\?*:\[\]]'), '_');
     if (safeName.length > 28) safeName = safeName.substring(0, 28);
@@ -252,7 +253,7 @@ abstract final class QaydExcelWorkbook {
     final titleCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
-    titleCell.value = TextCellValue('كشف حساب');
+    titleCell.value = TextCellValue('كشف الحساب');
     titleCell.cellStyle = CellStyle(
       bold: true,
       fontSize: 12,
@@ -489,6 +490,48 @@ abstract final class QaydExcelWorkbook {
 
     // Spacer
     currentRow++;
+
+    // ── Issuer / Requesting Party ──────────────────────────────────────────
+    if (issuerName != null && issuerName.isNotEmpty) {
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
+      );
+      final issuerLabelCell = sheet.cell(
+        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
+      );
+      issuerLabelCell.value = TextCellValue('الجهة المُنشِئة للكشف:');
+      issuerLabelCell.cellStyle = CellStyle(
+        bold: true,
+        fontSize: 9,
+        fontColorHex: ExcelColor.fromHexString(_navy),
+        horizontalAlign: HorizontalAlign.Right,
+      );
+
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
+      );
+      final issuerValueCell = sheet.cell(
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
+      );
+      issuerValueCell.value = TextCellValue(issuerName);
+      issuerValueCell.cellStyle = CellStyle(
+        bold: true,
+        fontSize: 9,
+        fontColorHex: ExcelColor.fromHexString(_navy),
+        backgroundColorHex: ExcelColor.fromHexString(_slate100),
+        horizontalAlign: HorizontalAlign.Right,
+        leftBorder: Border(borderStyle: BorderStyle.Thin),
+        rightBorder: Border(borderStyle: BorderStyle.Thin),
+        topBorder: Border(borderStyle: BorderStyle.Thin),
+        bottomBorder: Border(borderStyle: BorderStyle.Thin),
+      );
+      currentRow++;
+
+      // Spacer
+      currentRow++;
+    }
 
     // ── Footer: Source label ───────────────────────────────────────────────
     sheet.merge(

@@ -135,6 +135,7 @@ Uint8List buildAccountsExcelBytes(List<AccountSummaryDto> accounts) {
 Uint8List buildAccountStatementExcelBytes({
   required String accountName,
   required List<AccountStatementLineDto> lines,
+  String? issuerName,
 }) {
   final headers = [
     'التاريخ',
@@ -173,6 +174,7 @@ Uint8List buildAccountStatementExcelBytes({
     totalCredit: _moneyMinor(totalCredit),
     netBalance: _moneyMinor(netBalance),
     notesText: 'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
+    issuerName: issuerName,
   );
 }
 
@@ -247,5 +249,6 @@ Uint8List buildAccountStatementWrapper(Map<String, dynamic> params) {
   return buildAccountStatementExcelBytes(
     accountName: params['accountName'] as String,
     lines: params['lines'] as List<AccountStatementLineDto>,
+    issuerName: params['issuerName'] as String?,
   );
 }

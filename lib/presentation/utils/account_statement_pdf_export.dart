@@ -43,11 +43,19 @@ Future<void> shareAccountStatementAsPdf(
 
   final stmt = stmtR.valueOrNull!;
   final now = DateTime.now().toIso8601String();
+
+  // Resolve issuer name: use company name or mediator name from settings
+  final prefs = InjectionContainer.sharedPreferences;
+  final issuerName = prefs.getString('company_name') ??
+      prefs.getString('pdf_mediator_name') ??
+      'قيد — المحاسبة الشخصية';
+
   final dto = AccountStatementReportDto(
     accountId: stmt.accountId,
     accountName: stmt.accountName,
     natureCode: stmt.natureCode,
     generatedAtIso: now,
+    issuerName: issuerName,
     lines: stmt.lines
         .map(
           (l) => AccountStatementLineReportDto(

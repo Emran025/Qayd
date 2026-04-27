@@ -34,6 +34,7 @@ final class CairoAccountStatementPdfGenerator
   static final PdfColor _gold = PdfColor.fromInt(0xFFC9A227);
   static final PdfColor _muted = PdfColor.fromInt(0xFF64748B);
   static final PdfColor _headerBlue = PdfColor.fromInt(0xFF8FAADC);
+  static final PdfColor _headerBg = PdfColor.fromInt(0xFFE8EDF3);
   static final PdfColor _slate50 = PdfColor.fromInt(0xFFF8FAFC);
   static final PdfColor _slate100 = PdfColor.fromInt(0xFFF1F5F9);
   static final PdfColor _border = PdfColor.fromInt(0xFFCBD5E1);
@@ -156,108 +157,112 @@ final class CairoAccountStatementPdfGenerator
     String genAt,
     pw.ImageProvider? logoImage,
   ) {
+    // Custom brand text from SharedPreferences (same as voucher header)
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: pw.BoxDecoration(
-        color: _navy,
-        borderRadius: pw.BorderRadius.circular(6),
+        color: _headerBg,
+        borderRadius: const pw.BorderRadius.only(
+          topLeft: pw.Radius.circular(8),
+          topRight: pw.Radius.circular(8),
+        ),
       ),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         crossAxisAlignment: pw.CrossAxisAlignment.center,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          // Title "كشف حساب"
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Text(
-                'كشف حساب',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 18,
-                  color: PdfColors.white,
-                  fontWeight: pw.FontWeight.bold,
+          // ── Right: Arabic info (company name + doc title)
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'كشف الحساب',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 15,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  textAlign: pw.TextAlign.right,
                 ),
-                textAlign: pw.TextAlign.right,
-              ),
-              pw.SizedBox(height: 2),
-              pw.Text(
-                'Account Statement',
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 8,
-                  color: _gold,
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'Account Statement — نظام السندات المالية المشفّرة',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    color: _muted,
+                  ),
+                  textAlign: pw.TextAlign.right,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
-          // Brand + Logo
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  pw.Text(
-                    'Qayd App',
-                    style: pw.TextStyle(
-                      font: font,
-                      fontSize: 14,
-                      color: _gold,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 1),
-                  pw.Text(
-                    'تطبيق قيد',
-                    style: pw.TextStyle(
-                      font: font,
-                      fontSize: 12,
-                      color: PdfColors.white,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                ],
+          pw.SizedBox(width: 16),
+
+          // ── Center: Logo badge (same as voucher)
+          if (logoImage != null)
+            pw.Container(
+              width: 52,
+              height: 52,
+              decoration: const pw.BoxDecoration(
+                color: PdfColors.white,
+                shape: pw.BoxShape.circle,
               ),
-              pw.SizedBox(width: 10),
-              // Logo
-              if (logoImage != null)
-                pw.Container(
-                  width: 48,
-                  height: 48,
-                  decoration: pw.BoxDecoration(
-                    borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(color: _gold, width: 1.5),
-                  ),
-                  child: pw.ClipRRect(
-                    horizontalRadius: 6,
-                    verticalRadius: 6,
-                    child: pw.Image(logoImage, fit: pw.BoxFit.cover),
-                  ),
-                )
-              else
-                pw.Container(
-                  width: 48,
-                  height: 48,
-                  decoration: pw.BoxDecoration(
-                    color: PdfColor.fromInt(0xFF1E3D6B),
-                    borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(color: _gold, width: 1.5),
-                  ),
-                  child: pw.Center(
-                    child: pw.Text(
-                      'قيد',
-                      style: pw.TextStyle(
-                        font: font,
-                        fontSize: 14,
-                        color: _gold,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
+              child: pw.ClipOval(
+                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+              ),
+            )
+          else
+            pw.Container(
+              width: 52,
+              height: 52,
+              decoration: pw.BoxDecoration(
+                color: PdfColor.fromInt(0xFF1E3D6B),
+                shape: pw.BoxShape.circle,
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  'قيد',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 14,
+                    color: _gold,
+                    fontWeight: pw.FontWeight.bold,
                   ),
                 ),
-            ],
+              ),
+            ),
+
+          pw.SizedBox(width: 16),
+
+          // ── Left: English info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(
+                  'Qayd — Personal Accounting',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 9,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'Encrypted Financial Voucher System',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    color: _muted,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -584,6 +589,7 @@ final class CairoAccountStatementPdfGenerator
     AccountStatementReportDto report,
     pw.Context context,
   ) {
+    final issuer = report.issuerName;
     return pw.Container(
       padding: const pw.EdgeInsets.only(top: 6),
       decoration: const pw.BoxDecoration(
@@ -591,17 +597,57 @@ final class CairoAccountStatementPdfGenerator
           top: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
         ),
       ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: [
-          pw.Text(
-            'صفحة ${context.pageNumber} من ${context.pagesCount}',
-            style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text(
+                'صفحة ${context.pageNumber} من ${context.pagesCount}',
+                style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
+              ),
+              pw.Text(
+                'تم إنشاء هذا الكشف بواسطة تطبيق قيد — Qayd App',
+                style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
+              ),
+            ],
           ),
-          pw.Text(
-            'تم إنشاء هذا الكشف بواسطة تطبيق قيد — Qayd App',
-            style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
-          ),
+          if (issuer != null && issuer.trim().isNotEmpty) ...[
+            pw.SizedBox(height: 3),
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: pw.BoxDecoration(
+                color: _headerBg,
+                borderRadius: pw.BorderRadius.circular(4),
+              ),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.end,
+                children: [
+                  pw.Text(
+                    issuer,
+                    style: pw.TextStyle(
+                      font: font,
+                      fontSize: 8,
+                      color: _navy,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                    textAlign: pw.TextAlign.right,
+                  ),
+                  pw.SizedBox(width: 6),
+                  pw.Text(
+                    ':الجهة المُنشِئة للكشف',
+                    style: pw.TextStyle(
+                      font: font,
+                      fontSize: 8,
+                      color: _muted,
+                    ),
+                    textAlign: pw.TextAlign.right,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

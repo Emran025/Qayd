@@ -8,6 +8,7 @@ class AccountStatementReportDto {
     this.periodFromIso,
     this.periodToIso,
     this.finalBalancesByCurrency = const {},
+    this.issuerName,
   });
 
   final String accountId;
@@ -22,6 +23,9 @@ class AccountStatementReportDto {
 
   /// Aggregated balances per currency for the summary section.
   final Map<String, int> finalBalancesByCurrency;
+
+  /// Name of the party/user who generated this statement (shown in footer).
+  final String? issuerName;
 }
 
 class AccountStatementLineReportDto {
