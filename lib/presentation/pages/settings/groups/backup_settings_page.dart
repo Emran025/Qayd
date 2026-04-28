@@ -10,6 +10,7 @@ import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/import/import_wizard_page.dart';
 import 'package:qayd/presentation/pages/settings/auto_backup_settings_section.dart';
 import 'package:qayd/presentation/pages/settings/drive_backup_section.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 class BackupSettingsPage extends StatelessWidget {
@@ -69,22 +70,15 @@ class BackupSettingsPage extends StatelessWidget {
   }
 
   Future<void> _confirmBackupShare(BuildContext context) async {
-    final go = await showDialog<bool>(
+    final go = await QaydDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.settingsBackupConfirmTitle),
-        content: Text(AppStringsAr.settingsBackupConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
-          ),
-        ],
-      ),
+      icon: Icons.cloud_upload_outlined,
+      title: AppStringsAr.settingsBackupConfirmTitle,
+      content: AppStringsAr.settingsBackupConfirmBody,
+      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.settingsProceed,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !context.mounted) return;
     final r = await InjectionContainer.backupService.shareDatabaseBackup();
@@ -97,22 +91,15 @@ class BackupSettingsPage extends StatelessWidget {
   }
 
   Future<void> _backupSaveToPath(BuildContext context) async {
-    final go = await showDialog<bool>(
+    final go = await QaydDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.settingsBackupConfirmTitle),
-        content: Text(AppStringsAr.settingsBackupConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
-          ),
-        ],
-      ),
+      icon: Icons.save_alt_outlined,
+      title: AppStringsAr.settingsBackupConfirmTitle,
+      content: AppStringsAr.settingsBackupConfirmBody,
+      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.settingsProceed,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !context.mounted) return;
 
@@ -149,27 +136,16 @@ class BackupSettingsPage extends StatelessWidget {
       return;
     }
 
-    final go = await showDialog<bool>(
+    final go = await QaydDialog.show<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.settingsRestoreWarningTitle),
-        content: Text(AppStringsAr.settingsRestoreWarningBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsRestoreConfirm),
-          ),
-        ],
-      ),
+      icon: Icons.warning_amber_rounded,
+      iconColor: Theme.of(context).colorScheme.error,
+      title: AppStringsAr.settingsRestoreWarningTitle,
+      content: AppStringsAr.settingsRestoreWarningBody,
+      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.settingsRestoreConfirm,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !context.mounted) return;
 

@@ -82,7 +82,10 @@ final class GoogleDriveBackupService {
       account ??= await _googleSignIn.signIn();
       if (account == null) {
         return const FailureResult(
-          AuthFailure(messageAr: 'تم إلغاء تسجيل الدخول.'),
+          ValidationFailure(
+            messageAr: 'تم إلغاء تسجيل الدخول.',
+            code: 'drive_auth_cancelled',
+          ),
         );
       }
       await _storage.write(key: _kAccountEmail, value: account.email);

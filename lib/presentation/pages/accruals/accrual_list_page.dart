@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/accruals/accrual_create_page.dart';
@@ -261,25 +262,18 @@ class _AccrualCard extends StatelessWidget {
   Future<void> _onPay(BuildContext context) async {
     final scaffold = ScaffoldMessenger.of(context);
 
-    final confirm = await showDialog<bool>(
+    final confirm = await QaydDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.accrualProcessConfirmTitle),
-        content: Text(
-          AppStringsAr.accrualProcessConfirmBody(
-              item.amount, item.currencyCode),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.accrualProcessConfirmAction),
-          ),
-        ],
+      icon: Icons.payments_rounded,
+      title: AppStringsAr.accrualProcessConfirmTitle,
+      content: AppStringsAr.accrualProcessConfirmBody(
+        item.amount,
+        item.currencyCode,
       ),
+      secondaryActionLabel: AppStringsAr.actionCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.accrualProcessConfirmAction,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
 
     if (confirm != true) return;

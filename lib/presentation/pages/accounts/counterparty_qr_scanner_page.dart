@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 
 class CounterpartyQrScannerPage extends StatefulWidget {
@@ -40,30 +41,22 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
   }
 
   void _showPermissionDialog() {
-    showDialog(
+    QaydDialog.show(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.permissionCameraMissingTitle),
-        content: Text(AppStringsAr.permissionCameraMissingBodyQr),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pop(); // الرجوع للصفحة السابقة
-            },
-            child: Text(AppStringsAr.actionCancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              openAppSettings();
-              Navigator.of(context).pop();
-            },
-            child: Text(AppStringsAr.actionOpenSettings),
-          ),
-        ],
-      ),
+      icon: Icons.shield_rounded,
+      title: AppStringsAr.permissionCameraMissingTitle,
+      content: AppStringsAr.permissionCameraMissingBodyQr,
+      secondaryActionLabel: AppStringsAr.actionCancel,
+      onSecondaryAction: () {
+        Navigator.pop(context); // Close dialog
+        Navigator.pop(context); // Go back
+      },
+      primaryActionLabel: AppStringsAr.actionOpenSettings,
+      onPrimaryAction: () {
+        Navigator.pop(context); // Close dialog
+        openAppSettings();
+        Navigator.pop(context); // Go back
+      },
     );
   }
 
@@ -90,24 +83,24 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
         children: [
           if (_hasPermission)
             MobileScanner(
-            controller: _controller,
-            onDetect: (capture) {
-              if (_found) return;
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                final code = barcode.rawValue;
-                if (code != null) {
-                  final data = InjectionContainer.counterpartyQrService
-                      .parseAccountQr(code);
-                  if (data != null) {
-                    setState(() => _found = true);
-                    Navigator.pop(context, data);
-                    return;
+              controller: _controller,
+              onDetect: (capture) {
+                if (_found) return;
+                final List<Barcode> barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  final code = barcode.rawValue;
+                  if (code != null) {
+                    final data = InjectionContainer.counterpartyQrService
+                        .parseAccountQr(code);
+                    if (data != null) {
+                      setState(() => _found = true);
+                      Navigator.pop(context, data);
+                      return;
+                    }
                   }
                 }
-              }
-            },
-          ),
+              },
+            ),
           _buildOverlay(),
           Positioned(
             bottom: 40,

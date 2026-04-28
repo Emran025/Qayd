@@ -4,6 +4,7 @@ import 'package:qayd/application/accounts/dtos/account_default_cost_center_dto.d
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -88,24 +89,17 @@ class _AccountDefaultCostCentersSectionState
   }
 
   Future<void> _remove(AccountDefaultCostCenterDto item) async {
-    final ok = await showDialog<bool>(
+    final ok = await QaydDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title:  Text(AppStringsAr.confirmDeletionTitle),
-        content: Text(
-          AppStringsAr.costCenterRemoveConfirmBody(item.costCenterName ?? item.costCenterId),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child:  Text(AppStringsAr.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child:  Text(AppStringsAr.actionDelete),
-          ),
-        ],
+      icon: Icons.delete_outline_rounded,
+      title: AppStringsAr.confirmDeletionTitle,
+      content: AppStringsAr.costCenterRemoveConfirmBody(
+        item.costCenterName ?? item.costCenterId,
       ),
+      secondaryActionLabel: AppStringsAr.actionCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.actionDelete,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (ok != true || !mounted) return;
 

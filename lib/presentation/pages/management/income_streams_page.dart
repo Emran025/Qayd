@@ -36,6 +36,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
   String? _personalExpensesRootId;
   // String? _personalExpensesRootName;
   bool _isLoadingRoots = true;
+  int _refreshCount = 0;
 
   @override
   void initState() {
@@ -61,7 +62,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
                 _personalRevenuesRootId = a.id;
               case 'personalExpenses':
                 _personalExpensesRootId = a.id;
-                // _personalExpensesRootName = a.name;
+              // _personalExpensesRootName = a.name;
             }
           }
         }
@@ -113,7 +114,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
     }
 
     if (updated == true && mounted) {
-      setState(() {}); // Trigger rebuild to refresh lists
+      setState(() => _refreshCount++); // Trigger rebuild to refresh lists
     }
   }
 
@@ -126,7 +127,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
       ),
     );
     if (updated == true && mounted) {
-      setState(() {});
+      setState(() => _refreshCount++);
     }
   }
 
@@ -153,12 +154,6 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
               Tab(text: AppStringsAr.incomeStreamsTabExpenses),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded),
-              onPressed: () => setState(() {}),
-            ),
-          ],
         ),
         body: TabBarView(
           children: [
@@ -175,6 +170,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
               ],
               emptyText: AppStringsAr.incomeStreamsEmpty,
               emptyIcon: Icons.trending_up_rounded,
+              refreshCount: _refreshCount,
               key: const PageStorageKey('income_streams'),
             ),
 
@@ -184,6 +180,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
               incomeSourceFilter: const ['possession'],
               emptyText: AppStringsAr.possessionsEmpty,
               emptyIcon: Icons.inventory_2_outlined,
+              refreshCount: _refreshCount,
               key: const PageStorageKey('possessions'),
             ),
 
@@ -193,11 +190,13 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
               incomeSourceFilter: null,
               emptyText: AppStringsAr.expenseCategoriesEmpty,
               emptyIcon: Icons.receipt_long_outlined,
+              refreshCount: _refreshCount,
               key: const PageStorageKey('expense_categories'),
               onSeed: () async {
-                final res = await InjectionContainer.seedExpenseAccountsUseCase();
+                final res =
+                    await InjectionContainer.seedExpenseAccountsUseCase();
                 if (res.isSuccess) {
-                  setState(() {});
+                  setState(() => _refreshCount++);
                 }
               },
             ),
@@ -212,9 +211,8 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
                 final isExpenseTab = tabController.index == 2;
                 return FloatingActionButton.extended(
                   heroTag: 'fab_income_streams',
-                  onPressed: isExpenseTab
-                      ? _openAddExpenseAccount
-                      : _openAddWizard,
+                  onPressed:
+                      isExpenseTab ? _openAddExpenseAccount : _openAddWizard,
                   icon: const Icon(Icons.add_rounded),
                   label: Text(isExpenseTab
                       ? AppStringsAr.incomeStreamsAddExpense
@@ -240,10 +238,12 @@ class _IncomeStreamsList extends StatefulWidget {
     required this.incomeSourceFilter,
     required this.emptyText,
     required this.emptyIcon,
+    required this.refreshCount,
     this.onSeed,
   });
 
   final List<String> kinds;
+  final int refreshCount;
 
   /// If non-null, only shows accounts whose `metadata['income_source_type']`
   /// matches one of these values.
@@ -269,7 +269,10 @@ class _IncomeStreamsListState extends State<_IncomeStreamsList> {
   @override
   void didUpdateWidget(_IncomeStreamsList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.kinds != widget.kinds) _load();
+    if (oldWidget.kinds != widget.kinds ||
+        oldWidget.refreshCount != widget.refreshCount) {
+      _load();
+    }
   }
 
   Future<void> _load() async {

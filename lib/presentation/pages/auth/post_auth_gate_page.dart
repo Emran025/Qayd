@@ -1,3 +1,4 @@
+import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -203,11 +204,16 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       }
     } else {
       if (mounted) {
+        final failure = signInResult.failureOrNull;
+        final isWarning = failure is ValidationFailure &&
+            failure.code == 'drive_auth_cancelled';
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(signInResult.failureOrNull?.messageAr ??
-                'فشل تسجيل الدخول إلى Google'),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            content: Text(failure?.messageAr ?? 'فشل تسجيل الدخول إلى Google'),
+            backgroundColor: isWarning
+                ? ColorTokens.warningAmber
+                : Theme.of(context).colorScheme.error,
           ),
         );
       }

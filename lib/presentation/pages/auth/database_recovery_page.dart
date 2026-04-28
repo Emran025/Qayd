@@ -40,132 +40,137 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.lock_outline,
-                  size: 72,
-                  color: ColorTokens.goldAccent,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  AppStringsAr.dbKeyMismatchTitle,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.lock_outline,
+                    size: 72,
+                    color: ColorTokens.goldAccent,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  widget.errorMessage,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 14,
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // ── Option 1: Enter primary key (mnemonic) ────────────────
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorTokens.emerald600,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                  const SizedBox(height: 20),
+                  Text(
+                    AppStringsAr.dbKeyMismatchTitle,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
-                    onPressed: _processing
-                        ? null
-                        : () => setState(() => _showMnemonicInput = true),
-                    icon: const Icon(Icons.key, color: Colors.white),
-                    label: Text(
-                      AppStringsAr.dbEnterPrimaryKeyAction,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-
-                if (_showMnemonicInput) ...[
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _mnemonicCtrl,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: AppStringsAr.dbMnemonicHint,
-                      border: const OutlineInputBorder(),
-                    ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
+                  Text(
+                    widget.errorMessage,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 14,
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // ── Option 1: Enter primary key (mnemonic) ────────────────
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ColorTokens.emerald600,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: _processing
                           ? null
-                          : () async {
-                              if (_mnemonicCtrl.text.trim().isEmpty) return;
-                              setState(() => _processing = true);
-                              await widget
-                                  .onRetryWithMnemonic(_mnemonicCtrl.text.trim());
-                              if (mounted) setState(() => _processing = false);
-                            },
-                      child: _processing
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                          : () => setState(() => _showMnemonicInput = true),
+                      icon: const Icon(Icons.key, color: Colors.white),
+                      label: Text(
+                        AppStringsAr.dbEnterPrimaryKeyAction,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+
+                  if (_showMnemonicInput) ...[
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _mnemonicCtrl,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: AppStringsAr.dbMnemonicHint,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColorTokens.emerald600,
+                        ),
+                        onPressed: _processing
+                            ? null
+                            : () async {
+                                if (_mnemonicCtrl.text.trim().isEmpty) return;
+                                setState(() => _processing = true);
+                                await widget.onRetryWithMnemonic(
+                                    _mnemonicCtrl.text.trim());
+                                if (mounted)
+                                  setState(() => _processing = false);
+                              },
+                        child: _processing
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                AppStringsAr.dbUnlockAction,
+                                style: const TextStyle(color: Colors.white),
                               ),
-                            )
-                          : Text(
-                              AppStringsAr.dbUnlockAction,
-                              style: const TextStyle(color: Colors.white),
-                            ),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+
+                  // ── Option 2: Retry with current key ──────────────────────
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _processing ? null : widget.onRetry,
+                      icon: const Icon(Icons.refresh),
+                      label: Text(AppStringsAr.dbRetryAction),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // ── Option 3: Start fresh ─────────────────────────────────
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton.icon(
+                      onPressed: _processing
+                          ? null
+                          : () => _confirmStartFresh(context),
+                      icon: const Icon(Icons.delete_forever,
+                          color: Colors.redAccent),
+                      label: Text(
+                        AppStringsAr.dbStartFreshAction,
+                        style: const TextStyle(color: Colors.redAccent),
+                      ),
                     ),
                   ),
                 ],
-
-                const SizedBox(height: 16),
-
-                // ── Option 2: Retry with current key ──────────────────────
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _processing ? null : widget.onRetry,
-                    icon: const Icon(Icons.refresh),
-                    label: Text(AppStringsAr.dbRetryAction),
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // ── Option 3: Start fresh ─────────────────────────────────
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    onPressed: _processing
-                        ? null
-                        : () => _confirmStartFresh(context),
-                    icon: const Icon(Icons.delete_forever,
-                        color: Colors.redAccent),
-                    label: Text(
-                      AppStringsAr.dbStartFreshAction,
-                      style: const TextStyle(color: Colors.redAccent),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -185,8 +190,7 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
             child: Text(AppStringsAr.actionCancel),
           ),
           ElevatedButton(
-            style:
-                ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () {
               Navigator.pop(dialogCtx);
               widget.onStartFresh();

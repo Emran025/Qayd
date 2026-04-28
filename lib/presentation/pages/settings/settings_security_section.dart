@@ -4,6 +4,7 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 
 /// PIN, app lock, and biometric toggles.
 class SettingsSecuritySection extends StatefulWidget {
@@ -43,40 +44,34 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
   Future<void> _openPinDialog() async {
     final pin1 = TextEditingController();
     final pin2 = TextEditingController();
-    final ok = await showDialog<bool>(
+    final ok = await QaydDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.securityPinDialogTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            QaydNumericField(
-              controller: pin1,
-              obscureText: true,
-              maxLength: 8,
-              label: AppStringsAr.securityPinField,
-            ),
-            const SizedBox(height: SpacingTokens.md),
-            QaydNumericField(
-              controller: pin2,
-              obscureText: true,
-              maxLength: 8,
-              label: AppStringsAr.securityPinRepeat,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
+      icon: Icons.lock_outline_rounded,
+      title: AppStringsAr.securityPinDialogTitle,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          QaydNumericField(
+            controller: pin1,
+            obscureText: true,
+            maxLength: 8,
+            label: AppStringsAr.securityPinField,
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
+          const SizedBox(height: SpacingTokens.md),
+          QaydNumericField(
+            controller: pin2,
+            obscureText: true,
+            maxLength: 8,
+            label: AppStringsAr.securityPinRepeat,
           ),
         ],
       ),
+      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.settingsProceed,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
+    
     if (ok != true || !mounted) return;
     final a = pin1.text.trim();
     final b = pin2.text.trim();

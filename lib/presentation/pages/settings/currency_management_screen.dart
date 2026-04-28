@@ -4,7 +4,10 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
+import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 class CurrencyManagementScreen extends StatefulWidget {
   const CurrencyManagementScreen({super.key});
@@ -37,71 +40,55 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
     final symbolController = TextEditingController();
     final digitsController = TextEditingController(text: '2');
 
-    return showDialog(
+    QaydDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('إضافة عملة جديدة', textAlign: TextAlign.right),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: codeController,
-                decoration: const InputDecoration(
-                  labelText: 'رمز العملة (مثال: USD)',
-                ),
-                textAlign: TextAlign.right,
-              ),
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم العملة بالعربية',
-                ),
-                textAlign: TextAlign.right,
-              ),
-              TextField(
-                controller: symbolController,
-                decoration: const InputDecoration(
-                  labelText: 'رمز العملة (مثال: \$)',
-                ),
-                textAlign: TextAlign.right,
-              ),
-              QaydNumericField(
-                controller: digitsController,
-                label: 'عدد الأرقام العشرية',
-                maxLength: 1,
-                textAlign: TextAlign.right,
-              ),
-            ],
+      icon: Icons.currency_exchange_rounded,
+      title: 'إضافة عملة جديدة',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          QaydTextField(
+            controller: codeController,
+            label: 'رمز العملة (مثال: USD)',
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+          const SizedBox(height: SpacingTokens.md),
+          QaydTextField(
+            controller: nameController,
+            label: 'اسم العملة بالعربية',
           ),
-          ElevatedButton(
-            onPressed: () async {
-              if (codeController.text.isEmpty || nameController.text.isEmpty) {
-                return;
-              }
-              final currency = CurrencyCode(
-                code: codeController.text.toUpperCase(),
-                nameAr: nameController.text,
-                symbol: symbolController.text,
-                fractionalDigits: int.tryParse(digitsController.text) ?? 2,
-                isActive: true,
-              );
-              final res = await InjectionContainer.addCurrencyUseCase(currency);
-              if (res.isSuccess) {
-                if (context.mounted) Navigator.pop(context);
-                _refresh();
-              }
-            },
-            child: const Text('إضافة'),
+          const SizedBox(height: SpacingTokens.md),
+          QaydTextField(
+            controller: symbolController,
+            label: 'رمز العملة (مثال: \$)',
+          ),
+          const SizedBox(height: SpacingTokens.md),
+          QaydNumericField(
+            controller: digitsController,
+            label: 'عدد الأرقام العشرية',
+            maxLength: 1,
           ),
         ],
       ),
+      secondaryActionLabel: 'إلغاء',
+      onSecondaryAction: () => Navigator.pop(context),
+      primaryActionLabel: 'إضافة',
+      onPrimaryAction: () async {
+        if (codeController.text.isEmpty || nameController.text.isEmpty) {
+          return;
+        }
+        final currency = CurrencyCode(
+          code: codeController.text.toUpperCase(),
+          nameAr: nameController.text,
+          symbol: symbolController.text,
+          fractionalDigits: int.tryParse(digitsController.text) ?? 2,
+          isActive: true,
+        );
+        final res = await InjectionContainer.addCurrencyUseCase(currency);
+        if (res.isSuccess) {
+          if (context.mounted) Navigator.pop(context);
+          _refresh();
+        }
+      },
     );
   }
 

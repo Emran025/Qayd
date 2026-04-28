@@ -22,7 +22,8 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class InternalManagementPage extends StatefulWidget {
-  const InternalManagementPage({super.key});
+  const InternalManagementPage({super.key, this.isActive = true});
+  final bool isActive;
 
   @override
   State<InternalManagementPage> createState() => _InternalManagementPageState();
@@ -31,11 +32,30 @@ class InternalManagementPage extends StatefulWidget {
 class _InternalManagementPageState extends State<InternalManagementPage> {
   final Map<String, String> _accountClassifications = {};
   bool _isLoadingRoots = true;
+  late final VoucherListCubit _listCubit;
 
   @override
   void initState() {
     super.initState();
+    _listCubit = VoucherListCubit(
+      InjectionContainer.listVouchersUseCase,
+      InjectionContainer.notificationMessageRepository,
+    )..setAdvancedFilter(const AdvancedFilterInput(isInternalOnly: true));
     _loadRoots();
+  }
+
+  @override
+  void didUpdateWidget(InternalManagementPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _listCubit.load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _listCubit.close();
+    super.dispose();
   }
 
   Future<void> _loadRoots() async {
@@ -61,11 +81,8 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
       );
     }
 
-    return BlocProvider(
-      create: (_) => VoucherListCubit(
-        InjectionContainer.listVouchersUseCase,
-        InjectionContainer.notificationMessageRepository,
-      )..setAdvancedFilter(const AdvancedFilterInput(isInternalOnly: true)),
+    return BlocProvider.value(
+      value: _listCubit,
       child: _InternalManagementView(
         accountClassifications: _accountClassifications,
       ),
@@ -142,15 +159,6 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
       appBar: QaydAppBar(
         showNotifications: true,
         title: AppStringsAr.managementTabFundFlows,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () {
-              context.read<VoucherListCubit>().load();
-              setState(() {});
-            },
-          ),
-        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreate(context),
@@ -189,14 +197,16 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
                           ),
                           const SizedBox(width: SpacingTokens.sm),
                           FilterChip(
-                            label: const Text(AppStringsAr.managementLabelExpenses),
+                            label: const Text(
+                                AppStringsAr.managementLabelExpenses),
                             selected: _flowFilter == 'expenses',
                             onSelected: (_) =>
                                 setState(() => _flowFilter = 'expenses'),
                           ),
                           const SizedBox(width: SpacingTokens.sm),
                           FilterChip(
-                            label: const Text(AppStringsAr.managementLabelRevenues),
+                            label: const Text(
+                                AppStringsAr.managementLabelRevenues),
                             selected: _flowFilter == 'revenues',
                             onSelected: (_) =>
                                 setState(() => _flowFilter = 'revenues'),

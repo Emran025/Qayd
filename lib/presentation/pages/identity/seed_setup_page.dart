@@ -114,13 +114,11 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                 iconColor: theme.colorScheme.primary,
               ),
               const SizedBox(height: SpacingTokens.lg),
-
               AuthTitleBlock(
                 title: AppStringsAr.seedSetupTitle,
                 subtitle: AppStringsAr.seedSetupBody,
               ),
               const SizedBox(height: SpacingTokens.xl),
-
               if (_mnemonic == null) ...[
                 _buildIntroSection(context),
               ] else ...[
@@ -144,7 +142,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                     spacing: 8,
                     runSpacing: 8,
                     children: words.asMap().entries.map((entry) {
-                      return _buildWordCard(context, entry.key + 1, entry.value);
+                      return _buildWordCard(
+                          context, entry.key + 1, entry.value);
                     }).toList(),
                   ),
                 ),
@@ -206,23 +205,24 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
         const Text(
           'سيتم الآن إنشاء هوية رقمية جديدة لتأمين وتشفير بياناتك على هذا الجهاز.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: ColorTokens.slate400, fontSize: 14, height: 1.5),
+          style:
+              TextStyle(color: ColorTokens.slate400, fontSize: 14, height: 1.5),
         ),
         const SizedBox(height: SpacingTokens.xl),
         AuthSubmitButton(
-          label: 'إنشاء هوية جديدة',
+          label: 'لدي مفتاح سابق (24 كلمة) بالفعل',
           loading: _isLoading,
-          onPressed: _generateMnemonic,
-        ),
-        const SizedBox(height: SpacingTokens.lg),
-        TextButton(
           onPressed: () {
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (_) => const SeedRecoveryPage()),
             );
           },
+        ),
+        const SizedBox(height: SpacingTokens.lg),
+        TextButton(
+          onPressed: _generateMnemonic,
           child: const Text(
-            'لدي مفتاح سابق (24 كلمة) بالفعل',
+            'إنشاء هوية جديدة',
             style: TextStyle(
               color: ColorTokens.emerald500,
               fontWeight: FontWeight.bold,

@@ -6,6 +6,7 @@ import 'package:qayd/data/backup/google_drive_backup_service.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 /// Google Drive backup section — fully functional.
@@ -58,8 +59,17 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
     if (!mounted) return;
     if (r.isFailure) {
       setState(() => _working = false);
+      final failure = r.failureOrNull!;
+      final isWarning =
+          failure is ValidationFailure && failure.code == 'drive_auth_cancelled';
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(r.failureOrNull!.messageAr)),
+        SnackBar(
+          content: Text(failure.messageAr),
+          backgroundColor: isWarning
+              ? ColorTokens.warningAmber
+              : Theme.of(context).colorScheme.error,
+        ),
       );
       return;
     }

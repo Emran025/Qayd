@@ -5,6 +5,7 @@ import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/identity/seed_setup_page.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -47,22 +48,15 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
   // ── Mnemonic actions ──────────────────────────────────────────────────────
 
   Future<void> _showMnemonicWarning() async {
-    final go = await showDialog<bool>(
+    final go = await QaydDialog.show<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStringsAr.identityViewSeedWarningTitle),
-        content: Text(AppStringsAr.identityViewSeedWarningBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStringsAr.templateEditCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStringsAr.settingsProceed),
-          ),
-        ],
-      ),
+      icon: Icons.warning_amber_rounded,
+      title: AppStringsAr.identityViewSeedWarningTitle,
+      content: AppStringsAr.identityViewSeedWarningBody,
+      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      onSecondaryAction: () => Navigator.pop(context, false),
+      primaryActionLabel: AppStringsAr.settingsProceed,
+      onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !mounted) return;
     await _revealMnemonic();
@@ -182,38 +176,27 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
   }
 
   void _showP2PCode() {
-    showDialog<void>(
+    QaydDialog.show<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('مزامنة Snap-Sync'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.qr_code_2_rounded,
-                size: 80, color: Colors.blueGrey),
-            const SizedBox(height: 16),
-            const Text(
-              'امسح هذا الرمز من الجهاز الآخر لبدء المزامنة المباشرة عالية السرعة.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'IP: (جارٍ اكتشاف الشبكة…)',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(fontFamily: 'monospace'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('إغلاق'),
+      icon: Icons.qr_code_2_rounded,
+      title: 'مزامنة Snap-Sync',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'امسح هذا الرمز من الجهاز الآخر لبدء المزامنة المباشرة عالية السرعة.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'IP: (جارٍ اكتشاف الشبكة…)',
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
+      primaryActionLabel: 'إغلاق',
+      onPrimaryAction: () => Navigator.pop(context),
     );
   }
 }
@@ -245,9 +228,9 @@ class _MnemonicDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final words = _words;
-    return AlertDialog(
-      title: Text(AppStringsAr.identityViewSeed),
-      contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+    return QaydDialog(
+      icon: Icons.vpn_key_outlined,
+      title: AppStringsAr.identityViewSeed,
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -257,13 +240,15 @@ class _MnemonicDialog extends StatelessWidget {
             Text(
               AppStringsAr.identitySeedDialogBody,
               style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: SpacingTokens.sm),
+            const SizedBox(height: SpacingTokens.md),
             Flexible(
               child: SingleChildScrollView(
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
+                  alignment: WrapAlignment.center,
                   children: [
                     for (var i = 0; i < words.length; i++)
                       _WordChip(index: i + 1, word: words[i]),
@@ -271,7 +256,7 @@ class _MnemonicDialog extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: SpacingTokens.sm),
+            const SizedBox(height: SpacingTokens.md),
             Container(
               padding: const EdgeInsets.all(SpacingTokens.sm),
               decoration: BoxDecoration(
@@ -302,22 +287,12 @@ class _MnemonicDialog extends StatelessWidget {
           ],
         ),
       ),
-      actions: [
-        TextButton.icon(
-          onPressed: () => _share(),
-          icon: const Icon(Icons.share_outlined),
-          label: Text(AppStringsAr.identitySeedShare),
-        ),
-        TextButton.icon(
-          onPressed: () => _copy(context),
-          icon: const Icon(Icons.copy_outlined),
-          label: Text(AppStringsAr.identitySeedCopy),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(AppStringsAr.settingsUnderstood),
-        ),
-      ],
+      secondaryActionLabel: AppStringsAr.identitySeedShare,
+      onSecondaryAction: () => _share(),
+      tertiaryActionLabel: AppStringsAr.identitySeedCopy,
+      onTertiaryAction: () => _copy(context),
+      primaryActionLabel: AppStringsAr.settingsUnderstood,
+      onPrimaryAction: () => Navigator.pop(context),
     );
   }
 }

@@ -114,7 +114,7 @@ abstract final class AppTheme {
         backgroundColor: scheme.surfaceContainerLow,
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: textTheme.titleLarge?.copyWith(color: scheme.onSurface),
+        titleTextStyle: textTheme.titleMedium?.copyWith(color: scheme.onSurface),
       ),
       cardTheme: CardThemeData(
         elevation: 0,

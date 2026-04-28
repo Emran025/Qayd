@@ -92,7 +92,9 @@ class RestoreCubit extends Cubit<RestoreState> {
     if (fromDrive) {
       final download = await _driveService.downloadBackup();
       if (download.isFailure) {
-        emit(RestoreFailure('فشل تحميل النسخة من Drive.'));
+        emit(RestoreFailure(
+          download.failureOrNull?.messageAr ?? 'فشل تحميل النسخة من Drive.',
+        ));
         return;
       }
       path = download.valueOrNull;

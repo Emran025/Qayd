@@ -224,7 +224,7 @@ abstract final class InjectionContainer {
   static late final LookupPublicKeyUseCase lookupPublicKeyUseCase;
   static late final ReceiptSigningService receiptSigningService;
   static late CanSyncWithAccountUseCase canSyncWithAccountUseCase;
-  static late final DeleteAccountUseCase deleteAccountUseCase;
+  static late DeleteAccountUseCase deleteAccountUseCase;
 
   // ── Governance ─────────────────────────────────────────────────────────────
 

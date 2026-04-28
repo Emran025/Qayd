@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
@@ -359,23 +360,17 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
           DateTime(initialDate.year, initialDate.month, initialDate.day);
       if (_counterparty!.id != initialCounterparty ||
           _voucherDate.compareTo(initialDateMidnight) != 0) {
-        final proceed = await showDialog<bool>(
+        final proceed = await QaydDialog.show<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text(AppStringsAr.warningImportant),
-            content: const Text(AppStringsAr.voucherEditDateOrPartyWarning),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(AppStringsAr.templateEditCancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text(AppStringsAr.actionProceedAndConfirm),
-              ),
-            ],
-          ),
+          icon: Icons.warning_amber_rounded,
+          title: AppStringsAr.warningImportant,
+          content: AppStringsAr.voucherEditDateOrPartyWarning,
+          secondaryActionLabel: AppStringsAr.templateEditCancel,
+          onSecondaryAction: () => Navigator.pop(context, false),
+          primaryActionLabel: AppStringsAr.actionProceedAndConfirm,
+          onPrimaryAction: () => Navigator.pop(context, true),
         );
+        
         if (proceed != true) return;
       }
     }

@@ -4,6 +4,7 @@ import 'package:qayd/domain/services/receipt_sharing_service.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 
 class ReceiptShareSheet extends StatelessWidget {
   const ReceiptShareSheet({
@@ -130,11 +131,12 @@ class ReceiptShareSheet extends StatelessWidget {
   }
 
   void _showQrCodeDialog(BuildContext context, String qrData, ThemeData theme) {
-    showDialog(
+    QaydDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppStringsAr.qrCodeDisplayTitle),
-        content: SizedBox(
+      icon: Icons.qr_code_rounded,
+      title: AppStringsAr.qrCodeDisplayTitle,
+      content: Center(
+        child: SizedBox(
           width: 250,
           height: 250,
           child: QrImageView(
@@ -151,13 +153,9 @@ class ReceiptShareSheet extends StatelessWidget {
             ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق'),
-          ),
-        ],
       ),
+      primaryActionLabel: 'إغلاق',
+      onPrimaryAction: () => Navigator.pop(context),
     );
   }
 }

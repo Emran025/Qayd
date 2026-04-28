@@ -121,7 +121,7 @@ class _AppShellPageState extends State<AppShellPage> {
               TripartiteListPage(isActive: _index == 1),
               AccountListPage(isActive: _index == 2),
               TrialBalancePage(key: ValueKey('reports_$_reportKeyId')),
-              const InternalManagementPage(),
+              InternalManagementPage(isActive: _index == 4),
             ],
           ),
           Positioned(

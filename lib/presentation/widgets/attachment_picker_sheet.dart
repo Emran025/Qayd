@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -122,30 +123,19 @@ class AttachmentPickerSheet extends StatelessWidget {
   }
 
   void _showSettingsDialog(BuildContext context, String serviceName) {
-    showDialog(
+    QaydDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('صلاحية مفقودة'),
-        content: Text(
-            'يبدو أنك قمت برفض السماح بالوصول لـ $serviceName مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              'إلغاء',
-              style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              openAppSettings(); // يفتح إعدادات التطبيق في الهاتف مباشرة
-            },
-            child: const Text('فتح الإعدادات'),
-          ),
-        ],
-      ),
+      icon: Icons.shield_rounded,
+      title: 'صلاحية مفقودة',
+      content:
+          'يبدو أنك قمت برفض السماح بالوصول لـ $serviceName مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.',
+      secondaryActionLabel: 'إلغاء',
+      onSecondaryAction: () => Navigator.pop(context),
+      primaryActionLabel: 'فتح الإعدادات',
+      onPrimaryAction: () {
+        Navigator.pop(context);
+        openAppSettings(); // يفتح إعدادات التطبيق في الهاتف مباشرة
+      },
     );
   }
 }
