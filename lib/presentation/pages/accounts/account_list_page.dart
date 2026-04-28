@@ -7,6 +7,7 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -341,14 +342,16 @@ class _AccountListBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (accounts.isEmpty) {
-      return Center(
-        child: QaydText(
-          chartIsEmpty
-              ? AppStringsAr.accountsEmpty
-              : AppStringsAr.accountsEmptyFiltered,
-          slot: QaydTextStyleSlot.bodyLarge,
-          textAlign: TextAlign.center,
-        ),
+      return QaydEmptyState(
+        icon: chartIsEmpty
+            ? Icons.account_tree_outlined
+            : Icons.search_off_rounded,
+        title: chartIsEmpty
+            ? AppStringsAr.accountsEmpty
+            : AppStringsAr.accountsEmptyFiltered,
+        description: chartIsEmpty
+            ? 'ابدأ بإضافة أول حساب لك في شجرة الحسابات'
+            : 'جرب البحث بكلمات أخرى أو تغيير التصنيف',
       );
     }
 

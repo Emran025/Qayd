@@ -10,6 +10,7 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -454,14 +455,16 @@ class _VoucherListViewState extends State<_VoucherListView> {
                     ),
                   VoucherListReady(:final vouchers, :final hasActiveQuery) =>
                     vouchers.isEmpty
-                        ? Center(
-                            child: QaydText(
-                              hasActiveQuery
-                                  ? AppStringsAr.vouchersEmptyFiltered
-                                  : AppStringsAr.vouchersEmpty,
-                              slot: QaydTextStyleSlot.bodyLarge,
-                              textAlign: TextAlign.center,
-                            ),
+                        ? QaydEmptyState(
+                            icon: hasActiveQuery
+                                ? Icons.search_off_rounded
+                                : Icons.receipt_long_outlined,
+                            title: hasActiveQuery
+                                ? AppStringsAr.vouchersEmptyFiltered
+                                : AppStringsAr.vouchersEmpty,
+                            description: hasActiveQuery
+                                ? 'جرب تغيير عوامل التصفية'
+                                : 'ابدأ بإضافة أول سند لك في النظام',
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(

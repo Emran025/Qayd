@@ -7,6 +7,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/management/internal_voucher_create_page.dart';
@@ -241,22 +242,17 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
     }).toList();
 
     if (list.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inbox_rounded,
-                size: 48, color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: SpacingTokens.md),
-            QaydText(
-              state.searchQuery.isNotEmpty
-                  ? AppStringsAr.managementSearchNoResults
-                  : AppStringsAr.vouchersEmpty,
-              slot: QaydTextStyleSlot.bodyLarge,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ],
-        ),
+      final isSearching = state.searchQuery.isNotEmpty;
+      return QaydEmptyState(
+        icon: isSearching
+            ? Icons.search_off_rounded
+            : Icons.account_balance_wallet_outlined,
+        title: isSearching
+            ? AppStringsAr.managementSearchNoResults
+            : AppStringsAr.vouchersEmpty,
+        description: isSearching
+            ? 'جرب البحث بكلمات أخرى'
+            : 'لم تقم بإضافة أي تدفقات مالية بعد',
       );
     }
     return ListView.builder(

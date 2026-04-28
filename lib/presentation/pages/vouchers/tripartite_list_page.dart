@@ -8,6 +8,7 @@ import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -43,7 +44,8 @@ class _TripartiteListPageState extends State<TripartiteListPage> {
   @override
   void initState() {
     super.initState();
-    _cubit = TripartiteListCubit(InjectionContainer.listVouchersUseCase)..load();
+    _cubit = TripartiteListCubit(InjectionContainer.listVouchersUseCase)
+      ..load();
   }
 
   @override
@@ -276,14 +278,16 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                         state.searchQuery.trim().isNotEmpty ||
                             state.advancedFilter.hasAny;
 
-                    return Center(
-                      child: QaydText(
-                        hasQueryOrFilter
-                            ? 'لا توجد تحويلات مطابقة للبحث.'
-                            : 'لا توجد تحويلات وسيطة بعد.',
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        textAlign: TextAlign.center,
-                      ),
+                    return QaydEmptyState(
+                      icon: hasQueryOrFilter
+                          ? Icons.search_off_rounded
+                          : Icons.swap_horizontal_circle_outlined,
+                      title: hasQueryOrFilter
+                          ? 'لا توجد نتائج مطابقة'
+                          : 'لا توجد تحويلات بعد',
+                      description: hasQueryOrFilter
+                          ? 'جرب البحث بكلمات أخرى أو تغيير عوامل التصفية'
+                          : 'لم تقم بإضافة أي تحويلات وسيطة في هذا النظام بعد',
                     );
                   }
 

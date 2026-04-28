@@ -973,8 +973,6 @@ abstract final class AppStringsAr {
   static const String searchCostCentersHint = 'بحث باسم المركز…';
   static const String costCentersEmpty =
       'لا توجد مراكز تكلفة بعد. أضف مركزاً جديداً.';
-  static const String costCentersEmptyFiltered =
-      'لا نتائج مطابقة للبحث أو التصفية.';
 
   static const String costCenterTypeCostGroup = 'مراكز التكلفة';
   static const String costCenterTypeProfitGroup = 'مراكز الربح';

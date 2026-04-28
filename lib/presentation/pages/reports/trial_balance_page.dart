@@ -8,6 +8,7 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
+import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_cubit.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_state.dart';
@@ -254,14 +255,10 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     final qayd = Theme.of(context).extension<QaydCustomColors>()!;
 
     if (widget.output.lines.isEmpty) {
-      return Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 128),
-        child: QaydText(
-          AppStringsAr.trialBalanceEmpty,
-          slot: QaydTextStyleSlot.bodyLarge,
-          color: scheme.onSurfaceVariant,
-        ),
+      return const QaydEmptyState(
+        icon: Icons.analytics_outlined,
+        title: AppStringsAr.trialBalanceEmpty,
+        description: 'لم يتم العثور على أي أرصدة للحسابات في هذه الفترة',
       );
     }
 
