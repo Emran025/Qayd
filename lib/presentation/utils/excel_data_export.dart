@@ -144,7 +144,6 @@ Uint8List buildAccountStatementExcelBytes({
     'الحالة',
     'دائن',
     'مدين',
-    'الرصيد',
   ];
   final rows = <List<Object?>>[];
   int totalDebit = 0;
@@ -161,7 +160,6 @@ Uint8List buildAccountStatementExcelBytes({
       '—',
       line.debitMinorUnits > 0 ? _moneyMinor(line.debitMinorUnits) : '',
       line.creditMinorUnits > 0 ? _moneyMinor(line.creditMinorUnits) : '',
-      _moneyMinor(line.balanceMinorUnits),
     ]);
   }
   final netBalance = lines.isNotEmpty ? lines.last.balanceMinorUnits : 0;

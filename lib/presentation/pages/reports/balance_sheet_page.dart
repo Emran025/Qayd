@@ -8,6 +8,7 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/presentation/pages/reports/balance_sheet_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -126,7 +127,7 @@ class _BalanceSheetChartsCarouselState
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: ChoiceChip(
-                    label: Text(sections[index].currencyCode),
+                    label: Text(CurrencyUtil.getArabicName(sections[index].currencyCode).replaceAll('﷼', 'ريال')),
                     selected: isSelected,
                     onSelected: (val) {
                       if (val) setState(() => _currentIndex = index);
@@ -200,7 +201,7 @@ class _FinancialHeaderChartCard extends StatelessWidget {
               Icon(Icons.insights_rounded, color: qayd.goldAccent, size: 20),
               const SizedBox(width: 8),
               Text(
-                '${AppStringsAr.financialCenterPrefix}${section.currencyCode}',
+                '${AppStringsAr.financialCenterPrefix}${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -689,7 +690,7 @@ class _AccountGroupItem extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    line.currencyCode,
+                                    CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', 'ريال'),
                                     style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -810,7 +811,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${AppStringsAr.totalsSummaryPrefix}${section.currencyCode}',
+                  '${AppStringsAr.totalsSummaryPrefix}${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')}',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,

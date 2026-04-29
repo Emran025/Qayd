@@ -423,7 +423,6 @@ final class CairoAccountStatementPdfGenerator
         3: const pw.FlexColumnWidth(1.5), // رقم السند
         4: const pw.FlexColumnWidth(1.8), // مدين
         5: const pw.FlexColumnWidth(1.8), // دائن
-        6: const pw.FlexColumnWidth(1.8), // الرصيد
       },
       headers: [
         'التاريخ',
@@ -431,8 +430,7 @@ final class CairoAccountStatementPdfGenerator
         'العملة',
         'رقم السند',
         'دائن',
-        'مدين',
-        'الرصيد'
+        'مدين'
       ],
       data: [
         ...report.lines.map((l) {
@@ -452,10 +450,6 @@ final class CairoAccountStatementPdfGenerator
                   minimumFractionDigits: l.currencyDigits,
                   maximumFractionDigits: l.currencyDigits)
               : '—';
-          final balanceVal = l.balanceMinorUnits / divisor;
-          final balLabel = balanceVal < 0 ? 'عليكم' : 'لكم';
-          final bal =
-              '${MoneyFormatter.formatDecimal(balanceVal.abs(), minimumFractionDigits: l.currencyDigits, maximumFractionDigits: l.currencyDigits)} $balLabel';
           final desc = l.description.isEmpty ? '—' : l.description;
           final vId = l.voucherId.length > 10
               ? '${l.voucherId.substring(0, 8)}…'
@@ -463,12 +457,12 @@ final class CairoAccountStatementPdfGenerator
           final currencyName = CurrencyUtil.getArabicName(l.currencyCode)
               .replaceAll('﷼', 'ريال');
 
-          return [d, desc, currencyName, vId, debit, credit, bal];
+          return [d, desc, currencyName, vId, debit, credit];
         }),
         // Add empty rows to fill up to minimum
         ...List.generate(
           (7 - report.lines.length).clamp(0, 7),
-          (_) => ['', '', '', '', '', '', ''],
+          (_) => ['', '', '', '', '', ''],
         ),
       ],
       oddRowDecoration: pw.BoxDecoration(color: _slate100),

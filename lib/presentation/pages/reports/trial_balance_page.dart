@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_line_dto.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
@@ -584,24 +585,22 @@ class _AccountGroupWidget extends StatelessWidget {
             _VerticalDivider(color: scheme.outlineVariant.withAlpha(50)),
 
             // ── المبالغ المتعددة والعملات ─────────────────────────────
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: group.currencyLines.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final line = entry.value;
-                  final isLast = idx == group.currencyLines.length - 1;
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: group.currencyLines.asMap().entries.map((entry) {
+                final idx = entry.key;
+                final line = entry.value;
+                final isLast = idx == group.currencyLines.length - 1;
 
-                  return _CurrencyValuesRow(
-                    line: line,
-                    isLast: isLast,
-                    isBold: isBold,
-                    qayd: qayd,
-                    scheme: scheme,
-                    hasMultipleCurrencies: group.currencyLines.length > 1,
-                  );
-                }).toList(),
-              ),
+                return _CurrencyValuesRow(
+                  line: line,
+                  isLast: isLast,
+                  isBold: isBold,
+                  qayd: qayd,
+                  scheme: scheme,
+                  hasMultipleCurrencies: group.currencyLines.length > 1,
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -666,40 +665,34 @@ class _CurrencyValuesRow extends StatelessWidget {
             _VerticalDivider(color: scheme.outlineVariant.withAlpha(50)),
 
             // ── افتتاحي ─────────────────────────────────────────────────
-            Expanded(
-              child: _DualMoneyCell(
-                debit: line.openingDebitMinorUnits,
-                credit: line.openingCreditMinorUnits,
-                cur: cur,
-                weight: weight,
-                qayd: qayd,
-              ),
+            _DualMoneyCell(
+              debit: line.openingDebitMinorUnits,
+              credit: line.openingCreditMinorUnits,
+              cur: cur,
+              weight: weight,
+              qayd: qayd,
             ),
 
             _VerticalDivider(color: scheme.outlineVariant.withAlpha(50)),
 
             // ── الحركة ──────────────────────────────────────────────────
-            Expanded(
-              child: _DualMoneyCell(
-                debit: line.periodDebitMinorUnits,
-                credit: line.periodCreditMinorUnits,
-                cur: cur,
-                weight: weight,
-                qayd: qayd,
-              ),
+            _DualMoneyCell(
+              debit: line.periodDebitMinorUnits,
+              credit: line.periodCreditMinorUnits,
+              cur: cur,
+              weight: weight,
+              qayd: qayd,
             ),
 
             _VerticalDivider(color: scheme.outlineVariant.withAlpha(50)),
 
             // ── الختامي ─────────────────────────────────────────────────
-            Expanded(
-              child: _DualMoneyCell(
-                debit: line.closingDebitMinorUnits,
-                credit: line.closingCreditMinorUnits,
-                cur: cur,
-                weight: weight,
-                qayd: qayd,
-              ),
+            _DualMoneyCell(
+              debit: line.closingDebitMinorUnits,
+              credit: line.closingCreditMinorUnits,
+              cur: cur,
+              weight: weight,
+              qayd: qayd,
             ),
           ],
         ),
@@ -805,7 +798,7 @@ class _CurrencyBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        code,
+        CurrencyUtil.getArabicName(code).replaceAll('﷼', 'ريال'),
         style: TextStyle(
           fontSize: 8.5,
           fontWeight: FontWeight.w600,
@@ -967,7 +960,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${AppStringsAr.trialBalanceGrandTotal} — ${section.currencyCode}',
+                  '${AppStringsAr.trialBalanceGrandTotal} — ${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,

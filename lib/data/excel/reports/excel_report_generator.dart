@@ -4,6 +4,7 @@ import 'package:qayd/application/reports/dtos/trial_balance_line_dto.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/application/reports/dtos/balance_sheet_output.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 
 /// Professional Excel generator for financial reports.
 ///
@@ -114,7 +115,7 @@ final class ExcelReportGenerator {
         final divisor = _divisor(line.currencyDigits);
         sheet.appendRow([
           TextCellValue(i == 0 ? accountRepresentation : ''),
-          TextCellValue(line.currencyCode),
+          TextCellValue(CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', 'ريال')),
           DoubleCellValue(line.openingDebitMinorUnits / divisor),
           DoubleCellValue(line.openingCreditMinorUnits / divisor),
           DoubleCellValue(line.periodDebitMinorUnits / divisor),
@@ -145,7 +146,7 @@ final class ExcelReportGenerator {
       final divisor = _divisor(section.currencyDigits);
       sheet.appendRow([
         TextCellValue('الإجمالي'),
-        TextCellValue(section.currencyCode),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
         DoubleCellValue(section.openingDebitMinorUnits / divisor),
         DoubleCellValue(section.openingCreditMinorUnits / divisor),
         DoubleCellValue(section.periodDebitMinorUnits / divisor),
@@ -278,7 +279,7 @@ final class ExcelReportGenerator {
       final assetsRowIdx = sheet.maxRows;
       sheet.appendRow([
         TextCellValue('إجمالي الأصول'),
-        TextCellValue(section.currencyCode),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
         DoubleCellValue(section.totalAssetsMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -292,7 +293,7 @@ final class ExcelReportGenerator {
       final liabRowIdx = sheet.maxRows;
       sheet.appendRow([
         TextCellValue('إجمالي الخصوم'),
-        TextCellValue(section.currencyCode),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
         DoubleCellValue(section.totalLiabilitiesMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -306,7 +307,7 @@ final class ExcelReportGenerator {
       final eqRowIdx = sheet.maxRows;
       sheet.appendRow([
         TextCellValue('حقوق الملكية'),
-        TextCellValue(section.currencyCode),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
         DoubleCellValue(section.totalEquityMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -375,7 +376,7 @@ final class ExcelReportGenerator {
         final divisor = _divisor(line.currencyDigits);
         sheet.appendRow([
           TextCellValue(i == 0 ? accountRepresentation : ''),
-          TextCellValue(line.currencyCode),
+          TextCellValue(CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', 'ريال')),
           DoubleCellValue(line.balanceMinorUnits / divisor),
         ]);
 

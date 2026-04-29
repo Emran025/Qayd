@@ -7,6 +7,7 @@ import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 
 /// Professional PDF generator for Trial Balance reports.
 ///
@@ -48,6 +49,8 @@ final class TrialBalancePdfGenerator {
         header: (context) => _buildHeader(arabicFont, report, logoImage),
         footer: (context) => _buildFooter(arabicFont, context, report),
         build: (context) => [
+          pw.SizedBox(height: 12),
+          _buildInfoSection(arabicFont, report),
           pw.SizedBox(height: 14),
           _buildTable(arabicFont, report),
           pw.SizedBox(height: 14),
@@ -68,118 +71,198 @@ final class TrialBalancePdfGenerator {
     TrialBalanceOutput report,
     pw.ImageProvider? logoImage,
   ) {
-    final dateFmt = intl.DateFormat('yyyy-MM-dd');
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      margin: const pw.EdgeInsets.only(bottom: 8),
       decoration: pw.BoxDecoration(
-        color: _navy,
-        borderRadius: pw.BorderRadius.circular(6),
+        color: PdfColor.fromInt(0xFFE8EDF3),
+        borderRadius: const pw.BorderRadius.only(
+          topLeft: pw.Radius.circular(8),
+          topRight: pw.Radius.circular(8),
+        ),
       ),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         crossAxisAlignment: pw.CrossAxisAlignment.center,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          // Title area (right in RTL)
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
-              pw.Text(
-                report.companyName,
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.white,
-                ),
-              ),
-              pw.SizedBox(height: 2),
-              pw.Text(
-                report.title,
-                style: pw.TextStyle(font: font, fontSize: 10, color: _gold),
-              ),
-              pw.SizedBox(height: 2),
-              pw.RichText(
-                text: buildPdfNumericalScaledSpan(
-                  '${dateFmt.format(report.fromDate)} — ${dateFmt.format(report.toDate)}',
-                  pw.TextStyle(
+          // ── Right: Arabic info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  report.title,
+                  style: pw.TextStyle(
                     font: font,
-                    fontSize: 8,
-                    color: PdfColor.fromInt(0xFFB0BEC5),
+                    fontSize: 15,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
                   ),
+                  textAlign: pw.TextAlign.right,
                 ),
-              ),
-            ],
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'Trial Balance — نظام السندات المالية المشفّرة',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    color: _muted,
+                  ),
+                  textAlign: pw.TextAlign.right,
+                ),
+              ],
+            ),
           ),
 
-          // Brand + Logo (left in RTL)
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  pw.Text(
-                    'Qayd App',
-                    style: pw.TextStyle(
-                      font: font,
-                      fontSize: 12,
-                      color: _gold,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.Text(
-                    'تطبيق قيد',
-                    style: pw.TextStyle(
-                      font: font,
-                      fontSize: 10,
-                      color: PdfColors.white,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                ],
+          pw.SizedBox(width: 16),
+
+          // ── Center: Logo badge
+          if (logoImage != null)
+            pw.Container(
+              width: 52,
+              height: 52,
+              decoration: const pw.BoxDecoration(
+                color: PdfColors.white,
+                shape: pw.BoxShape.circle,
               ),
-              pw.SizedBox(width: 8),
-              if (logoImage != null)
-                pw.Container(
-                  width: 40,
-                  height: 40,
-                  decoration: pw.BoxDecoration(
-                    borderRadius: pw.BorderRadius.circular(6),
-                    border: pw.Border.all(color: _gold, width: 1.5),
-                  ),
-                  child: pw.ClipRRect(
-                    horizontalRadius: 5,
-                    verticalRadius: 5,
-                    child: pw.Image(logoImage, fit: pw.BoxFit.cover),
-                  ),
-                )
-              else
-                pw.Container(
-                  width: 40,
-                  height: 40,
-                  decoration: pw.BoxDecoration(
-                    color: PdfColor.fromInt(0xFF1E3D6B),
-                    borderRadius: pw.BorderRadius.circular(6),
-                    border: pw.Border.all(color: _gold, width: 1.5),
-                  ),
-                  child: pw.Center(
-                    child: pw.Text(
-                      'قيد',
-                      style: pw.TextStyle(
-                        font: font,
-                        fontSize: 12,
-                        color: _gold,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
+              child: pw.ClipOval(
+                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+              ),
+            )
+          else
+            pw.Container(
+              width: 52,
+              height: 52,
+              decoration: pw.BoxDecoration(
+                color: PdfColor.fromInt(0xFF1E3D6B),
+                shape: pw.BoxShape.circle,
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  'قيد',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 14,
+                    color: _gold,
+                    fontWeight: pw.FontWeight.bold,
                   ),
                 ),
-            ],
+              ),
+            ),
+
+          pw.SizedBox(width: 16),
+
+          // ── Left: English info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(
+                  'Qayd — Personal Accounting',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 9,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'Encrypted Financial Voucher System',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    color: _muted,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  pw.Widget _buildInfoSection(
+    pw.Font font,
+    TrialBalanceOutput report,
+  ) {
+    final dateFmt = intl.DateFormat('yyyy-MM-dd');
+    final fromStr = dateFmt.format(report.fromDate);
+    final toStr = dateFmt.format(report.toDate);
+    final dateStr = 'من $fromStr إلى $toStr';
+    final genAt = intl.DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+    final borderColor = PdfColor.fromInt(0xFFCBD5E1);
+
+    return pw.Column(
+      children: [
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: borderColor, width: 0.5),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    _infoLine(font, 'اسم الشركة:', report.companyName),
+                    pw.SizedBox(height: 4),
+                    _infoLine(font, 'الفترة:', dateStr),
+                  ],
+                ),
+              ),
+            ),
+            pw.SizedBox(width: 12),
+            pw.Expanded(
+              child: pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: borderColor, width: 0.5),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    _infoLine(font, 'تاريخ الإصدار:', genAt),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _infoLine(pw.Font font, String label, String value) {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.end,
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Expanded(
+          child: pw.RichText(
+            text: buildPdfNumericalScaledSpan(
+              value,
+              pw.TextStyle(font: font, fontSize: 9, color: _navy),
+            ),
+            textAlign: pw.TextAlign.right,
+          ),
+        ),
+        pw.SizedBox(width: 6),
+        pw.Text(
+          label,
+          style: pw.TextStyle(
+            font: font,
+            fontSize: 9,
+            color: _muted,
+            fontWeight: pw.FontWeight.bold,
+          ),
+          textAlign: pw.TextAlign.right,
+        ),
+      ],
     );
   }
 
@@ -289,7 +372,7 @@ final class TrialBalancePdfGenerator {
                             ),
                           ),
                     child: pw.Text(
-                      l.currencyCode,
+                      CurrencyUtil.getArabicName(l.currencyCode).replaceAll('﷼', 'ريال'),
                       style:
                           pw.TextStyle(font: font, fontSize: 7, color: _muted),
                     ),
@@ -470,7 +553,7 @@ final class TrialBalancePdfGenerator {
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
                           pw.Text(
-                            'خلاصة ميزان المراجعة — ${s.currencyCode}',
+                            'خلاصة ميزان المراجعة — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', 'ريال')}',
                             style: pw.TextStyle(
                               font: font,
                               fontSize: 10,
@@ -559,7 +642,7 @@ final class TrialBalancePdfGenerator {
                 .map((s) => pw.Padding(
                       padding: const pw.EdgeInsets.only(left: 12),
                       child: pw.Text(
-                        '${s.currencyCode}: ${_formatMoney(s.closingDebitMinorUnits, s.currencyDigits)} / ${_formatMoney(s.closingCreditMinorUnits, s.currencyDigits)}',
+                        '${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', 'ريال')}: ${_formatMoney(s.closingDebitMinorUnits, s.currencyDigits)} / ${_formatMoney(s.closingCreditMinorUnits, s.currencyDigits)}',
                         style: pw.TextStyle(
                           font: font,
                           fontSize: 7,
@@ -621,6 +704,10 @@ final class TrialBalancePdfGenerator {
               verticalInside: pw.BorderSide(
                   color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
             ),
+            columnWidths: const {
+              0: pw.FlexColumnWidth(1),
+              1: pw.FlexColumnWidth(1),
+            },
             children: [
               pw.TableRow(
                 children: [
@@ -711,6 +798,10 @@ final class TrialBalancePdfGenerator {
         verticalInside:
             pw.BorderSide(color: PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
       ),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(1),
+        1: pw.FlexColumnWidth(1),
+      },
       children: [
         pw.TableRow(
           children: [

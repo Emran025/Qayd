@@ -7,6 +7,7 @@ import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:qayd/core/utils/currency_util.dart';
 
 /// Professional PDF generator for Balance Sheet reports.
 ///
@@ -50,7 +51,7 @@ final class BalanceSheetPdfGenerator {
         footer: (context) => _buildFooter(arabicFont, context),
         build: (context) => [
           pw.SizedBox(height: 12),
-          _buildInfoBar(arabicFont, report),
+          _buildInfoSection(arabicFont, report),
           pw.SizedBox(height: 16),
           _buildSection(
             arabicFont,
@@ -91,102 +92,110 @@ final class BalanceSheetPdfGenerator {
     pw.ImageProvider? logoImage,
   ) {
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      margin: const pw.EdgeInsets.only(bottom: 10),
       decoration: pw.BoxDecoration(
-        color: _navy,
-        borderRadius: pw.BorderRadius.circular(6),
+        color: PdfColor.fromInt(0xFFE8EDF3),
+        borderRadius: const pw.BorderRadius.only(
+          topLeft: pw.Radius.circular(8),
+          topRight: pw.Radius.circular(8),
+        ),
       ),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         crossAxisAlignment: pw.CrossAxisAlignment.center,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          // Report title (right in RTL)
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Text(
-                report.title,
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 18,
-                  color: PdfColors.white,
-                  fontWeight: pw.FontWeight.bold,
+          // ── Right: Arabic info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  report.title,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 15,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  textAlign: pw.TextAlign.right,
                 ),
-              ),
-              pw.SizedBox(height: 2),
-              pw.Text(
-                'Balance Sheet',
-                style: pw.TextStyle(font: font, fontSize: 8, color: _gold),
-              ),
-            ],
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'Balance Sheet — نظام السندات المالية المشفّرة',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    color: _muted,
+                  ),
+                  textAlign: pw.TextAlign.right,
+                ),
+              ],
+            ),
           ),
 
-          // Logo + brand (left in RTL)
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  pw.Text(
-                    'Qayd App',
-                    style: pw.TextStyle(
-                      font: font,
-                      fontSize: 14,
-                      color: _gold,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.SizedBox(height: 1),
-                  pw.Text(
-                    'تطبيق قيد',
-                    style: pw.TextStyle(
-                      font: font,
-                      fontSize: 12,
-                      color: PdfColors.white,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                ],
+          pw.SizedBox(width: 16),
+
+          // ── Center: Logo badge
+          if (logoImage != null)
+            pw.Container(
+              width: 52,
+              height: 52,
+              decoration: const pw.BoxDecoration(
+                color: PdfColors.white,
+                shape: pw.BoxShape.circle,
               ),
-              pw.SizedBox(width: 10),
-              if (logoImage != null)
-                pw.Container(
-                  width: 44,
-                  height: 44,
-                  decoration: pw.BoxDecoration(
-                    borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(color: _gold, width: 1.5),
-                  ),
-                  child: pw.ClipRRect(
-                    horizontalRadius: 6,
-                    verticalRadius: 6,
-                    child: pw.Image(logoImage, fit: pw.BoxFit.cover),
-                  ),
-                )
-              else
-                pw.Container(
-                  width: 44,
-                  height: 44,
-                  decoration: pw.BoxDecoration(
-                    color: PdfColor.fromInt(0xFF1E3D6B),
-                    borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(color: _gold, width: 1.5),
-                  ),
-                  child: pw.Center(
-                    child: pw.Text(
-                      'قيد',
-                      style: pw.TextStyle(
-                        font: font,
-                        fontSize: 14,
-                        color: _gold,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                    ),
+              child: pw.ClipOval(
+                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+              ),
+            )
+          else
+            pw.Container(
+              width: 52,
+              height: 52,
+              decoration: pw.BoxDecoration(
+                color: PdfColor.fromInt(0xFF1E3D6B),
+                shape: pw.BoxShape.circle,
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  'قيد',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 14,
+                    color: _gold,
+                    fontWeight: pw.FontWeight.bold,
                   ),
                 ),
-            ],
+              ),
+            ),
+
+          pw.SizedBox(width: 16),
+
+          // ── Left: English info
+          pw.Expanded(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(
+                  'Qayd — Personal Accounting',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 9,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'Encrypted Financial Voucher System',
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 7,
+                    color: _muted,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -197,36 +206,71 @@ final class BalanceSheetPdfGenerator {
   // ── INFO BAR ───────────────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildInfoBar(pw.Font font, BalanceSheetOutput report) {
-    final dateFmt = intl.DateFormat.yMMMd('en');
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: _border, width: 0.5),
-        borderRadius: pw.BorderRadius.circular(4),
-      ),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          _infoCell(font, 'الجهة:', report.companyName),
-          _infoCell(font, 'التاريخ:', dateFmt.format(report.atDate)),
-          _infoCell(
-            font,
-            'تاريخ الإصدار:',
-            intl.DateFormat('yyyy-MM-dd HH:mm', 'en').format(DateTime.now()),
-          ),
-        ],
-      ),
+  pw.Widget _buildInfoSection(pw.Font font, BalanceSheetOutput report) {
+    final dateFmt = intl.DateFormat('yyyy-MM-dd');
+    final dateStr = 'كما في ${dateFmt.format(report.atDate)}';
+    final genAt = intl.DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+    final borderColor = PdfColor.fromInt(0xFFCBD5E1);
+
+    return pw.Column(
+      children: [
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: borderColor, width: 0.5),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    _infoLine(font, 'اسم الشركة:', report.companyName),
+                    pw.SizedBox(height: 4),
+                    _infoLine(font, 'التاريخ:', dateStr),
+                  ],
+                ),
+              ),
+            ),
+            pw.SizedBox(width: 12),
+            pw.Expanded(
+              child: pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: borderColor, width: 0.5),
+                  borderRadius: pw.BorderRadius.circular(4),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    _infoLine(font, 'تاريخ الإصدار:', genAt),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  pw.Widget _infoCell(pw.Font font, String label, String value) {
-    final style = pw.TextStyle(font: font, fontSize: 9, color: _navy);
+  pw.Widget _infoLine(pw.Font font, String label, String value) {
     return pw.Row(
-      mainAxisSize: pw.MainAxisSize.min,
+      mainAxisAlignment: pw.MainAxisAlignment.end,
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.RichText(text: buildPdfNumericalScaledSpan(value, style)),
-        pw.SizedBox(width: 4),
+        pw.Expanded(
+          child: pw.RichText(
+            text: buildPdfNumericalScaledSpan(
+              value,
+              pw.TextStyle(font: font, fontSize: 9, color: _navy),
+            ),
+            textAlign: pw.TextAlign.right,
+          ),
+        ),
+        pw.SizedBox(width: 6),
         pw.Text(
           label,
           style: pw.TextStyle(
@@ -235,6 +279,7 @@ final class BalanceSheetPdfGenerator {
             color: _muted,
             fontWeight: pw.FontWeight.bold,
           ),
+          textAlign: pw.TextAlign.right,
         ),
       ],
     );
@@ -382,7 +427,7 @@ final class BalanceSheetPdfGenerator {
                                 ),
                           child: pw.RichText(
                             text: buildPdfNumericalScaledSpan(
-                              l.currencyCode,
+                              CurrencyUtil.getArabicName(l.currencyCode).replaceAll('﷼', 'ريال'),
                               pw.TextStyle(
                                   font: font, fontSize: 7, color: _muted),
                             ),
@@ -502,7 +547,7 @@ final class BalanceSheetPdfGenerator {
                         children: [
                           pw.RichText(
                             text: buildPdfNumericalScaledSpan(
-                              'ملخص الإجماليات — ${s.currencyCode}',
+                              'ملخص الإجماليات — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', 'ريال')}',
                               pw.TextStyle(
                                 font: font,
                                 fontSize: 10,

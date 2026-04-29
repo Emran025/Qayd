@@ -220,23 +220,21 @@ abstract final class QaydExcelWorkbook {
     final excel = _baseExcel(tab);
     final sheet = excel[tab];
 
-    // Column widths (A=0 through G=6, roughly 7 columns to match template)
-    // Columns: التاريخ | المرجع | البيان | العملة | المبلغ | السداد | المبلغ المستحق
+    // Column widths (A=0 through F=5)
     sheet.setColumnWidth(0, 18); // A - التاريخ
     sheet.setColumnWidth(1, 16); // B - المرجع / رقم السند
     sheet.setColumnWidth(2, 14); // C - البيان / النوع
     sheet.setColumnWidth(3, 10); // D - الحالة / العملة
     sheet.setColumnWidth(4, 16); // E - مدين
     sheet.setColumnWidth(5, 16); // F - دائن
-    sheet.setColumnWidth(6, 18); // G - الرصيد
 
     int currentRow = 0;
 
     // ── ROW 0-1: Brand Header Bar ──────────────────────────────────────────
-    // Merge cells for the brand header across all 7 columns
+    // Merge cells for the brand header across all 6 columns
     sheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
-      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
     );
     final brandCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
@@ -248,7 +246,7 @@ abstract final class QaydExcelWorkbook {
     // Sub-header: "كشف حساب" (Account Statement title)
     sheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
-      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
     );
     final titleCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
@@ -269,7 +267,7 @@ abstract final class QaydExcelWorkbook {
 
     // ── ROW 3-6: Info Section (إلى / من) ────────────────────────────────────
     // Left side: "إلى:" (counterparty) — columns 0-2
-    // Right side: "من:" (account owner) — columns 4-6
+    // Right side: "من:" (account owner) — columns 3-5
 
     void _writeInfoPair(int row, String label, String value, int startCol) {
       final labelC = sheet.cell(
@@ -290,7 +288,7 @@ abstract final class QaydExcelWorkbook {
     }
 
     _writeInfoPair(currentRow, 'إلى:', counterpartyName ?? accountName, 0);
-    _writeInfoPair(currentRow, 'من:', 'بيانات صاحب الحساب', 4);
+    _writeInfoPair(currentRow, 'من:', 'بيانات صاحب الحساب', 3);
     currentRow++;
 
     // Period row
@@ -314,7 +312,7 @@ abstract final class QaydExcelWorkbook {
       currentRow,
       'رقم المرجع:',
       referenceNumber ?? '',
-      4,
+      3,
     );
     currentRow++;
 
@@ -323,7 +321,7 @@ abstract final class QaydExcelWorkbook {
         currentRow,
         'الرصيد الافتتاحي:',
         openingBalance,
-        4,
+        3,
       );
     }
     currentRow++;
@@ -332,7 +330,7 @@ abstract final class QaydExcelWorkbook {
     currentRow++;
 
     // ── Main Table Headers ─────────────────────────────────────────────────
-    for (var i = 0; i < headers.length && i < 7; i++) {
+    for (var i = 0; i < headers.length && i < 6; i++) {
       final cell = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: i, rowIndex: currentRow),
       );
@@ -346,7 +344,7 @@ abstract final class QaydExcelWorkbook {
     for (var r = 0; r < rows.length; r++) {
       final row = rows[r];
       final isAlt = r.isOdd;
-      for (var c = 0; c < row.length && c < 7; c++) {
+      for (var c = 0; c < row.length && c < 6; c++) {
         final cell = sheet.cell(
           CellIndex.indexByColumnRow(columnIndex: c, rowIndex: currentRow),
         );
@@ -363,7 +361,7 @@ abstract final class QaydExcelWorkbook {
     if (emptyRowsNeeded > 0) {
       for (var r = 0; r < emptyRowsNeeded; r++) {
         final isAlt = (rows.length + r).isOdd;
-        for (var c = 0; c < headers.length && c < 7; c++) {
+        for (var c = 0; c < headers.length && c < 6; c++) {
           final cell = sheet.cell(
             CellIndex.indexByColumnRow(columnIndex: c, rowIndex: currentRow),
           );
@@ -375,7 +373,7 @@ abstract final class QaydExcelWorkbook {
     }
 
     // Bottom border for last data row
-    for (var c = 0; c < headers.length && c < 7; c++) {
+    for (var c = 0; c < headers.length && c < 6; c++) {
       final cell = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: c, rowIndex: currentRow - 1),
       );
@@ -395,7 +393,7 @@ abstract final class QaydExcelWorkbook {
     currentRow++;
 
     // ── Totals Section ─────────────────────────────────────────────────────
-    // Notes on left (columns 0-2), totals on right (columns 4-6)
+    // Notes on left (columns 0-2), totals on right (columns 3-5)
 
     if (notesText != null && notesText.isNotEmpty) {
       sheet.merge(
@@ -417,17 +415,17 @@ abstract final class QaydExcelWorkbook {
     // Totals on right side
     if (totalDebit != null && totalDebit.isNotEmpty) {
       final labelC = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
       labelC.value = TextCellValue('إجمالي المدين');
       labelC.cellStyle = _totalsLabelStyle();
 
       sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
         CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
-        CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
       );
       final valC = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
       );
       valC.value = TextCellValue(totalDebit);
       valC.cellStyle = _totalsValueStyle();
@@ -436,17 +434,17 @@ abstract final class QaydExcelWorkbook {
 
     if (totalCredit != null && totalCredit.isNotEmpty) {
       final labelC = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
       labelC.value = TextCellValue('إجمالي الدائن');
       labelC.cellStyle = _totalsLabelStyle();
 
       sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
         CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
-        CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
       );
       final valC = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
       );
       valC.value = TextCellValue(totalCredit);
       valC.cellStyle = _totalsValueStyle();
@@ -456,17 +454,17 @@ abstract final class QaydExcelWorkbook {
     // Net balance (total row with border)
     if (netBalance != null && netBalance.isNotEmpty) {
       final labelC = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
       labelC.value = TextCellValue('الرصيد الصافي');
       labelC.cellStyle = _totalRowLabelStyle();
 
       sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
         CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
-        CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
       );
       final valC = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
       );
       valC.value = TextCellValue(netBalance);
       valC.cellStyle = _totalRowValueStyle();
@@ -479,7 +477,7 @@ abstract final class QaydExcelWorkbook {
     // ── Currency Note ──────────────────────────────────────────────────────
     sheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
-      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
     );
     final noteCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
@@ -495,7 +493,7 @@ abstract final class QaydExcelWorkbook {
     if (issuerName != null && issuerName.isNotEmpty) {
       sheet.merge(
         CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
-        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: currentRow),
       );
       final issuerLabelCell = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
@@ -509,11 +507,11 @@ abstract final class QaydExcelWorkbook {
       );
 
       sheet.merge(
-        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
-        CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
       );
       final issuerValueCell = sheet.cell(
-        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: currentRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
       issuerValueCell.value = TextCellValue(issuerName);
       issuerValueCell.cellStyle = CellStyle(
@@ -536,7 +534,7 @@ abstract final class QaydExcelWorkbook {
     // ── Footer: Source label ───────────────────────────────────────────────
     sheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
-      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: currentRow),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
     );
     final footerCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
