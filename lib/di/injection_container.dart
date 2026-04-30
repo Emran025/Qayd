@@ -128,6 +128,7 @@ import 'package:qayd/domain/repositories/collateral_repository.dart';
 import 'package:qayd/data/repositories/sqlite_attachment_repository.dart';
 import 'package:qayd/data/repositories/sqlite_collateral_repository.dart';
 import 'package:qayd/data/services/attachment_storage_service.dart';
+import 'package:qayd/data/services/device_contacts_service.dart';
 import 'package:qayd/data/encryption/voucher_key_service.dart';
 import 'package:qayd/application/notifications/list_inbox_notifications_use_case.dart';
 import 'package:qayd/application/vouchers/liquidate_collateral_use_case.dart';
@@ -208,6 +209,7 @@ abstract final class InjectionContainer {
   static late final MonotonicClockGuard clockGuard;
   static late final PanicWipeService panicWipeService;
   static late final AuthRepository authRepository;
+  static late final DeviceContactsService deviceContactsService;
 
   /// The unified security cubit — shared by [main.dart].
   static late final SecurityCubit securityCubit;
@@ -426,6 +428,7 @@ abstract final class InjectionContainer {
     e2eeService = const E2EEEncryptionServiceImpl();
     counterpartyQrService = const CounterpartyQrService();
     syncRepository = ApiSyncRepository(apiClient);
+    deviceContactsService = const DeviceContactsService();
 
     // ── Cryptographic identity ─────────────────────────────────────────────
 
@@ -1062,6 +1065,7 @@ abstract final class InjectionContainer {
       signingService: receiptSigningService,
       getKeyPair: () => setupIdentityUseCase.getKeyPair(),
       licenseVault: licenseVault,
+      deviceContactsService: deviceContactsService,
     );
   }
 }

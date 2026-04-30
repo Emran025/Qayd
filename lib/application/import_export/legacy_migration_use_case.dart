@@ -27,6 +27,7 @@ import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
+import 'package:qayd/data/services/device_contacts_service.dart';
 
 // ─── Enums & Value Types ──────────────────────────────────────────────────────
 
@@ -139,6 +140,7 @@ class LegacyMigrationUseCase {
   final ReceiptSigningService? _signingService;
   final Future<CryptoKeyPair?> Function()? _getKeyPair;
   final LicenseVault? _licenseVault;
+  final DeviceContactsService _deviceContactsService;
 
   const LegacyMigrationUseCase(
     this._accountRepo,
@@ -149,9 +151,11 @@ class LegacyMigrationUseCase {
     ReceiptSigningService? signingService,
     Future<CryptoKeyPair?> Function()? getKeyPair,
     LicenseVault? licenseVault,
+    required DeviceContactsService deviceContactsService,
   })  : _signingService = signingService,
         _getKeyPair = getKeyPair,
-        _licenseVault = licenseVault;
+        _licenseVault = licenseVault,
+        _deviceContactsService = deviceContactsService;
 
   // ── Phase 1: Analyse ────────────────────────────────────────────────────────
 
@@ -172,6 +176,9 @@ class LegacyMigrationUseCase {
 
       final conflicts = <AccountMigrationConflict>[];
 
+      // Fetch device contacts once for efficient matching
+      final deviceContacts = await _deviceContactsService.fetchAllPhoneNumbers();
+
       for (final legacy in legacyAccounts) {
         final name = legacy['name']?.toString().trim() ?? '';
         final phone =
@@ -179,14 +186,26 @@ class LegacyMigrationUseCase {
         final legacyBalances =
             (legacy['balances'] as List? ?? []).cast<Map<String, dynamic>>();
 
+        // ── Phone Suffix Matching ──────────────────────────────────────────
+        String resolvedPhone = phone;
+        if (phone.isNotEmpty &&
+            !phone.startsWith('+') &&
+            !phone.startsWith('00')) {
+          // Attempt to match with device contacts
+          final matched = _matchWithDeviceContacts(phone, deviceContacts);
+          if (matched != null) {
+            resolvedPhone = matched;
+          }
+        }
+
         // 1. Try exact name match
         Account? existing = allAccounts
             .where((a) => a.name.trim().toLowerCase() == name.toLowerCase())
             .firstOrNull;
 
         // 2. Try phone match
-        if (existing == null && phone.isNotEmpty) {
-          final phoneResult = await _accountRepo.findAccountByPhone(phone);
+        if (existing == null && resolvedPhone.isNotEmpty) {
+          final phoneResult = await _accountRepo.findAccountByPhone(resolvedPhone);
           if (phoneResult is Success<AccountId?> && phoneResult.value != null) {
             final accResult = await _accountRepo.getById(phoneResult.value!);
             if (accResult is Success<Account>) existing = accResult.value;
@@ -194,8 +213,8 @@ class LegacyMigrationUseCase {
         }
 
         // 3. Try WhatsApp match
-        if (existing == null && phone.isNotEmpty) {
-          final waResult = await _accountRepo.findAccountByWhatsApp(phone);
+        if (existing == null && resolvedPhone.isNotEmpty) {
+          final waResult = await _accountRepo.findAccountByWhatsApp(resolvedPhone);
           if (waResult is Success<AccountId?> && waResult.value != null) {
             final accResult = await _accountRepo.getById(waResult.value!);
             if (accResult is Success<Account>) existing = accResult.value;
@@ -208,8 +227,14 @@ class LegacyMigrationUseCase {
                 ? AccountConflictType.exactMatch
                 : AccountConflictType.partialMatch);
 
+        // Update legacy data with the resolved phone if it was improved
+        final updatedLegacy = Map<String, dynamic>.from(legacy);
+        if (resolvedPhone != phone) {
+          updatedLegacy['phone'] = resolvedPhone;
+        }
+
         conflicts.add(AccountMigrationConflict(
-          legacyData: legacy,
+          legacyData: updatedLegacy,
           existingAccount: existing,
           type: conflictType,
           legacyBalances: legacyBalances,
@@ -347,6 +372,7 @@ class LegacyMigrationUseCase {
             final partyDetails = PartyDetails(
               accountId: newId,
               phoneNumber: conflict.phone,
+              whatsappNumber: conflict.phone,
               partyType: conflict.legacyData['customer_type_name']?.toString(),
             );
             await _accountRepo.savePartyDetails(partyDetails);
@@ -753,6 +779,50 @@ class LegacyMigrationUseCase {
   String _lookupAccountName(
       List<Map<String, dynamic>> txList, String legacyId) {
     return legacyId;
+  }
+
+  // ── Suffix Matching Helpers ────────────────────────────────────────────────
+
+  String? _matchWithDeviceContacts(String target, List<String> candidates) {
+    final cleanTarget = _normalizePhone(target);
+    if (cleanTarget.length < 5) return null;
+
+    String? bestMatch;
+    double bestRatio = 0;
+
+    for (final cand in candidates) {
+      final cleanCand = _normalizePhone(cand);
+      
+      // Check if target is a suffix of candidate
+      if (cleanCand.endsWith(cleanTarget)) {
+        // 100% match of the target string length
+        return cand;
+      }
+
+      // Percentage matching of the suffix
+      int matchCount = 0;
+      final minLen = min(cleanTarget.length, cleanCand.length);
+      for (int i = 1; i <= minLen; i++) {
+        if (cleanTarget[cleanTarget.length - i] ==
+            cleanCand[cleanCand.length - i]) {
+          matchCount++;
+        } else {
+          break;
+        }
+      }
+
+      final ratio = matchCount / cleanTarget.length;
+      if (ratio >= 0.7 && ratio > bestRatio) {
+        bestRatio = ratio;
+        bestMatch = cand;
+      }
+    }
+
+    return bestMatch;
+  }
+
+  String _normalizePhone(String p) {
+    return p.replaceAll(RegExp(r'\D'), '');
   }
 }
 

@@ -69,6 +69,15 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
       return;
     }
 
+    // ── Justification & Permission ───────────────────────────────────────────
+    final hasPermission = await _ensureContactsPermission();
+    if (!hasPermission) {
+      // We still proceed, but phone matching will be disabled.
+      // Or we can stop here. The user said it's "necessary".
+      // But they also said "if we don't find a match, we'll put it as is".
+      // So we can proceed.
+    }
+
     setState(() {
       _phase = _Phase.analyzing;
       _errorMessage = null;
@@ -185,6 +194,45 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
       _importProgress = null;
       _resolutions.clear();
     });
+  }
+
+  Future<bool> _ensureContactsPermission() async {
+    final status = await InjectionContainer.deviceContactsService.requestPermission();
+    if (status) return true;
+
+    if (!mounted) return false;
+
+    // Show justification dialog if not granted yet
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'الوصول لجهات الاتصال',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        content: const Text(
+          'نحتاج للوصول لجهات الاتصال لمطابقة الأرقام وضمان سلامة التحويلات المالية وتوثيقها بشكل صحيح.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('تخطي'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: ColorTokens.emerald600,
+            ),
+            child: const Text('السماح بالوصول'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      return await InjectionContainer.deviceContactsService.requestPermission();
+    }
+    return false;
   }
 
   // ── Build ────────────────────────────────────────────────────────────────────
