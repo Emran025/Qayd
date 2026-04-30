@@ -28,6 +28,8 @@ import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/data/services/device_contacts_service.dart';
+import 'package:qayd/data/services/phone_normalization_service.dart';
+
 
 // ─── Enums & Value Types ──────────────────────────────────────────────────────
 
@@ -176,8 +178,15 @@ class LegacyMigrationUseCase {
 
       final conflicts = <AccountMigrationConflict>[];
 
-      // Fetch device contacts once for efficient matching
-      final deviceContacts = await _deviceContactsService.fetchAllPhoneNumbers();
+      // 1. Determine Owner's Country Code for normalization
+      final licenseData = await _licenseVault?.readLicenseData();
+      final ownerPhone = licenseData?['phone']?.toString() ?? '';
+      final normalizer = PhoneNormalizationService(ownerPhone: ownerPhone);
+
+      // 2. Fetch device contacts and normalize them once
+      final deviceContactsMap =
+          await _deviceContactsService.fetchNormalizedPhoneMap(normalizer);
+      final deviceContactE164s = deviceContactsMap.keys.toList();
 
       for (final legacy in legacyAccounts) {
         final name = legacy['name']?.toString().trim() ?? '';
@@ -186,15 +195,23 @@ class LegacyMigrationUseCase {
         final legacyBalances =
             (legacy['balances'] as List? ?? []).cast<Map<String, dynamic>>();
 
-        // ── Phone Suffix Matching ──────────────────────────────────────────
+        // ── Phone Normalization & Matching ─────────────────────────────────
         String resolvedPhone = phone;
-        if (phone.isNotEmpty &&
-            !phone.startsWith('+') &&
-            !phone.startsWith('00')) {
-          // Attempt to match with device contacts
-          final matched = _matchWithDeviceContacts(phone, deviceContacts);
-          if (matched != null) {
-            resolvedPhone = matched;
+        if (phone.isNotEmpty) {
+          // الطبقة 1: Normalize مباشر (مثل واتساب)
+          final normalized = normalizer.normalizeDigitsOnly(phone);
+          resolvedPhone = normalized;
+
+          // الطبقة 2: تحقق من جهات الاتصال (تأكيد أن الرقم حقيقي)
+          if (deviceContactsMap.containsKey(normalized)) {
+            // الرقم المُنسَّق موجود في جهات الاتصال — ممتاز
+            // (اختياري: يمكن استخدام الرقم الخام من جهة الاتصال إذا فضلنا)
+          } else {
+            // حاول suffix matching كـ fallback ضد جهات الاتصال المنظمة
+            final matched = _matchWithDeviceContacts(phone, deviceContactE164s);
+            if (matched != null) {
+              resolvedPhone = matched;
+            }
           }
         }
 
@@ -240,6 +257,7 @@ class LegacyMigrationUseCase {
           legacyBalances: legacyBalances,
         ));
       }
+
 
       return Success(MigrationAnalysisResult(
         accountConflicts: conflicts,

@@ -1,5 +1,6 @@
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:qayd/data/services/phone_normalization_service.dart';
 
 /// Service to interface with the device's native contacts book.
 class DeviceContactsService {
@@ -37,6 +38,38 @@ class DeviceContactsService {
     } catch (e) {
       // Log error or handle gracefully
       return [];
+    }
+  }
+
+  /// Fetches all device contacts and normalizes their phone numbers to E.164
+  /// format using the owner's country code (WhatsApp-style).
+  ///
+  /// Returns a map: `normalizedE164 → rawDeviceNumber`.
+  /// This enables efficient lookup: given a normalized legacy number, check if
+  /// a matching contact exists on the device.
+  Future<Map<String, String>> fetchNormalizedPhoneMap(
+    PhoneNormalizationService normalizer,
+  ) async {
+    final hasPermission = await requestPermission();
+    if (!hasPermission) return {};
+
+    try {
+      final contacts = await FlutterContacts.getContacts(
+        withProperties: true,
+      );
+      final map = <String, String>{};
+      for (final contact in contacts) {
+        for (final phone in contact.phones) {
+          final raw = phone.number.trim();
+          if (raw.isNotEmpty) {
+            final normalized = normalizer.normalizeDigitsOnly(raw);
+            map[normalized] = raw;
+          }
+        }
+      }
+      return map;
+    } catch (_) {
+      return {};
     }
   }
 }

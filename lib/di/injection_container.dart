@@ -771,16 +771,20 @@ abstract final class InjectionContainer {
       accountRepository,
       _idGenerator,
       governanceWriteGuard,
+      licenseVault,
       auditLogService: auditLogService,
     );
+
     batchImportAccountsFromCsvUseCase = BatchImportAccountsFromCsvUseCase(
       createAccountUseCase,
     );
     updateAccountUseCase = UpdateAccountUseCase(
       accountRepository,
       governanceWriteGuard,
+      licenseVault,
       auditLogService: auditLogService,
     );
+
     archiveAccountUseCase = ArchiveAccountUseCase(
       accountRepository,
       ledgerRepository,
@@ -807,7 +811,8 @@ abstract final class InjectionContainer {
       ledgerRepository,
       balanceCalculator,
     );
-    findAccountByPhoneUseCase = FindAccountByPhoneUseCase(accountRepository);
+    findAccountByPhoneUseCase =
+        FindAccountByPhoneUseCase(accountRepository, licenseVault);
     manageAccountDefaultCostCentersUseCase =
         ManageAccountDefaultCostCentersUseCase(accountRepository);
     listAccountsUseCase = ListAccountsUseCase(

@@ -8,19 +8,25 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/data/services/phone_normalization_service.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
+
 import 'package:qayd/domain/value_objects/account_nature.dart';
 
 class UpdateAccountUseCase {
+  final AccountRepository _accountRepository;
+  final GovernanceWriteGuard _writeGuard;
+  final LicenseVault _licenseVault;
+  final AuditLogService? _auditLogService;
+
   UpdateAccountUseCase(
     this._accountRepository,
-    this._writeGuard, {
+    this._writeGuard,
+    this._licenseVault, {
     AuditLogService? auditLogService,
   }) : _auditLogService = auditLogService;
 
-  final AccountRepository _accountRepository;
-  final GovernanceWriteGuard _writeGuard;
-  final AuditLogService? _auditLogService;
 
   Future<Result<UpdateAccountOutput>> call(UpdateAccountInput input) async {
     try {
@@ -79,11 +85,31 @@ class UpdateAccountUseCase {
         return FailureResult(saved.failureOrNull!);
       }
 
-      // ── 4. Update party details (if any field was provided) ───────────────
-      final hasPartyUpdate = input.phoneNumber != null ||
-          input.whatsappNumber != null ||
+      // ── 4. Phone Normalization ───────────────────────────────────────────
+      final licenseData = await _licenseVault.readLicenseData();
+      final ownerPhone = licenseData?['phone']?.toString() ?? '';
+      final normalizer = PhoneNormalizationService(ownerPhone: ownerPhone);
+
+      String? normalizedPhone;
+      if (input.phoneNumber != null) {
+        normalizedPhone = input.phoneNumber!.trim().isNotEmpty
+            ? normalizer.normalizeDigitsOnly(input.phoneNumber!)
+            : null;
+      }
+
+      String? normalizedWhatsApp;
+      if (input.whatsappNumber != null) {
+        normalizedWhatsApp = input.whatsappNumber!.trim().isNotEmpty
+            ? normalizer.normalizeDigitsOnly(input.whatsappNumber!)
+            : null;
+      }
+
+      // ── 5. Update party details (if any field was provided) ───────────────
+      final hasPartyUpdate = normalizedPhone != null ||
+          normalizedWhatsApp != null ||
           input.bankAccountInfo != null ||
           input.partyType != null;
+
 
       if (hasPartyUpdate) {
         final existingPartyResult = await _accountRepository
@@ -101,9 +127,10 @@ class UpdateAccountUseCase {
 
         final updatedParty = PartyDetails(
           accountId: AccountId(input.accountId),
-          phoneNumber: _nonEmpty(input.phoneNumber),
+          phoneNumber: normalizedPhone,
           email: existing?.email,
-          whatsappNumber: _nonEmpty(input.whatsappNumber),
+          whatsappNumber: normalizedWhatsApp,
+
           bankAccountInfo: _nonEmpty(input.bankAccountInfo),
           partyType: _nonEmpty(input.partyType),
           currentPublicKeyHex: existing?.currentPublicKeyHex,

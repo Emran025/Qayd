@@ -14,19 +14,26 @@ import 'package:qayd/domain/value_objects/standard_account_classification_kind.d
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/data/services/phone_normalization_service.dart';
+
 
 class CreateAccountUseCase {
   final AccountRepository _accountRepository;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final LicenseVault _licenseVault;
   final AuditLogService? _auditLogService;
 
   CreateAccountUseCase(
     this._accountRepository,
     this._idGenerator,
-    this._writeGuard, {
+    this._writeGuard,
+    this._licenseVault, {
     AuditLogService? auditLogService,
   }) : _auditLogService = auditLogService;
+
+
 
   Future<Result<CreateAccountOutput>> call(CreateAccountInput input) async {
     try {
@@ -35,16 +42,32 @@ class CreateAccountUseCase {
         return FailureResult(gate.failureOrNull!);
       }
 
-      // Check for uniqueness of phone number and email for Counterparties.
+      // ── Phone Normalization ──────────────────────────────────────────────
+      final licenseData = await _licenseVault.readLicenseData();
+      final ownerPhone = licenseData?['phone']?.toString() ?? '';
+      final normalizer = PhoneNormalizationService(ownerPhone: ownerPhone);
+
+      String? normalizedPhone;
       if (input.phoneNumber?.isNotEmpty == true) {
+        normalizedPhone = normalizer.normalizeDigitsOnly(input.phoneNumber!);
+        
         final existingByPhone =
-            await _accountRepository.findAccountByPhone(input.phoneNumber!);
+            await _accountRepository.findAccountByPhone(normalizedPhone);
         if (existingByPhone.valueOrNull != null) {
           return const FailureResult(ValidationFailure(
             messageAr: 'يوجد حساب مسجل مسبقاً برقم الهاتف هذا.',
           ));
         }
       }
+
+      String? normalizedWhatsApp;
+      if (input.whatsappNumber?.isNotEmpty == true) {
+        normalizedWhatsApp = normalizer.normalizeDigitsOnly(input.whatsappNumber!);
+      } else if (normalizedPhone != null) {
+        // Default WhatsApp to phone if not provided
+        normalizedWhatsApp = normalizedPhone;
+      }
+
       if (input.email?.isNotEmpty == true) {
         final existingByEmail =
             await _accountRepository.findAccountByEmail(input.email!);
@@ -100,9 +123,10 @@ class CreateAccountUseCase {
       if (hasPartyDetails) {
         final partyDetails = PartyDetails(
           accountId: id,
-          phoneNumber: input.phoneNumber,
+          phoneNumber: normalizedPhone,
           email: input.email,
-          whatsappNumber: input.whatsappNumber,
+          whatsappNumber: normalizedWhatsApp,
+
           bankAccountInfo: input.bankAccountInfo,
           partyType: input.partyType,
           currentPublicKeyHex: input.currentPublicKeyHex,
