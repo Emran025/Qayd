@@ -427,7 +427,7 @@ class _DetailBody extends StatelessWidget {
                     actionLabel: AppStringsAr.actionWhatsApp,
                     color: const Color(0xFF25D366),
                     onTap: () => launchUrl(
-                        Uri.parse('https://wa.me/+${data.whatsappNumber}')),
+                        Uri.parse('https://wa.me/${data.whatsappNumber}')),
                   ),
                 if (data.bankAccountInfo?.isNotEmpty == true &&
                     data.bankAccountInfo != null)

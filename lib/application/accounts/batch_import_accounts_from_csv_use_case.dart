@@ -23,6 +23,8 @@ final class BatchImportAccountsFromCsvUseCase {
       final input = CreateAccountInput(
         name: row.name,
         rootStandardKind: kind,
+        phoneNumber: row.phoneNumber,
+        whatsappNumber: row.whatsappNumber ?? row.phoneNumber,
       );
       final r = await _createAccount(input);
       if (r.isFailure) {

@@ -160,10 +160,13 @@ class ListAccountsUseCase {
     final bool isAccountOwnerTheSender = v.affectedAccountId == a;
     final bool isAccountOwnerTheReceiver = v.counterpartyId == a;
 
-    if (isAccountOwnerTheSender && v.senderStatus != AgreementStatus.accepted)
+    if (isAccountOwnerTheSender && v.senderStatus != AgreementStatus.accepted) {
       return 0;
+    }
     if (isAccountOwnerTheReceiver &&
-        v.receiverStatus != AgreementStatus.accepted) return 0;
+        v.receiverStatus != AgreementStatus.accepted) {
+      return 0;
+    }
 
     final isDebitAccount = nature == AccountNature.debit;
     if (isDebitAccount) {

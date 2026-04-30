@@ -408,11 +408,11 @@ class _TableHeader extends StatelessWidget {
                 const SizedBox(width: 48),
                 _VerticalDivider(color: scheme.outlineVariant),
 
-                _DualSubHeader(qayd),
+                _dualSubHeader(qayd),
                 _VerticalDivider(color: scheme.outlineVariant),
-                _DualSubHeader(qayd),
+                _dualSubHeader(qayd),
                 _VerticalDivider(color: scheme.outlineVariant),
-                _DualSubHeader(qayd),
+                _dualSubHeader(qayd),
               ],
             ),
           ),
@@ -421,7 +421,7 @@ class _TableHeader extends StatelessWidget {
     );
   }
 
-  Widget _DualSubHeader(QaydCustomColors qayd) {
+  Widget _dualSubHeader(QaydCustomColors qayd) {
     return SizedBox(
       width: 180,
       child: Row(
@@ -835,19 +835,19 @@ class _DualMoneyCell extends StatelessWidget {
       width: 180,
       child: Row(
         children: [
-          Expanded(child: _MoneyText(debit, cur, weight)),
+          Expanded(child: _moneyText(debit, cur, weight)),
           VerticalDivider(
             width: 1,
             thickness: 0.4,
             color: Colors.grey.withAlpha(40),
           ),
-          Expanded(child: _MoneyText(credit, cur, weight)),
+          Expanded(child: _moneyText(credit, cur, weight)),
         ],
       ),
     );
   }
 
-  Widget _MoneyText(int amount, CurrencyCode cur, FontWeight weight) {
+  Widget _moneyText(int amount, CurrencyCode cur, FontWeight weight) {
     if (amount == 0) {
       return Center(
         child: Text('—',

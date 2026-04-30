@@ -26,6 +26,10 @@ abstract final class CurrencyUtil {
         return 'يورو';
       case 'GBP':
         return 'جنيه إسترليني';
+      case 'XAU':
+        return 'جرام ذهب';
+      case 'XAG':
+        return 'جرام فضه';
       default:
         return code;
     }

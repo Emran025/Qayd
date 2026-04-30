@@ -21,11 +21,15 @@ final class SqliteAccountRepository implements AccountRepository {
   @override
   Future<Result<Account>> getById(AccountId id) async {
     try {
-      final rows = await _db.query(
-        _table,
-        where: 'id = ?',
-        whereArgs: [id.value],
-        limit: 1,
+      final rows = await _db.rawQuery(
+        '''
+        SELECT a.*, p.phone_number, p.whatsapp_number
+        FROM $_table a
+        LEFT JOIN party_details p ON a.id = p.account_id
+        WHERE a.id = ?
+        LIMIT 1
+        ''',
+        [id.value],
       );
       if (rows.isEmpty) {
         return const FailureResult(
@@ -35,7 +39,20 @@ final class SqliteAccountRepository implements AccountRepository {
           ),
         );
       }
-      return Success(AccountMapper.toEntity(AccountModel.fromMap(rows.first)));
+      final row = rows.first;
+      final model = AccountModel.fromMap(row);
+      var entity = AccountMapper.toEntity(model);
+
+      final phone = row['phone_number'] as String?;
+      final whatsapp = row['whatsapp_number'] as String?;
+      if (phone != null || whatsapp != null) {
+        entity = entity.updateMetadata({
+          if (phone != null) 'phone': phone,
+          if (whatsapp != null) 'whatsapp': whatsapp,
+        });
+      }
+
+      return Success(entity);
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(messageAr: 'تعذر قراءة الحساب من قاعدة البيانات.'),

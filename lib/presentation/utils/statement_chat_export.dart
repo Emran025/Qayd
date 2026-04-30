@@ -166,8 +166,27 @@ Future<void> shareStatementChatAsExcel(
   required List<AccountStatementChatMessageDto> messages,
   required Map<String, int> broughtForwardByCurrency,
   required int currencyDigits,
+  ShareMethod? shareMethod,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
+
+  final method = shareMethod ?? await ShareMethodPicker.show(context);
+  if (method == null) return;
+
+  if (!context.mounted) return;
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => const Center(
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    ),
+  );
+
   try {
     final headers = [
       'التاريخ',
@@ -297,22 +316,53 @@ Future<void> shareStatementChatAsExcel(
       notesText: 'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
     );
 
-    final dir = await getTemporaryDirectory();
-    final safeName = 'qayd_statement_$accountId.xlsx';
-    final path = p.join(dir.path, safeName);
-    final file = File(path);
-    await file.writeAsBytes(bytes, flush: true);
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // dismiss loading
 
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [
-          XFile(path,
-              mimeType:
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        ],
-      ),
-    );
+    final safeName = 'qayd_statement_$accountId.xlsx';
+    if (method == ShareMethod.system) {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [
+            XFile.fromData(bytes, name: safeName,
+                mimeType:
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+          ],
+        ),
+      );
+    } else {
+      final dir = await getTemporaryDirectory();
+      final path = p.join(dir.path, safeName);
+      final file = File(path);
+      await file.writeAsBytes(bytes, flush: true);
+
+      final flavor = method == ShareMethod.whatsappStandard
+          ? WhatsAppFlavor.standard
+          : WhatsAppFlavor.business;
+
+      String? phoneNumber;
+      final aR = await InjectionContainer.getAccountDetailsUseCase(
+        GetAccountDetailsInput(accountId: accountId),
+      );
+      if (aR.isSuccess) {
+        phoneNumber =
+            aR.valueOrNull!.whatsappNumber ?? aR.valueOrNull!.phoneNumber;
+      }
+
+      final shareText =
+          'مرفق لكم كشف حساب $accountName (Excel).\n\nموثق رقمياً عبر نظام قيد.';
+
+      await MessagingIntentLauncher.shareToWhatsApp(
+        flavor: flavor,
+        message: shareText,
+        fileAbsolutePath: file.path,
+        phoneNumber: phoneNumber,
+      );
+    }
   } catch (_) {
+    if (context.mounted) {
+      Navigator.of(context, rootNavigator: true).pop(); // dismiss loading if error
+    }
     messenger.showSnackBar(
       const SnackBar(content: Text('حدث خطأ أثناء تصدير Excel')),
     );

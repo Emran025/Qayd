@@ -167,8 +167,9 @@ class IdentityFileStorage {
       final mnemonicStr = json['mnemonic'] as String?;
       final pubHex = json['public_key'] as String?;
       final privHex = json['private_key'] as String?;
-      if (mnemonicStr == null || pubHex == null || privHex == null)
+      if (mnemonicStr == null || pubHex == null || privHex == null) {
         return false;
+      }
       final mnemonic = MnemonicPhrase.fromPhrase(mnemonicStr);
       final keyPair = CryptoKeyPair.fromHex(
         privateKeyHex: privHex,

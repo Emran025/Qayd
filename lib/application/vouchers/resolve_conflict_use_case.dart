@@ -30,8 +30,9 @@ class ResolveConflictUseCase {
       final confirmResult = await _confirmVoucher(
         ConfirmVoucherInput(voucherId: localVoucherId),
       );
-      if (confirmResult.isFailure)
+      if (confirmResult.isFailure) {
         return FailureResult(confirmResult.failureOrNull!);
+      }
     }
 
     return const Success(null);

@@ -7,11 +7,15 @@ class CsvAccountImportDraftRow {
     required this.lineNumber,
     required this.name,
     this.natureHint,
+    this.phoneNumber,
+    this.whatsappNumber,
   });
 
   final int lineNumber;
   final String name;
   final String? natureHint;
+  final String? phoneNumber;
+  final String? whatsappNumber;
 }
 
 /// Minimal CSV parser: expects a header with `name` / `اسم` and optional `nature` / `طبيعة`.
@@ -37,6 +41,9 @@ abstract final class CsvAccountsImportDraft {
       );
     }
     final natureIdx = _indexOfNature(header);
+    final phoneIdx = _indexOfPhone(header);
+    final whatsappIdx = _indexOfWhatsapp(header);
+
     final out = <CsvAccountImportDraftRow>[];
     for (var i = 1; i < lines.length; i++) {
       final line = lines[i].trim();
@@ -50,11 +57,26 @@ abstract final class CsvAccountsImportDraft {
         final n = cells[natureIdx].trim();
         if (n.isNotEmpty) nature = n;
       }
+
+      String? phone;
+      if (phoneIdx >= 0 && phoneIdx < cells.length) {
+        final p = cells[phoneIdx].trim();
+        if (p.isNotEmpty) phone = p;
+      }
+
+      String? whatsapp;
+      if (whatsappIdx >= 0 && whatsappIdx < cells.length) {
+        final w = cells[whatsappIdx].trim();
+        if (w.isNotEmpty) whatsapp = w;
+      }
+
       out.add(
         CsvAccountImportDraftRow(
           lineNumber: i + 1,
           name: name,
           natureHint: nature,
+          phoneNumber: phone,
+          whatsappNumber: whatsapp,
         ),
       );
     }
@@ -101,6 +123,20 @@ abstract final class CsvAccountsImportDraft {
     return lower.indexWhere(
       (h) =>
           h == 'nature' || h == 'طبيعة' || h == 'type' || h == 'debit_credit',
+    );
+  }
+
+  static int _indexOfPhone(List<String> header) {
+    final lower = header.map((e) => e.trim().toLowerCase()).toList();
+    return lower.indexWhere(
+      (h) => h == 'phone' || h == 'هاتف' || h == 'mobile' || h == 'جوال',
+    );
+  }
+
+  static int _indexOfWhatsapp(List<String> header) {
+    final lower = header.map((e) => e.trim().toLowerCase()).toList();
+    return lower.indexWhere(
+      (h) => h == 'whatsapp' || h == 'واتس' || h == 'واتساب',
     );
   }
 }
