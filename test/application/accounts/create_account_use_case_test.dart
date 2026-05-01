@@ -11,6 +11,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/entities/party_details.dart';
+import 'package:qayd/data/security/license_vault.dart';
 
 class MockAccountRepository extends Mock implements AccountRepository {}
 
@@ -22,6 +23,8 @@ class MockIdGenerator extends Mock implements IdGenerator {}
 
 class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
 
+class MockLicenseVault extends Mock implements LicenseVault {}
+
 void main() {
   setUpAll(() {
     registerFallbackValue(FakeAccount());
@@ -32,16 +35,22 @@ void main() {
   late MockAccountRepository mockAccountRepo;
   late MockIdGenerator mockIdGenerator;
   late MockGovernanceWriteGuard mockWriteGuard;
+  late MockLicenseVault mockLicenseVault;
 
   setUp(() {
     mockAccountRepo = MockAccountRepository();
     mockIdGenerator = MockIdGenerator();
     mockWriteGuard = MockGovernanceWriteGuard();
+    mockLicenseVault = MockLicenseVault();
+
+    when(() => mockLicenseVault.readLicenseData())
+        .thenAnswer((_) async => {'phone': '966500000000'});
 
     useCase = CreateAccountUseCase(
       mockAccountRepo,
       mockIdGenerator,
       mockWriteGuard,
+      mockLicenseVault,
     );
   });
 
@@ -83,7 +92,7 @@ void main() {
 
     when(() => mockWriteGuard.assertWritesPermitted())
         .thenAnswer((_) async => const Success(null));
-    when(() => mockAccountRepo.findAccountByPhone('1234567890'))
+    when(() => mockAccountRepo.findAccountByPhone('9661234567890'))
         .thenAnswer((_) async => Success(AccountId('existing-id')));
 
     final result = await useCase(inputWithPhone);
