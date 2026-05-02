@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:barcode/barcode.dart';
@@ -44,57 +45,66 @@ final class CairoAccountStatementPdfGenerator
     AccountStatementReportDto report,
   ) async {
     try {
-      final font = await CairoPdfFonts.font;
-      final theme = pw.ThemeData.withFont(base: font, bold: font);
-      final dateFmt = DateFormat.yMMMd('en');
-      final genAt = dateFmt.format(DateTime.parse(report.generatedAtIso));
+      // 1. Load assets on main thread
+      final fontData = await rootBundle.load(CairoPdfFonts.asset);
+      final fontBytes = fontData.buffer.asUint8List();
 
-      // Load logo image from assets
-      pw.ImageProvider? logoImage;
+      Uint8List? logoBytes;
       try {
         final logoData = await rootBundle.load('assets/images/logo.png');
-        logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+        logoBytes = logoData.buffer.asUint8List();
       } catch (_) {
         // Logo not available, we'll use text fallback
       }
 
-      String? periodLabel;
-      if (report.periodFromIso != null || report.periodToIso != null) {
-        final a = report.periodFromIso != null
-            ? dateFmt.format(DateTime.parse(report.periodFromIso!))
-            : '…';
-        final b = report.periodToIso != null
-            ? dateFmt.format(DateTime.parse(report.periodToIso!))
-            : '…';
-        periodLabel = '$a — $b';
-      }
+      // 2. Run PDF generation in an Isolate to prevent UI freeze on large files
+      return await Isolate.run(() async {
+        final font = pw.Font.ttf(fontBytes.buffer.asByteData());
+        final theme = pw.ThemeData.withFont(base: font, bold: font);
+        final dateFmt = DateFormat('dd/MM/yyyy');
+        final genAt = dateFmt.format(DateTime.parse(report.generatedAtIso));
 
-      final natureAr = report.natureCode == 'debit' ? 'دائن' : 'مدين';
+        pw.ImageProvider? logoImage;
+        if (logoBytes != null) {
+          logoImage = pw.MemoryImage(logoBytes);
+        }
 
-      // Calculate totals
-      int totalDebit = 0;
-      int totalCredit = 0;
-      for (final line in report.lines) {
-        totalDebit += line.debitMinorUnits;
-        totalCredit += line.creditMinorUnits;
-      }
-      final netBalance =
-          report.lines.isNotEmpty ? report.lines.last.balanceMinorUnits : 0;
+        String? periodLabel;
+        if (report.periodFromIso != null || report.periodToIso != null) {
+          final a = report.periodFromIso != null
+              ? dateFmt.format(DateTime.parse(report.periodFromIso!))
+              : '…';
+          final b = report.periodToIso != null
+              ? dateFmt.format(DateTime.parse(report.periodToIso!))
+              : '…';
+          periodLabel = '$a — $b';
+        }
 
-      final doc = pw.Document(theme: theme);
+        final natureAr = report.natureCode == 'debit' ? 'دائن' : 'مدين';
 
-      doc.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          textDirection: pw.TextDirection.rtl,
-          margin: const pw.EdgeInsets.all(32),
-          header: (context) => _buildHeader(font, report, genAt, logoImage),
-          footer: (context) => _buildFooter(font, report, context),
-          build: (context) => [
-            pw.Stack(
-              children: [
-                if (logoImage != null)
-                  pw.Positioned.fill(
+        // Calculate totals
+        int totalDebit = 0;
+        int totalCredit = 0;
+        for (final line in report.lines) {
+          totalDebit += line.debitMinorUnits;
+          totalCredit += line.creditMinorUnits;
+        }
+        final netBalance =
+            report.lines.isNotEmpty ? report.lines.last.balanceMinorUnits : 0;
+
+        final doc = pw.Document(theme: theme);
+
+        doc.addPage(
+          pw.MultiPage(
+            pageTheme: pw.PageTheme(
+              pageFormat: PdfPageFormat.a4,
+              textDirection: pw.TextDirection.rtl,
+              theme: theme,
+              margin: const pw.EdgeInsets.all(32),
+              buildBackground: (context) {
+                if (logoImage != null) {
+                  return pw.FullPage(
+                    ignoreMargins: true,
                     child: pw.Center(
                       child: pw.Opacity(
                         opacity: 0.05,
@@ -106,41 +116,46 @@ final class CairoAccountStatementPdfGenerator
                         ),
                       ),
                     ),
-                  ),
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                  children: [
-                    pw.SizedBox(height: 12),
-
-                    // ── Info Section (إلى / من) ──────────────────────────────────
-                    _buildInfoSection(
-                        font, report, genAt, natureAr, periodLabel),
-
-                    pw.SizedBox(height: 14),
-
-                    // ── Main Transaction Table ───────────────────────────────────
-                    _buildTransactionTable(font, report, dateFmt),
-
-                    pw.SizedBox(height: 14),
-
-                    // ── Bottom Section: Notes + Totals ───────────────────────────
-                    _buildBottomSection(
-                      font,
-                      totalDebit: totalDebit,
-                      totalCredit: totalCredit,
-                      netBalance: netBalance,
-                      finalBalances: report.finalBalancesByCurrency,
-                    ),
-                  ],
-                ),
-              ],
+                  );
+                }
+                return pw.SizedBox();
+              },
             ),
-          ],
-        ),
-      );
+            header: (context) => _buildHeader(font, report, genAt, logoImage),
+            footer: (context) => _buildFooter(font, report, context),
+            build: (context) => [
+              pw.SizedBox(height: 12),
+              
+              // ── Info Section (إلى / من) ──────────────────────────────────
+              _buildInfoSection(font, report, genAt, natureAr, periodLabel),
+              
+              pw.SizedBox(height: 14),
+              
+              // ── Main Transaction Table ───────────────────────────────────
+              _buildTransactionTable(font, report, dateFmt),
+              
+              pw.SizedBox(height: 14),
+              
+              // ── Bottom Section: Notes + Totals ───────────────────────────
+              _buildBottomSection(
+                font,
+                totalDebit: totalDebit,
+                totalCredit: totalCredit,
+                netBalance: netBalance,
+                finalBalances: report.finalBalancesByCurrency,
+              ),
+            ],
+          ),
+        );
 
-      return Success(await doc.save());
-    } catch (_) {
+        return Success(await doc.save());
+      });
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('PDF Generation Error: $e');
+      // ignore: avoid_print
+      print('Stack Trace: $stackTrace');
+      
       return const FailureResult(
         UnexpectedFailure(messageAr: 'تعذر إنشاء ملف كشف الحساب.'),
       );

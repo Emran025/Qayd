@@ -3,7 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 /// Embedded Cairo (Google Fonts OFL) for Arabic text in PDFs.
 abstract final class CairoPdfFonts {
-  static const _asset = 'assets/fonts/Cairo-Variable.ttf';
+  static const asset = 'assets/fonts/Cairo-Variable.ttf';
 
   static pw.Font? _font;
 
@@ -11,7 +11,7 @@ abstract final class CairoPdfFonts {
     if (_font != null) {
       return _font!;
     }
-    final data = await rootBundle.load(_asset);
+    final data = await rootBundle.load(asset);
     _font = pw.Font.ttf(data);
     return _font!;
   }

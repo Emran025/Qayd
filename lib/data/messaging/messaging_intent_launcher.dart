@@ -93,6 +93,35 @@ abstract final class MessagingIntentLauncher {
     return formattedPhone;
   }
 
+  /// Opens the specified WhatsApp flavor with [text] pre-filled for [phoneNumber].
+  /// Uses ACTION_VIEW with the whatsapp:// scheme so it works for both
+  /// WhatsApp standard and WhatsApp Business without a file attachment.
+  static Future<bool> openWhatsAppTextOnly(
+    WhatsAppFlavor flavor,
+    String text, {
+    String? phoneNumber,
+  }) async {
+    try {
+      String? cleanPhone;
+      if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
+        cleanPhone = _formatPhoneNumber(phoneNumber);
+      }
+
+      await _channel.invokeMethod(
+        'shareToWhatsApp',
+        {
+          'packageName': flavor.packageName,
+          'phoneNumber': cleanPhone,
+          'message': text,
+          'filePath': null, // text-only — no file
+        },
+      );
+      return true;
+    } on PlatformException catch (_) {
+      return false;
+    }
+  }
+
   /// Legacy fallback for platforms where intents fail or for broad web fallback
   static Future<bool> openWhatsAppWithText(String text, {String? phoneNumber}) {
     String formattedPhone = '';

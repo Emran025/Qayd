@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -178,6 +180,9 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 validator: (v) => (v == null || v.trim().isEmpty)
                     ? AppStringsAr.accrualNameRequired
                     : null,
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+                ],
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: SpacingTokens.sm + 4),
@@ -195,6 +200,9 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 validator: (v) => (double.tryParse(v ?? '0') ?? 0) <= 0
                     ? AppStringsAr.accrualAmountInvalid
                     : null,
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+                ],
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: SpacingTokens.sm + 4),
@@ -287,6 +295,9 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                   icon: Icons.notes_rounded,
                 ),
                 maxLines: 2,
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+                ],
                 textInputAction: TextInputAction.done,
               ),
               const SizedBox(height: SpacingTokens.sm + 4),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
@@ -177,6 +179,9 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? AppStringsAr.costCenterNameValidator
                   : null,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+              ],
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: SpacingTokens.md),
@@ -189,6 +194,9 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
                 prefixIcon: const Icon(Icons.notes_rounded),
               ),
               maxLines: 2,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+              ],
               textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: SpacingTokens.md),

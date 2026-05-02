@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qayd/data/models/country_model.dart';
 import 'package:qayd/core/constants/countries_names.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:qayd/presentation/widgets/country_picker_dialog.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -320,6 +321,9 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                         color: accentColor,
                       ),
                       maxLength: 4,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+                      ],
                       buildCounter: (
                         _, {
                         required currentLength,
@@ -359,6 +363,9 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       textDirection: TextDirection.ltr,
                       style: theme.textTheme.bodyLarge,
                       maxLength: 14,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+                      ],
                       buildCounter: (
                         _, {
                         required currentLength,

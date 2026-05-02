@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/utils/text_sanitizer.dart';
 
 /// RTL-aware text field using [InputDecorationTheme] from [AppTheme].
 class QaydTextField extends StatelessWidget {
@@ -70,7 +71,11 @@ class QaydTextField extends StatelessWidget {
       validator: validator,
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
-      inputFormatters: inputFormatters,
+      inputFormatters: [
+        FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex,
+            replacementString: ' '),
+        ...?inputFormatters,
+      ],
       autovalidateMode: autovalidateMode,
       decoration: InputDecoration(
         labelText: label,

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +17,7 @@ import 'package:qayd/data/export/qayd_excel_workbook.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 
 /// Exports the Statement of Account Chat as PDF using applied filters.
 Future<void> shareStatementChatAsPdf(
@@ -76,7 +78,7 @@ Future<void> shareStatementChatAsPdf(
     final isIncoming = m.direction == 'incoming';
     return AccountStatementLineReportDto(
       dateIso: m.dateIso,
-      description: m.description,
+      description: TextSanitizer.sanitizeText(m.description),
       debitMinorUnits: isIncoming ? 0 : m.amountMinorUnits,
       creditMinorUnits: isIncoming ? m.amountMinorUnits : 0,
       balanceMinorUnits: m.runningBalanceMinorUnits,
@@ -87,9 +89,11 @@ Future<void> shareStatementChatAsPdf(
     );
   }));
 
+  final safeAccountName = TextSanitizer.sanitizeText(accountName);
+
   final dto = AccountStatementReportDto(
     accountId: accountId,
-    accountName: accountName,
+    accountName: safeAccountName,
     natureCode:
         'credit', // In chat context, usually context-dependent, but 'credit' is safe fallback
     generatedAtIso: now,
@@ -138,7 +142,7 @@ Future<void> shareStatementChatAsPdf(
       }
 
       final shareText =
-          'مرفق لكم كشف حساب $accountName.\n\nموثق رقمياً عبر نظام قيد.';
+          'مرفق لكم كشف حساب $safeAccountName.\n\nموثق رقمياً عبر نظام قيد.';
 
       await MessagingIntentLauncher.shareToWhatsApp(
         flavor: flavor,
@@ -293,28 +297,36 @@ Future<void> shareStatementChatAsExcel(
       periodToStr = dateFmtAr.format(filter.toDate!);
     }
 
-    final bytes = QaydExcelWorkbook.buildAccountStatement(
-      accountName: accountName,
-      headers: headers,
-      rows: rows,
-      counterpartyName: accountName,
-      statementDate: stmtDate,
-      referenceNumber:
-          accountId.length > 12 ? accountId.substring(0, 12) : accountId,
-      openingBalance: broughtForwardByCurrency.isEmpty
-          ? null
-          : broughtForwardByCurrency.entries
-              .where((e) => e.value != 0)
-              .map((e) =>
-                  '${e.key}: ${_fmtNum(e.value / divisor, currencyDigits)}')
-              .join(' | '),
-      periodFrom: periodFromStr,
-      periodTo: periodToStr,
-      totalDebit: totalDebitStr,
-      totalCredit: totalCreditStr,
-      netBalance: netBalanceStr,
-      notesText: 'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
-    );
+    final safeAccountName = TextSanitizer.sanitizeText(accountName);
+
+    final openingBalanceStr = broughtForwardByCurrency.isEmpty
+        ? null
+        : broughtForwardByCurrency.entries
+            .where((e) => e.value != 0)
+            .map((e) =>
+                '${e.key}: ${_fmtNum(e.value / divisor, currencyDigits)}')
+            .join(' | ');
+
+    // Use Isolate to prevent dropping frames on the main thread
+    final bytes =
+        await Isolate.run(() => QaydExcelWorkbook.buildAccountStatement(
+              accountName: safeAccountName,
+              headers: headers,
+              rows: rows,
+              counterpartyName: safeAccountName,
+              statementDate: stmtDate,
+              referenceNumber: accountId.length > 12
+                  ? accountId.substring(0, 12)
+                  : accountId,
+              openingBalance: openingBalanceStr,
+              periodFrom: periodFromStr,
+              periodTo: periodToStr,
+              totalDebit: totalDebitStr,
+              totalCredit: totalCreditStr,
+              netBalance: netBalanceStr,
+              notesText:
+                  'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
+            ));
 
     if (!context.mounted) return;
     Navigator.of(context, rootNavigator: true).pop(); // dismiss loading
@@ -324,7 +336,8 @@ Future<void> shareStatementChatAsExcel(
       await SharePlus.instance.share(
         ShareParams(
           files: [
-            XFile.fromData(bytes, name: safeName,
+            XFile.fromData(bytes,
+                name: safeName,
                 mimeType:
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
           ],
@@ -336,9 +349,20 @@ Future<void> shareStatementChatAsExcel(
       final file = File(path);
       await file.writeAsBytes(bytes, flush: true);
 
-      final flavor = method == ShareMethod.whatsappStandard
-          ? WhatsAppFlavor.standard
-          : WhatsAppFlavor.business;
+      // ─── Excel: two-step WhatsApp sharing ──────────────────────────────
+      // WhatsApp refuses to accept EXTRA_TEXT alongside EXTRA_STREAM for
+      // spreadsheet MIME types — it drops the file and shows only the text.
+      //
+      // Strategy:
+      //   Step 1 — send the file via JID (no EXTRA_TEXT).
+      //            WhatsApp opens the correct contact's chat with the file
+      //            ready to send. User taps ▶ once.
+      //   Step 2 — after 1.5 s, open the same contact via wa.me URL with the
+      //            descriptive text pre-filled in the input box.
+      //            User taps ▶ once more to send the caption.
+      final flavor = method == ShareMethod.whatsappBusiness
+          ? WhatsAppFlavor.business
+          : WhatsAppFlavor.standard;
 
       String? phoneNumber;
       final aR = await InjectionContainer.getAccountDetailsUseCase(
@@ -349,19 +373,29 @@ Future<void> shareStatementChatAsExcel(
             aR.valueOrNull!.whatsappNumber ?? aR.valueOrNull!.phoneNumber;
       }
 
-      final shareText =
-          'مرفق لكم كشف حساب $accountName (Excel).\n\nموثق رقمياً عبر نظام قيد.';
-
+      // Step 1: send the file (no message → WhatsApp keeps the attachment)
       await MessagingIntentLauncher.shareToWhatsApp(
         flavor: flavor,
-        message: shareText,
+        message: null,
         fileAbsolutePath: file.path,
+        phoneNumber: phoneNumber,
+      );
+
+      // Step 2: after the file intent fires and WhatsApp moves to foreground,
+      // pre-fill the descriptive caption via wa.me URL.
+      final shareText =
+          'مرفق لكم كشف حساب $safeAccountName (Excel).\n\nموثق رقمياً عبر نظام قيد.';
+      await Future.delayed(const Duration(milliseconds: 1500));
+      await MessagingIntentLauncher.openWhatsAppTextOnly(
+        flavor,
+        shareText,
         phoneNumber: phoneNumber,
       );
     }
   } catch (_) {
     if (context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop(); // dismiss loading if error
+      Navigator.of(context, rootNavigator: true)
+          .pop(); // dismiss loading if error
     }
     messenger.showSnackBar(
       const SnackBar(content: Text('حدث خطأ أثناء تصدير Excel')),

@@ -6,6 +6,7 @@ import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/data/export/qayd_excel_workbook.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 
 String _moneyMinor(int minorUnits, {int digits = 2, String? symbol}) {
   num divisor = 1;
@@ -156,7 +157,7 @@ Uint8List buildAccountStatementExcelBytes({
       line.voucherId.length > 10
           ? '${line.voucherId.substring(0, 8)}…'
           : line.voucherId,
-      line.description,
+      TextSanitizer.sanitizeText(line.description),
       '—',
       line.debitMinorUnits > 0 ? _moneyMinor(line.debitMinorUnits) : '',
       line.creditMinorUnits > 0 ? _moneyMinor(line.creditMinorUnits) : '',
@@ -164,7 +165,7 @@ Uint8List buildAccountStatementExcelBytes({
   }
   final netBalance = lines.isNotEmpty ? lines.last.balanceMinorUnits : 0;
   return QaydExcelWorkbook.buildAccountStatement(
-    accountName: accountName,
+    accountName: TextSanitizer.sanitizeText(accountName),
     headers: headers,
     rows: rows,
     statementDate: _formatDateIso(DateTime.now().toIso8601String()),

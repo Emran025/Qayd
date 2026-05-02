@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 
 /// Standardised text field for auth screens (frosted-glass style).
 class AuthField extends StatelessWidget {
@@ -39,6 +41,9 @@ class AuthField extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      inputFormatters: [
+        FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+      ],
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: style.copyWith(

@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -39,54 +40,17 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   @override
   Future<Result<Uint8List>> buildVoucherPdf(VoucherReportDto report) async {
     try {
-      final font = await CairoPdfFonts.font;
-      final theme = pw.ThemeData.withFont(base: font, bold: font);
+      // 1. Load assets on main thread
+      final fontData = await rootBundle.load(CairoPdfFonts.asset);
+      final fontBytes = fontData.buffer.asUint8List();
 
-      final isReceipt = report.typeCode == 'receipt';
-      final accent = isReceipt ? _emerald : _gold;
-      final typeAr = isReceipt ? 'سند قبض' : 'سند صرف';
-
-      // Safe date parsing for pre-formatted strings
-      DateTime safeParse(String iso, DateTime fallback) {
-        try {
-          return DateTime.parse(iso);
-        } catch (_) {
-          return fallback;
-        }
-      }
-
-      final dateFmt = DateFormat('dd/MM/yyyy');
-      final dateStr = _notEmpty(report.dateIso) && report.dateIso.contains('/')
-          ? report.dateIso
-          : dateFmt.format(safeParse(report.dateIso, DateTime.now()));
-
-      final createdFmt = DateFormat('hh:mm:ss a  dd/MM/yyyy');
-      final createdStr = _notEmpty(report.createdAtIso) &&
-              (report.createdAtIso.contains('/') ||
-                  report.createdAtIso.contains(':'))
-          ? report.createdAtIso
-          : createdFmt.format(safeParse(report.createdAtIso, DateTime.now()));
-
-      final divisor = math.pow(10, report.currencyDigits).toDouble();
-      final amount = report.amountMinorUnits / divisor;
-      final fmt = report.currencyDigits > 0
-          ? NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en')
-          : NumberFormat('#,##0', 'en');
-      final amountStr =
-          '${fmt.format(amount)} ${CurrencyUtil.getArabicName(report.currencyCode).replaceAll('﷼', 'ريال')}';
-
-      final qrPayload = report.qrData ?? report.voucherId;
-
-      // Load logo image from assets
-      pw.ImageProvider? logoImage;
+      Uint8List? logoBytes;
       try {
         final logoData = await rootBundle.load('assets/images/logo.png');
-        logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
-      } catch (_) {
-        logoImage = null;
-      }
+        logoBytes = logoData.buffer.asUint8List();
+      } catch (_) {}
 
-      // Load Custom Brand Texts & Labels
+      // 2. Fetch shared preferences values on main thread since SharedPreferences needs to be accessed here
       final prefs = InjectionContainer.sharedPreferences;
       final customHeaderTitle =
           prefs.getString('pdf_header_title') ?? 'قيد — المحاسبة الشخصية';
@@ -106,114 +70,166 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           prefs.getString('company_name') ??
           'نظام قيد المالي';
 
-      // Title logic
-      final titleAr = _buildTitle(report, typeAr);
+      // 3. Run PDF generation in an Isolate
+      return await Isolate.run(() async {
+        final font = pw.Font.ttf(fontBytes.buffer.asByteData());
+        final theme = pw.ThemeData.withFont(base: font, bold: font);
 
-      final doc = pw.Document(theme: theme);
+        final isReceipt = report.typeCode == 'receipt';
+        final accent = isReceipt ? _emerald : _gold;
+        final typeAr = isReceipt ? 'سند قبض' : 'سند صرف';
 
-      doc.addPage(
-        pw.Page(
-          // Dynamic widget-like sizing: Height adapts to the voucher type, Width matches the Image Export (550)
-          pageFormat: PdfPageFormat(550, report.isTripartite ? 680 : 580),
-          textDirection: pw.TextDirection.rtl,
-          margin: const pw.EdgeInsets.all(12),
-          build: (ctx) => pw.Container(
-            decoration: pw.BoxDecoration(
-              color: PdfColors.white,
-              borderRadius: pw.BorderRadius.circular(8),
-              border: pw.Border.all(color: _border, width: 1),
-            ),
-            child: pw.Stack(
-              alignment: pw.Alignment.topCenter,
-              children: [
-                // ── WATERMARK (Back layer) ─────────────────────────────
-                if (logoImage != null)
-                  pw.Positioned.fill(
-                    child: pw.Align(
-                      alignment: pw.Alignment.topCenter,
-                      child: pw.Padding(
-                        padding: const pw.EdgeInsets.only(top: 150),
-                        child: pw.Opacity(
-                          opacity: 0.05,
-                          child: pw.Image(
-                            logoImage,
-                            width: 350,
-                            height: 350,
-                            fit: pw.BoxFit.contain,
+        // Safe date parsing for pre-formatted strings
+        DateTime safeParse(String iso, DateTime fallback) {
+          try {
+            return DateTime.parse(iso);
+          } catch (_) {
+            return fallback;
+          }
+        }
+
+        final dateFmt = DateFormat('dd/MM/yyyy');
+        final dateStr =
+            _notEmpty(report.dateIso) && report.dateIso.contains('/')
+                ? report.dateIso
+                : dateFmt.format(safeParse(report.dateIso, DateTime.now()));
+
+        final createdFmt = DateFormat('hh:mm:ss a  dd/MM/yyyy');
+        final createdStr = _notEmpty(report.createdAtIso) &&
+                (report.createdAtIso.contains('/') ||
+                    report.createdAtIso.contains(':'))
+            ? report.createdAtIso
+            : createdFmt.format(safeParse(report.createdAtIso, DateTime.now()));
+
+        final divisor = math.pow(10, report.currencyDigits).toDouble();
+        final amount = report.amountMinorUnits / divisor;
+        final fmt = report.currencyDigits > 0
+            ? NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en')
+            : NumberFormat('#,##0', 'en');
+        final amountStr =
+            '${fmt.format(amount)} ${CurrencyUtil.getArabicName(report.currencyCode).replaceAll('﷼', 'ريال')}';
+
+        final qrPayload = report.qrData ?? report.voucherId;
+
+        pw.ImageProvider? logoImage;
+        if (logoBytes != null) {
+          logoImage = pw.MemoryImage(logoBytes);
+        }
+
+        // Title logic
+        final titleAr = _buildTitle(report, typeAr);
+
+        final doc = pw.Document(theme: theme);
+
+        doc.addPage(
+          pw.Page(
+            // Dynamic widget-like sizing: Height adapts to the voucher type, Width matches the Image Export (550)
+            pageFormat: PdfPageFormat(550, report.isTripartite ? 680 : 580),
+            textDirection: pw.TextDirection.rtl,
+            margin: const pw.EdgeInsets.all(12),
+            build: (ctx) => pw.Container(
+              decoration: pw.BoxDecoration(
+                color: PdfColors.white,
+                borderRadius: pw.BorderRadius.circular(8),
+                border: pw.Border.all(color: _border, width: 1),
+              ),
+              child: pw.Stack(
+                alignment: pw.Alignment.topCenter,
+                children: [
+                  // ── WATERMARK (Back layer) ─────────────────────────────
+                  if (logoImage != null)
+                    pw.Positioned.fill(
+                      child: pw.Align(
+                        alignment: pw.Alignment.topCenter,
+                        child: pw.Padding(
+                          padding: const pw.EdgeInsets.only(top: 150),
+                          child: pw.Opacity(
+                            opacity: 0.05,
+                            child: pw.Image(
+                              logoImage,
+                              width: 350,
+                              height: 350,
+                              fit: pw.BoxFit.contain,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
 
-                // ── CONTENT (Front layer) ──────────────────────────────
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                  mainAxisSize: pw.MainAxisSize.min,
-                  children: [
-                    // ── HEADER BAR ──────────────────────────────────────────
-                    _buildHeaderBar(font, logoImage, customHeaderTitle,
-                        customHeaderSubtitle),
+                  // ── CONTENT (Front layer) ──────────────────────────────
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      // ── HEADER BAR ──────────────────────────────────────────
+                      _buildHeaderBar(font, logoImage, customHeaderTitle,
+                          customHeaderSubtitle),
 
-                    // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
-                    _buildTitleRow(font, report, titleAr, dateStr, accent,
-                        labelVoucherNo, labelDate, mediatorName),
+                      // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
+                      _buildTitleRow(font, report, titleAr, dateStr, accent,
+                          labelVoucherNo, labelDate, mediatorName),
 
-                    pw.SizedBox(height: 6),
+                      pw.SizedBox(height: 6),
 
-                    // ── ENTRY SECTIONS ──────────────────────────────────────
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(horizontal: 24),
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                        children: [
-                          _buildEntrySection(
-                            font: font,
-                            amountStr: amountStr,
-                            sectionType: 'debit',
-                            report: report,
-                            accent: accent,
-                            labelFrom: labelFrom,
-                            labelDescription: labelDescription,
-                          ),
-
-                          pw.SizedBox(height: 8),
-
-                          // Credit entry (to account) — only for tripartite
-                          if (report.isTripartite)
+                      // ── ENTRY SECTIONS ──────────────────────────────────────
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 24),
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                          children: [
                             _buildEntrySection(
                               font: font,
                               amountStr: amountStr,
-                              sectionType: 'credit',
+                              sectionType: 'debit',
                               report: report,
                               accent: accent,
                               labelFrom: labelFrom,
                               labelDescription: labelDescription,
                             ),
 
-                          pw.SizedBox(height: 14),
+                            pw.SizedBox(height: 8),
 
-                          // ── SIGNATURE ROW ──────────────────────────────────
-                          _buildSignatureRow(font, report),
+                            // Credit entry (to account) — only for tripartite
+                            if (report.isTripartite)
+                              _buildEntrySection(
+                                font: font,
+                                amountStr: amountStr,
+                                sectionType: 'credit',
+                                report: report,
+                                accent: accent,
+                                labelFrom: labelFrom,
+                                labelDescription: labelDescription,
+                              ),
 
-                          pw.SizedBox(height: 14),
+                            pw.SizedBox(height: 14),
 
-                          // ── FOOTER ─────────────────────────────────────────
-                          _buildFooter(font, report, createdStr, qrPayload,
-                              customFooterText),
-                        ],
+                            // ── SIGNATURE ROW ──────────────────────────────────
+                            _buildSignatureRow(font, report),
+
+                            pw.SizedBox(height: 14),
+
+                            // ── FOOTER ─────────────────────────────────────────
+                            _buildFooter(font, report, createdStr, qrPayload,
+                                customFooterText),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      return Success(await doc.save());
-    } catch (e) {
+        return Success(await doc.save());
+      });
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('Voucher PDF Generation Error: $e');
+      // ignore: avoid_print
+      print('Stack Trace: $stackTrace');
+
       return FailureResult(
         UnexpectedFailure(messageAr: 'تعذر إنشاء ملف السند: $e'),
       );

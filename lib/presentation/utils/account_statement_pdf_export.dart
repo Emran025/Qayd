@@ -5,6 +5,7 @@ import 'package:qayd/data/dtos/account_statement_report_dto.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 
 /// Exports full account statement (all movements) as PDF and opens the share sheet.
 Future<void> shareAccountStatementAsPdf(
@@ -52,7 +53,7 @@ Future<void> shareAccountStatementAsPdf(
 
   final dto = AccountStatementReportDto(
     accountId: stmt.accountId,
-    accountName: stmt.accountName,
+    accountName: TextSanitizer.sanitizeText(stmt.accountName),
     natureCode: stmt.natureCode,
     generatedAtIso: now,
     issuerName: issuerName,
@@ -60,7 +61,7 @@ Future<void> shareAccountStatementAsPdf(
         .map(
           (l) => AccountStatementLineReportDto(
             dateIso: l.dateIso,
-            description: l.description,
+            description: TextSanitizer.sanitizeText(l.description),
             debitMinorUnits: l.debitMinorUnits,
             creditMinorUnits: l.creditMinorUnits,
             balanceMinorUnits: l.balanceMinorUnits,

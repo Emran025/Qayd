@@ -17,6 +17,7 @@ import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sh
 import 'package:qayd/presentation/utils/whatsapp_flavor_picker.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
 import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 
 Future<void> shareVoucherAsPdf(
   BuildContext context,
@@ -51,10 +52,10 @@ Future<void> shareVoucherAsPdf(
     counterpartyAccountId: data.counterpartyAccountId,
     counterpartyName: data.counterpartyName,
     affectedAccountId: data.affectedAccountId,
-    affectedName: data.affectedName,
+    affectedName: TextSanitizer.sanitizeText(data.affectedName),
     referenceNumber: data.referenceNumber,
-    description: data.description,
-    notes: data.notes,
+    description: TextSanitizer.sanitizeText(data.description?? ""),
+    notes: data.notes != null ? TextSanitizer.sanitizeText(data.notes!) : null,
     qrData: data.qrData,
     createdAtIso: data.createdAtIso,
     confirmedAtIso: data.confirmedAtIso,

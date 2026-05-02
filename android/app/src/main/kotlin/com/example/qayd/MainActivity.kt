@@ -54,19 +54,22 @@ class MainActivity: FlutterFragmentActivity() {
                                 "png" -> "image/png"
                                 "jpg", "jpeg" -> "image/jpeg"
                                 "webp" -> "image/webp"
+                                "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                "xls" -> "application/vnd.ms-excel"
                                 else -> "*/*"
                             }
                             intent.type = mimeType
                             intent.setPackage(packageName)
                             
-                            // Set text message
-                            if (!message.isNullOrBlank()) {
+                            // WhatsApp drops Excel attachments when EXTRA_TEXT is present alongside EXTRA_STREAM.
+                            // For Excel files we skip the caption text so the attachment always goes through.
+                            val isExcel = file.extension.lowercase() in listOf("xlsx", "xls")
+                            if (!message.isNullOrBlank() && !isExcel) {
                                 intent.putExtra(Intent.EXTRA_TEXT, message)
                             }
 
-                            // Attach specific contact (JID)
+                            // Attach specific contact (JID) — works for all file types
                             if (!phoneNumber.isNullOrBlank()) {
-                                // Format: Number must include country code, NO '+' sign. Example: 1234567890
                                 val cleanNumber = phoneNumber.replace(Regex("[^0-9]"), "")
                                 intent.putExtra("jid", "$cleanNumber@s.whatsapp.net")
                             }
