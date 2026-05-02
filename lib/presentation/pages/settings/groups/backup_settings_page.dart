@@ -104,22 +104,29 @@ class BackupSettingsPage extends StatelessWidget {
     if (go != true || !context.mounted) return;
 
     final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    
+    // Show a loading indicator if possible or just proceed
+    final result = await InjectionContainer.backupService.createUnifiedBackupFile();
+    if (!context.mounted) return;
+    if (result.isFailure) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.failureOrNull!.messageAr)),
+      );
+      return;
+    }
+    final backupFile = result.valueOrNull!;
+
     final path = await FilePicker.platform.saveFile(
       dialogTitle: AppStringsAr.settingsBackupSaveTitle,
-      fileName: 'qayd_backup_$stamp.db',
+      fileName: 'qayd_backup_$stamp.qback',
+      bytes: await backupFile.readAsBytes(),
     );
+    
     if (path == null || !context.mounted) return;
-    final r = await InjectionContainer.backupService.saveBackupCopyToPath(path);
-    if (!context.mounted) return;
-    if (r.isFailure) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.settingsBackupSaved)),
-      );
-    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(AppStringsAr.settingsBackupSaved)),
+    );
   }
 
   Future<void> _restore(BuildContext context) async {

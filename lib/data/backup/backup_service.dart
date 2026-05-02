@@ -9,6 +9,7 @@ import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/backup/qayd_database_validator.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
+import 'package:qayd/data/backup/unified_backup_manager.dart';
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
 /// Copies the live encrypted DB and shares it, or restores from a validated backup.
@@ -19,11 +20,14 @@ class BackupService {
   BackupService({
     required DatabaseEncryptionKeyProvider keyProvider,
     AttachmentsZipBuilder? zipBuilder,
+    UnifiedBackupManager? unifiedManager,
   })  : _keyProvider = keyProvider,
-        _zipBuilder = zipBuilder ?? const AttachmentsZipBuilder();
+        _zipBuilder = zipBuilder ?? const AttachmentsZipBuilder(),
+        _unifiedManager = unifiedManager ?? const UnifiedBackupManager();
 
   final DatabaseEncryptionKeyProvider _keyProvider;
   final AttachmentsZipBuilder _zipBuilder;
+  final UnifiedBackupManager _unifiedManager;
 
   // Must match IdentityFileStorage._fileName.
   static const String _identityFileName = 'qayd_identity.dat';
@@ -53,35 +57,25 @@ class BackupService {
   Future<Result<void>> shareDatabaseBackup() async {
     try {
       final dbFile = await copyDatabaseToTempFile();
-      final files = <XFile>[
-        XFile(dbFile.path, mimeType: 'application/octet-stream'),
-      ];
-
-      // Include the identity file if available.
       final idFile = await _findIdentityFile();
-      if (idFile != null) {
-        final tmpDir = await getTemporaryDirectory();
-        final idCopy = File(p.join(tmpDir.path, _identityFileName));
-        await idFile.copy(idCopy.path);
-        files.add(XFile(idCopy.path, mimeType: 'application/octet-stream'));
-      }
-
-      // Include the attachments ZIP if it has content.
+      File? zipFile;
       try {
-        final zipFile = await _zipBuilder.buildZipToTemp();
-        if (zipFile.existsSync() && zipFile.lengthSync() > 0) {
-          files.add(
-              XFile(zipFile.path, mimeType: 'application/zip'));
-        }
+        zipFile = await _zipBuilder.buildZipToTemp();
       } catch (_) {}
 
+      final archive = await _unifiedManager.createArchive(
+        dbFile: dbFile,
+        identityFile: idFile,
+        attachmentsZip: zipFile,
+      );
+
       await SharePlus.instance.share(
-        ShareParams(files: files),
+        ShareParams(files: [XFile(archive.path, mimeType: 'application/zip')]),
       );
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        FileSystemFailure(messageAr: 'تعذر إنشاء أو مشاركة النسخة الاحتياطية.'),
+        FileSystemFailure(messageAr: 'تعذر إنشاء أو مشاركة النسخة الاحتياطية الموحدة.'),
       );
     }
   }
@@ -90,39 +84,73 @@ class BackupService {
   Future<Result<void>> validateBackupFile(String backupPath,
       {String? customKey}) async {
     final key = customKey ?? await _key();
+
+    if (_unifiedManager.isZipArchive(backupPath)) {
+      final unpacked = await _unifiedManager.unpack(backupPath);
+      try {
+        if (unpacked.databasePath == null) {
+          return const FailureResult(ValidationFailure(
+              messageAr: 'الملف لا يحتوي على قاعدة بيانات قيد.'));
+        }
+        return await QaydDatabaseValidator.validateFile(
+          path: unpacked.databasePath!,
+          encryptionKey: key,
+        );
+      } finally {
+        await unpacked.dispose();
+      }
+    }
+
     return QaydDatabaseValidator.validateFile(
       path: backupPath,
       encryptionKey: key,
     );
   }
 
+  /// Creates the unified archive and returns the temporary [File].
+  Future<Result<File>> createUnifiedBackupFile() async {
+    try {
+      final dbFile = await copyDatabaseToTempFile();
+      final idFile = await _findIdentityFile();
+      File? zipFile;
+      try {
+        zipFile = await _zipBuilder.buildZipToTemp();
+      } catch (_) {}
+
+      final archive = await _unifiedManager.createArchive(
+        dbFile: dbFile,
+        identityFile: idFile,
+        attachmentsZip: zipFile,
+      );
+      return Success(archive);
+    } catch (e) {
+      return FailureResult(
+          FileSystemFailure(messageAr: 'تعذر إنشاء ملف النسخة الاحتياطية: $e'));
+    }
+  }
+
   /// Writes a fresh file copy via temp (avoids locking issues on some platforms).
   Future<Result<void>> saveBackupCopyToPath(String destinationPath) async {
     try {
-      final f = await copyDatabaseToTempFile();
-      await f.copy(destinationPath);
-
-      // Also save the identity file alongside the DB if possible.
+      final dbFile = await copyDatabaseToTempFile();
       final idFile = await _findIdentityFile();
-      if (idFile != null) {
-        final destDir = File(destinationPath).parent.path;
-        final idDest = File(p.join(destDir, _identityFileName));
-        await idFile.copy(idDest.path);
-      }
-
-      // Also save the attachments ZIP alongside.
+      File? zipFile;
       try {
-        final destDir = File(destinationPath).parent.path;
-        final zipDest =
-            p.join(destDir, AttachmentsZipBuilder.zipFileName);
-        await _zipBuilder.buildZip(zipDest);
+        zipFile = await _zipBuilder.buildZipToTemp();
       } catch (_) {}
 
+      final archive = await _unifiedManager.createArchive(
+        dbFile: dbFile,
+        identityFile: idFile,
+        attachmentsZip: zipFile,
+      );
+
+      await archive.copy(destinationPath);
       return const Success(null);
     } catch (_) {
       return const FailureResult(
         FileSystemFailure(
-            messageAr: 'تعذر حفظ النسخة الاحتياطية في المسار المحدد.'),
+            messageAr: 'تعذر حفظ النسخة الاحتياطية الموحدة في المسار المحدد.'),
       );
     }
   }
@@ -131,17 +159,49 @@ class BackupService {
   Future<Result<void>> replaceDatabaseFromBackupFile(String backupPath,
       {String? customKey}) async {
     final key = customKey ?? await _key();
+
+    String finalDbPath = backupPath;
+    String? finalIdPath;
+    String? finalAttachmentsZipPath;
+    UnpackedBackup? unpacked;
+
+    if (_unifiedManager.isZipArchive(backupPath)) {
+      unpacked = await _unifiedManager.unpack(backupPath);
+      if (unpacked.databasePath == null) {
+        await unpacked.dispose();
+        return const FailureResult(
+            ValidationFailure(messageAr: 'الملف لا يحتوي على قاعدة بيانات.'));
+      }
+      finalDbPath = unpacked.databasePath!;
+      finalIdPath = unpacked.identityPath;
+      finalAttachmentsZipPath = unpacked.attachmentsZipPath;
+    } else {
+      // Legacy behavior: check side-by-side
+      final backupDir = File(backupPath).parent.path;
+      final idSource = File(p.join(backupDir, _identityFileName));
+      if (idSource.existsSync()) {
+        finalIdPath = idSource.path;
+      }
+      final zipSource =
+          File(p.join(backupDir, AttachmentsZipBuilder.zipFileName));
+      if (zipSource.existsSync()) {
+        finalAttachmentsZipPath = zipSource.path;
+      }
+    }
+
     final v = await QaydDatabaseValidator.validateFile(
-      path: backupPath,
+      path: finalDbPath,
       encryptionKey: key,
     );
     if (v.isFailure) {
+      if (unpacked != null) await unpacked.dispose();
       return FailureResult(v.failureOrNull!);
     }
+
     try {
       final target = await DatabaseProvider.databaseFilePath();
       final tmp = '$target.tmp_restore';
-      await File(backupPath).copy(tmp);
+      await File(finalDbPath).copy(tmp);
       final targetFile = File(target);
       if (await targetFile.exists()) {
         await targetFile.delete();
@@ -151,36 +211,28 @@ class BackupService {
         await File(tmp).delete();
       } catch (_) {}
 
-      // If a custom key was used, we MUST save it to the current key provider
-      // so the app can open the DB next time.
-      if (customKey != null) {
-        // This is tricky as BackupService doesn't have direct access to write the key,
-        // but we'll assume the provider handles it or the caller does.
-      }
-
-      // If an identity file exists alongside the backup, restore it too.
-      final backupDir = File(backupPath).parent.path;
-      final idSource = File(p.join(backupDir, _identityFileName));
-      if (idSource.existsSync()) {
+      // Restore identity file if present.
+      if (finalIdPath != null && File(finalIdPath).existsSync()) {
         final docsDir = await getApplicationDocumentsDirectory();
         final idDest = File(p.join(docsDir.path, _identityFileName));
-        await idSource.copy(idDest.path);
+        await File(finalIdPath).copy(idDest.path);
       }
 
-      // Restore attachments ZIP if present alongside the backup.
-      try {
-        final zipSource =
-            File(p.join(backupDir, AttachmentsZipBuilder.zipFileName));
-        if (zipSource.existsSync()) {
-          await _zipBuilder.restoreFromZip(zipSource.path);
-        }
-      } catch (_) {}
+      // Restore attachments ZIP if present.
+      if (finalAttachmentsZipPath != null &&
+          File(finalAttachmentsZipPath).existsSync()) {
+        try {
+          await _zipBuilder.restoreFromZip(finalAttachmentsZipPath);
+        } catch (_) {}
+      }
 
       return const Success(null);
     } catch (_) {
       return const FailureResult(
         FileSystemFailure(messageAr: 'تعذر استبدال ملف قاعدة البيانات.'),
       );
+    } finally {
+      if (unpacked != null) await unpacked.dispose();
     }
   }
 }
