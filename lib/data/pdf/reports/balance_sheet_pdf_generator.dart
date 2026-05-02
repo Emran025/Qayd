@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
@@ -5,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:qayd/application/reports/dtos/balance_sheet_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
+import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:qayd/core/utils/currency_util.dart';
@@ -27,59 +29,73 @@ final class BalanceSheetPdfGenerator {
 
   Future<Uint8List> generate(
     BalanceSheetOutput report,
-    pw.Font arabicFont,
   ) async {
-    // ── Load logo ──────────────────────────────────────────────────────
-    pw.ImageProvider? logoImage;
+    // ── 1. Load assets on main thread (rootBundle not available in Isolate) ──
+    final fontData = await rootBundle.load(CairoPdfFonts.asset);
+    final fontBytes = fontData.buffer.asUint8List();
+
+    Uint8List? logoBytes;
     try {
       final logoData = await rootBundle.load('assets/images/logo.png');
-      logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+      logoBytes = logoData.buffer.asUint8List();
     } catch (_) {
-      // Fallback to text if logo unavailable
+      // Fallback to text badge if logo unavailable
     }
 
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicFont),
-    );
+    // ── 2. Offload heavy PDF build to a background Isolate ─────────────
+    return Isolate.run(() async {
+      final font = pw.Font.ttf(fontBytes.buffer.asByteData());
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        textDirection: pw.TextDirection.rtl,
-        margin: const pw.EdgeInsets.all(32),
-        header: (context) => _buildHeader(arabicFont, report, logoImage),
-        footer: (context) => _buildFooter(arabicFont, context),
-        build: (context) => [
-          pw.SizedBox(height: 12),
-          _buildInfoSection(arabicFont, report),
-          pw.SizedBox(height: 16),
-          _buildSection(
-            arabicFont,
-            'الأصول',
-            'Assets',
-            report.lines.where((l) => _isAsset(l.classification)).toList(),
-          ),
-          pw.SizedBox(height: 12),
-          _buildSection(
-            arabicFont,
-            'الخصوم',
-            'Liabilities',
-            report.lines.where((l) => _isLiability(l.classification)).toList(),
-          ),
-          pw.SizedBox(height: 12),
-          _buildSection(
-            arabicFont,
-            'حقوق الملكية',
-            'Equity',
-            report.lines.where((l) => _isEquity(l.classification)).toList(),
-          ),
-          pw.SizedBox(height: 20),
-          _buildSummary(arabicFont, report),
-        ],
-      ),
-    );
+      pw.ImageProvider? logoImage;
+      if (logoBytes != null) {
+        logoImage = pw.MemoryImage(logoBytes);
+      }
 
-    return pdf.save();
+      final pdf = pw.Document(
+        theme: pw.ThemeData.withFont(base: font, bold: font),
+      );
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          textDirection: pw.TextDirection.rtl,
+          margin: const pw.EdgeInsets.all(32),
+          header: (context) => _buildHeader(font, report, logoImage),
+          footer: (context) => _buildFooter(font, context),
+          build: (context) => [
+            pw.SizedBox(height: 12),
+            _buildInfoSection(font, report),
+            pw.SizedBox(height: 16),
+            ..._buildSection(
+              font,
+              'الأصول',
+              'Assets',
+              report.lines.where((l) => _isAsset(l.classification)).toList(),
+            ),
+            pw.SizedBox(height: 12),
+            ..._buildSection(
+              font,
+              'الخصوم',
+              'Liabilities',
+              report.lines
+                  .where((l) => _isLiability(l.classification))
+                  .toList(),
+            ),
+            pw.SizedBox(height: 12),
+            ..._buildSection(
+              font,
+              'حقوق الملكية',
+              'Equity',
+              report.lines.where((l) => _isEquity(l.classification)).toList(),
+            ),
+            pw.SizedBox(height: 20),
+            ..._buildSummary(font, report),
+          ],
+        ),
+      );
+
+      return pdf.save();
+    });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -289,13 +305,13 @@ final class BalanceSheetPdfGenerator {
   // ── SECTION (Assets / Liabilities / Equity) ────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildSection(
+  List<pw.Widget> _buildSection(
     pw.Font font,
     String titleAr,
     String titleEn,
     List<BalanceSheetLineDto> lines,
   ) {
-    if (lines.isEmpty) return pw.SizedBox();
+    if (lines.isEmpty) return [];
 
     // Grouping lines by accountId
     final groups = <String, List<BalanceSheetLineDto>>{};
@@ -306,183 +322,175 @@ final class BalanceSheetPdfGenerator {
       groups[line.accountId]!.add(line);
     }
 
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-      children: [
-        // Section header
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: pw.BoxDecoration(
-            color: _sectionBg,
-            borderRadius: pw.BorderRadius.circular(4),
-            border: pw.Border.all(color: _border, width: 0.5),
-          ),
-          child: pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+    return [
+      // Section header
+      pw.Container(
+        padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: pw.BoxDecoration(
+          color: _sectionBg,
+          borderRadius: pw.BorderRadius.circular(4),
+          border: pw.Border.all(color: _border, width: 0.5),
+        ),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(
+              titleAr,
+              style: pw.TextStyle(
+                font: font,
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 12,
+                color: _navy,
+              ),
+            ),
+            pw.Text(
+              titleEn,
+              style: pw.TextStyle(font: font, fontSize: 8, color: _muted),
+            ),
+          ],
+        ),
+      ),
+      pw.SizedBox(height: 4),
+
+      // Account lines summary table
+      pw.Table(
+        border: pw.TableBorder.all(color: _border, width: 0.5),
+        columnWidths: const {
+          0: pw.FlexColumnWidth(4),
+          1: pw.FlexColumnWidth(1),
+          2: pw.FlexColumnWidth(2),
+        },
+        children: [
+          // Table header
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(
+                color: PdfColor.fromInt(0xFF0F2741)), // _navy
             children: [
-              pw.Text(
-                titleAr,
-                style: pw.TextStyle(
-                  font: font,
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 12,
-                  color: _navy,
-                ),
-              ),
-              pw.Text(
-                titleEn,
-                style: pw.TextStyle(font: font, fontSize: 8, color: _muted),
-              ),
+              _tableHeaderCell(font, 'الحساب'),
+              _tableHeaderCell(font, 'العملة'),
+              _tableHeaderCell(font, 'الرصيد'),
             ],
           ),
-        ),
-        pw.SizedBox(height: 4),
+          // Data rows grouped by account
+          ...groups.values.map((group) {
+            final first = group.first;
+            final isParent = first.isParent;
+            final indent = (first.level * 12).toDouble();
 
-        // Account lines summary table
-        pw.ClipRRect(
-          horizontalRadius: 6,
-          verticalRadius: 6,
-          child: pw.Table(
-            border: pw.TableBorder.all(color: _border, width: 0.5),
-            columnWidths: const {
-              0: pw.FlexColumnWidth(4),
-              1: pw.FlexColumnWidth(1),
-              2: pw.FlexColumnWidth(2),
-            },
-            children: [
-              // Table header
-              pw.TableRow(
-                decoration: const pw.BoxDecoration(
-                    color: PdfColor.fromInt(0xFF0F2741)), // _navy
-                children: [
-                  _tableHeaderCell(font, 'الحساب'),
-                  _tableHeaderCell(font, 'العملة'),
-                  _tableHeaderCell(font, 'الرصيد'),
-                ],
-              ),
-              // Data rows grouped by account
-              ...groups.values.map((group) {
-                final first = group.first;
-                final isParent = first.isParent;
-                final indent = (first.level * 12).toDouble();
+            return pw.TableRow(
+              decoration: isParent
+                  ? const pw.BoxDecoration(color: PdfColors.grey50)
+                  : null,
+              children: [
+                // 1. Merged Account Info Formatted
+                pw.Container(
+                  alignment: pw.Alignment.centerRight,
+                  padding: pw.EdgeInsets.only(
+                    right: indent,
+                    left: 4,
+                    top: 5,
+                    bottom: 5,
+                  ),
+                  child: pw.RichText(
+                    text: pw.TextSpan(
+                      children: [
+                        if (first.accountCode.isNotEmpty)
+                          pw.TextSpan(
+                            text: '[${first.accountCode}] ',
+                            style: pw.TextStyle(
+                              font: font,
+                              fontSize: 6,
+                              color: _muted,
+                            ),
+                          ),
+                        pw.TextSpan(
+                          text: first.accountName,
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 8,
+                            fontWeight: isParent
+                                ? pw.FontWeight.bold
+                                : pw.FontWeight.normal,
+                            color: _navy,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
-                return pw.TableRow(
-                  decoration: isParent
-                      ? const pw.BoxDecoration(color: PdfColors.grey50)
-                      : null,
-                  children: [
-                    // 1. Merged Account Info Formatted
-                    pw.Container(
-                      alignment: pw.Alignment.centerRight,
-                      padding: pw.EdgeInsets.only(
-                        right: indent,
-                        left: 4,
-                        top: 5,
-                        bottom: 5,
-                      ),
-                      child: pw.RichText(
-                        text: pw.TextSpan(
-                          children: [
-                            if (first.accountCode.isNotEmpty)
-                              pw.TextSpan(
-                                text: '[${first.accountCode}] ',
-                                style: pw.TextStyle(
-                                  font: font,
-                                  fontSize: 6,
-                                  color: _muted,
+                // 2. Currencies Column
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                  children: group.map((l) {
+                    return pw.Container(
+                      alignment: pw.Alignment.center,
+                      padding: const pw.EdgeInsets.symmetric(vertical: 5),
+                      decoration: l == group.last
+                          ? null
+                          : pw.BoxDecoration(
+                              border: pw.Border(
+                                bottom: pw.BorderSide(
+                                  color: _border,
+                                  width: 0.5,
                                 ),
                               ),
-                            pw.TextSpan(
-                              text: first.accountName,
-                              style: pw.TextStyle(
-                                font: font,
-                                fontSize: 8,
-                                fontWeight: isParent
-                                    ? pw.FontWeight.bold
-                                    : pw.FontWeight.normal,
-                                color: _navy,
-                              ),
                             ),
-                          ],
+                      child: pw.RichText(
+                        text: buildPdfNumericalScaledSpan(
+                          CurrencyUtil.getArabicName(l.currencyCode)
+                              .replaceAll('﷼', 'ريال'),
+                          pw.TextStyle(font: font, fontSize: 7, color: _muted),
                         ),
                       ),
-                    ),
+                    );
+                  }).toList(),
+                ),
 
-                    // 2. Currencies Column
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                      children: group.map((l) {
-                        return pw.Container(
-                          alignment: pw.Alignment.center,
-                          padding: const pw.EdgeInsets.symmetric(vertical: 5),
-                          decoration: l == group.last
-                              ? null
-                              : pw.BoxDecoration(
-                                  border: pw.Border(
-                                    bottom: pw.BorderSide(
-                                      color: _border,
-                                      width: 0.5,
-                                    ),
-                                  ),
+                // 3. Balances Column
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+                  children: group.map((l) {
+                    final hasBorder = l != group.last;
+                    return pw.Container(
+                      alignment: pw.Alignment.centerLeft,
+                      padding: const pw.EdgeInsets.symmetric(
+                        vertical: 5,
+                        horizontal: 6,
+                      ),
+                      decoration: hasBorder
+                          ? pw.BoxDecoration(
+                              border: pw.Border(
+                                bottom: pw.BorderSide(
+                                  color: _border,
+                                  width: 0.5,
                                 ),
-                          child: pw.RichText(
-                            text: buildPdfNumericalScaledSpan(
-                              CurrencyUtil.getArabicName(l.currencyCode).replaceAll('﷼', 'ريال'),
-                              pw.TextStyle(
-                                  font: font, fontSize: 7, color: _muted),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    // 3. Balances Column
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-                      children: group.map((l) {
-                        final hasBorder = l != group.last;
-                        return pw.Container(
-                          alignment: pw.Alignment.centerLeft,
-                          padding: const pw.EdgeInsets.symmetric(
-                            vertical: 5,
-                            horizontal: 6,
-                          ),
-                          decoration: hasBorder
-                              ? pw.BoxDecoration(
-                                  border: pw.Border(
-                                    bottom: pw.BorderSide(
-                                      color: _border,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                )
-                              : null,
-                          child: pw.RichText(
-                            text: buildPdfNumericalScaledSpan(
-                                _formatMoney(
-                                    l.balanceMinorUnits, l.currencyDigits),
-                                pw.TextStyle(
-                                  font: font,
-                                  fontSize: 8,
-                                  fontWeight: isParent
-                                      ? pw.FontWeight.bold
-                                      : pw.FontWeight.normal,
-                                  color: l.balanceMinorUnits < 0
-                                      ? PdfColors.red700
-                                      : _navy,
-                                )),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                );
-              }),
-            ],
-          ),
-        )
-      ],
-    );
+                              ),
+                            )
+                          : null,
+                      child: pw.RichText(
+                        text: buildPdfNumericalScaledSpan(
+                            _formatMoney(l.balanceMinorUnits, l.currencyDigits),
+                            pw.TextStyle(
+                              font: font,
+                              fontSize: 8,
+                              fontWeight: isParent
+                                  ? pw.FontWeight.bold
+                                  : pw.FontWeight.normal,
+                              color: l.balanceMinorUnits < 0
+                                  ? PdfColors.red700
+                                  : _navy,
+                            )),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
+    ];
   }
 
   pw.Widget _tableHeaderCell(pw.Font font, String text) {
@@ -506,118 +514,47 @@ final class BalanceSheetPdfGenerator {
   // ── SUMMARY ────────────────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildSummary(pw.Font font, BalanceSheetOutput report) {
-    if (report.currencySections.isEmpty) return pw.SizedBox();
+  List<pw.Widget> _buildSummary(pw.Font font, BalanceSheetOutput report) {
+    if (report.currencySections.isEmpty) return [];
 
-    return pw.Column(
-      children: report.currencySections.values.map((s) {
-        final isBalanced = s.isBalanced;
-        final statusColor = isBalanced
-            ? PdfColor.fromInt(0xFF059669) // Emerald 600
-            : PdfColor.fromInt(0xFFDC2626); // Error Red
+    return report.currencySections.values.map((s) {
+      final isBalanced = s.isBalanced;
+      final statusColor = isBalanced
+          ? PdfColor.fromInt(0xFF059669) // Emerald 600
+          : PdfColor.fromInt(0xFFDC2626); // Error Red
 
-        return pw.Container(
-          margin: const pw.EdgeInsets.only(bottom: 12),
-          decoration: pw.BoxDecoration(
-            color: PdfColors.white,
-            borderRadius: pw.BorderRadius.circular(10),
-            border: pw.Border.all(color: statusColor, width: 0.8),
-          ),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            children: [
-              // ── Card Header ──
-              pw.Container(
-                decoration: pw.BoxDecoration(
-                  color: isBalanced
-                      ? PdfColor.fromInt(0xFFECFDF5) // Emerald 50
-                      : PdfColor.fromInt(0xFFFEF2F2), // Red 50
-                  borderRadius: const pw.BorderRadius.only(
-                    topLeft: pw.Radius.circular(9),
-                    topRight: pw.Radius.circular(9),
-                  ),
-                ),
-                child: pw.Column(
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      child: pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.RichText(
-                            text: buildPdfNumericalScaledSpan(
-                              'ملخص الإجماليات — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', 'ريال')}',
-                              pw.TextStyle(
-                                font: font,
-                                fontSize: 10,
-                                fontWeight: pw.FontWeight.bold,
-                                color: _navy,
-                              ),
-                            ),
-                          ),
-                          // Pill
-                          pw.Container(
-                            padding: const pw.EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: pw.BoxDecoration(
-                              color: PdfColors.white,
-                              borderRadius: pw.BorderRadius.circular(12),
-                              border:
-                                  pw.Border.all(color: statusColor, width: 0.5),
-                            ),
-                            child: pw.Text(
-                              isBalanced ? 'متوازن ✓' : 'غير متوازن',
-                              style: pw.TextStyle(
-                                font: font,
-                                fontSize: 8,
-                                fontWeight: pw.FontWeight.bold,
-                                color: statusColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    pw.Divider(height: 0, thickness: 0.5, color: statusColor),
-                  ],
+      return pw.Container(
+        margin: const pw.EdgeInsets.only(bottom: 12),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          borderRadius: pw.BorderRadius.circular(10),
+          border: pw.Border.all(color: statusColor, width: 0.8),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            // ── Card Header ──
+            pw.Container(
+              decoration: pw.BoxDecoration(
+                color: isBalanced
+                    ? PdfColor.fromInt(0xFFECFDF5) // Emerald 50
+                    : PdfColor.fromInt(0xFFFEF2F2), // Red 50
+                borderRadius: const pw.BorderRadius.only(
+                  topLeft: pw.Radius.circular(9),
+                  topRight: pw.Radius.circular(9),
                 ),
               ),
-
-              // ── Card Body ──
-              pw.Container(
-                padding: const pw.EdgeInsets.all(12),
-                child: pw.Column(
-                  children: [
-                    _summaryRow(font, 'إجمالي الأصول', s.totalAssetsMinorUnits,
-                        s.currencyDigits),
-                    pw.SizedBox(height: 4),
-                    _summaryRow(font, 'إجمالي الخصوم',
-                        s.totalLiabilitiesMinorUnits, s.currencyDigits),
-                    pw.SizedBox(height: 4),
-                    _summaryRow(font, 'حقوق الملكية', s.totalEquityMinorUnits,
-                        s.currencyDigits),
-                    pw.SizedBox(height: 8),
-                    pw.Divider(thickness: 0.5, color: PdfColors.grey300),
-                    pw.SizedBox(height: 8),
-                    pw.Row(
+              child: pw.Column(
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    child: pw.Row(
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
-                        pw.Text(
-                          'صافي الخصوم والملكية',
-                          style: pw.TextStyle(
-                            font: font,
-                            fontSize: 10,
-                            fontWeight: pw.FontWeight.bold,
-                            color: _navy,
-                          ),
-                        ),
                         pw.RichText(
                           text: buildPdfNumericalScaledSpan(
-                            _formatMoney(
-                                s.totalLiabilitiesMinorUnits +
-                                    s.totalEquityMinorUnits,
-                                s.currencyDigits),
+                            'ملخص الإجماليات — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', 'ريال')}',
                             pw.TextStyle(
                               font: font,
                               fontSize: 10,
@@ -626,16 +563,85 @@ final class BalanceSheetPdfGenerator {
                             ),
                           ),
                         ),
+                        // Pill
+                        pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: pw.BoxDecoration(
+                            color: PdfColors.white,
+                            borderRadius: pw.BorderRadius.circular(12),
+                            border:
+                                pw.Border.all(color: statusColor, width: 0.5),
+                          ),
+                          child: pw.Text(
+                            isBalanced ? 'متوازن' : 'غير متوازن',
+                            style: pw.TextStyle(
+                              font: font,
+                              fontSize: 8,
+                              fontWeight: pw.FontWeight.bold,
+                              color: statusColor,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  pw.Divider(height: 0, thickness: 0.5, color: statusColor),
+                ],
               ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
+            ),
+
+            // ── Card Body ──
+            pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              child: pw.Column(
+                children: [
+                  _summaryRow(font, 'إجمالي الأصول', s.totalAssetsMinorUnits,
+                      s.currencyDigits),
+                  pw.SizedBox(height: 4),
+                  _summaryRow(font, 'إجمالي الخصوم',
+                      s.totalLiabilitiesMinorUnits, s.currencyDigits),
+                  pw.SizedBox(height: 4),
+                  _summaryRow(font, 'حقوق الملكية', s.totalEquityMinorUnits,
+                      s.currencyDigits),
+                  pw.SizedBox(height: 8),
+                  pw.Divider(thickness: 0.5, color: PdfColors.grey300),
+                  pw.SizedBox(height: 8),
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(
+                        'صافي الخصوم والملكية',
+                        style: pw.TextStyle(
+                          font: font,
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _navy,
+                        ),
+                      ),
+                      pw.RichText(
+                        text: buildPdfNumericalScaledSpan(
+                          _formatMoney(
+                              s.totalLiabilitiesMinorUnits +
+                                  s.totalEquityMinorUnits,
+                              s.currencyDigits),
+                          pw.TextStyle(
+                            font: font,
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                            color: _navy,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 
   pw.Widget _summaryRow(pw.Font font, String label, int amount, int digits) {

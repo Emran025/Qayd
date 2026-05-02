@@ -564,7 +564,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
         ),
         child: Text(
           _config[key]!,
-          style:  TextStyle(
+          style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: size,
             color: color,
@@ -583,7 +583,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       text,
       textDirection: dir,
       textAlign: align,
-      style:  TextStyle(
+      style: TextStyle(
         fontFamily: 'Cairo',
         fontSize: size,
         color: color,
@@ -649,7 +649,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           if (hasSig)
             Expanded(
               child: Center(
-                child: _directText('✓ موقّع رقمياً', 9, const Color(0xFF047857),
+                child: _directText(' موقّع رقمياً', 9, const Color(0xFF047857),
                     bold: true),
               ),
             ),

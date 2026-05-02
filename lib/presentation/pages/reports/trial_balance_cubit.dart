@@ -5,7 +5,6 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 
 import 'package:qayd/data/excel/reports/excel_report_generator.dart';
-import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/reports/trial_balance_pdf_generator.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_state.dart';
 import 'package:qayd/presentation/utils/share_export_bytes.dart';
@@ -31,17 +30,17 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
 
     emit(TrialBalanceReady(currentState.output, isExporting: true));
     try {
-      final ttf = await CairoPdfFonts.font;
-
       const generator = TrialBalancePdfGenerator();
-      final bytes = await generator.generate(currentState.output, ttf);
+      final bytes = await generator.generate(currentState.output);
 
       await sharePdfBytes(
         bytes,
         'trial_balance_${DateTime.now().millisecondsSinceEpoch}.pdf',
         text: 'ميزان المراجعة — نظام قيد',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('TrialBalance PDF Error: $e\n$stackTrace');
       emit(TrialBalanceFailure(
         FileSystemFailure(messageAr: 'تعذر تصدير ميزان المراجعة كـ PDF: $e'),
       ));

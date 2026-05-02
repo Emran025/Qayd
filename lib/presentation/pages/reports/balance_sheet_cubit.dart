@@ -3,7 +3,6 @@ import 'package:qayd/application/reports/dtos/balance_sheet_output.dart';
 import 'package:qayd/application/reports/generate_balance_sheet_use_case.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/excel/reports/excel_report_generator.dart';
-import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/reports/balance_sheet_pdf_generator.dart';
 import 'package:qayd/presentation/utils/share_export_bytes.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
@@ -59,17 +58,17 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
 
     emit(BalanceSheetReady(currentState.output, isExporting: true));
     try {
-      final ttf = await CairoPdfFonts.font;
-
       const generator = BalanceSheetPdfGenerator();
-      final bytes = await generator.generate(currentState.output, ttf);
+      final bytes = await generator.generate(currentState.output);
 
       await sharePdfBytes(
         bytes,
         'balance_sheet_${DateTime.now().millisecondsSinceEpoch}.pdf',
         text: 'الميزانية العمومية — نظام قيد',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // ignore: avoid_print
+      print('BalanceSheet PDF Error: $e\n$stackTrace');
       emit(BalanceSheetFailure('تعذر تصدير الميزانية العمومية كـ PDF: $e'));
       return;
     }

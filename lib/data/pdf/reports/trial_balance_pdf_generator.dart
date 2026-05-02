@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
@@ -6,6 +7,7 @@ import 'package:qayd/application/reports/dtos/trial_balance_line_dto.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:qayd/core/utils/currency_util.dart';
 
@@ -26,40 +28,52 @@ final class TrialBalancePdfGenerator {
 
   Future<Uint8List> generate(
     TrialBalanceOutput report,
-    pw.Font arabicFont,
   ) async {
-    // ── Load logo ──────────────────────────────────────────────────────
-    pw.ImageProvider? logoImage;
+    // ── 1. Load assets on main thread (rootBundle not available in Isolate) ──
+    final fontData = await rootBundle.load(CairoPdfFonts.asset);
+    final fontBytes = fontData.buffer.asUint8List();
+
+    Uint8List? logoBytes;
     try {
       final logoData = await rootBundle.load('assets/images/logo.png');
-      logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+      logoBytes = logoData.buffer.asUint8List();
     } catch (_) {
-      // Fallback to text if logo unavailable
+      // Fallback to text badge if logo unavailable
     }
 
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicFont),
-    );
+    // ── 2. Offload heavy PDF build to a background Isolate ─────────────
+    return Isolate.run(() async {
+      final font = pw.Font.ttf(fontBytes.buffer.asByteData());
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4.landscape,
-        textDirection: pw.TextDirection.rtl,
-        margin: const pw.EdgeInsets.all(28),
-        header: (context) => _buildHeader(arabicFont, report, logoImage),
-        footer: (context) => _buildFooter(arabicFont, context, report),
-        build: (context) => [
-          pw.SizedBox(height: 12),
-          _buildInfoSection(arabicFont, report),
-          pw.SizedBox(height: 14),
-          _buildTable(arabicFont, report),
-          pw.SizedBox(height: 14),
-          _buildSummaryCards(arabicFont, report),
-        ],
-      ),
-    );
+      pw.ImageProvider? logoImage;
+      if (logoBytes != null) {
+        logoImage = pw.MemoryImage(logoBytes);
+      }
 
-    return pdf.save();
+      final pdf = pw.Document(
+        theme: pw.ThemeData.withFont(base: font, bold: font),
+      );
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4.landscape,
+          textDirection: pw.TextDirection.rtl,
+          margin: const pw.EdgeInsets.all(28),
+          header: (context) => _buildHeader(font, report, logoImage),
+          footer: (context) => _buildFooter(font, context, report),
+          build: (context) => [
+            pw.SizedBox(height: 12),
+            _buildInfoSection(font, report),
+            pw.SizedBox(height: 14),
+            _buildTable(font, report),
+            pw.SizedBox(height: 14),
+            _buildSummaryCards(font, report),
+          ],
+        ),
+      );
+
+      return pdf.save();
+    });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -572,7 +586,7 @@ final class TrialBalancePdfGenerator {
                                   pw.Border.all(color: statusColor, width: 0.5),
                             ),
                             child: pw.Text(
-                              isBalanced ? 'متوازن ✓' : 'غير متوازن',
+                              isBalanced ? 'متوازن' : 'غير متوازن',
                               style: pw.TextStyle(
                                 font: font,
                                 fontSize: 8,

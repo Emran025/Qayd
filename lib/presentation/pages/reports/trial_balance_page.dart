@@ -977,7 +977,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                     border: Border.all(color: statusColor.withAlpha(50)),
                   ),
                   child: Text(
-                    balanced ? 'متوازن ✓' : 'غير متوازن',
+                    balanced ? 'متوازن ' : 'غير متوازن',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
