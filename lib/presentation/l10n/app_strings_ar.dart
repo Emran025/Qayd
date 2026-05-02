@@ -422,7 +422,7 @@ abstract final class AppStringsAr {
   static const String liabilitiesLabel = 'الخصوم';
   static const String equityLabel = 'حقوق الملكية';
   static const String totalsSummaryPrefix = 'ملخص الإجماليات — ';
-  static const String balancedLabel = 'متوازن ✓';
+  static const String balancedLabel = 'متوازن ';
   static const String unbalancedLabel = 'غير متوازن';
   static const String totalAssetsLabel = 'إجمالي الأصول';
   static const String totalLiabilitiesLabel = 'إجمالي الخصوم';
@@ -951,7 +951,7 @@ abstract final class AppStringsAr {
       'سيتم سحب هذا السند نهائياً. لن يظهر عند الطرف المقابل ولا يمكن التراجع.';
   static const String voucherWithdrawnSuccess = 'تم سحب السند بنجاح.';
   static const String voucherReversalIndicator = '↩ مرتجع';
-  static const String voucherSettlementIndicator = '✓ تسوية';
+  static const String voucherSettlementIndicator = ' تسوية';
   static const String voucherCreateReversal = 'إنشاء مرتجع';
   static const String voucherCreateSettlement = 'تسوية';
   static const String voucherRejectionReasonLabel = 'سبب الرفض';
