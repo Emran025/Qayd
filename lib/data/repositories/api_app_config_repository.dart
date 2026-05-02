@@ -12,6 +12,7 @@ import '../../core/constants/api_endpoints.dart';
 import '../../core/error/failures.dart';
 import '../../domain/entities/app_document.dart';
 import '../../domain/repositories/app_config_repository.dart';
+import '../../core/utils/text_sanitizer.dart';
 
 class ApiAppConfigRepository implements AppConfigRepository {
   final ApiClient apiClient;
@@ -54,7 +55,8 @@ class ApiAppConfigRepository implements AppConfigRepository {
       if (e is AppException) {
         return left(NetworkFailure(messageAr: e.message));
       }
-      return left(UnexpectedFailure(messageAr: e.toString()));
+      return left(
+          UnexpectedFailure(messageAr: TextSanitizer.sanitizeErrorMessage(e)));
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:qayd/core/constants/api_endpoints.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/data/network/api_client.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
 
 /// HTTP implementation of [AuthRepository] using the Dio-based [ApiClient].
@@ -157,6 +158,8 @@ final class RemoteAuthRepository implements AuthRepository {
     );
   }
 
-  String _unknownError(Object e) =>
-      'خطأ غير متوقع: ${e.toString().split('\n').first}';
+  String _unknownError(Object e) {
+    final sanitized = TextSanitizer.sanitizeErrorMessage(e);
+    return 'خطأ غير متوقع: $sanitized';
+  }
 }

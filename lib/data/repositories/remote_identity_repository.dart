@@ -3,6 +3,7 @@ import 'package:qayd/core/constants/api_endpoints.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/domain/repositories/identity_repository.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:qayd/domain/value_objects/sync_privacy_policy.dart';
 
 /// HTTP implementation of [IdentityRepository] using the Dio-based [ApiClient].
@@ -24,7 +25,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       rethrow;
     } catch (e) {
       throw AuthException(
-          'خطأ في تسجيل المفتاح العام: ${e.toString().split('\n').first}');
+          'خطأ في تسجيل المفتاح العام: ${TextSanitizer.sanitizeErrorMessage(e)}');
     }
   }
 
@@ -49,7 +50,8 @@ final class RemoteIdentityRepository implements IdentityRepository {
         email: data['email'] as String?,
         whatsappNumber: data['whatsapp_number'] as String?,
         syncBlocked: data['sync_blocked'] == true,
-        isRegistered: data['registered'] != false, // Default to true for backward compatibility
+        isRegistered: data['registered'] !=
+            false, // Default to true for backward compatibility
       );
     } on AuthException {
       rethrow;
@@ -196,7 +198,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       return data['user'] as Map<String, dynamic>;
     } catch (e) {
       throw AuthException(
-          'خطأ في تحديث البيانات: ${e.toString().split('\n').first}');
+          'خطأ في تحديث البيانات: ${TextSanitizer.sanitizeErrorMessage(e)}');
     }
   }
 
@@ -224,7 +226,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       rethrow;
     } catch (e) {
       throw AuthException(
-          'خطأ في تحديث سياسة الخصوصية: ${e.toString().split('\n').first}');
+          'خطأ في تحديث سياسة الخصوصية: ${TextSanitizer.sanitizeErrorMessage(e)}');
     }
   }
 
@@ -243,7 +245,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       rethrow;
     } catch (e) {
       throw AuthException(
-          'خطأ في إضافة المستخدم للقائمة: ${e.toString().split('\n').first}');
+          'خطأ في إضافة المستخدم للقائمة: ${TextSanitizer.sanitizeErrorMessage(e)}');
     }
   }
 
@@ -257,7 +259,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       rethrow;
     } catch (e) {
       throw AuthException(
-          'خطأ في حذف المستخدم من القائمة: ${e.toString().split('\n').first}');
+          'خطأ في حذف المستخدم من القائمة: ${TextSanitizer.sanitizeErrorMessage(e)}');
     }
   }
 
@@ -269,7 +271,7 @@ final class RemoteIdentityRepository implements IdentityRepository {
       rethrow;
     } catch (e) {
       throw AuthException(
-          'خطأ في حذف الحساب من السيرفر: ${e.toString().split('\n').first}');
+          'خطأ في حذف الحساب من السيرفر: ${TextSanitizer.sanitizeErrorMessage(e)}');
     }
   }
 }

@@ -24,4 +24,22 @@ abstract final class TextSanitizer {
     }
     return input;
   }
+
+  /// Cleans up exception messages by removing generic HTTP/Dio artifacts
+  /// like "DioException" or "bad response" before showing them to the user.
+  static String sanitizeErrorMessage(Object e) {
+    String msg = e.toString().split('\n').first;
+
+    // Remove variations of DioException and its brackets/colons
+    msg = msg.replaceAll(RegExp(r'DioException\s*\[.*?\]:?\s*'), '');
+    msg = msg.replaceAll(RegExp(r'DioException:?\s*'), '');
+
+    // Remove specific keywords requested by user
+    msg = msg.replaceAll(RegExp(r'(?i)bad\s*response'), '');
+
+    // Clean up any leftover punctuation or spaces at the start
+    msg = msg.replaceFirst(RegExp(r'^[\s:]+'), '');
+
+    return msg.trim();
+  }
 }

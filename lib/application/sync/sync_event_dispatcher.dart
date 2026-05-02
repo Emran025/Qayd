@@ -8,6 +8,7 @@ import 'package:qayd/domain/repositories/identity_repository.dart';
 import 'package:qayd/domain/services/e2ee_encryption_service.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
+import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:uuid/uuid.dart';
 
 /// Centralizes the encryption and enqueuing of financial mutations into the Local Outbox.
@@ -198,7 +199,8 @@ class SyncEventDispatcher {
       // Gracefully handle network or encryption errors.
       // We don't want to throw and break the main local transaction.
       return FailureResult(DatabaseFailure(
-        messageAr: 'فشل المزامنة المحلية: ${e.toString()}',
+        messageAr:
+            'فشل المزامنة المحلية: ${TextSanitizer.sanitizeErrorMessage(e)}',
       ));
     }
   }
