@@ -47,4 +47,10 @@ abstract interface class AuthRepository {
 
   /// Verifies the account using a 6-digit [code].
   Future<bool> verifyEmailOtp(String code);
+
+  /// Refreshes the license state from the server.
+  ///
+  /// Useful for unlocking the app after an admin grants a license,
+  /// without requiring a full re-login.
+  Future<Map<String, dynamic>> refreshLicense();
 }

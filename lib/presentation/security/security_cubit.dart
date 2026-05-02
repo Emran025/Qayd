@@ -137,11 +137,19 @@ class SecurityCubit extends Cubit<SecurityState> {
       final accountClosed = data['account_closed'] as bool? ?? false;
       final isActive = data['is_active'] as bool? ?? true;
 
-      if (status == 'FORCE_REVOKE' || status == 'revoked' || !isActive) {
+      // Hard admin revoke (FORCE_REVOKE) or deactivated account → panic wipe.
+      if (status == 'FORCE_REVOKE' || status == 'revoked') {
         return LicenseStatus.revoked;
       }
-      if (accountClosed) return LicenseStatus.revoked;
+      // Admin deactivated the user account (not a payment issue) → revoke.
+      if (!isActive) {
+        return LicenseStatus.revoked;
+      }
+      // Trial ended without a formal license → hard lock (NO panic wipe).
+      if (accountClosed) return LicenseStatus.trialExpired;
+      // Full active license or server confirmed active status.
       if (hasFormalLicense || status == 'active') return LicenseStatus.active;
+      // Admin-suspended → read-only.
       if (status == 'suspended') return LicenseStatus.suspended;
     }
 
@@ -155,6 +163,48 @@ class SecurityCubit extends Cubit<SecurityState> {
       return LicenseStatus.trialExpired;
     }
     return LicenseStatus.trial;
+  }
+
+  /// Refreshes the license state from the server and updates the lock state.
+  /// Used primarily when the user is locked out and waiting for admin approval.
+  Future<({bool success, String? errorAr})> refreshLicenseStatus() async {
+    try {
+      final newData = await _authRepository.refreshLicense();
+      
+      // Merge new status fields into the existing license data
+      final existingData = await _licenseVault.readLicenseData() ?? {};
+      
+      // Keys matching what the backend's /license/refresh returns
+      if (newData.containsKey('status')) existingData['status'] = newData['status'];
+      if (newData.containsKey('is_active')) existingData['is_active'] = newData['is_active'];
+      if (newData.containsKey('has_formal_license')) existingData['has_formal_license'] = newData['has_formal_license'];
+      if (newData.containsKey('account_closed')) existingData['account_closed'] = newData['account_closed'];
+
+      await _licenseVault.writeLicenseData(existingData);
+
+      final ls = await _resolveLicenseStatus();
+      final trialDays = _licenseVault.daysRemainingInTrial(
+        await _licenseVault.readTrialStart() ?? DateTime.now(),
+      );
+
+      if (state is SecurityLocked) {
+        emit(SecurityLocked(
+          licenseStatus: ls,
+          clockStatus: state.clockStatus,
+          trialDaysRemaining: trialDays,
+        ));
+      } else {
+        emit(SecurityUnlocked(
+          licenseStatus: ls,
+          clockStatus: state.clockStatus,
+          trialDaysRemaining: trialDays,
+        ));
+      }
+
+      return (success: true, errorAr: null);
+    } catch (e) {
+      return (success: false, errorAr: 'فشل تحديث حالة الترخيص. تأكد من اتصالك بالإنترنت.');
+    }
   }
 
   // ── PIN preferences ───────────────────────────────────────────────────────

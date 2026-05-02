@@ -129,6 +129,18 @@ final class RemoteAuthRepository implements AuthRepository {
     }
   }
 
+  @override
+  Future<Map<String, dynamic>> refreshLicense() async {
+    try {
+      final data = await _client.get(ApiEndpoints.licenseRefresh);
+      return data;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
+    }
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   ({String jwt, Map<String, dynamic> licenseData, String serverSalt})

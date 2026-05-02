@@ -66,8 +66,7 @@ import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
 import 'package:qayd/data/database/hardware_backed_encryption_key_provider.dart';
 import 'package:qayd/data/database/transaction_runner.dart';
-import 'package:qayd/data/governance/remote/governance_stub_controller.dart';
-import 'package:qayd/data/governance/remote/stub_governance_remote_data_source.dart';
+import 'package:qayd/data/governance/remote/license_vault_governance_remote_data_source.dart';
 import 'package:qayd/core/constants/api_endpoints.dart';
 import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/data/repositories/governance_repository_impl.dart';
@@ -230,7 +229,6 @@ abstract final class InjectionContainer {
 
   // ── Governance ─────────────────────────────────────────────────────────────
 
-  static late final GovernanceStubController governanceStubController;
   static late final CheckGovernanceStatusUseCase checkGovernanceStatusUseCase;
   static late final SubmitActivationUseCase submitActivationUseCase;
   static late final GovernanceWriteGuard governanceWriteGuard;
@@ -410,9 +408,11 @@ abstract final class InjectionContainer {
     authRepository = RemoteAuthRepository(apiClient: apiClient);
 
     // ── Governance ──────────────────────────────────────────────────────────
-    governanceStubController = GovernanceStubController();
-    final governanceRemote = StubGovernanceRemoteDataSource(
-      controller: governanceStubController,
+    // Uses LicenseVault (populated by Auth API) as the authoritative source.
+    // This ensures GovernanceWriteGuard reflects real server state without
+    // a separate API call.
+    final governanceRemote = LicenseVaultGovernanceRemoteDataSource(
+      licenseVault: licenseVault,
     );
     final governanceRepository = GovernanceRepositoryImpl(governanceRemote);
     checkGovernanceStatusUseCase = CheckGovernanceStatusUseCase(

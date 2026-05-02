@@ -137,8 +137,13 @@ class _VaultScreen extends StatelessWidget {
                 const SizedBox(height: SpacingTokens.xl),
                 if (config.showProvisioningButton)
                   _ProvisioningButton(config: config),
-                if (config.showContactButton)
+                if (config.showRefreshButton)
+                  const _RefreshStatusButton(),
+                if (config.showContactButton) ...[
+                  if (config.showRefreshButton || config.showProvisioningButton)
+                    const SizedBox(height: SpacingTokens.md),
                   _ContactBadge(messageAr: config.contactAr ?? ''),
+                ]
               ],
             ),
           ),
@@ -179,6 +184,7 @@ class _VaultScreen extends StatelessWidget {
           iconColor: const Color(0xFFDC2626),
           titleAr: AppStringsAr.vaultTrialExpiredTitle,
           bodyAr: AppStringsAr.vaultTrialExpiredBody,
+          showRefreshButton: true,
           showContactButton: true,
           contactAr: AppStringsAr.vaultContactSupport,
           trialDaysRemaining: state.trialDaysRemaining,
@@ -481,6 +487,96 @@ class _ContactBadge extends StatelessWidget {
   }
 }
 
+class _RefreshStatusButton extends StatefulWidget {
+  const _RefreshStatusButton();
+
+  @override
+  State<_RefreshStatusButton> createState() => _RefreshStatusButtonState();
+}
+
+class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
+  bool _loading = false;
+  String? _errorAr;
+
+  Future<void> _refresh() async {
+    if (_loading) return;
+    setState(() {
+      _loading = true;
+      _errorAr = null;
+    });
+
+    final result = await context.read<SecurityCubit>().refreshLicenseStatus();
+    
+    if (!mounted) return;
+    setState(() => _loading = false);
+    
+    if (!result.success) {
+      setState(() => _errorAr = result.errorAr);
+    } else if (context.read<SecurityCubit>().state.isHardBlocked) {
+      // It succeeded but the account is still locked
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('حالة الحساب لم تتغير. يرجى التواصل مع الإدارة.'),
+          backgroundColor: ColorTokens.slate800,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: ColorTokens.slate800,
+              foregroundColor: ColorTokens.emerald400,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(color: ColorTokens.emerald500.withValues(alpha: 0.3)),
+              ),
+            ),
+            onPressed: _loading ? null : _refresh,
+            icon: _loading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: ColorTokens.emerald400,
+                    ),
+                  )
+                : const Icon(Icons.refresh_rounded),
+            label: Text(
+              'تحديث حالة الحساب',
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+        if (_errorAr != null) ...[
+          const SizedBox(height: SpacingTokens.sm),
+          Text(
+            _errorAr!,
+            style: const TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 13,
+              color: Color(0xFFF87171), // red-400
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _OverlayConfig {
   const _OverlayConfig({
     required this.icon,
@@ -489,6 +585,7 @@ class _OverlayConfig {
     required this.bodyAr,
     this.trialDaysRemaining,
     this.showProvisioningButton = false,
+    this.showRefreshButton = false,
     this.showContactButton = false,
     this.contactAr,
   });
@@ -499,6 +596,7 @@ class _OverlayConfig {
   final String bodyAr;
   final int? trialDaysRemaining;
   final bool showProvisioningButton;
+  final bool showRefreshButton;
   final bool showContactButton;
   final String? contactAr;
 }
