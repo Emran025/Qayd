@@ -2006,8 +2006,8 @@ class _CollateralSummaryCard extends StatelessWidget {
                                   SnackBar(
                                     content: Text(
                                       surplus > 0
-                                          ? 'تمت التسوية ✓  فائض: ${(surplus / 100).toStringAsFixed(2)} ${data.currencyCode}'
-                                          : 'تمت تسوية الرهن بنجاح ✓',
+                                          ? 'تمت التسوية   فائض: ${(surplus / 100).toStringAsFixed(2)} ${data.currencyCode}'
+                                          : 'تمت تسوية الرهن بنجاح ',
                                     ),
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(

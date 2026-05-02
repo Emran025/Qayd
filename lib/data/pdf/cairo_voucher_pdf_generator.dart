@@ -768,7 +768,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             pw.Expanded(
               child: pw.Center(
                 child: pw.Text(
-                  '✓ موقّع رقمياً',
+                  ' موقّع رقمياً',
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 9,

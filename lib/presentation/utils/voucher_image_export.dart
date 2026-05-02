@@ -679,7 +679,7 @@ class VoucherImageCard extends StatelessWidget {
           if (hasSig)
             Expanded(
               child: Center(
-                child: _text('✓ موقّع رقمياً', 9, _emerald, bold: true),
+                child: _text(' موقّع رقمياً', 9, _emerald, bold: true),
               ),
             ),
           Container(height: 0.5, color: _border),
