@@ -8,6 +8,8 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 import 'package:intl/intl.dart' as intl;
 
 class AuditLogPage extends StatelessWidget {
@@ -19,7 +21,7 @@ class AuditLogPage extends StatelessWidget {
 
     return QaydScaffold(
       appBar: const QaydAppBar(
-        title: 'سجل التدقيق الرقمي',
+        title: AppStringsAr.digitalAuditLog,
       ),
       body: BlocBuilder<AuditLogCubit, AuditLogState>(
         builder: (context, state) {
@@ -59,12 +61,12 @@ class AuditLogPage extends StatelessWidget {
           ),
           const SizedBox(height: SpacingTokens.md),
           const QaydText(
-            'لا توجد عمليات مسجلة في السجل حالياً',
+            AppStringsAr.thereAreNoTransactions,
             slot: QaydTextStyleSlot.titleMedium,
           ),
           const SizedBox(height: SpacingTokens.xs),
           QaydText(
-            'سيظهر هنا تاريخ كافة الحركات والعمليات التي تقوم بها',
+            AppStringsAr.theHistoryOfAll,
             slot: QaydTextStyleSlot.bodySmall,
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -181,11 +183,11 @@ class _AuditEntryCard extends StatelessWidget {
           _buildIdRow(theme),
           if (entry.oldData != null) ...[
             const SizedBox(height: SpacingTokens.sm),
-            _buildDataPoint(theme, 'الحالة السابقة', entry.oldData!),
+            _buildDataPoint(theme, AppStringsAr.previousCase, entry.oldData!),
           ],
           if (entry.newData != null) ...[
             const SizedBox(height: SpacingTokens.sm),
-            _buildDataPoint(theme, 'الحالة الجديدة', entry.newData!,
+            _buildDataPoint(theme, AppStringsAr.newStatus, entry.newData!,
                 isNew: true),
           ],
         ],
@@ -196,7 +198,7 @@ class _AuditEntryCard extends StatelessWidget {
   Widget _buildIdRow(ThemeData theme) {
     return Row(
       children: [
-        QaydText('المعرف المرجعي:',
+        QaydText(AppStringsAr.referenceId,
             slot: QaydTextStyleSlot.labelSmall,
             color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 8),
@@ -281,7 +283,7 @@ class _AuditEntryCard extends StatelessWidget {
           TextButton.icon(
             onPressed: () => _showRollbackDialog(context),
             icon: const Icon(Icons.history_rounded, size: 16),
-            label: const Text('تراجع لهذه النقطة'),
+            label: const Text(AppStringsAr.backToThisPoint),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -311,31 +313,31 @@ class _AuditEntryCard extends StatelessWidget {
 
   String _getEntityName(String type) {
     return switch (type) {
-      'account' => 'حساب',
-      'voucher' => 'سند مالي',
+      'account' => AppStringsAr.account,
+      'voucher' => AppStringsAr.financialBond,
       _ => type,
     };
   }
 
   String _getActionName(AuditAction action) {
     return switch (action) {
-      AuditAction.create => 'إضافة',
-      AuditAction.update => 'تعديل',
-      AuditAction.delete => 'سحب/حذف',
-      AuditAction.revert => 'استعادة',
+      AuditAction.create => AppStringsAr.addition,
+      AuditAction.update => AppStringsAr.amendment,
+      AuditAction.delete => AppStringsAr.withdrawdelete,
+      AuditAction.revert => AppStringsAr.restoration,
     };
   }
 
   String _translateKey(String key) {
     return switch (key) {
-      'name' => 'الاسم',
-      'type' => 'النوع',
-      'amount' => 'المبلغ',
-      'currency' => 'العملة',
-      'state' => 'الحالة',
-      'is_active' => 'نشط',
-      'confirmed_at' => 'تاريخ التأكيد',
-      'classification' => 'التصنيف',
+      'name' => AppStringsAr.theName,
+      'type' => AppStringsAr.type,
+      'amount' => AppStringsAr.amount,
+      'currency' => AppStringsAr.currency,
+      'state' => AppStringsAr.theCondition,
+      'is_active' => AppStringsAr.active,
+      'confirmed_at' => AppStringsAr.confirmationDate,
+      'classification' => AppStringsAr.classification,
       _ => key,
     };
   }
@@ -345,15 +347,15 @@ class _AuditEntryCard extends StatelessWidget {
       context: context,
       icon: Icons.warning_rounded,
       iconColor: Theme.of(context).colorScheme.error,
-      title: 'تأكيد التراجع النظامي',
+      title: AppStringsAr.confirmSystematicReversal,
       content:
-          'سيقوم النظام بإلغاء كافة العمليات التي تمت بعد هذه اللحظة الزمنية وإعادة التطبيق إلى حالته حينها. هل ترغب بالمتابعة؟',
-      primaryActionLabel: 'تأكيد التراجع',
+          AppStringsAr.theSystemWillCancel,
+      primaryActionLabel: AppStringsAr.confirmRollback,
       onPrimaryAction: () {
         Navigator.pop(context);
         context.read<AuditLogCubit>().rollbackTo(entry.id);
       },
-      secondaryActionLabel: 'إلغاء',
+      secondaryActionLabel: AppStringsAr.cancellation,
     );
   }
 }

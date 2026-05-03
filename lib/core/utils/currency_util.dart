@@ -1,35 +1,36 @@
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 /// Utility to map ISO currency codes to Arabic names.
 abstract final class CurrencyUtil {
   static String getArabicName(String code) {
     switch (code.toUpperCase()) {
       case 'SAR':
-        return '﷼ سعودي';
+        return AppStringsAr.saudiRiyals;
       case 'YER':
-        return '﷼ يمني';
+        return AppStringsAr.yemeni;
       case 'USD':
-        return 'دولار أمريكي';
+        return AppStringsAr.usDollars;
       case 'AED':
-        return 'درهم إماراتي';
+        return AppStringsAr.emiratiDirham;
       case 'EGP':
-        return 'جنيه مصري';
+        return AppStringsAr.egyptianPound;
       case 'KWD':
-        return 'دينار كويتي';
+        return AppStringsAr.kuwaitiDinar;
       case 'BHD':
-        return 'دينار بحريني';
+        return AppStringsAr.bahrainiDinar;
       case 'OMR':
-        return '﷼ عماني';
+        return AppStringsAr.omani;
       case 'QAR':
-        return '﷼ قطري';
+        return AppStringsAr.qatari;
       case 'TRY':
-        return 'ليرة تركية';
+        return AppStringsAr.turkishLira;
       case 'EUR':
-        return 'يورو';
+        return AppStringsAr.euro;
       case 'GBP':
-        return 'جنيه إسترليني';
+        return AppStringsAr.britishPounds;
       case 'XAU':
-        return 'جرام ذهب';
+        return AppStringsAr.aGramOfGold;
       case 'XAG':
-        return 'جرام فضه';
+        return AppStringsAr.aGramOfSilver;
       default:
         return code;
     }

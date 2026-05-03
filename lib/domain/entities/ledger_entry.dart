@@ -6,6 +6,8 @@ import 'package:qayd/domain/value_objects/entry_side.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Immutable ledger line; corrections are done via reversal entries, never mutation.
 final class LedgerEntry {
@@ -47,7 +49,7 @@ final class LedgerEntry {
   }) {
     if (amount.isZero) {
       throw const InvalidAmountException(
-        messageAr: 'مبلغ القيد يجب أن يكون أكبر من صفر.',
+        messageAr: AppStringsAr.theEntryAmountMust,
         code: 'ledger_amount_zero',
       );
     }

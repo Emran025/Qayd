@@ -91,7 +91,7 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                  content: Text('تم إرسال طلب الحوالة للوسيط بنجاح')),
+                  content: Text(AppStringsAr.theTransferRequestHas)),
             );
             Navigator.pop(context);
           },
@@ -144,8 +144,8 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
               child: Icon(Icons.person,
                   color: theme.colorScheme.onPrimaryContainer),
             ),
-            title: const Text('حدد الوسيط المالي المعتمد'),
-            subtitle: Text(_mediator?.name ?? 'اضغط لاختيار الوسيط'),
+            title: const Text(AppStringsAr.selectTheApprovedFinancial),
+            subtitle: Text(_mediator?.name ?? AppStringsAr.clickToChooseThe),
             trailing: Icon(Icons.arrow_forward_ios, size: 14, color: gold),
             onTap: _pickMediator,
           ),
@@ -164,7 +164,7 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
             ),
             child: _submitting
                 ? const CircularProgressIndicator()
-                : const Text('إرسال الطلب'),
+                : const Text(AppStringsAr.submitTheRequest),
           ),
         ],
       ),

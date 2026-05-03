@@ -4,6 +4,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Settles a confirmed voucher — marking it as fully resolved.
 ///
@@ -33,7 +35,7 @@ class SettleVoucherUseCase {
       if (!v.state.isConfirmed) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'يمكن تسوية السند من حالة التأكيد فقط.',
+            messageAr: AppStringsAr.theBondCanBe,
             code: 'voucher_settle_not_confirmed',
           ),
         );

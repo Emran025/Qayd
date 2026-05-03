@@ -6,6 +6,8 @@ import 'package:qayd/domain/entities/message_template.dart';
 import 'package:qayd/domain/repositories/message_template_repository.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SqliteMessageTemplateRepository
     implements MessageTemplateRepository {
@@ -30,7 +32,7 @@ final class SqliteMessageTemplateRepository
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة قوالب الرسائل.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadMessage),
       );
     }
   }
@@ -54,7 +56,7 @@ final class SqliteMessageTemplateRepository
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة القوالب.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadTemplates),
       );
     }
   }
@@ -71,7 +73,7 @@ final class SqliteMessageTemplateRepository
       if (rows.isEmpty) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'القالب غير موجود.',
+            messageAr: AppStringsAr.templateNotFound,
             code: 'template_not_found',
           ),
         );
@@ -82,7 +84,7 @@ final class SqliteMessageTemplateRepository
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة القالب.'),
+        DatabaseFailure(messageAr: AppStringsAr.theTemplateCouldNot2),
       );
     }
   }
@@ -99,7 +101,7 @@ final class SqliteMessageTemplateRepository
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ القالب.'),
+        DatabaseFailure(messageAr: AppStringsAr.theTemplateCouldNot1),
       );
     }
   }
@@ -117,7 +119,7 @@ final class SqliteMessageTemplateRepository
       if (rows.isEmpty) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'القالب غير موجود.',
+            messageAr: AppStringsAr.templateNotFound,
             code: 'template_not_found',
           ),
         );
@@ -125,7 +127,7 @@ final class SqliteMessageTemplateRepository
       if ((rows.first['is_system'] as int) != 0) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن حذف القالب الافتراضي.',
+            messageAr: AppStringsAr.theDefaultTemplateCannot,
             code: 'template_system_delete',
           ),
         );
@@ -134,7 +136,7 @@ final class SqliteMessageTemplateRepository
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حذف القالب.'),
+        DatabaseFailure(messageAr: AppStringsAr.theTemplateCouldNot),
       );
     }
   }

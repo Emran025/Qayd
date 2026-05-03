@@ -13,6 +13,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 abstract interface class AccountStatementPdfGenerator {
   Future<Result<Uint8List>> buildStatementPdf(AccountStatementReportDto report);
@@ -80,7 +82,7 @@ final class CairoAccountStatementPdfGenerator
           periodLabel = '$a — $b';
         }
 
-        final natureAr = report.natureCode == 'debit' ? 'دائن' : 'مدين';
+        final natureAr = report.natureCode == 'debit' ? AppStringsAr.creditor : AppStringsAr.debtor;
 
         // Calculate totals
         int totalDebit = 0;
@@ -157,7 +159,7 @@ final class CairoAccountStatementPdfGenerator
       print('Stack Trace: $stackTrace');
       
       return const FailureResult(
-        UnexpectedFailure(messageAr: 'تعذر إنشاء ملف كشف الحساب.'),
+        UnexpectedFailure(messageAr: AppStringsAr.unableToCreateAccount),
       );
     }
   }
@@ -192,7 +194,7 @@ final class CairoAccountStatementPdfGenerator
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  'كشف الحساب',
+                  AppStringsAr.accountStatement,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 15,
@@ -203,7 +205,7 @@ final class CairoAccountStatementPdfGenerator
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  'Account Statement — نظام السندات المالية المشفّرة',
+                  AppStringsAr.accountStatementASystem,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 7,
@@ -240,7 +242,7 @@ final class CairoAccountStatementPdfGenerator
               ),
               child: pw.Center(
                 child: pw.Text(
-                  'قيد',
+                  AppStringsAr.restriction,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 14,
@@ -301,7 +303,7 @@ final class CairoAccountStatementPdfGenerator
         pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            // Right column: "إلى:" (account info)
+            // Right column: AppStringsAr.toMe (account info)
             pw.Expanded(
               child: pw.Container(
                 padding: const pw.EdgeInsets.all(8),
@@ -312,14 +314,14 @@ final class CairoAccountStatementPdfGenerator
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, 'اسم الحساب:', report.accountName),
+                    _infoLine(font, AppStringsAr.accountName1, report.accountName),
                     pw.SizedBox(height: 4),
-                    _infoLine(font, 'طبيعة الحساب:', natureAr),
+                    _infoLine(font, AppStringsAr.natureOfAccount, natureAr),
                     pw.SizedBox(height: 4),
                     _infoLine(
                       font,
-                      'الفترة:',
-                      periodLabel ?? 'كل الحركات',
+                      AppStringsAr.period,
+                      periodLabel ?? AppStringsAr.allMovements,
                     ),
                   ],
                 ),
@@ -339,11 +341,11 @@ final class CairoAccountStatementPdfGenerator
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, 'تاريخ الإصدار:', genAt),
+                    _infoLine(font, AppStringsAr.releaseDate, genAt),
                     pw.SizedBox(height: 4),
                     _infoLine(
                       font,
-                      'رقم المرجع:',
+                      AppStringsAr.referenceNumber,
                       report.accountId.length > 12
                           ? report.accountId.substring(0, 12)
                           : report.accountId,
@@ -440,12 +442,12 @@ final class CairoAccountStatementPdfGenerator
         5: const pw.FlexColumnWidth(1.8), // دائن
       },
       headers: [
-        'التاريخ',
-        'البيان',
-        'العملة',
-        'رقم السند',
-        'دائن',
-        'مدين'
+        AppStringsAr.theDate,
+        AppStringsAr.statement1,
+        AppStringsAr.currency,
+        AppStringsAr.bondNumber,
+        AppStringsAr.creditor,
+        AppStringsAr.debtor
       ],
       data: [
         ...report.lines.map((l) {
@@ -470,7 +472,7 @@ final class CairoAccountStatementPdfGenerator
               ? '${l.voucherId.substring(0, 8)}…'
               : l.voucherId;
           final currencyName = CurrencyUtil.getArabicName(l.currencyCode)
-              .replaceAll('﷼', 'ريال');
+              .replaceAll('﷼', AppStringsAr.sar);
 
           return [d, desc, currencyName, vId, debit, credit];
         }),
@@ -514,7 +516,7 @@ final class CairoAccountStatementPdfGenerator
                 const pw.BorderRadius.vertical(top: pw.Radius.circular(4)),
           ),
           child: pw.Text(
-            'صافي الأرصدة الختامية',
+            AppStringsAr.netClosingBalances,
             style: pw.TextStyle(
               font: font,
               fontSize: 10,
@@ -528,7 +530,7 @@ final class CairoAccountStatementPdfGenerator
         ...finalBalances.entries.map((e) {
           final amount = e.value / 100;
           final absAmount = amount.abs();
-          final label = amount < 0 ? 'عليكم' : 'لكم';
+          final label = amount < 0 ? AppStringsAr.onYou : AppStringsAr.your;
           final amountStr = MoneyFormatter.formatDecimal(absAmount);
 
           return pw.Container(
@@ -566,14 +568,14 @@ final class CairoAccountStatementPdfGenerator
                     ),
                     pw.SizedBox(width: 4),
                     pw.Text(
-                      CurrencyUtil.getArabicName(e.key).replaceAll('﷼', 'ريال'),
+                      CurrencyUtil.getArabicName(e.key).replaceAll('﷼', AppStringsAr.sar),
                       style:
                           pw.TextStyle(font: font, fontSize: 10, color: _muted),
                     ),
                   ],
                 ),
                 pw.Text(
-                  'الرصيد (${CurrencyUtil.getArabicName(e.key).replaceAll('﷼', 'ريال')})',
+                  'الرصيد (${CurrencyUtil.getArabicName(e.key).replaceAll('﷼', AppStringsAr.sar)})',
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 9,
@@ -617,7 +619,7 @@ final class CairoAccountStatementPdfGenerator
                 style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
               ),
               pw.Text(
-                'تم إنشاء هذا الكشف بواسطة تطبيق قيد — Qayd App',
+                AppStringsAr.thisStatementWasGenerated,
                 style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
               ),
             ],
@@ -645,7 +647,7 @@ final class CairoAccountStatementPdfGenerator
                   ),
                   pw.SizedBox(width: 6),
                   pw.Text(
-                    ':الجهة المُنشِئة للكشف',
+                    AppStringsAr.theEntityOriginatingThe,
                     style: pw.TextStyle(
                       font: font,
                       fontSize: 8,

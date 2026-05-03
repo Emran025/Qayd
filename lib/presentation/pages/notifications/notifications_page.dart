@@ -79,7 +79,7 @@ class _NotificationsView extends StatelessWidget {
             if (notifications.isEmpty) {
               return Center(
                 child: Text(
-                  'لا توجد إشعارات جديدة',
+                  AppStringsAr.thereAreNoNew,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

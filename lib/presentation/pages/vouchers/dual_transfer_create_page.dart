@@ -120,7 +120,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
     if (_sender == null || _receiver == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('الرجاء اختيار المرسل والمستلم')),
+        const SnackBar(content: Text(AppStringsAr.pleaseSelectASender)),
       );
       return;
     }
@@ -128,7 +128,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
     if (_fund == null) {
       messenger.showSnackBar(
         const SnackBar(
-            content: Text('لم يتم العثور على حساب الصندوق تلقائياً')),
+            content: Text(AppStringsAr.theFundAccountWas)),
       );
       return;
     }
@@ -136,7 +136,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
     if (_sender!.id == _receiver!.id) {
       messenger.showSnackBar(
         const SnackBar(
-            content: Text('لا يمكن أن يكون المرسل والمستلم نفس الطرف')),
+            content: Text(AppStringsAr.theSenderAndRecipient1)),
       );
       return;
     }
@@ -179,7 +179,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
         }
         if (state is VoucherCreateDualSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم حفظ التحويل المزدوج بنجاح')),
+            const SnackBar(content: Text(AppStringsAr.theDoubleConversionWas)),
           );
           Navigator.of(context).pop();
         }
@@ -189,7 +189,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
         return Scaffold(
           appBar: QaydAppBar(
-            title: 'تحويل مزدوج مع الصندوق',
+            title: AppStringsAr.doubleConversionWithBox,
           ),
           body: AbsorbPointer(
             absorbing: submitting,
@@ -217,7 +217,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
                         const SizedBox(width: SpacingTokens.sm),
                         Expanded(
                           child: QaydText(
-                            'سيتم إنشاء سندين: سند خصم من المرسل وسند إضافة للمستلم.\nالصندوق يتأثر برصيده.',
+                            AppStringsAr.twoVouchersWillBe,
                             slot: QaydTextStyleSlot.bodySmall,
                             color: ColorTokens.debitBlue,
                           ),
@@ -235,11 +235,11 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      'الصندوق (الوسيط)',
+                      AppStringsAr.fundBroker,
                       slot: QaydTextStyleSlot.labelLarge,
                     ),
                     subtitle: QaydText(
-                      _fund?.name ?? 'جاري الكشف التلقائي…',
+                      _fund?.name ?? AppStringsAr.automaticallyDetecting,
                       slot: QaydTextStyleSlot.bodyLarge,
                       color: _fund == null ? scheme.onSurfaceVariant : null,
                     ),
@@ -253,7 +253,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
                   // ── Sender ──────────────────────────────────────
                   _buildAccountPicker(
-                    label: 'المُرْسِل (يُخصم من حسابه)',
+                    label: AppStringsAr.senderDeductedFromHis,
                     account: _sender,
                     onTap: () => _pickAccount(0),
                     gold: gold,
@@ -263,7 +263,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
                   // ── Receiver ────────────────────────────────────
                   _buildAccountPicker(
-                    label: 'المُسْتلم (يُضاف لحسابه)',
+                    label: AppStringsAr.recipientCreditedToHis,
                     account: _receiver,
                     onTap: () => _pickAccount(1),
                     gold: gold,
@@ -298,7 +298,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
                     ),
                     child: submitting
                         ? const CircularProgressIndicator()
-                        : const Text('حفظ التحويل المزدوج'),
+                        : const Text(AppStringsAr.saveTheDoubleConversion),
                   ),
                 ],
               ),
@@ -352,7 +352,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
-          account?.name ?? 'اختر الحساب',
+          account?.name ?? AppStringsAr.chooseAccount,
           slot: QaydTextStyleSlot.bodyLarge,
           color: account == null
               ? Theme.of(context).colorScheme.onSurfaceVariant

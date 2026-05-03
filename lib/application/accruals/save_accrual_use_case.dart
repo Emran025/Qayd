@@ -3,6 +3,8 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/repositories/accrual_repository.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SaveAccrualUseCase {
   const SaveAccrualUseCase(this._repository, this._idGenerator);
@@ -43,7 +45,7 @@ final class SaveAccrualUseCase {
 
     if (component.name.isEmpty) {
       return const FailureResult(
-          ValidationFailure(messageAr: 'يرجى إدخال اسم الالتزام.'));
+          ValidationFailure(messageAr: AppStringsAr.pleaseEnterACommit));
     }
 
     final result = await _repository.save(component);

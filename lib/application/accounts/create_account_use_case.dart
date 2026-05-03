@@ -16,6 +16,8 @@ import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/data/services/phone_normalization_service.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 
 class CreateAccountUseCase {
@@ -55,7 +57,7 @@ class CreateAccountUseCase {
             await _accountRepository.findAccountByPhone(normalizedPhone);
         if (existingByPhone.valueOrNull != null) {
           return const FailureResult(ValidationFailure(
-            messageAr: 'يوجد حساب مسجل مسبقاً برقم الهاتف هذا.',
+            messageAr: AppStringsAr.thereIsAlreadyAn,
           ));
         }
       }
@@ -73,7 +75,7 @@ class CreateAccountUseCase {
             await _accountRepository.findAccountByEmail(input.email!);
         if (existingByEmail.valueOrNull != null) {
           return const FailureResult(ValidationFailure(
-            messageAr: 'يوجد حساب مسجل مسبقاً بالبريد الإلكتروني هذا.',
+            messageAr: AppStringsAr.thereIsAnAccount,
           ));
         }
       }
@@ -178,11 +180,11 @@ class CreateAccountUseCase {
         input.customClassificationNature != null;
     if (hasStd == hasCustom) {
       throw ArgumentError(
-        'يجب اختيار تصنيف قياسي أو تصنيف مخصص للحساب الجذر.',
+        AppStringsAr.youMustChooseA,
       );
     }
     if (hasCustom && input.customClassificationName!.trim().isEmpty) {
-      throw ArgumentError('اسم التصنيف المخصص مطلوب.');
+      throw ArgumentError(AppStringsAr.customTaxonomyNameIs);
     }
   }
 

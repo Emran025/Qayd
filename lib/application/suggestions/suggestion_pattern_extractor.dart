@@ -1,4 +1,6 @@
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Offline regex extraction from SMS / notification bodies (Arabic + English).
 enum SuggestionDirection {
@@ -35,11 +37,11 @@ abstract final class SuggestionPatternExtractor {
     r'\d{1,3}(?:[,\u066C\s]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?',
   );
   static final RegExp _hexSignature = RegExp(
-    r'(?:بصمة|توقيع|sig|signature)\s*[:=]?\s*([a-fA-F0-9]{32,128})',
+    AppStringsAr.fingerprintsignaturesigsignaturessafaf0932128,
     caseSensitive: false,
   );
   static final RegExp _hexPublicKey = RegExp(
-    r'(?:مفتاح|pk|public_key)\s*[:=]?\s*([a-fA-F0-9]{32,128})',
+    AppStringsAr.keypkpublickeyssafaf0932128,
     caseSensitive: false,
   );
 
@@ -64,7 +66,7 @@ abstract final class SuggestionPatternExtractor {
   }
 
   static String _normalizeDigits(String s) {
-    const ar = '٠١٢٣٤٥٦٧٨٩';
+    const ar = AppStringsAr.s0123456789;
     const en = '0123456789';
     var o = s;
     for (var i = 0; i < ar.length; i++) {
@@ -137,23 +139,23 @@ abstract final class SuggestionPatternExtractor {
     var paymentScore = 0;
 
     const receiptAr = [
-      'استلمت',
-      'أودعت',
-      'اودعت',
-      'حوالة واردة',
-      'حواله وارده',
-      'وارد',
-      'إيداع',
-      'ايداع',
+      AppStringsAr.iReceived,
+      AppStringsAr.deposited,
+      AppStringsAr.iDeposited,
+      AppStringsAr.incomingTransfer1,
+      AppStringsAr.incomingTransfer,
+      AppStringsAr.incoming,
+      AppStringsAr.deposit,
+      AppStringsAr.deposit1,
     ];
     const paymentAr = [
-      'أرسلت',
-      'ارسلت',
-      'سحب',
-      'حوالة صادرة',
-      'حواله صادره',
-      'صادر',
-      'تحويل صادر',
+      AppStringsAr.sent1,
+      AppStringsAr.sent,
+      AppStringsAr.toWithdraw,
+      AppStringsAr.outgoingTransfer2,
+      AppStringsAr.outgoingTransfer,
+      AppStringsAr.issued,
+      AppStringsAr.outgoingTransfer1,
     ];
     const receiptEn = ['received', 'incoming', 'credit', 'deposit'];
     const paymentEn = ['sent', 'withdraw', 'outgoing', 'debit', 'transfer out'];

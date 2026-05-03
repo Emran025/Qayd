@@ -147,7 +147,7 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
   Future<void> _verify() async {
     final code = _controllers.map((c) => c.text).join();
     if (code.length < 6) {
-      setState(() => _errorAr = 'الرجاء إدخال رمز التحقق بالكامل.');
+      setState(() => _errorAr = AppStringsAr.pleaseEnterTheFull);
       return;
     }
 

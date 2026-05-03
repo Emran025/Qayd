@@ -192,14 +192,14 @@ Future<void> shareStatementChatAsExcel(
   );
 
   try {
-    final headers = [
-      'التاريخ',
-      'رقم السند',
-      'النوع',
-      'الحالة',
-      'دائن',
-      'مدين',
-      'الرصيد',
+    final headers = <String>[
+      AppStringsAr.theDate,
+      AppStringsAr.bondNumber,
+      AppStringsAr.type,
+      AppStringsAr.theCondition,
+      AppStringsAr.creditor,
+      AppStringsAr.debtor,
+      AppStringsAr.balance,
     ];
 
     num divisor = 1;
@@ -325,7 +325,7 @@ Future<void> shareStatementChatAsExcel(
               totalCredit: totalCreditStr,
               netBalance: netBalanceStr,
               notesText:
-                  'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
+                  AppStringsAr.thankYouForDealing,
             ));
 
     if (!context.mounted) return;
@@ -398,7 +398,7 @@ Future<void> shareStatementChatAsExcel(
           .pop(); // dismiss loading if error
     }
     messenger.showSnackBar(
-      const SnackBar(content: Text('حدث خطأ أثناء تصدير Excel')),
+      const SnackBar(content: Text(AppStringsAr.anErrorOccurredWhile1)),
     );
   }
 }

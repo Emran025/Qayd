@@ -201,7 +201,7 @@ class _AppShellPageState extends State<AppShellPage> {
             const SizedBox(width: 12),
             const Expanded(
               child: Text(
-                'وجدنا نسخة احتياطية محلية، هل تريد استعادة بياناتك السابقة؟',
+                AppStringsAr.weFoundALocal,
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -210,7 +210,7 @@ class _AppShellPageState extends State<AppShellPage> {
             ),
             TextButton(
               onPressed: _navigateToRestore,
-              child: const Text('استعادة الآن',
+              child: const Text(AppStringsAr.restoreNow,
                   style: TextStyle(
                       color: Colors.white,
                       decoration: TextDecoration.underline)),
@@ -237,7 +237,7 @@ class _AppShellPageState extends State<AppShellPage> {
             const SizedBox(width: 12),
             const Expanded(
               child: Text(
-                'بعض البيانات لا يمكن قراءتها بسبب اختلاف مفاتيح التشفير. جرب استعادة نسخة احتياطية محلية.',
+                AppStringsAr.someDataCannotBe,
                 style: TextStyle(
                     color: ColorTokens.navy950,
                     fontWeight: FontWeight.bold,
@@ -246,7 +246,7 @@ class _AppShellPageState extends State<AppShellPage> {
             ),
             TextButton(
               onPressed: _navigateToRestore,
-              child: const Text('استعادة',
+              child: const Text(AppStringsAr.restoration,
                   style: TextStyle(
                       color: ColorTokens.navy950,
                       decoration: TextDecoration.underline)),

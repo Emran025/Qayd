@@ -1,6 +1,8 @@
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Data model for an outbox entry.
 class OutboxEntry {
@@ -80,7 +82,7 @@ class OutboxDao {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ الإدخال في صندوق الصادر.'),
+        DatabaseFailure(messageAr: AppStringsAr.theEntryCouldNot),
       );
     }
   }
@@ -97,7 +99,7 @@ class OutboxDao {
       return Success(rows.map(OutboxEntry.fromMap).toList());
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة صندوق الصادر.'),
+        DatabaseFailure(messageAr: AppStringsAr.theOutboxCouldNot),
       );
     }
   }
@@ -116,7 +118,7 @@ class OutboxDao {
       return Success(rows.map(OutboxEntry.fromMap).toList());
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة صندوق الصادر للطرف.'),
+        DatabaseFailure(messageAr: AppStringsAr.thePartysOutboxCould),
       );
     }
   }
@@ -143,7 +145,7 @@ class OutboxDao {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر تحديث حالة التسليم.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToUpdateDelivery),
       );
     }
   }

@@ -17,6 +17,8 @@ import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_state.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
   NotificationPreviewCubit({
@@ -127,7 +129,7 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
       body = await resolveVoucherShareTextWithFallback(voucher);
     } else if (account != null) {
       body =
-          'تحية طيبة، رصيد الحساب ${account.name} حالياً هو: ${bindings['balance']}.\n\nمُصدّر آلياً عبر نظام قيد المالي.';
+          'تحية طيبة، رصيد الحساب ${account.name} حالياً هو: ${bindings['balanceAppStringsAr.nnautomaticallyExportedViaThe']}';
     } else {
       body = '';
     }
@@ -201,7 +203,7 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     );
     if (!ok) {
       return const FailureResult(
-        UnexpectedFailure(messageAr: 'تعذر فتح تطبيق الرسائل.'),
+        UnexpectedFailure(messageAr: AppStringsAr.couldNotOpenThe),
       );
     }
     return _logIntent(
@@ -228,7 +230,7 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     );
     if (!ok) {
       return const FailureResult(
-        UnexpectedFailure(messageAr: 'تعذر فتح واتساب.'),
+        UnexpectedFailure(messageAr: AppStringsAr.unableToOpenWhatsapp),
       );
     }
     return _logIntent(

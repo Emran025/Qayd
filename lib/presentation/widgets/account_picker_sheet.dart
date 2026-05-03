@@ -298,7 +298,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
     if (phone == null || phone.isEmpty) return;
 
     final message =
-        'مرحباً ${account.name}، أدعوك لاستخدام تطبيق "قيد" للمحاسبة والمزامنة السحابية.';
+        'مرحباً ${account.name}، أدعوك لاستخدام تطبيق AppStringsAr.restriction للمحاسبة والمزامنة السحابية.';
     final uri = Uri.parse(
         'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
     launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -425,7 +425,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
                     widget.onMultiSelected?.call(selected);
                   },
                   icon: const Icon(Icons.check_circle_outline, size: 20),
-                  label: const Text('تأكيد الاختيار'),
+                  label: const Text(AppStringsAr.confirmSelection),
                 ),
               ),
             SizedBox(
@@ -572,7 +572,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              'غير مسجل',
+              AppStringsAr.notRegistered,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: 9,
                 color: scheme.onSurfaceVariant,
@@ -583,7 +583,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
           GestureDetector(
             onTap: () => _inviteAccount(account),
             child: Text(
-              'دعوة الآن',
+              AppStringsAr.callNow,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: 10,
                 color: scheme.primary,
@@ -603,7 +603,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
           Icon(Icons.lock_person_outlined, size: 12, color: scheme.secondary),
           const SizedBox(width: 4),
           Text(
-            'محمي بالخصوصية',
+            AppStringsAr.privacyProtected,
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: 9,
               color: scheme.secondary,
@@ -620,7 +620,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
         Icon(Icons.verified_user_rounded, size: 12, color: scheme.primary),
         const SizedBox(width: 4),
         Text(
-          'جاهز للمزامنة',
+          AppStringsAr.readyToSync,
           style: theme.textTheme.labelSmall?.copyWith(
             fontSize: 9,
             color: scheme.primary,

@@ -203,14 +203,14 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     return Column(
       children: [
         const Text(
-          'سيتم الآن إنشاء هوية رقمية جديدة لتأمين وتشفير بياناتك على هذا الجهاز.',
+          AppStringsAr.aNewDigitalIdentity,
           textAlign: TextAlign.center,
           style:
               TextStyle(color: ColorTokens.slate400, fontSize: 14, height: 1.5),
         ),
         const SizedBox(height: SpacingTokens.xl),
         AuthSubmitButton(
-          label: 'لدي مفتاح سابق (24 كلمة) بالفعل',
+          label: AppStringsAr.iHaveAPrevious,
           loading: _isLoading,
           onPressed: () {
             Navigator.of(context).pushReplacement(
@@ -222,7 +222,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
         TextButton(
           onPressed: _generateMnemonic,
           child: const Text(
-            'إنشاء هوية جديدة',
+            AppStringsAr.createANewIdentity,
             style: TextStyle(
               color: ColorTokens.emerald500,
               fontWeight: FontWeight.bold,
@@ -290,7 +290,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'تحذير الأمان',
+                  AppStringsAr.securityWarning,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.error,

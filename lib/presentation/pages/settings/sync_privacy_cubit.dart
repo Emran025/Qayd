@@ -7,6 +7,8 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/sync_privacy_policy.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// State for the sync privacy settings UI.
 class SyncPrivacyState {
@@ -125,7 +127,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
     } catch (e) {
       _emit(_state.copyWith(
         isLoading: false,
-        error: 'تعذّر تحميل إعدادات الخصوصية.',
+        error: AppStringsAr.unableToLoadPrivacy,
       ));
     }
   }
@@ -186,7 +188,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       _emit(_state.copyWith(
         policy: policy,
         isUpdating: false,
-        successMessage: 'تم تحديث سياسة الخصوصية.',
+        successMessage: AppStringsAr.privacyPolicyHasBeen,
       ));
     } on AuthException catch (e) {
       _emit(_state.copyWith(
@@ -196,7 +198,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
     } catch (e) {
       _emit(_state.copyWith(
         isUpdating: false,
-        error: 'تعذّر تحديث سياسة الخصوصية.',
+        error: AppStringsAr.thePrivacyPolicyCould,
       ));
     }
   }
@@ -300,7 +302,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       var freshPolicy = await _identityRepo.getSyncPolicy();
       freshPolicy = await _resolveLocalNames(freshPolicy);
 
-      String successMsg = 'تم تحديث القائمة بنجاح.';
+      String successMsg = AppStringsAr.theListHasBeen;
       if (skippedNoPhone > 0) {
         successMsg += ' (تم تخطي $skippedNoPhone حساب لعدم وجود رقم هاتف)';
       }
@@ -313,18 +315,18 @@ class SyncPrivacyCubit extends ChangeNotifier {
     } on AuthException catch (e) {
       _emit(_state.copyWith(isUpdating: false, error: e.message));
     } on DioException catch (e) {
-      String errorMsg = 'تعذّر تحديث القائمة.';
+      String errorMsg = AppStringsAr.couldNotUpdateThe;
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.toString().contains('SocketException')) {
-        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+        errorMsg = AppStringsAr.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(isUpdating: false, error: errorMsg));
     } catch (e) {
-      String errorMsg = 'تعذّر تحديث القائمة.';
+      String errorMsg = AppStringsAr.couldNotUpdateThe;
       if (e.toString().contains('SocketException') ||
           e.toString().contains('connection')) {
-        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+        errorMsg = AppStringsAr.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(isUpdating: false, error: errorMsg));
     }
@@ -348,7 +350,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       _emit(_state.copyWith(
         policy: policy,
         isUpdating: false,
-        successMessage: 'تم إضافة المستخدم للقائمة.',
+        successMessage: AppStringsAr.theUserHasBeen,
       ));
     } on AuthException catch (e) {
       _emit(_state.copyWith(
@@ -356,21 +358,21 @@ class SyncPrivacyCubit extends ChangeNotifier {
         error: e.message,
       ));
     } on DioException catch (e) {
-      String errorMsg = 'تعذّر إضافة المستخدم للقائمة.';
+      String errorMsg = AppStringsAr.theUserCouldNot;
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.toString().contains('SocketException')) {
-        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+        errorMsg = AppStringsAr.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,
         error: errorMsg,
       ));
     } catch (e) {
-      String errorMsg = 'تعذّر إضافة المستخدم للقائمة.';
+      String errorMsg = AppStringsAr.theUserCouldNot;
       if (e.toString().contains('SocketException') ||
           e.toString().contains('connection')) {
-        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+        errorMsg = AppStringsAr.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,
@@ -408,7 +410,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       _emit(_state.copyWith(
         policy: policy,
         isUpdating: false,
-        successMessage: 'تم حذف المستخدم من القائمة.',
+        successMessage: AppStringsAr.theUserHasBeen1,
       ));
     } on AuthException catch (e) {
       _emit(_state.copyWith(
@@ -416,21 +418,21 @@ class SyncPrivacyCubit extends ChangeNotifier {
         error: e.message,
       ));
     } on DioException catch (e) {
-      String errorMsg = 'تعذّر حذف المستخدم من القائمة.';
+      String errorMsg = AppStringsAr.unableToDeleteUser;
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.toString().contains('SocketException')) {
-        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+        errorMsg = AppStringsAr.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,
         error: errorMsg,
       ));
     } catch (e) {
-      String errorMsg = 'تعذّر حذف المستخدم من القائمة.';
+      String errorMsg = AppStringsAr.unableToDeleteUser;
       if (e.toString().contains('SocketException') ||
           e.toString().contains('connection')) {
-        errorMsg = 'فشل الاتصال بالإنترنت، يرجى المحاولة لاحقاً.';
+        errorMsg = AppStringsAr.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,

@@ -5,6 +5,8 @@ import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/repositories/accrual_repository.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class ProcessAccrualUseCase {
   const ProcessAccrualUseCase(this._repository, this._createVoucherUseCase);
@@ -19,13 +21,13 @@ final class ProcessAccrualUseCase {
       (accrual) async {
         if (accrual == null) {
           return const FailureResult(
-              ValidationFailure(messageAr: 'الاستحقاق غير موجود.'));
+              ValidationFailure(messageAr: AppStringsAr.entitlementDoesNotExist));
         }
 
         final source = sourceAccountId ?? accrual.sourceAccountId;
         if (source == null) {
           return const FailureResult(ValidationFailure(
-              messageAr: 'يرجى تحديد حساب المصدر (الصندوق/البنك).'));
+              messageAr: AppStringsAr.pleaseSelectTheSource));
         }
 
         // 1. Create the Voucher

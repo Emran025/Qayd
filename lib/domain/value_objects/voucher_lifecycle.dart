@@ -1,3 +1,4 @@
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 /// Represents the high-level lifecycle of a financial voucher.
 ///
 /// This status is derived from the internal state and the dual-party agreement statuses.
@@ -29,11 +30,11 @@ enum VoucherLifecycle {
 
   /// Human readable label in Arabic.
   String get labelAr => switch (this) {
-        VoucherLifecycle.draft => 'مسودة',
-        VoucherLifecycle.pending => 'بانتظار الطرف الآخر',
-        VoucherLifecycle.rejected => 'مرفوض',
-        VoucherLifecycle.withdrawn => 'مسحوب',
-        VoucherLifecycle.confirmed => 'مكتمل',
-        VoucherLifecycle.settled => 'تمت التسوية',
+        VoucherLifecycle.draft => AppStringsAr.draft,
+        VoucherLifecycle.pending => AppStringsAr.waitingForTheOther,
+        VoucherLifecycle.rejected => AppStringsAr.unacceptable,
+        VoucherLifecycle.withdrawn => AppStringsAr.drawn,
+        VoucherLifecycle.confirmed => AppStringsAr.complete,
+        VoucherLifecycle.settled => AppStringsAr.settled,
       };
 }

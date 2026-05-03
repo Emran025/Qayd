@@ -37,6 +37,8 @@ import 'package:qayd/domain/entities/collateral.dart';
 import 'package:qayd/domain/value_objects/collateral_id.dart';
 import 'package:qayd/domain/value_objects/collateral_status.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class CreateVoucherUseCase {
   final VoucherRepository _voucherRepository;
@@ -95,7 +97,7 @@ class CreateVoucherUseCase {
           await _currencyRepository.getByCode(input.currencyCode);
       if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
         return FailureResult(ValidationFailure(
-          messageAr: 'العملة المختارة غير صالحة.',
+          messageAr: AppStringsAr.theSelectedCurrencyIs,
           code: 'invalid_currency',
         ));
       }

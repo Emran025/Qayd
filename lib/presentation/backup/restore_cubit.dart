@@ -9,6 +9,8 @@ import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
 import 'package:qayd/data/security/mnemonic_vault.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 abstract class RestoreState {}
 
@@ -93,7 +95,7 @@ class RestoreCubit extends Cubit<RestoreState> {
       final download = await _driveService.downloadBackup();
       if (download.isFailure) {
         emit(RestoreFailure(
-          download.failureOrNull?.messageAr ?? 'فشل تحميل النسخة من Drive.',
+          download.failureOrNull?.messageAr ?? AppStringsAr.failedToDownloadCopy,
         ));
         return;
       }
@@ -103,7 +105,7 @@ class RestoreCubit extends Cubit<RestoreState> {
     }
 
     if (path == null) {
-      emit(RestoreFailure('لم يتم العثور على ملف لاستعادته.'));
+      emit(RestoreFailure(AppStringsAr.noFileWasFound));
       return;
     }
 
@@ -127,7 +129,7 @@ class RestoreCubit extends Cubit<RestoreState> {
       }
       emit(RestoreSuccess());
     } else {
-      emit(RestoreFailure('فشل عملية الاستعادة.'));
+      emit(RestoreFailure(AppStringsAr.theRestoreOperationFailed));
     }
   }
 
@@ -142,7 +144,7 @@ class RestoreCubit extends Cubit<RestoreState> {
           await _restoreUseCase.validate(path, customKey: customKey);
       if (validation.isFailure) {
         emit(RestoreFailure(
-            'المفتاح الأساسي غير صحيح أو لا ينتمي لهذه النسخة.'));
+            AppStringsAr.thePrimaryKeyIs));
         return;
       }
 
@@ -162,7 +164,7 @@ class RestoreCubit extends Cubit<RestoreState> {
         emit(RestoreSuccess());
       } else {
         emit(RestoreFailure(
-            'فشل استبدال قاعدة البيانات باستخدام المفتاح الأساسي.'));
+            AppStringsAr.replaceDatabaseUsingPrimary));
       }
     } catch (e) {
       emit(RestoreFailure('خطأ في معالجة المفتاح الأساسي: $e'));

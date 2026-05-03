@@ -64,20 +64,20 @@ class _TrialBalancePageState extends State<TrialBalancePage>
       child: QaydScaffold(
         appBar: QaydAppBar(
           showNotifications: true,
-          title: 'التقارير المالية',
+          title: AppStringsAr.financialReports,
           bottom: TabBar(
             controller: _tabController,
             indicatorColor: gold,
             tabs: const [
-              Tab(text: 'ميزان المراجعة'),
-              Tab(text: 'الميزانية العمومية'),
+              Tab(text: AppStringsAr.trialBalance),
+              Tab(text: AppStringsAr.balanceSheet),
             ],
           ),
           actions: [
             Builder(builder: (context) {
               return PopupMenuButton<String>(
                 icon: const Icon(Icons.file_download_outlined),
-                tooltip: 'تصدير التقرير',
+                tooltip: AppStringsAr.exportTheReport,
                 onSelected: (val) {
                   if (_tabController.index == 0) {
                     if (val == 'pdf') {
@@ -102,7 +102,7 @@ class _TrialBalancePageState extends State<TrialBalancePage>
                       children: [
                         Icon(Icons.picture_as_pdf_outlined, color: Colors.red),
                         SizedBox(width: 8),
-                        Text('تصدير PDF'),
+                        Text(AppStringsAr.exportPdf),
                       ],
                     ),
                   ),
@@ -112,7 +112,7 @@ class _TrialBalancePageState extends State<TrialBalancePage>
                       children: [
                         Icon(Icons.table_view_outlined, color: Colors.green),
                         SizedBox(width: 8),
-                        Text('تصدير Excel'),
+                        Text(AppStringsAr.excelExport),
                       ],
                     ),
                   ),
@@ -272,7 +272,7 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     }
     // Estimate width: 8.5px per character + padding.
     final double neededForMoney = (maxFormattedLen * 8.5) + 16.0;
-    // Header labels like "الأرصدة الافتتاحية" need around 180px minimum.
+    // Header labels like AppStringsAr.openingBalances need around 180px minimum.
     return max(180.0, neededForMoney * 2);
   }
 
@@ -285,7 +285,7 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
       return const QaydEmptyState(
         icon: Icons.analytics_outlined,
         title: AppStringsAr.trialBalanceEmpty,
-        description: 'لم يتم العثور على أي أرصدة للحسابات في هذه الفترة',
+        description: AppStringsAr.noAccountBalancesWere,
       );
     }
 
@@ -380,7 +380,7 @@ class _TableHeader extends StatelessWidget {
                             size: 15, color: qayd.goldAccent),
                         const SizedBox(width: 6),
                         Text(
-                          'الحساب',
+                          AppStringsAr.theAccount,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -398,7 +398,7 @@ class _TableHeader extends StatelessWidget {
                   width: 48,
                   child: Center(
                     child: Text(
-                      'العملة',
+                      AppStringsAr.currency,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -410,21 +410,21 @@ class _TableHeader extends StatelessWidget {
                 _VerticalDivider(color: ColorTokens.navy700),
 
                 _BalanceColumnHeader(
-                  label: 'الأرصدة الافتتاحية',
+                  label: AppStringsAr.openingBalances,
                   icon: Icons.lock_clock_outlined,
                   gold: qayd.goldAccent,
                   width: balanceColumnWidth,
                 ),
                 _VerticalDivider(color: ColorTokens.navy700),
                 _BalanceColumnHeader(
-                  label: 'حركة الفترة',
+                  label: AppStringsAr.periodMovement,
                   icon: Icons.swap_horiz_rounded,
                   gold: qayd.goldAccent,
                   width: balanceColumnWidth,
                 ),
                 _VerticalDivider(color: ColorTokens.navy700),
                 _BalanceColumnHeader(
-                  label: 'الأرصدة الختامية',
+                  label: AppStringsAr.closingBalances,
                   icon: Icons.flag_rounded,
                   gold: qayd.goldAccent,
                   width: balanceColumnWidth,
@@ -446,7 +446,7 @@ class _TableHeader extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Empty space under "الحساب" and Currency
+                // Empty space under AppStringsAr.theAccount and Currency
                 const SizedBox(width: 240),
                 _VerticalDivider(color: scheme.outlineVariant),
                 const SizedBox(width: 48),
@@ -473,7 +473,7 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'مدين',
+                AppStringsAr.debtor,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -490,7 +490,7 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                'دائن',
+                AppStringsAr.creditor,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -854,7 +854,7 @@ class _CurrencyBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        CurrencyUtil.getArabicName(code).replaceAll('﷼', 'ريال'),
+        CurrencyUtil.getArabicName(code).replaceAll('﷼', AppStringsAr.sar),
         style: TextStyle(
           fontSize: 8.5,
           fontWeight: FontWeight.w600,
@@ -1018,7 +1018,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${AppStringsAr.trialBalanceGrandTotal} — ${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')}',
+                  '${AppStringsAr.trialBalanceGrandTotal} — ${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
@@ -1035,7 +1035,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                     border: Border.all(color: statusColor.withAlpha(50)),
                   ),
                   child: Text(
-                    balanced ? 'متوازن ' : 'غير متوازن',
+                    balanced ? AppStringsAr.balanced1 : AppStringsAr.unbalanced,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -1053,7 +1053,7 @@ class _CurrencySectionFooter extends StatelessWidget {
             child: Column(
               children: [
                 _SummaryRow(
-                  label: 'الافتتاحي',
+                  label: AppStringsAr.editorial,
                   debit: section.openingDebitMinorUnits,
                   credit: section.openingCreditMinorUnits,
                   cur: currency,
@@ -1061,7 +1061,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _SummaryRow(
-                  label: 'الحركة',
+                  label: AppStringsAr.movement,
                   debit: section.periodDebitMinorUnits,
                   credit: section.periodCreditMinorUnits,
                   cur: currency,
@@ -1071,7 +1071,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                 Divider(height: 1, color: scheme.outlineVariant),
                 const SizedBox(height: 12),
                 _SummaryRow(
-                  label: 'الختامي',
+                  label: AppStringsAr.closing,
                   debit: section.closingDebitMinorUnits,
                   credit: section.closingCreditMinorUnits,
                   cur: currency,
@@ -1126,7 +1126,7 @@ class _SummaryRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('دائن',
+              Text(AppStringsAr.creditor,
                   style:
                       TextStyle(fontSize: 9, color: qayd.debit.withAlpha(150))),
               QaydMoneyDisplay(
@@ -1147,7 +1147,7 @@ class _SummaryRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('مدين',
+              Text(AppStringsAr.debtor,
                   style: TextStyle(
                       fontSize: 9, color: qayd.credit.withAlpha(150))),
               QaydMoneyDisplay(

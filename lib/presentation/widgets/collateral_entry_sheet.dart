@@ -7,6 +7,8 @@ import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// DTO returned by [CollateralEntrySheet] when the user confirms input.
 class CollateralInput {
@@ -98,7 +100,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
 
     if (valueMinor <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال قيمة صحيحة للرهن')),
+        const SnackBar(content: Text(AppStringsAr.pleaseEnterAValid)),
       );
       return;
     }
@@ -147,7 +149,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                     Icon(Icons.shield_rounded, color: gold, size: 24),
                     const SizedBox(width: SpacingTokens.sm),
                     Text(
-                      'إضافة رهن / ضمان',
+                      AppStringsAr.addAMortgagesecurity,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: scheme.onSurface,
                             fontWeight: FontWeight.w600,
@@ -160,10 +162,10 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                 // Description
                 QaydTextField(
                   controller: _descriptionController,
-                  label: 'وصف الرهن / الضمان',
+                  label: AppStringsAr.descriptionOfTheMortgagesecurity,
                   maxLines: 3,
                   validator: (v) =>
-                      (v?.trim().isEmpty ?? true) ? 'مطلوب' : null,
+                      (v?.trim().isEmpty ?? true) ? AppStringsAr.required : null,
                 ),
                 const SizedBox(height: SpacingTokens.md),
 
@@ -178,7 +180,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
-                    'تاريخ الاستحقاق',
+                    AppStringsAr.dueDate,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -186,7 +188,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                   subtitle: Text(
                     _expiryDate != null
                         ? DateFormat.yMMMd('ar').format(_expiryDate!)
-                        : 'اختر تاريخ (اختياري)',
+                        : AppStringsAr.chooseADateOptional,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: _expiryDate != null
                               ? scheme.onSurface
@@ -203,7 +205,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'صور الرهن',
+                      AppStringsAr.mortgagePictures,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
@@ -212,7 +214,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                       onPressed: _addImages,
                       icon: Icon(Icons.add_photo_alternate, color: gold),
                       label: Text(
-                        'إضافة',
+                        AppStringsAr.addition,
                         style: TextStyle(color: gold),
                       ),
                     ),
@@ -275,7 +277,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                     foregroundColor: scheme.surface,
                   ),
                   icon: const Icon(Icons.check_rounded),
-                  label: const Text('حفظ الرهن'),
+                  label: const Text(AppStringsAr.saveTheMortgage),
                 ),
                 const SizedBox(height: SpacingTokens.md),
               ],

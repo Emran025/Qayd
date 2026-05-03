@@ -21,8 +21,8 @@ class CurrencySettingsPage extends StatelessWidget {
               Icons.currency_exchange_rounded,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: const Text('إعدادات العملات الأساسية'),
-            subtitle: const Text('إدارة العملات والعملة الافتراضية للتطبيق.'),
+            title: const Text(AppStringsAr.basicCurrencySettings),
+            subtitle: const Text(AppStringsAr.manageCurrenciesAndVirtual),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               QaydPageRoute.slideFromStart(
@@ -31,7 +31,7 @@ class CurrencySettingsPage extends StatelessWidget {
             ),
           ),
           const Divider(),
-          const _SectionTitle('إعدادات التحويل'),
+          const _SectionTitle(AppStringsAr.conversionSettings),
           const TransferFeesSettingsSection(),
         ],
       ),

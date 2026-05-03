@@ -12,6 +12,8 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 
 import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class DeactivateAccountUseCase {
   DeactivateAccountUseCase(
@@ -58,7 +60,7 @@ class DeactivateAccountUseCase {
         balanceCheck = Money.nonNegative(entry.value.abs(), entry.key);
       } else {
         balanceCheck = Money.zero(
-            const CurrencyCode(code: 'SAR', nameAr: '﷼', symbol: 'ر.س'));
+            const CurrencyCode(code: 'SAR', nameAr: '﷼', symbol: AppStringsAr.rs));
       }
       final deactivated = account.deactivate(balance: balanceCheck);
       final saved = await _accountRepository.save(deactivated);

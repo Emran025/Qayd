@@ -1,6 +1,7 @@
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
+
 /// Schema v3: message templates + notification audit log (offline intents).
 final class Migration003MessageTemplates implements SchemaMigration {
   @override
@@ -51,8 +52,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_receipt',
   'receipt',
-  'قبض — قالب افتراضي',
-  'عزيزي {{customer}}،\nنحيطكم علماً بأنه تم استلام مبلغ {{amount}} في سند {{type}} رقم: {{voucher_id}} بتاريخ {{date}}.\nالرصيد الإجمالي: {{net_balance}}\nالمرسل: {{sender_party}}\nالمستلم: {{receiver_party}}\nالبيان: {{description}}\nالتوثيق: {{signature}}\n— نظام قيد',
+  AppStringsAr.catchDefaultTemplate,
+  AppStringsAr.dearCustomernweWouldLike1,
   1,
   0,
   '$t',
@@ -65,8 +66,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_payment',
   'payment',
-  'صرف — قالب افتراضي',
-  'عزيزي {{customer}}،\nنحيطكم علماً بأنه تم خصم مبلغ {{amount}} في سند {{type}} رقم: {{voucher_id}} بتاريخ {{date}}.\nالرصيد الإجمالي: {{net_balance}}\nالمرسل: {{sender_party}}\nالمستلم: {{receiver_party}}\nالبيان: {{description}}\nالتوثيق: {{signature}}\n— نظام قيد',
+  AppStringsAr.exchangeDefaultTemplate,
+  AppStringsAr.dearCustomernweWouldLike,
   1,
   0,
   '$t',
@@ -79,10 +80,52 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_account',
   'account_balance',
-  'رصيد حساب — قالب افتراضي',
-  'تفاصيل الحساب: {{account_name}}\nالرصيد الحالي: {{balance}}\nطبيعة الحساب: {{nature}}\nمعرّف الحساب: {{account_id}}\n— قيد',
+  AppStringsAr.accountBalanceDefaultTemplate,
+  AppStringsAr.accountDetailsAccountnamencurrentBalance,
   1,
   0,
+  '$t',
+  '$t'
+)
+''');
+
+    await db.execute('''
+INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, created_at, updated_at)
+VALUES (
+  'tpl_sys_receipt_en',
+  'receipt',
+  'Receipt — Default Template',
+  'Dear {{customer}},\nPlease be informed that an amount of {{amount}} has been received in {{type}} voucher No: {{voucher_id}} on {{date}}.\nNet Balance: {{net_balance}}\nSender: {{sender_party}}\nReceiver: {{receiver_party}}\nDescription: {{description}}\nSignature: {{signature}}\n— Qayd System',
+  1,
+  1,
+  '$t',
+  '$t'
+)
+''');
+
+    await db.execute('''
+INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, created_at, updated_at)
+VALUES (
+  'tpl_sys_payment_en',
+  'payment',
+  'Payment — Default Template',
+  'Dear {{customer}},\nPlease be informed that an amount of {{amount}} has been deducted in {{type}} voucher No: {{voucher_id}} on {{date}}.\nNet Balance: {{net_balance}}\nSender: {{sender_party}}\nReceiver: {{receiver_party}}\nDescription: {{description}}\nSignature: {{signature}}\n— Qayd System',
+  1,
+  1,
+  '$t',
+  '$t'
+)
+''');
+
+    await db.execute('''
+INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, created_at, updated_at)
+VALUES (
+  'tpl_sys_account_en',
+  'account_balance',
+  'Account Balance — Default Template',
+  'Account Details: {{account_name}}\nCurrent Balance: {{balance}}\nAccount Nature: {{nature}}\nAccount ID: {{account_id}}\n— Qayd System',
+  1,
+  1,
   '$t',
   '$t'
 )

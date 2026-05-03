@@ -5,6 +5,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/services/placeholder_resolver.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 
 Future<String?> resolveVoucherShareText(GetVoucherDetailsOutput data) async {
   try {
@@ -42,10 +43,12 @@ Future<String> resolveVoucherShareTextWithFallback(
     body =
         'مرفق لكم إشعار تحويل مالي من حساب ${bindings['sender_party']} إلى حساب ${bindings['receiver_party']}.\n'
         'المبلغ: ${bindings['amount']}\n'
-        'المرجع: $reference\n'
-        '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+        'المرجع: $reference\n';
+    AppStringsAr.nautomaticallyExportedAndDigitally;
   } else {
-    final voucherType = data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
+    final voucherType = data.typeCode == 'receipt'
+        ? AppStringsAr.receiptNotice
+        : AppStringsAr.disbursementNotice;
     body = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
         'المبلغ: ${bindings['amount']}\n';
 
@@ -54,8 +57,8 @@ Future<String> resolveVoucherShareTextWithFallback(
     }
 
     body += 'الحساب: ${data.affectedName}\n'
-        'المرجع: $reference\n'
-        '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+        'المرجع: $reference\n';
+    AppStringsAr.nautomaticallyExportedAndDigitally;
   }
 
   if (data.senderSignatureHex != null || data.receiverSignatureHex != null) {

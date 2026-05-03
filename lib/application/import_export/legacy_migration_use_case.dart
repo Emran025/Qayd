@@ -29,6 +29,8 @@ import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/data/services/device_contacts_service.dart';
 import 'package:qayd/data/services/phone_normalization_service.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 
 // ─── Enums & Value Types ──────────────────────────────────────────────────────
@@ -325,7 +327,7 @@ class LegacyMigrationUseCase {
         case ResolutionAction.createNew:
           final newId = AccountId(const Uuid().v4());
           final accountName =
-              conflict.name.isNotEmpty ? conflict.name : 'حساب مستورد';
+              conflict.name.isNotEmpty ? conflict.name : AppStringsAr.importedAccount;
 
           // Determine parent based on user override or bundle classification.
           Account? parentAccount;
@@ -434,8 +436,8 @@ class LegacyMigrationUseCase {
                   a.classification.standardKind ==
                       StandardAccountClassificationKind.liquidAssets &&
                   (a.isDefault ||
-                      a.name == 'الصندوق' ||
-                      a.name.contains('قيد')))
+                      a.name == AppStringsAr.theBox ||
+                      a.name.contains(AppStringsAr.restriction)))
               .firstOrNull ??
           allAccounts
               .where((a) =>
@@ -443,14 +445,14 @@ class LegacyMigrationUseCase {
                   StandardAccountClassificationKind.liquidAssets)
               .firstOrNull ??
           allAccounts
-              .where((a) => a.name == 'الصندوق' || a.name.contains('قيد'))
+              .where((a) => a.name == AppStringsAr.theBox || a.name.contains(AppStringsAr.restriction))
               .firstOrNull;
 
       if (fundAccount == null) {
         return const FailureResult(
           UnexpectedFailure(
             messageAr:
-                'تعذّر العثور على حساب الصندوق الرئيسي. تأكد من إعداد الحساب الافتراضي.',
+                AppStringsAr.theMainFundAccount,
           ),
         );
       }
@@ -755,20 +757,20 @@ class LegacyMigrationUseCase {
 
   String _fallbackNameAr(String code) {
     const map = {
-      'SAR': '﷼ سعودي',
-      'YER': '﷼ يمني',
-      'USD': 'دولار أمريكي',
-      'EGP': 'جنيه مصري',
-      'AED': 'درهم إماراتي',
-      'KWD': 'دينار كويتي',
-      'QAR': '﷼ قطري',
-      'OMR': '﷼ عماني',
-      'BHD': 'دينار بحريني',
-      'JOD': 'دينار أردني',
-      'EUR': 'يورو',
-      'GBP': 'جنيه إسترليني',
-      'XAU': 'جرام ذهب',
-      'XAG': 'جرام فضة',
+      'SAR': AppStringsAr.saudiRiyals,
+      'YER': AppStringsAr.yemeni,
+      'USD': AppStringsAr.usDollars,
+      'EGP': AppStringsAr.egyptianPound,
+      'AED': AppStringsAr.emiratiDirham,
+      'KWD': AppStringsAr.kuwaitiDinar,
+      'QAR': AppStringsAr.qatari,
+      'OMR': AppStringsAr.omani,
+      'BHD': AppStringsAr.bahrainiDinar,
+      'JOD': AppStringsAr.jordanianDinar,
+      'EUR': AppStringsAr.euro,
+      'GBP': AppStringsAr.britishPounds,
+      'XAU': AppStringsAr.aGramOfGold,
+      'XAG': AppStringsAr.gramOfSilver,
     };
     return map[code] ?? 'عملة $code';
   }
@@ -782,13 +784,13 @@ class LegacyMigrationUseCase {
       'USD': r'$',
       'EUR': '€',
       'GBP': '£',
-      'EGP': 'ج.م',
-      'AED': 'د.إ',
-      'KWD': 'د.ك',
-      'BHD': 'د.ب',
-      'JOD': 'د.أ',
-      'XAU': 'ج.ذ',
-      'XAG': 'ج.ف',
+      'EGP': AppStringsAr.jm,
+      'AED': AppStringsAr.de,
+      'KWD': AppStringsAr.kwd,
+      'BHD': AppStringsAr.bear,
+      'JOD': AppStringsAr.da1,
+      'XAU': AppStringsAr.cD,
+      'XAG': AppStringsAr.dry,
     };
     return map[code] ?? code;
   }

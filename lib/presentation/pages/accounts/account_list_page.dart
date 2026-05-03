@@ -350,8 +350,8 @@ class _AccountListBody extends StatelessWidget {
             ? AppStringsAr.accountsEmpty
             : AppStringsAr.accountsEmptyFiltered,
         description: chartIsEmpty
-            ? 'ابدأ بإضافة أول حساب لك في شجرة الحسابات'
-            : 'جرب البحث بكلمات أخرى أو تغيير التصنيف',
+            ? AppStringsAr.startByAddingYour1
+            : AppStringsAr.trySearchingWithOther2,
       );
     }
 

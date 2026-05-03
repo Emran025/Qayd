@@ -3,6 +3,8 @@ import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// HTTP implementation of [AuthRepository] using the Dio-based [ApiClient].
 ///
@@ -148,7 +150,7 @@ final class RemoteAuthRepository implements AuthRepository {
       _parseProvisioningResponse(Map<String, dynamic> data) {
     final token = data['token'] as String? ?? '';
     if (token.isEmpty) {
-      throw const AuthException('الرد غير صالح: لا يوجد رمز مصادقة.');
+      throw const AuthException(AppStringsAr.invalidResponseNoAuthentication);
     }
     return (
       jwt: token,

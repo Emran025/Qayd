@@ -1,6 +1,8 @@
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Per-counterparty sync watermark — tracks the last successful sync point
 /// and the counterparty's read position for each bilateral relationship.
@@ -62,7 +64,7 @@ class SyncWatermarkDao {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر قراءة علامة المزامنة.',
+          messageAr: AppStringsAr.theSyncTagCould,
         ),
       );
     }
@@ -80,7 +82,7 @@ class SyncWatermarkDao {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر تحديث علامة المزامنة.',
+          messageAr: AppStringsAr.unableToUpdateSync,
         ),
       );
     }
@@ -102,7 +104,7 @@ class SyncWatermarkDao {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر تحديث آخر سند مفتوح.',
+          messageAr: AppStringsAr.theLastOpenDocument,
         ),
       );
     }
@@ -116,7 +118,7 @@ class SyncWatermarkDao {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر قراءة جدول المزامنة.',
+          messageAr: AppStringsAr.theSynchronizationTableCould,
         ),
       );
     }

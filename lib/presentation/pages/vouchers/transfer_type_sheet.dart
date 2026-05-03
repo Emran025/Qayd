@@ -49,12 +49,12 @@ class _TransferTypeBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           QaydText(
-            'اختر نوع التحويل',
+            AppStringsAr.chooseTheConversionType,
             slot: QaydTextStyleSlot.titleLarge,
           ),
           const SizedBox(height: SpacingTokens.xs),
           QaydText(
-            'حدد طريقة التحويل المناسبة بين الأطراف',
+            AppStringsAr.selectTheAppropriateTransfer,
             slot: QaydTextStyleSlot.bodySmall,
             color: scheme.onSurfaceVariant,
           ),
@@ -62,9 +62,9 @@ class _TransferTypeBody extends StatelessWidget {
           _TransferTypeTile(
             icon: Icons.account_tree_rounded,
             color: ColorTokens.emerald500,
-            title: 'تحويل وسيط (ثلاثي)',
+            title: AppStringsAr.intermediateConversionTriple,
             subtitle:
-                'جسر بين المرسل والمستلم. الصندوق لا يتأثر ولا يظهر في المحادثات.',
+                AppStringsAr.aBridgeBetweenSender,
             onTap: () async {
               final activeFee =
                   await InjectionContainer.getActiveTransactionFeeUseCase();
@@ -99,9 +99,9 @@ class _TransferTypeBody extends StatelessWidget {
           _TransferTypeTile(
             icon: Icons.swap_horiz_rounded,
             color: ColorTokens.debitBlue,
-            title: 'تحويل مزدوج مع الصندوق',
+            title: AppStringsAr.doubleConversionWithBox,
             subtitle:
-                'سندان عاديان يتأثر بهما الصندوق: خصم من المرسل وإضافة للمستلم.',
+                AppStringsAr.twoOrdinaryBondsAffect,
             onTap: () => Navigator.pop(context, TransferType.dualWithFund),
           ),
         ],

@@ -10,6 +10,8 @@ import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SqliteAccountRepository implements AccountRepository {
   SqliteAccountRepository(this._db);
@@ -34,7 +36,7 @@ final class SqliteAccountRepository implements AccountRepository {
       if (rows.isEmpty) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'الحساب غير موجود.',
+            messageAr: AppStringsAr.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
@@ -55,7 +57,7 @@ final class SqliteAccountRepository implements AccountRepository {
       return Success(entity);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة الحساب من قاعدة البيانات.'),
+        DatabaseFailure(messageAr: AppStringsAr.theAccountCouldNot1),
       );
     }
   }
@@ -102,7 +104,7 @@ final class SqliteAccountRepository implements AccountRepository {
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة قائمة الحسابات.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadThe),
       );
     }
   }
@@ -123,7 +125,7 @@ final class SqliteAccountRepository implements AccountRepository {
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة الحسابات الفرعية.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadSubaccounts),
       );
     }
   }
@@ -152,7 +154,7 @@ ORDER BY a.name COLLATE NOCASE
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة الحسابات التابعة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadDependent),
       );
     }
   }
@@ -177,7 +179,7 @@ ORDER BY a.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ الحساب.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToSaveAccount),
       );
     }
   }
@@ -198,7 +200,7 @@ ORDER BY a.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر إنشاء الحسابات دفعة واحدة.'),
+        DatabaseFailure(messageAr: AppStringsAr.accountsCouldNotBe),
       );
     }
   }
@@ -214,7 +216,7 @@ ORDER BY a.name COLLATE NOCASE
       if (n == 0) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'الحساب غير موجود.',
+            messageAr: AppStringsAr.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
@@ -223,12 +225,12 @@ ORDER BY a.name COLLATE NOCASE
     } on DatabaseException {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر حذف الحساب. قد يوجد حسابات فرعية أو حركات مرتبطة.',
+          messageAr: AppStringsAr.unableToDeleteAccount,
         ),
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حذف الحساب.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToDeleteAccount1),
       );
     }
   }
@@ -243,7 +245,7 @@ ORDER BY a.name COLLATE NOCASE
       return Success(rows.isNotEmpty);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر التحقق من وجود الحساب.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToVerifyAccount),
       );
     }
   }
@@ -276,7 +278,7 @@ ORDER BY a.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ بيانات الطرف.'),
+        DatabaseFailure(messageAr: AppStringsAr.thePartyDataCould),
       );
     }
   }
@@ -309,7 +311,7 @@ ORDER BY a.name COLLATE NOCASE
       ));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة بيانات الطرف.'),
+        DatabaseFailure(messageAr: AppStringsAr.thePartyDataCould1),
       );
     }
   }
@@ -329,7 +331,7 @@ ORDER BY a.name COLLATE NOCASE
       return Success(AccountId(rows.first['account_id'] as String));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر البحث برقم الهاتف.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBy),
       );
     }
   }
@@ -349,7 +351,7 @@ ORDER BY a.name COLLATE NOCASE
       return Success(AccountId(rows.first['account_id'] as String));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر البحث بالبريد الإلكتروني.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBy1),
       );
     }
   }
@@ -369,7 +371,7 @@ ORDER BY a.name COLLATE NOCASE
       return Success(AccountId(rows.first['account_id'] as String));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر البحث برقم واتساب.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBy2),
       );
     }
   }
@@ -398,7 +400,7 @@ ORDER BY a.name COLLATE NOCASE
       if (n == 0) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'الحساب غير موجود.',
+            messageAr: AppStringsAr.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
@@ -406,7 +408,7 @@ ORDER BY a.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر أرشفة الحساب.'),
+        DatabaseFailure(messageAr: AppStringsAr.theAccountCouldNot),
       );
     }
   }
@@ -423,7 +425,7 @@ ORDER BY a.name COLLATE NOCASE
       if (n == 0) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'الحساب غير موجود.',
+            messageAr: AppStringsAr.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
@@ -431,7 +433,7 @@ ORDER BY a.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر استعادة الحساب من الأرشيف.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToRestoreAccount),
       );
     }
   }
@@ -451,7 +453,7 @@ ORDER BY a.name COLLATE NOCASE
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة الحسابات المؤرشفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadArchived),
       );
     }
   }
@@ -480,7 +482,7 @@ ORDER BY a.created_at
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر قراءة مراكز التكلفة الافتراضية للحساب.',
+          messageAr: AppStringsAr.theDefaultCostCenters,
         ),
       );
     }
@@ -522,7 +524,7 @@ ORDER BY a.created_at
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر حفظ مركز التكلفة الافتراضي للحساب.',
+          messageAr: AppStringsAr.theDefaultCostCenter,
         ),
       );
     }
@@ -543,7 +545,7 @@ ORDER BY a.created_at
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر حذف مركز التكلفة الافتراضي من الحساب.',
+          messageAr: AppStringsAr.theDefaultCostCenter2,
         ),
       );
     }

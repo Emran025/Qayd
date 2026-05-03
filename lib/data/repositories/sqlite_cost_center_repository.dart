@@ -8,6 +8,8 @@ import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SqliteCostCenterRepository implements CostCenterRepository {
   SqliteCostCenterRepository(this._db);
@@ -33,7 +35,7 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
       return Success(rows.map(_centerFromRow).toList(growable: false));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة مراكز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadCost1),
       );
     }
   }
@@ -51,7 +53,7 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
       return Success(_centerFromRow(rows.first));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة مركز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.theCostCenterCould),
       );
     }
   }
@@ -67,7 +69,7 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ مركز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.theCostCenterCould1),
       );
     }
   }
@@ -80,12 +82,12 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
     } on DatabaseException {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر حذف مركز التكلفة — قد تكون هناك سندات مرتبطة.',
+          messageAr: AppStringsAr.unableToDeleteCost,
         ),
       );
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حذف مركز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToDeleteCost1),
       );
     }
   }
@@ -123,7 +125,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return Success(rows.map(_dimFromRow).toList(growable: false));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة الأبعاد.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadDimensions),
       );
     }
   }
@@ -139,7 +141,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ البُعد.'),
+        DatabaseFailure(messageAr: AppStringsAr.theDimensionCouldNot1),
       );
     }
   }
@@ -151,7 +153,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حذف البُعد.'),
+        DatabaseFailure(messageAr: AppStringsAr.theDimensionCouldNot),
       );
     }
   }
@@ -165,7 +167,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return Success(rows.map(_catFromRow).toList(growable: false));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة التصنيفات.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadLabels),
       );
     }
   }
@@ -182,7 +184,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ التصنيف.'),
+        DatabaseFailure(messageAr: AppStringsAr.theCategoryCouldNot),
       );
     }
   }
@@ -228,7 +230,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر ربط السند بمركز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.theVoucherCouldNot),
       );
     }
   }
@@ -254,7 +256,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر فك ارتباط السند بمركز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.theBondCouldNot),
       );
     }
   }
@@ -274,7 +276,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر قراءة مراكز التكلفة المرتبطة بالسند.',
+          messageAr: AppStringsAr.unableToReadCost,
         ),
       );
     }
@@ -308,7 +310,7 @@ ORDER BY d.category, d.name COLLATE NOCASE
       return Success(rows.map((r) => r['voucher_id'] as String).toList());
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة السندات لمركز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadVouchers),
       );
     }
   }
@@ -333,7 +335,7 @@ ORDER BY c.name, d.name
       return Success(rows.map(_dimFromRow).toList());
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة أبعاد السند.'),
+        DatabaseFailure(messageAr: AppStringsAr.theDimensionsOfThe),
       );
     }
   }
@@ -363,7 +365,7 @@ GROUP BY v.currency_code
       return Success(map);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حساب مؤشرات مركز التكلفة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToCalculateCost),
       );
     }
   }
@@ -398,7 +400,7 @@ ORDER BY month_key ASC
       return Success(rows.map((r) => Map<String, dynamic>.from(r)).toList());
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة البيانات الشهرية.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadMonthly),
       );
     }
   }
@@ -455,7 +457,7 @@ WHERE cost_center_id = ? AND voucher_id IN ($placeholders)
       }).toList());
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة السندات الأخيرة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadRecent),
       );
     }
   }
@@ -484,7 +486,7 @@ LIMIT 8
       return Success(rows.map((r) => Map<String, dynamic>.from(r)).toList());
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة توزيع الأبعاد.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadDimension),
       );
     }
   }

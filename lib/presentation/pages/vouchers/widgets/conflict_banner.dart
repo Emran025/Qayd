@@ -3,6 +3,8 @@ import 'package:qayd/domain/entities/notification_message.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/pages/vouchers/conflict_resolution_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class ConflictBanner extends StatelessWidget {
   const ConflictBanner({super.key, required this.proposals});
@@ -43,7 +45,7 @@ class ConflictBanner extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => _openConflictResolution(context),
-            child: const Text('معالجة'),
+            child: const Text(AppStringsAr.toTreat),
           ),
         ],
       ),

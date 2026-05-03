@@ -15,6 +15,8 @@ import 'package:qayd/domain/value_objects/date_range.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SqliteVoucherRepository implements VoucherRepository {
   SqliteVoucherRepository(this._db, this._transactionRunner);
@@ -170,7 +172,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       if (rows.isEmpty) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'السند غير موجود.',
+            messageAr: AppStringsAr.theBondDoesNot,
             code: 'voucher_not_found',
           ),
         );
@@ -187,7 +189,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return Success(VoucherMapper.toEntity(model, currency));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة السند.'),
+        DatabaseFailure(messageAr: AppStringsAr.theDocumentCouldNot),
       );
     }
   }
@@ -219,7 +221,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة السندات.'),
+        DatabaseFailure(messageAr: AppStringsAr.bondCouldNotBe),
       );
     }
   }
@@ -250,7 +252,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة سندات الطرف.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadParty),
       );
     }
   }
@@ -272,7 +274,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return const Success(null);
     } catch (e) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ السند.'),
+        DatabaseFailure(messageAr: AppStringsAr.theBondCouldNot1),
       );
     }
   }
@@ -288,7 +290,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       if (n == 0) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن حذف السند أو ليس مسودة.',
+            messageAr: AppStringsAr.theDocumentCannotBe,
             code: 'voucher_delete_invalid',
           ),
         );
@@ -296,7 +298,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حذف السند.'),
+        DatabaseFailure(messageAr: AppStringsAr.theBondCouldNot2),
       );
     }
   }
@@ -351,7 +353,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر البحث في السندات.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBonds),
       );
     }
   }
@@ -372,7 +374,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       return Success(c);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر عد السندات.'),
+        DatabaseFailure(messageAr: AppStringsAr.bondsCouldNotBe),
       );
     }
   }
@@ -389,7 +391,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
       if (e.voucherId.value != voucher.id.value) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'قيود السند لا تطابق معرّف السند.',
+            messageAr: AppStringsAr.bondEntriesDoNot,
             code: 'ledger_voucher_mismatch',
           ),
         );
@@ -429,7 +431,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر تأكيد السند وحفظ القيود. تم التراجع عن العملية.',
+          messageAr: AppStringsAr.itWasNotPossible,
         ),
       );
     }
@@ -449,7 +451,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر حفظ سندات التحويل الثلاثي. تم التراجع عن العملية.',
+          messageAr: AppStringsAr.theTripleTransferVouchers,
         ),
       );
     }
@@ -496,7 +498,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر حفظ ومزامنة سندات التحويل الثلاثي مع القيود.',
+          messageAr: AppStringsAr.unableToSaveAnd,
         ),
       );
     }
@@ -531,7 +533,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر قراءة سندات مجموعة التحويل.',
+          messageAr: AppStringsAr.unableToReadConversion,
         ),
       );
     }
@@ -552,7 +554,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر قراءة سندات المرتجعات والتسويات.',
+          messageAr: AppStringsAr.unableToReadReturns,
         ),
       );
     }
@@ -600,7 +602,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
     } catch (_) {
       return const FailureResult(
         DatabaseFailure(
-          messageAr: 'تعذر البحث عن السند المقابل.',
+          messageAr: AppStringsAr.itWasNotPossible1,
         ),
       );
     }

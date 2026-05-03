@@ -3,6 +3,8 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/repositories/accrual_repository.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SqliteAccrualRepository implements AccrualRepository {
   SqliteAccrualRepository(this._db);
@@ -17,7 +19,7 @@ final class SqliteAccrualRepository implements AccrualRepository {
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
       return const FailureResult(
-          DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاقات.'));
+          DatabaseFailure(messageAr: AppStringsAr.entitlementsCouldNotBe));
     }
   }
 
@@ -30,7 +32,7 @@ final class SqliteAccrualRepository implements AccrualRepository {
       return Success(_fromRow(rows.first));
     } catch (_) {
       return const FailureResult(
-          DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاق.'));
+          DatabaseFailure(messageAr: AppStringsAr.theEntitlementCouldNot));
     }
   }
 
@@ -43,7 +45,7 @@ final class SqliteAccrualRepository implements AccrualRepository {
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
       return const FailureResult(
-          DatabaseFailure(messageAr: 'تعذر قراءة استحقاقات المركز.'));
+          DatabaseFailure(messageAr: AppStringsAr.unableToReadPosition));
     }
   }
 
@@ -59,7 +61,7 @@ final class SqliteAccrualRepository implements AccrualRepository {
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
       return const FailureResult(
-          DatabaseFailure(messageAr: 'تعذر قراءة الاستحقاقات المستحقة.'));
+          DatabaseFailure(messageAr: AppStringsAr.unableToReadAccrued));
     }
   }
 
@@ -74,7 +76,7 @@ final class SqliteAccrualRepository implements AccrualRepository {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-          DatabaseFailure(messageAr: 'تعذر حفظ الاستحقاق.'));
+          DatabaseFailure(messageAr: AppStringsAr.theEntitlementCouldNot2));
     }
   }
 
@@ -85,7 +87,7 @@ final class SqliteAccrualRepository implements AccrualRepository {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-          DatabaseFailure(messageAr: 'تعذر حذف الاستحقاق.'));
+          DatabaseFailure(messageAr: AppStringsAr.theEntitlementCouldNot1));
     }
   }
 

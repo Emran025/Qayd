@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Builds `.xlsx` exports with professional branded styling matching Qayd's identity.
 ///
@@ -166,8 +168,8 @@ abstract final class QaydExcelWorkbook {
     required List<String> headers,
     required List<List<Object?>> rows,
   }) {
-    final excel = _baseExcel('السندات');
-    final sheet = excel['السندات'];
+    final excel = _baseExcel(AppStringsAr.bonds);
+    final sheet = excel[AppStringsAr.bonds];
     _writeHeader(sheet, headers);
     _writeRows(sheet, rows, 1);
     final raw = excel.save(fileName: 'qayd_vouchers.xlsx');
@@ -182,8 +184,8 @@ abstract final class QaydExcelWorkbook {
     required List<String> headers,
     required List<List<Object?>> rows,
   }) {
-    final excel = _baseExcel('الحسابات');
-    final sheet = excel['الحسابات'];
+    final excel = _baseExcel(AppStringsAr.theAccounts);
+    final sheet = excel[AppStringsAr.theAccounts];
     _writeHeader(sheet, headers);
     _writeRows(sheet, rows, 1);
     final raw = excel.save(fileName: 'qayd_accounts.xlsx');
@@ -239,11 +241,11 @@ abstract final class QaydExcelWorkbook {
     final brandCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
-    brandCell.value = TextCellValue('قيد — Qayd App');
+    brandCell.value = TextCellValue(AppStringsAr.autostring4);
     brandCell.cellStyle = _brandHeaderStyle();
     currentRow++;
 
-    // Sub-header: "كشف حساب" (Account Statement title)
+    // Sub-header: AppStringsAr.accountStatement1 (Account Statement title)
     sheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
       CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
@@ -251,7 +253,7 @@ abstract final class QaydExcelWorkbook {
     final titleCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
-    titleCell.value = TextCellValue('كشف الحساب');
+    titleCell.value = TextCellValue(AppStringsAr.accountStatement);
     titleCell.cellStyle = CellStyle(
       bold: true,
       fontSize: 12,
@@ -266,8 +268,8 @@ abstract final class QaydExcelWorkbook {
     currentRow++;
 
     // ── ROW 3-6: Info Section (إلى / من) ────────────────────────────────────
-    // Left side: "إلى:" (counterparty) — columns 0-2
-    // Right side: "من:" (account owner) — columns 3-5
+    // Left side: AppStringsAr.toMe (counterparty) — columns 0-2
+    // Right side: AppStringsAr.from (account owner) — columns 3-5
 
     void _writeInfoPair(int row, String label, String value, int startCol) {
       final labelC = sheet.cell(
@@ -287,14 +289,14 @@ abstract final class QaydExcelWorkbook {
       valueC.cellStyle = _valueStyle();
     }
 
-    _writeInfoPair(currentRow, 'إلى:', counterpartyName ?? accountName, 0);
-    _writeInfoPair(currentRow, 'من:', 'بيانات صاحب الحساب', 3);
+    _writeInfoPair(currentRow, AppStringsAr.toMe, counterpartyName ?? accountName, 0);
+    _writeInfoPair(currentRow, AppStringsAr.from, AppStringsAr.accountHolderData, 3);
     currentRow++;
 
     // Period row
     if (periodFrom != null || periodTo != null) {
       final periodStr = '${periodFrom ?? '…'} — ${periodTo ?? '…'}';
-      _writeInfoPair(currentRow, 'الفترة:', periodStr, 0);
+      _writeInfoPair(currentRow, AppStringsAr.period, periodStr, 0);
     }
     currentRow++;
 
@@ -304,13 +306,13 @@ abstract final class QaydExcelWorkbook {
     // ── ROW: Date & Meta info ──────────────────────────────────────────────
     _writeInfoPair(
       currentRow,
-      'التاريخ:',
+      AppStringsAr.theDate1,
       statementDate ?? '',
       0,
     );
     _writeInfoPair(
       currentRow,
-      'رقم المرجع:',
+      AppStringsAr.referenceNumber,
       referenceNumber ?? '',
       3,
     );
@@ -319,7 +321,7 @@ abstract final class QaydExcelWorkbook {
     if (openingBalance != null && openingBalance.isNotEmpty) {
       _writeInfoPair(
         currentRow,
-        'الرصيد الافتتاحي:',
+        AppStringsAr.openingBalance,
         openingBalance,
         3,
       );
@@ -417,7 +419,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
-      labelC.value = TextCellValue('إجمالي المدين');
+      labelC.value = TextCellValue(AppStringsAr.totalDebit);
       labelC.cellStyle = _totalsLabelStyle();
 
       sheet.merge(
@@ -436,7 +438,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
-      labelC.value = TextCellValue('إجمالي الدائن');
+      labelC.value = TextCellValue(AppStringsAr.totalCredit);
       labelC.cellStyle = _totalsLabelStyle();
 
       sheet.merge(
@@ -456,7 +458,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
-      labelC.value = TextCellValue('الرصيد الصافي');
+      labelC.value = TextCellValue(AppStringsAr.netBalance);
       labelC.cellStyle = _totalRowLabelStyle();
 
       sheet.merge(
@@ -498,7 +500,7 @@ abstract final class QaydExcelWorkbook {
       final issuerLabelCell = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
       );
-      issuerLabelCell.value = TextCellValue('الجهة المُنشِئة للكشف:');
+      issuerLabelCell.value = TextCellValue(AppStringsAr.thePartyOriginatingThe);
       issuerLabelCell.cellStyle = CellStyle(
         bold: true,
         fontSize: 9,
@@ -540,7 +542,7 @@ abstract final class QaydExcelWorkbook {
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
     footerCell.value = TextCellValue(
-      'تم إنشاء هذا الكشف بواسطة تطبيق قيد — Qayd App',
+      AppStringsAr.thisStatementWasGenerated,
     );
     footerCell.cellStyle = CellStyle(
       fontSize: 8,
@@ -564,11 +566,11 @@ abstract final class QaydExcelWorkbook {
   }) {
     final excel = Excel.createExcel();
     final first = excel.sheets.keys.first;
-    excel.rename(first, 'السندات');
-    final v = excel['السندات'];
+    excel.rename(first, AppStringsAr.bonds);
+    final v = excel[AppStringsAr.bonds];
     _writeHeader(v, voucherHeaders);
     _writeRows(v, voucherRows, 1);
-    final a = excel['الحسابات'];
+    final a = excel[AppStringsAr.theAccounts];
     _writeHeader(a, accountHeaders);
     _writeRows(a, accountRows, 1);
     final raw = excel.save(fileName: 'qayd_export_all.xlsx');

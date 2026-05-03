@@ -11,6 +11,8 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
 import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
 import 'package:qayd/presentation/security/security_state.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Unified security cubit.
 ///
@@ -203,7 +205,7 @@ class SecurityCubit extends Cubit<SecurityState> {
 
       return (success: true, errorAr: null);
     } catch (e) {
-      return (success: false, errorAr: 'فشل تحديث حالة الترخيص. تأكد من اتصالك بالإنترنت.');
+      return (success: false, errorAr: AppStringsAr.failedToUpdateLicense);
     }
   }
 
@@ -331,7 +333,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     } catch (e, stack) {
       debugPrint('Provisioning Error: $e\n$stack');
       return ProvisioningResult.failure(
-        'حدث خطأ غير متوقع أثناء تهيئة الجهاز. يرجى المحاولة لاحقاً.',
+        AppStringsAr.anUnexpectedErrorOccurred1,
       );
     }
   }
@@ -360,7 +362,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     } catch (e, stack) {
       debugPrint('Registration Error: $e\n$stack');
       return ProvisioningResult.failure(
-        'حدث خطأ غير متوقع أثناء إنشاء الحساب. يرجى المحاولة لاحقاً.',
+        AppStringsAr.anUnexpectedErrorOccurred2,
       );
     }
   }
@@ -460,7 +462,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     } catch (e, stack) {
       debugPrint('Post-Auth Processing Error: $e\n$stack');
       return ProvisioningResult.failure(
-        'حدث خطأ أثناء معالجة بيانات الحساب.',
+        AppStringsAr.anErrorOccurredWhile,
       );
     }
   }

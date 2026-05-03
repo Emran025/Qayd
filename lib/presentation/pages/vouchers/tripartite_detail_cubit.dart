@@ -5,6 +5,8 @@ import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/application/vouchers/get_voucher_details_use_case.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 // ── States ──────────────────────────────────────────────────────────────────
 
@@ -82,7 +84,7 @@ class TripartiteDetailCubit extends Cubit<TripartiteDetailState> {
 
       if (receiptData == null && paymentData == null) {
         emit(const TripartiteDetailFailure(
-          UnexpectedFailure(messageAr: 'لم يتم العثور على بيانات السندين.'),
+          UnexpectedFailure(messageAr: AppStringsAr.noBondDataFound),
         ));
         return;
       }
@@ -128,7 +130,7 @@ class TripartiteDetailCubit extends Cubit<TripartiteDetailState> {
       )));
     } catch (e) {
       emit(const TripartiteDetailFailure(
-        UnexpectedFailure(messageAr: 'خطأ في تحميل بيانات التحويل الثلاثي.'),
+        UnexpectedFailure(messageAr: AppStringsAr.errorLoadingTripleConversion),
       ));
     }
   }

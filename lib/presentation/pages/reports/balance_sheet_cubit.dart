@@ -6,6 +6,8 @@ import 'package:qayd/data/excel/reports/excel_report_generator.dart';
 import 'package:qayd/data/pdf/reports/balance_sheet_pdf_generator.dart';
 import 'package:qayd/presentation/utils/share_export_bytes.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ── STATE ────────────────────────────────────────────────────────────────
@@ -64,7 +66,7 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
       await sharePdfBytes(
         bytes,
         'balance_sheet_${DateTime.now().millisecondsSinceEpoch}.pdf',
-        text: 'الميزانية العمومية — نظام قيد',
+        text: AppStringsAr.balanceSheetRecordingSystem,
       );
     } catch (e, stackTrace) {
       // ignore: avoid_print

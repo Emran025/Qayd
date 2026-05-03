@@ -10,6 +10,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/database/database_provider.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Google Drive backup service — mirrors WhatsApp's Drive backup model.
 ///
@@ -83,7 +85,7 @@ final class GoogleDriveBackupService {
       if (account == null) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'تم إلغاء تسجيل الدخول.',
+            messageAr: AppStringsAr.yourLoginHasBeen,
             code: 'drive_auth_cancelled',
           ),
         );
@@ -95,9 +97,9 @@ final class GoogleDriveBackupService {
       final eStr = e.toString();
       if (eStr.contains('sign_in_failed')) {
         if (eStr.contains('10:')) {
-          msg = 'تعذر الاتصال بخدمات Google: يجب تكوين بصمة التطبيق (SHA-1) في إعدادات Firebase.';
+          msg = AppStringsAr.unableToConnectTo1;
         } else {
-          msg = 'تم إلغاء أو فشل تسجيل الدخول إلى حساب Google.';
+          msg = AppStringsAr.yourGoogleAccountSignin;
         }
       }
       return FailureResult(
@@ -143,7 +145,7 @@ final class GoogleDriveBackupService {
       final token = await _getAccessToken();
       if (token == null) {
         return const FailureResult(
-          AuthFailure(messageAr: 'يرجى تسجيل الدخول إلى حساب Google أولاً.'),
+          AuthFailure(messageAr: AppStringsAr.pleaseSignInTo),
         );
       }
 
@@ -226,7 +228,7 @@ final class GoogleDriveBackupService {
       final token = await _getAccessToken();
       if (token == null) {
         return const FailureResult(
-          AuthFailure(messageAr: 'يرجى تسجيل الدخول إلى حساب Google أولاً.'),
+          AuthFailure(messageAr: AppStringsAr.pleaseSignInTo),
         );
       }
 
@@ -234,7 +236,7 @@ final class GoogleDriveBackupService {
       if (fileInfo == null) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا توجد نسخة احتياطية على Drive.',
+            messageAr: AppStringsAr.noBackupOnDrive,
             code: 'drive_no_backup',
           ),
         );
@@ -261,7 +263,7 @@ final class GoogleDriveBackupService {
       final token = await _getAccessToken();
       if (token == null) {
         return const FailureResult(
-          AuthFailure(messageAr: 'يرجى تسجيل الدخول إلى حساب Google أولاً.'),
+          AuthFailure(messageAr: AppStringsAr.pleaseSignInTo),
         );
       }
 
@@ -277,7 +279,7 @@ final class GoogleDriveBackupService {
       if (!dbOk) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا توجد نسخة احتياطية لقاعدة البيانات على Drive.',
+            messageAr: AppStringsAr.thereIsNoDatabase,
             code: 'drive_no_db',
           ),
         );

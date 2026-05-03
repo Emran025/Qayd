@@ -4,6 +4,8 @@ import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:uuid/uuid.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class CreateTripartiteRequestInput {
   const CreateTripartiteRequestInput({
@@ -49,7 +51,7 @@ class CreateTripartiteRequestUseCase {
       await notificationRepo.insert(
         id: id,
         counterpartyAccountId: input.mediatorAccountId,
-        bodyText: 'طلب إجراء حوالة ثنائية الأطراف',
+        bodyText: AppStringsAr.requestToMakeA,
         channel: 'outbound',
         createdAtIso: now.toIso8601String(),
         rawPayloadJson: jsonEncode(payloadMap),

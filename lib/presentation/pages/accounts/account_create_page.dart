@@ -436,7 +436,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     const SizedBox(width: SpacingTokens.xs),
                     Expanded(
                       child: QaydText(
-                        'تعديل التصنيف أو الحساب الأب قد يؤثر على توازن التقارير السابقة.',
+                        AppStringsAr.modifyingTheClassificationOr,
                         slot: QaydTextStyleSlot.labelSmall,
                         color: Colors.orange.shade800,
                       ),
@@ -497,14 +497,14 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
 
               // ── Default cost centres ───────────────────────────────────────
               QaydText(
-                'مراكز التكلفة الافتراضية',
+                AppStringsAr.virtualCostCenters,
                 slot: QaydTextStyleSlot.titleSmall,
               ),
               const SizedBox(height: SpacingTokens.md),
               CostCenterTagSelector(
                 initialTags: _costCenterTags,
                 onChanged: (tags) => setState(() => _costCenterTags = tags),
-                label: 'إضافة مركز تكلفة افتراضي',
+                label: AppStringsAr.addADefaultCost,
               ),
               const SizedBox(height: SpacingTokens.xl),
 

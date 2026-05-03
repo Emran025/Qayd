@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 enum ShareMethod { system, whatsappStandard, whatsappBusiness }
 
@@ -20,13 +22,13 @@ class ShareMethodPicker {
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                'اختر طريقة المشاركة',
+                AppStringsAr.chooseHowToShare,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(
               leading: const Icon(Icons.share, color: Colors.blue),
-              title: const Text('المشاركة عبر النظام'),
+              title: const Text(AppStringsAr.sharingAcrossTheSystem),
               onTap: () => Navigator.of(ctx).pop(ShareMethod.system),
             ),
             if (hasStandard)
@@ -58,7 +60,7 @@ class WhatsAppFlavorPicker {
     if (!hasStandard && !hasBusiness) {
       if (!context.mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('واتساب غير مثبت على هذا الجهاز.')),
+        const SnackBar(content: Text(AppStringsAr.whatsappIsNotInstalled)),
       );
       return null;
     }
@@ -76,7 +78,7 @@ class WhatsAppFlavorPicker {
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                'اختر التطبيق للمشاركة',
+                AppStringsAr.chooseTheAppTo,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),

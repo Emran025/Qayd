@@ -5,6 +5,8 @@ import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// "Reject" is represented by setting the voucher agreement status to `rejected`.
 class RejectVoucherUseCase {
@@ -34,7 +36,7 @@ class RejectVoucherUseCase {
         // Only drafts can be rejected in Phase-A.
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن رفض سند مؤكد أو مسوّى.',
+            messageAr: AppStringsAr.aConfirmedOrSettled,
             code: 'voucher_reject_not_draft',
           ),
         );

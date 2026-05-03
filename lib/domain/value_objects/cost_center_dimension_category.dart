@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// An analytical classification/category for dimensions (e.g. "Spatial", "Individual").
 /// Formerly a static enum, now a dynamic entity to allow user customization.
@@ -20,77 +22,77 @@ class CostCenterDimensionCategory extends Equatable {
 
   static const incomeAndWork = CostCenterDimensionCategory(
     id: 'income_work',
-    name: 'الدخل والعمل',
+    name: AppStringsAr.incomeAndWork,
     iconName: 'payments',
     isDefault: true,
   );
 
   static const housingAndLiving = CostCenterDimensionCategory(
     id: 'housing_living',
-    name: 'السكن والمعيشة',
+    name: AppStringsAr.housingAndLiving,
     iconName: 'home',
     isDefault: true,
   );
 
   static const nutritionAndConsumption = CostCenterDimensionCategory(
     id: 'nutrition_consumption',
-    name: 'التغذية والاستهلاك اليومي',
+    name: AppStringsAr.nutritionAndDailyConsumption,
     iconName: 'restaurant',
     isDefault: true,
   );
 
   static const transportation = CostCenterDimensionCategory(
     id: 'transportation',
-    name: 'النقل والتنقل',
+    name: AppStringsAr.transportationAndMobility,
     iconName: 'directions_car',
     isDefault: true,
   );
 
   static const healthAndPersonalCare = CostCenterDimensionCategory(
     id: 'health_care',
-    name: 'الصحة والعناية الشخصية',
+    name: AppStringsAr.healthAndPersonalCare,
     iconName: 'medical_services',
     isDefault: true,
   );
 
   static const educationAndDevelopment = CostCenterDimensionCategory(
     id: 'education_development',
-    name: 'التعليم وتنمية القدرات',
+    name: AppStringsAr.autostring2,
     iconName: 'school',
     isDefault: true,
   );
 
   static const familyAndDependents = CostCenterDimensionCategory(
     id: 'family_dependents',
-    name: 'الأسرة والمعالون',
+    name: AppStringsAr.familyAndDependents,
     iconName: 'family_restroom',
     isDefault: true,
   );
 
   static const obligationsAndDebts = CostCenterDimensionCategory(
     id: 'obligations_debts',
-    name: 'الالتزامات والديون',
+    name: AppStringsAr.obligationsAndDebts1,
     iconName: 'account_balance',
     isDefault: true,
   );
 
   static const investmentsAndProjects = CostCenterDimensionCategory(
     id: 'investments_projects',
-    name: 'الاستثمارات والمشاريع',
+    name: AppStringsAr.investmentsAndProjects,
     iconName: 'trending_up',
     isDefault: true,
   );
 
   static const savingsAndReserves = CostCenterDimensionCategory(
     id: 'savings_reserves',
-    name: 'الادخار وبناء الاحتياطي',
+    name: AppStringsAr.savingAndBuildingReserves,
     iconName: 'savings',
     isDefault: true,
   );
 
   static const entertainmentAndLifestyle = CostCenterDimensionCategory(
     id: 'entertainment_lifestyle',
-    name: 'الترفيه ونمط الحياة',
+    name: AppStringsAr.entertainmentAndLifestyle,
     iconName: 'sports_esports',
     isDefault: true,
   );

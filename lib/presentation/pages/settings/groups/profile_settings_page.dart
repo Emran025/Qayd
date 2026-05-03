@@ -110,7 +110,7 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.failureOrNull?.messageAr ?? 'حدث خطأ'),
+            content: Text(result.failureOrNull?.messageAr ?? AppStringsAr.anErrorOccurred),
             backgroundColor: Colors.red,
           ),
         );
@@ -148,7 +148,7 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
                 ),
                 const SizedBox(width: SpacingTokens.md),
                 QaydText(
-                  'منطقة الخطر',
+                  AppStringsAr.dangerZone,
                   slot: QaydTextStyleSlot.titleMedium,
                   style: TextStyle(
                     color: scheme.error,
@@ -159,7 +159,7 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
             ),
             const SizedBox(height: SpacingTokens.md),
             QaydText(
-              'محو الحساب هو إجراء نهائي يقوم بحذف كافة البيانات المالية والنسخ الاحتياطية من السيرفر ومن Google Drive ومن جهازك.',
+              AppStringsAr.accountErasureIsA,
               slot: QaydTextStyleSlot.bodySmall,
               color: scheme.onSurfaceVariant,
             ),

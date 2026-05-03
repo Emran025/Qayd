@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Multi-step bottom sheet for the collateral liquidation / sale workflow.
 ///
@@ -88,7 +90,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
   void _nextStep() {
     if (_step == 1 && _saleValueMinor <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إدخال قيمة البيع')),
+        const SnackBar(content: Text(AppStringsAr.pleaseEnterTheSale)),
       );
       return;
     }
@@ -145,7 +147,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                   Icon(Icons.gavel_rounded, color: scheme.error, size: 24),
                   const SizedBox(width: SpacingTokens.sm),
                   Text(
-                    'تصفية رهن',
+                    AppStringsAr.liquidationOfMortgage1,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w600,
@@ -194,7 +196,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                   if (_step > 0)
                     TextButton(
                       onPressed: _prevStep,
-                      child: Text('رجوع',
+                      child: Text(AppStringsAr.back,
                           style: TextStyle(color: scheme.onSurfaceVariant)),
                     ),
                   const Spacer(),
@@ -203,7 +205,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                       onPressed: _nextStep,
                       style: FilledButton.styleFrom(backgroundColor: gold),
                       child: Text(
-                        'التالي',
+                        AppStringsAr.theNext,
                         style: TextStyle(color: scheme.surface),
                       ),
                     ),
@@ -224,7 +226,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                               ),
                             )
                           : const Icon(Icons.check_rounded, size: 18),
-                      label: Text(_confirming ? 'جاري التنفيذ...' : 'تأكيد التصفية'),
+                      label: Text(_confirming ? AppStringsAr.implementationInProgress : AppStringsAr.confirmFiltering),
                     ),
                 ],
               ),
@@ -244,14 +246,14 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'نوع التسوية',
+          AppStringsAr.settlementType,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
         ),
         const SizedBox(height: SpacingTokens.md),
         _SettlementOption(
-          title: 'تسوية السند فقط',
+          title: AppStringsAr.bondSettlementOnly,
           subtitle:
               'تغطية مبلغ السند المرتبط (${_formatMinor(widget.voucherAmountMinor)} ${widget.currencyCode})',
           isSelected: _settlementType == 'voucher',
@@ -259,7 +261,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
         ),
         const SizedBox(height: SpacingTokens.sm),
         _SettlementOption(
-          title: 'تسوية الدين الكامل',
+          title: AppStringsAr.fullDebtSettlement,
           subtitle:
               'تغطية إجمالي الرصيد المستحق (${_formatMinor(widget.totalDebtMinor)} ${widget.currencyCode})',
           isSelected: _settlementType == 'full_debt',
@@ -276,7 +278,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'قيمة البيع الفعلية',
+          AppStringsAr.actualSellingValue,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -307,7 +309,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'مراجعة القيود المحاسبية',
+          AppStringsAr.reviewAccountingEntries,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -316,7 +318,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
 
         // Entry 1: Settlement
         _EntryPreview(
-          label: 'تسوية الدين',
+          label: AppStringsAr.debtSettlement,
           debit: 'النقدية: ${_formatMinor(_saleValueMinor)}',
           credit: 'الطرف: ${_formatMinor(settledAmount)}',
         ),
@@ -325,7 +327,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
         if (_surplusMinor > 0) ...[
           const SizedBox(height: SpacingTokens.sm),
           _EntryPreview(
-            label: 'فائض محتجز للعميل',
+            label: AppStringsAr.retainedSurplusForThe,
             debit: '—',
             credit: 'محتجز: ${_formatMinor(_surplusMinor)}',
             isSurplus: true,
@@ -347,7 +349,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'هذا الإجراء لا يمكن التراجع عنه',
+                  AppStringsAr.thisActionCannotBe,
                   style: TextStyle(
                     color: scheme.onTertiaryContainer,
                     fontSize: 12,

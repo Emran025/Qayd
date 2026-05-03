@@ -4,6 +4,8 @@ import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Node in the chart of accounts. Nature and classification are fixed after creation.
 class Account {
@@ -198,13 +200,13 @@ class Account {
   Account deactivate({required Money balance}) {
     if (isDefault) {
       throw const AccountDeletionException(
-        messageAr: 'لا يمكن إيقاف الحساب الافتراضي.',
+        messageAr: AppStringsAr.theDefaultAccountCannot1,
         code: 'account_deactivate_default',
       );
     }
     if (!balance.isZero) {
       throw const AccountDeletionException(
-        messageAr: 'لا يمكن إيقاف حساب له رصيد غير صفر.',
+        messageAr: AppStringsAr.anAccountWithA,
         code: 'account_balance_blocks_deactivate',
       );
     }
@@ -228,7 +230,7 @@ class Account {
     if (classification != newParent.classification ||
         nature != newParent.nature) {
       throw const InvalidStateTransitionException(
-        messageAr: 'لا يمكن نقل الحساب إلى أصل بتصنيف أو طبيعة مختلفة.',
+        messageAr: AppStringsAr.theAccountCannotBe,
         code: 'account_reparent_classification_mismatch',
       );
     }
@@ -253,19 +255,19 @@ class Account {
   }) {
     if (isDefault) {
       throw const AccountDeletionException(
-        messageAr: 'لا يمكن حذف الحساب الافتراضي.',
+        messageAr: AppStringsAr.theDefaultAccountCannot2,
         code: 'account_delete_default',
       );
     }
     if (!balance.isZero) {
       throw const AccountDeletionException(
-        messageAr: 'لا يمكن حذف حساب له رصيد غير صفر.',
+        messageAr: AppStringsAr.anAccountWithA1,
         code: 'account_delete_balance',
       );
     }
     if (hasChildAccounts) {
       throw const AccountDeletionException(
-        messageAr: 'لا يمكن حذف حساب يملك حسابات فرعية.',
+        messageAr: AppStringsAr.anAccountThatHas,
         code: 'account_delete_children',
       );
     }
@@ -275,13 +277,13 @@ class Account {
   Account archive({required Money balance}) {
     if (isDefault) {
       throw const AccountDeletionException(
-        messageAr: 'لا يمكن أرشفة الحساب الافتراضي.',
+        messageAr: AppStringsAr.theDefaultAccountCannot,
         code: 'account_archive_default',
       );
     }
     if (!balance.isZero) {
       throw const AccountDeletionException(
-        messageAr: 'لا يمكن أرشفة حساب له رصيد غير صفر. يجب تسوية الحساب أولاً.',
+        messageAr: AppStringsAr.anAccountWithA2,
         code: 'account_archive_balance',
       );
     }

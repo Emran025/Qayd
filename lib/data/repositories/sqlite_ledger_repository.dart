@@ -11,6 +11,8 @@ import 'package:qayd/domain/value_objects/date_range.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SqliteLedgerRepository implements LedgerRepository {
   SqliteLedgerRepository(this._db);
@@ -52,7 +54,7 @@ final class SqliteLedgerRepository implements LedgerRepository {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر حفظ قيود دفتر الأستاذ.'),
+        DatabaseFailure(messageAr: AppStringsAr.ledgerEntriesCouldNot),
       );
     }
   }
@@ -81,7 +83,7 @@ final class SqliteLedgerRepository implements LedgerRepository {
       return Success(await _mapEntryRows(rows));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة حركات الحساب.'),
+        DatabaseFailure(messageAr: AppStringsAr.accountTransactionsCouldNot),
       );
     }
   }
@@ -100,7 +102,7 @@ final class SqliteLedgerRepository implements LedgerRepository {
       return Success(await _mapEntryRows(rows));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة حركة مزدوجة القيد.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToReadDouble),
       );
     }
   }
@@ -118,7 +120,7 @@ final class SqliteLedgerRepository implements LedgerRepository {
       return Success(await _mapEntryRows(rows));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة قيود السند.'),
+        DatabaseFailure(messageAr: AppStringsAr.theBondEntriesCould),
       );
     }
   }
@@ -145,7 +147,7 @@ final class SqliteLedgerRepository implements LedgerRepository {
       return Success(await _mapEntryRows(rows));
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر قراءة دفتر الأستاذ.'),
+        DatabaseFailure(messageAr: AppStringsAr.theLedgerCouldNot),
       );
     }
   }

@@ -149,7 +149,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'لا يوجد حساب مرتبط برقم الهاتف في الرمز. تم رفض السند.',
+                AppStringsAr.thereIsNoAccount,
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
@@ -161,7 +161,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'الرمز لا يحتوي على رقم هاتف لمعرفة الحساب. تم رفض السند.',
+              AppStringsAr.theCodeDoesNot,
             ),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
@@ -463,8 +463,8 @@ class _VoucherListViewState extends State<_VoucherListView> {
                                 ? AppStringsAr.vouchersEmptyFiltered
                                 : AppStringsAr.vouchersEmpty,
                             description: hasActiveQuery
-                                ? 'جرب تغيير عوامل التصفية'
-                                : 'ابدأ بإضافة أول سند لك في النظام',
+                                ? AppStringsAr.tryChangingTheFilters
+                                : AppStringsAr.startByAddingYour,
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(

@@ -3,6 +3,8 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class PdfTemplateSettingsPage extends StatefulWidget {
   const PdfTemplateSettingsPage({super.key});
@@ -15,14 +17,14 @@ class PdfTemplateSettingsPage extends StatefulWidget {
 class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
   // Brand Configuration
   final Map<String, String> _config = {
-    'pdf_header_title': 'قيد — المحاسبة الشخصية',
-    'pdf_header_subtitle': 'نظام السندات المالية المشفّرة',
-    'pdf_label_voucher_no': 'رقم السند:',
-    'pdf_label_date': 'التاريخ:',
-    'pdf_label_from': 'من حساب العميل:',
-    'pdf_label_description': 'البيان التفصيلي:',
-    'pdf_footer_text': 'المصدر: تطبيق قيد للمحاسبة الشخصية',
-    'pdf_mediator_name': 'شركة الناصر للصرافة والتحويلات',
+    'pdf_header_title': AppStringsAr.entryPersonalAccounting,
+    'pdf_header_subtitle': AppStringsAr.cryptocurrencySystem,
+    'pdf_label_voucher_no': AppStringsAr.bondNumber1,
+    'pdf_label_date': AppStringsAr.theDate1,
+    'pdf_label_from': AppStringsAr.fromTheCustomersAccount,
+    'pdf_label_description': AppStringsAr.detailedStatement,
+    'pdf_footer_text': AppStringsAr.sourceQaidPersonalAccounting,
+    'pdf_mediator_name': AppStringsAr.alnasserExchangeAndTransfers,
   };
 
   String? _selectedKey;
@@ -67,14 +69,14 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
 
   String _labelForKey(String key) {
     return switch (key) {
-      'pdf_header_title' => 'عنوان الترويسة الرئيسي',
-      'pdf_header_subtitle' => 'الوصف الفرعي للترويسة',
-      'pdf_label_voucher_no' => 'تسمية حقل الرقم',
-      'pdf_label_date' => 'تسمية حقل التاريخ',
-      'pdf_label_from' => 'مسمى الطرف الآخر',
-      'pdf_label_description' => 'مسمى حقل البيان',
-      'pdf_footer_text' => 'نص حقوق التذييل',
-      'pdf_mediator_name' => 'اسم الوسيط المالي',
+      'pdf_header_title' => AppStringsAr.mainHeaderTitle,
+      'pdf_header_subtitle' => AppStringsAr.headerSubdescription,
+      'pdf_label_voucher_no' => AppStringsAr.labelTheNumberField,
+      'pdf_label_date' => AppStringsAr.labelTheDateField,
+      'pdf_label_from' => AppStringsAr.nameOfTheOther,
+      'pdf_label_description' => AppStringsAr.statementFieldName,
+      'pdf_footer_text' => AppStringsAr.footerRightsText,
+      'pdf_mediator_name' => AppStringsAr.nameOfTheFinancial,
       _ => key,
     };
   }
@@ -93,11 +95,11 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       child: Scaffold(
         backgroundColor: theme.colorScheme.surfaceContainerHighest,
         appBar: QaydAppBar(
-          title: 'تخصيص هوية السندات',
+          title: AppStringsAr.customizeBondIdentity,
           bottom: TabBar(
             tabs: const [
-              Tab(text: 'سند عادي / ثنائي'),
-              Tab(text: 'تحويل ثلاثي'),
+              Tab(text: AppStringsAr.regularbilateralBond),
+              Tab(text: AppStringsAr.tripleConversion),
             ],
             indicatorColor: gold,
             labelColor: gold,
@@ -130,7 +132,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       child: Column(
         children: [
           const QaydText(
-            'قم بالنقر على أي عنصر نصي ملون في المعاينة لتعديله',
+            AppStringsAr.clickAnyColoredText,
             slot: QaydTextStyleSlot.labelSmall,
           ),
           const SizedBox(height: 24),
@@ -265,7 +267,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                   controller: _editController,
                   autofocus: true,
                   decoration: InputDecoration(
-                    hintText: 'أدخل النص الجديد هنا...',
+                    hintText: AppStringsAr.enterNewTextHere,
                     filled: true,
                     fillColor: theme.colorScheme.surfaceContainerLow,
                     border: OutlineInputBorder(
@@ -283,7 +285,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
                         ),
-                        child: const Text('حفظ'),
+                        child: const Text(AppStringsAr.save),
                       ),
                     ),
                   ),
@@ -300,7 +302,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                     Icon(Icons.touch_app_rounded, color: gold, size: 24),
                     const SizedBox(width: 12),
                     const QaydText(
-                      'اختر أي نص في المعاينة أعلاه للبدء بالتخصيص المباشر',
+                      AppStringsAr.selectAnyTextIn,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                   ],
@@ -379,7 +381,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           ),
           const SizedBox(height: 8),
           _directText(
-              'سـنـد قـبـض مـالـي (مـعـايـنـة)', 13, const Color(0xFF0F2741),
+              AppStringsAr.financialReceiptVoucherPreview, 13, const Color(0xFF0F2741),
               bold: true, align: TextAlign.center),
           if (isTripartite) ...[
             const SizedBox(height: 1),
@@ -396,13 +398,13 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     final isDebit = sectionType == 'debit';
     final sectionLabel = isTripartite
         ? (isDebit
-            ? 'بيانات القيد (المدين) - من حساب العميل المرسل:'
-            : 'بيانات القيد (الدائن) - إلى حساب العميل المستلم:')
+            ? AppStringsAr.registrationDataDebitFrom
+            : AppStringsAr.registrationDataCreditTo)
         : 'pdf_label_from';
 
     final name = isTripartite
-        ? (isDebit ? 'أحمد كمال الناصر' : 'خالد وليد العامري')
-        : 'أحمد كمال الناصر';
+        ? (isDebit ? AppStringsAr.ahmedKamalAlNasser : AppStringsAr.khaledWalidAlamiri)
+        : AppStringsAr.ahmedKamalAlNasser;
 
     return Container(
       decoration: BoxDecoration(
@@ -441,9 +443,9 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                         'pdf_label_description',
                         isTripartite
                             ? (isDebit
-                                ? 'إشعار بالخصم من الرصيد كتحويل مرسل'
-                                : 'إشعار بالإضافة إلى الرصيد كتحويل مستلم')
-                            : 'سداد دفعة من الفاتورة الآجلة المستحقة رقم 452'),
+                                ? AppStringsAr.noticeOfDeductionFrom
+                                : AppStringsAr.noticeOfAdditionTo)
+                            : AppStringsAr.makeAPaymentOn),
                   ],
                 ),
               ),
@@ -478,9 +480,9 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     if (isTripartite) {
       return Row(
         children: [
-          Expanded(child: _sigBoxMock('(توقيع العميل الأول)', true)),
+          Expanded(child: _sigBoxMock(AppStringsAr.firstCustomerSignature, true)),
           const SizedBox(width: 8),
-          Expanded(child: _sigBoxMock('(توقيع العميل الثاني)', true)),
+          Expanded(child: _sigBoxMock(AppStringsAr.secondClientSignature, true)),
         ],
       );
     }
@@ -489,7 +491,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       children: [
         Expanded(
           flex: 2,
-          child: _sigBoxMock('(توقيع العميل المرسل)', true),
+          child: _sigBoxMock(AppStringsAr.signatureOfSendingClient, true),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -503,9 +505,9 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _directText('حالة التوقيع', 7, const Color(0xFF64748B)),
+                _directText(AppStringsAr.signatureStatus, 7, const Color(0xFF64748B)),
                 const SizedBox(height: 3),
-                _directText('مقبول وموقّع', 8, const Color(0xFF047857),
+                _directText(AppStringsAr.acceptedAndSigned, 8, const Color(0xFF047857),
                     bold: true, align: TextAlign.center),
               ],
             ),
@@ -528,7 +530,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _directText('تم الإنشاء:  09:30 AM  09/04/2026', 7.5,
+                _directText(AppStringsAr.created0930Am04092026, 7.5,
                     const Color(0xFF64748B)),
                 const SizedBox(height: 2),
                 _selectableText(
@@ -649,7 +651,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           if (hasSig)
             Expanded(
               child: Center(
-                child: _directText(' موقّع رقمياً', 9, const Color(0xFF047857),
+                child: _directText(AppStringsAr.digitallySigned, 9, const Color(0xFF047857),
                     bold: true),
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 /// A single monthly data point for the cost center trend chart.
 final class MonthlyTrendPoint {
   const MonthlyTrendPoint({
@@ -17,18 +18,18 @@ final class MonthlyTrendPoint {
     if (parts.length < 2) return monthKey;
     final month = int.tryParse(parts[1]) ?? 0;
     const names = [
-      'يناير',
-      'فبراير',
-      'مارس',
-      'أبريل',
-      'مايو',
-      'يونيو',
-      'يوليو',
-      'أغسطس',
-      'سبتمبر',
-      'أكتوبر',
-      'نوفمبر',
-      'ديسمبر',
+      AppStringsAr.january,
+      AppStringsAr.february,
+      AppStringsAr.march,
+      AppStringsAr.april,
+      AppStringsAr.may,
+      AppStringsAr.june,
+      AppStringsAr.july,
+      AppStringsAr.august,
+      AppStringsAr.september,
+      AppStringsAr.october,
+      AppStringsAr.november,
+      AppStringsAr.december,
     ];
     if (month < 1 || month > 12) return monthKey;
     return names[month - 1];

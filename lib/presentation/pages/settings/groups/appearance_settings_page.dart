@@ -60,7 +60,7 @@ class AppearanceSettingsPage extends StatelessWidget {
                 value: 'en',
                 groupValue: state.languageCode,
                 onChanged: null, // English is coming soon
-                subtitle: 'قريباً',
+                subtitle: AppStringsAr.almost,
               ),
             ],
           );

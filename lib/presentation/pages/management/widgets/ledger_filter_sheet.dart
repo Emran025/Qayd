@@ -168,13 +168,13 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
             Padding(
               padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
               child: QaydText(
-                'تصفية السجل المالي',
+                AppStringsAr.filterTheFinancialRecord,
                 slot: QaydTextStyleSlot.titleLarge,
               ),
             ),
 
             // ── Type ──
-            _sectionTitle('نوع الحركة المالية'),
+            _sectionTitle(AppStringsAr.typeOfFinancialTransaction),
             _typeChips(),
 
             // ── Date Range ──

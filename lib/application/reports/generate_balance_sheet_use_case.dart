@@ -10,6 +10,8 @@ import 'package:qayd/domain/services/balance_sheet_generator.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class GenerateBalanceSheetUseCase {
   GenerateBalanceSheetUseCase(
@@ -65,8 +67,8 @@ class GenerateBalanceSheetUseCase {
       return Success(
         BalanceSheetOutput(
           atDate: atDate,
-          title: 'الميزانية العمومية',
-          companyName: 'نظام قيد المحاسبي',
+          title: AppStringsAr.balanceSheet,
+          companyName: AppStringsAr.accountingRecordingSystem,
           lines: dtoLines,
           currencySections: currencySections,
         ),

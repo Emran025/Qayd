@@ -49,7 +49,7 @@ Future<void> shareAccountStatementAsPdf(
   final prefs = InjectionContainer.sharedPreferences;
   final issuerName = prefs.getString('company_name') ??
       prefs.getString('pdf_mediator_name') ??
-      'قيد — المحاسبة الشخصية';
+      AppStringsAr.entryPersonalAccounting;
 
   final dto = AccountStatementReportDto(
     accountId: stmt.accountId,

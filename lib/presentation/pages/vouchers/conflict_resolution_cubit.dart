@@ -7,6 +7,8 @@ import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/notification_message.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 sealed class ConflictResolutionState {
   const ConflictResolutionState();
@@ -60,7 +62,7 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
     try {
       if (notification.rawPayloadJson == null) {
         emit(const ConflictResolutionFailure(
-          ValidationFailure(messageAr: 'بيانات السند المفقودة في الإشعار.'),
+          ValidationFailure(messageAr: AppStringsAr.missingBondInformationIn),
         ));
         return;
       }
@@ -82,7 +84,7 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
       );
     } catch (_) {
       emit(const ConflictResolutionFailure(
-        DatabaseFailure(messageAr: 'تعذر تحميل بيانات المقارنة.'),
+        DatabaseFailure(messageAr: AppStringsAr.unableToLoadComparison),
       ));
     }
   }

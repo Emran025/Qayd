@@ -22,6 +22,8 @@ import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Creates a dual transfer (two standard vouchers through the fund/cashbox).
 ///
@@ -30,11 +32,11 @@ import 'package:qayd/domain/value_objects/standard_account_classification_kind.d
 ///
 /// 1. **Receipt** (Sender → Fund): Debits the sender, credits the fund.
 ///    - counterparty = Sender, affectedAccount = Fund
-///    - Description: "خصم مبلغ ... من حساب [المرسل]"
+///    - Description: AppStringsAr.deductingAnAmountfromThe
 ///
 /// 2. **Payment** (Fund → Receiver): Debits the fund, credits the receiver.
 ///    - counterparty = Receiver, affectedAccount = Fund
-///    - Description: "إضافة مبلغ ... إلى حساب [المستلم]"
+///    - Description: AppStringsAr.addAnAmounttoRecipients
 ///
 /// Both vouchers are linked via a shared [dualGroupId] and carry
 /// [DualTransferMeta] so the UI can distinguish them from regular vouchers.
@@ -74,7 +76,7 @@ class CreateDualTransferUseCase {
       if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
         return FailureResult(
           ValidationFailure(
-            messageAr: 'العملة المختارة غير صالحة.',
+            messageAr: AppStringsAr.theSelectedCurrencyIs,
             code: 'invalid_currency',
           ),
         );
@@ -89,7 +91,7 @@ class CreateDualTransferUseCase {
       if (senderId == receiverId) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن أن يكون المرسل والمستلم نفس الطرف.',
+            messageAr: AppStringsAr.theSenderAndRecipient,
             code: 'dual_same_sender_receiver',
           ),
         );
@@ -97,7 +99,7 @@ class CreateDualTransferUseCase {
       if (senderId == fundId || receiverId == fundId) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'حساب الصندوق يجب أن يكون مختلفاً عن المرسل والمستلم.',
+            messageAr: AppStringsAr.theFundAccountMust,
             code: 'dual_fund_conflict',
           ),
         );

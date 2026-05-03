@@ -127,7 +127,7 @@ class _BalanceSheetChartsCarouselState
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: ChoiceChip(
-                    label: Text(CurrencyUtil.getArabicName(sections[index].currencyCode).replaceAll('﷼', 'ريال')),
+                    label: Text(CurrencyUtil.getArabicName(sections[index].currencyCode).replaceAll('﷼', AppStringsAr.sar)),
                     selected: isSelected,
                     onSelected: (val) {
                       if (val) setState(() => _currentIndex = index);
@@ -201,7 +201,7 @@ class _FinancialHeaderChartCard extends StatelessWidget {
               Icon(Icons.insights_rounded, color: qayd.goldAccent, size: 20),
               const SizedBox(width: 8),
               Text(
-                '${AppStringsAr.financialCenterPrefix}${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')}',
+                '${AppStringsAr.financialCenterPrefix}${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -690,7 +690,7 @@ class _AccountGroupItem extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', 'ريال'),
+                                    CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', AppStringsAr.sar),
                                     style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -811,7 +811,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${AppStringsAr.totalsSummaryPrefix}${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')}',
+                  '${AppStringsAr.totalsSummaryPrefix}${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)}',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,

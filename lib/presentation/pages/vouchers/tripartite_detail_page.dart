@@ -66,7 +66,7 @@ class TripartiteDetailPage extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: QaydAppBar(
-            title: 'تفاصيل التحويل الوسيط',
+            title: AppStringsAr.brokerageTransferDetails,
             actions: [
               if (state is TripartiteDetailReady) _ShareMenu(data: state.data),
             ],
@@ -114,7 +114,7 @@ class _ShareMenu extends StatelessWidget {
 
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert_rounded),
-      tooltip: 'خيارات المشاركة',
+      tooltip: AppStringsAr.sharingOptions,
       color: scheme.surface,
       elevation: 8,
       shape: RoundedRectangleBorder(
@@ -181,7 +181,7 @@ class _ShareMenu extends StatelessWidget {
             value: 'view_receipt',
             child: ListTile(
               leading: const Icon(Icons.south_west_rounded),
-              title: const Text('عرض سند القبض'),
+              title: const Text(AppStringsAr.showTheReceiptDocument),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
@@ -191,7 +191,7 @@ class _ShareMenu extends StatelessWidget {
             value: 'view_payment',
             child: ListTile(
               leading: const Icon(Icons.north_east_rounded),
-              title: const Text('عرض سند الصرف'),
+              title: const Text(AppStringsAr.displayTheBillOf),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
@@ -227,7 +227,7 @@ class _TripartiteDetailBody extends StatelessWidget {
             Icon(Icons.swap_horiz_rounded, color: gold, size: 28),
             const SizedBox(width: SpacingTokens.sm),
             QaydText(
-              'تحويل وسيط',
+              AppStringsAr.brokerConversion,
               slot: QaydTextStyleSlot.headlineSmall,
             ),
             const SizedBox(width: SpacingTokens.sm),
@@ -253,12 +253,12 @@ class _TripartiteDetailBody extends StatelessWidget {
             QaydBadge.agreement(
               status: AgreementStatus.values.byName(data.senderStatusCode),
               context: context,
-              label: 'المرسل',
+              label: AppStringsAr.sender,
             ),
             QaydBadge.agreement(
               status: AgreementStatus.values.byName(data.receiverStatusCode),
               context: context,
-              label: 'المستلم',
+              label: AppStringsAr.recipient,
             ),
           ],
         ),
@@ -309,7 +309,7 @@ class _TripartiteDetailBody extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         QaydText(
-                          'مبلغ التحويل',
+                          AppStringsAr.transferAmount,
                           slot: QaydTextStyleSlot.labelLarge,
                           color: scheme.onSurfaceVariant,
                         ),
@@ -379,17 +379,17 @@ class _TripartiteDetailBody extends StatelessWidget {
         const SizedBox(height: SpacingTokens.md),
 
         // ── Core details ─────────────────────────────────────────────
-        _DetailRow(label: 'التاريخ', value: dateStr),
-        _DetailRow(label: 'المرسل', value: data.sourceName),
-        _DetailRow(label: 'الوسيط', value: data.mediatorName),
-        _DetailRow(label: 'المستلم', value: data.destinationName),
+        _DetailRow(label: AppStringsAr.theDate, value: dateStr),
+        _DetailRow(label: AppStringsAr.sender, value: data.sourceName),
+        _DetailRow(label: AppStringsAr.theMediator, value: data.mediatorName),
+        _DetailRow(label: AppStringsAr.recipient, value: data.destinationName),
 
         if (data.description != null && data.description!.isNotEmpty)
-          _DetailRow(label: 'البيان', value: data.description!),
+          _DetailRow(label: AppStringsAr.statement1, value: data.description!),
 
         // ── Timestamps ───────────────────────────────────────────────
         const SizedBox(height: SpacingTokens.sm),
-        _DetailRow(label: 'تاريخ الإنشاء', value: createdStr),
+        _DetailRow(label: AppStringsAr.creationDate, value: createdStr),
 
         // ── Leg cards (clickable links to individual vouchers) ────────
         if (!data.isTrueTripartite) ...[
@@ -491,7 +491,7 @@ class _TripartiteFlowCard extends StatelessWidget {
                     name: data.isTrueTripartite
                         ? (InjectionContainer.sharedPreferences
                                 .getString('company_name') ??
-                            'حسابي (وسيط)')
+                            AppStringsAr.myAccountBroker)
                         : data.mediatorName,
                     isActive: true,
                     isGold: true,
@@ -587,7 +587,7 @@ class _LegLinksSection extends StatelessWidget {
                 Icon(Icons.receipt_long_rounded, size: 18, color: gold),
                 const SizedBox(width: SpacingTokens.sm),
                 QaydText(
-                  'السندات المرتبطة',
+                  AppStringsAr.linkedBonds,
                   slot: QaydTextStyleSlot.labelLarge,
                   color: gold,
                 ),
@@ -599,7 +599,7 @@ class _LegLinksSection extends StatelessWidget {
             if (data.receiptVoucher != null)
               _LegCard(
                 icon: Icons.south_west_rounded,
-                label: 'سند القبض',
+                label: AppStringsAr.arrestDocument,
                 subtitle: '${data.sourceName} ← ${data.mediatorName}',
                 statusCode: data.receiptVoucher!.receiverStatusCode,
                 stateCode: data.receiptVoucher!.stateCode,
@@ -616,7 +616,7 @@ class _LegLinksSection extends StatelessWidget {
             if (data.paymentVoucher != null)
               _LegCard(
                 icon: Icons.north_east_rounded,
-                label: 'سند الصرف',
+                label: AppStringsAr.billOfExchange1,
                 subtitle: '${data.mediatorName} → ${data.destinationName}',
                 statusCode: data.paymentVoucher!.receiverStatusCode,
                 stateCode: data.paymentVoucher!.stateCode,
@@ -754,7 +754,7 @@ class _TripartitePreviewSection extends StatelessWidget {
                 Icon(Icons.preview_rounded, size: 18, color: gold),
                 const SizedBox(width: SpacingTokens.sm),
                 QaydText(
-                  'معاينة الإيصال',
+                  AppStringsAr.previewTheReceipt,
                   slot: QaydTextStyleSlot.labelLarge,
                   color: gold,
                 ),

@@ -12,6 +12,8 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_lifecycle.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Receipt or payment document with strict draft → confirmed → settled lifecycle.
 ///
@@ -250,13 +252,13 @@ class Voucher {
   }) {
     if (counterpartyId == affectedAccountId) {
       throw const SelfCancelingEntryException(
-        messageAr: 'لا يمكن أن يكون الطرف والحساب المتأثر نفس الحساب في السند.',
+        messageAr: AppStringsAr.theAffectedPartyAnd,
         code: 'voucher_self_counterparty',
       );
     }
     if (amount.isZero) {
       throw const InvalidAmountException(
-        messageAr: 'مبلغ السند يجب أن يكون أكبر من صفر.',
+        messageAr: AppStringsAr.theBondAmountMust,
         code: 'voucher_amount_zero',
       );
     }
@@ -303,7 +305,7 @@ class Voucher {
   Voucher confirm(DateTime confirmedAt) {
     if (!state.isDraft) {
       throw InvalidVoucherTransitionException(
-        messageAr: 'يمكن تأكيد السند من حالة المسودة فقط.',
+        messageAr: AppStringsAr.theBondCanOnly,
         from: state,
         to: VoucherState.confirmed,
       );
@@ -317,7 +319,7 @@ class Voucher {
   Voucher settle(DateTime settledAt) {
     if (!state.isConfirmed) {
       throw InvalidVoucherTransitionException(
-        messageAr: 'يمكن تسوية السند من حالة التأكيد فقط.',
+        messageAr: AppStringsAr.theBondCanBe,
         from: state,
         to: VoucherState.settled,
       );
@@ -334,7 +336,7 @@ class Voucher {
   Voucher withdraw(DateTime withdrawnAt) {
     if (!canWithdraw) {
       throw InvalidVoucherTransitionException(
-        messageAr: 'لا يمكن سحب السند بعد قبوله من الطرف الآخر أو تسويته.',
+        messageAr: AppStringsAr.theBondCannotBe1,
         from: state,
         to: VoucherState.withdrawn,
       );
@@ -401,7 +403,7 @@ class Voucher {
     if (!canEdit) {
       throw const ImmutableEntityException(
         messageAr:
-            'لا يمكن تعديل السند إلا إذا كان مسودة، مسحوباً، أو قيد انتظار موافقة الطرف الآخر.',
+            AppStringsAr.theInstrumentCannotBe,
         code: 'voucher_not_editable',
       );
     }
@@ -418,13 +420,13 @@ class Voucher {
     final nextAffected = affectedAccountId ?? this.affectedAccountId;
     if (nextCounterparty == nextAffected) {
       throw const SelfCancelingEntryException(
-        messageAr: 'لا يمكن أن يكون الطرف والحساب المتأثر نفس الحساب في السند.',
+        messageAr: AppStringsAr.theAffectedPartyAnd,
         code: 'voucher_self_counterparty',
       );
     }
     if (nextAmount.isZero) {
       throw const InvalidAmountException(
-        messageAr: 'مبلغ السند يجب أن يكون أكبر من صفر.',
+        messageAr: AppStringsAr.theBondAmountMust,
         code: 'voucher_amount_zero',
       );
     }
@@ -463,7 +465,7 @@ class Voucher {
   void assertDraftDeletionAllowed() {
     if (!state.isDraft) {
       throw const ImmutableEntityException(
-        messageAr: 'يمكن حذف السندات في حالة المسودة فقط.',
+        messageAr: AppStringsAr.bondsCanBeDeleted,
         code: 'voucher_delete_not_draft',
       );
     }
@@ -472,7 +474,7 @@ class Voucher {
   void assertMutableForAccountingSideEffects() {
     if (state.isSettled) {
       throw const ImmutableEntityException(
-        messageAr: 'السند المسوّى غير قابل للتعديل.',
+        messageAr: AppStringsAr.aSettledBondIs,
         code: 'voucher_settled_immutable',
       );
     }

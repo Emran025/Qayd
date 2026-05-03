@@ -54,11 +54,11 @@ class BackupSettingsPage extends StatelessWidget {
           _SectionTitle(AppStringsAr.settingsSectionDriveBackup),
           const DriveBackupSection(),
           const Divider(),
-          const _SectionTitle('الاستيراد والهجرة'),
+          const _SectionTitle(AppStringsAr.importAndImmigration),
           ListTile(
             leading: const Icon(Icons.move_to_inbox_rounded),
-            title: Text('استيراد وتهيئة'),
-            subtitle: Text('استيراد بيانات من نظام قديم'),
+            title: Text(AppStringsAr.importAndFormat),
+            subtitle: Text(AppStringsAr.importDataFromAn),
             onTap: () => Navigator.of(context).push(
               QaydPageRoute.slideFromStart(
                   builder: (_) => const ImportWizardPage()),

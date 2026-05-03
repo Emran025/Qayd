@@ -10,6 +10,8 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:uuid/uuid.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Centralizes the encryption and enqueuing of financial mutations into the Local Outbox.
 ///
@@ -131,7 +133,7 @@ class SyncEventDispatcher {
       final party = partyResult.valueOrNull;
       if (party == null) {
         return const FailureResult(ValidationFailure(
-            messageAr: 'لم يتم العثور على بيانات الطرف المقابل.'));
+            messageAr: AppStringsAr.noCounterpartyDataFound));
       }
 
       String? receiverPubKey = party.currentPublicKeyHex;
@@ -151,7 +153,7 @@ class SyncEventDispatcher {
         // §6: Sync Privacy Policy — check if target has restricted access.
         if (serverIdentity != null && serverIdentity.syncBlocked) {
           return const FailureResult(ValidationFailure(
-            messageAr: 'الطرف المقابل قيّد المزامنة مع حسابك.',
+            messageAr: AppStringsAr.theCounterpartyHasRestricted,
           ));
         }
 
@@ -171,7 +173,7 @@ class SyncEventDispatcher {
         // Synchronous flows must stop here to prevent "Plaintext Leakage".
         return const FailureResult(ValidationFailure(
           messageAr:
-              'تعذر الحصول على المفتاح العام للطرف المقابل. تم تعليق المزامنة.',
+              AppStringsAr.theCounterpartysPublicKey,
         ));
       }
 

@@ -6,6 +6,8 @@ import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class CreateCostCenterUseCase {
   const CreateCostCenterUseCase(this._repository, this._idGenerator);
@@ -25,7 +27,7 @@ final class CreateCostCenterUseCase {
     if (trimmed.isEmpty) {
       return const FailureResult(
         ValidationFailure(
-          messageAr: 'يرجى إدخال اسم مركز التكلفة.',
+          messageAr: AppStringsAr.pleaseEnterTheName,
           code: 'cost_center_name_required',
         ),
       );

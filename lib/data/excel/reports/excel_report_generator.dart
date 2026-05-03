@@ -5,6 +5,8 @@ import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/application/reports/dtos/balance_sheet_output.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/core/utils/currency_util.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Professional Excel generator for financial reports.
 ///
@@ -19,7 +21,7 @@ final class ExcelReportGenerator {
 
   Uint8List generateTrialBalance(TrialBalanceOutput report) {
     final excel = Excel.createExcel();
-    final Sheet sheet = excel['ميزان المراجعة'];
+    final Sheet sheet = excel[AppStringsAr.trialBalance];
     excel.delete('Sheet1');
 
     // ── Styles ──────────────────────────────────────────────────────────
@@ -77,14 +79,14 @@ final class ExcelReportGenerator {
 
     // ── Column headers ──────────────────────────────────────────────────
     sheet.appendRow([
-      TextCellValue('الحساب'),
-      TextCellValue('العملة'),
-      TextCellValue('افتتاحي مدين'),
-      TextCellValue('افتتاحي دائن'),
-      TextCellValue('حركة مدين'),
-      TextCellValue('حركة دائن'),
-      TextCellValue('ختامي مدين'),
-      TextCellValue('ختامي دائن'),
+      TextCellValue(AppStringsAr.theAccount),
+      TextCellValue(AppStringsAr.currency),
+      TextCellValue(AppStringsAr.myEditorialIsIndebted),
+      TextCellValue(AppStringsAr.creditOpening),
+      TextCellValue(AppStringsAr.madianMovement),
+      TextCellValue(AppStringsAr.creditMovement),
+      TextCellValue(AppStringsAr.myConclusionIsIndebted),
+      TextCellValue(AppStringsAr.creditClosing),
     ]);
     for (var i = 0; i < 8; i++) {
       sheet
@@ -115,7 +117,7 @@ final class ExcelReportGenerator {
         final divisor = _divisor(line.currencyDigits);
         sheet.appendRow([
           TextCellValue(i == 0 ? accountRepresentation : ''),
-          TextCellValue(CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', 'ريال')),
+          TextCellValue(CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', AppStringsAr.sar)),
           DoubleCellValue(line.openingDebitMinorUnits / divisor),
           DoubleCellValue(line.openingCreditMinorUnits / divisor),
           DoubleCellValue(line.periodDebitMinorUnits / divisor),
@@ -145,8 +147,8 @@ final class ExcelReportGenerator {
       final totalRowIndex = sheet.maxRows;
       final divisor = _divisor(section.currencyDigits);
       sheet.appendRow([
-        TextCellValue('الإجمالي'),
-        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
+        TextCellValue(AppStringsAr.total),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)),
         DoubleCellValue(section.openingDebitMinorUnits / divisor),
         DoubleCellValue(section.openingCreditMinorUnits / divisor),
         DoubleCellValue(section.periodDebitMinorUnits / divisor),
@@ -172,7 +174,7 @@ final class ExcelReportGenerator {
 
   Uint8List generateBalanceSheet(BalanceSheetOutput report) {
     final excel = Excel.createExcel();
-    final Sheet sheet = excel['الميزانية العمومية'];
+    final Sheet sheet = excel[AppStringsAr.balanceSheet];
     excel.delete('Sheet1');
 
     // ── Styles ──────────────────────────────────────────────────────────
@@ -232,9 +234,9 @@ final class ExcelReportGenerator {
 
     // ── Column headers ──────────────────────────────────────────────────
     sheet.appendRow([
-      TextCellValue('الحساب'),
-      TextCellValue('العملة'),
-      TextCellValue('الرصيد'),
+      TextCellValue(AppStringsAr.theAccount),
+      TextCellValue(AppStringsAr.currency),
+      TextCellValue(AppStringsAr.balance),
     ]);
     for (var i = 0; i < 3; i++) {
       sheet
@@ -248,7 +250,7 @@ final class ExcelReportGenerator {
       sectionHeaderStyle,
       parentStyle,
       dataStyle,
-      'الأصول — Assets',
+      AppStringsAr.assets1,
       report.lines.where((l) => _isAsset(l.classification)).toList(),
     );
 
@@ -257,7 +259,7 @@ final class ExcelReportGenerator {
       sectionHeaderStyle,
       parentStyle,
       dataStyle,
-      'الخصوم — Liabilities',
+      AppStringsAr.liabilities,
       report.lines.where((l) => _isLiability(l.classification)).toList(),
     );
 
@@ -266,7 +268,7 @@ final class ExcelReportGenerator {
       sectionHeaderStyle,
       parentStyle,
       dataStyle,
-      'حقوق الملكية — Equity',
+      AppStringsAr.equity,
       report.lines.where((l) => _isEquity(l.classification)).toList(),
     );
 
@@ -278,8 +280,8 @@ final class ExcelReportGenerator {
       // Assets total
       final assetsRowIdx = sheet.maxRows;
       sheet.appendRow([
-        TextCellValue('إجمالي الأصول'),
-        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
+        TextCellValue(AppStringsAr.totalAssets),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)),
         DoubleCellValue(section.totalAssetsMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -292,8 +294,8 @@ final class ExcelReportGenerator {
       // Liabilities total
       final liabRowIdx = sheet.maxRows;
       sheet.appendRow([
-        TextCellValue('إجمالي الخصوم'),
-        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
+        TextCellValue(AppStringsAr.totalLiabilities),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)),
         DoubleCellValue(section.totalLiabilitiesMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -306,8 +308,8 @@ final class ExcelReportGenerator {
       // Equity total
       final eqRowIdx = sheet.maxRows;
       sheet.appendRow([
-        TextCellValue('حقوق الملكية'),
-        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', 'ريال')),
+        TextCellValue(AppStringsAr.propertyRights),
+        TextCellValue(CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)),
         DoubleCellValue(section.totalEquityMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -376,7 +378,7 @@ final class ExcelReportGenerator {
         final divisor = _divisor(line.currencyDigits);
         sheet.appendRow([
           TextCellValue(i == 0 ? accountRepresentation : ''),
-          TextCellValue(CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', 'ريال')),
+          TextCellValue(CurrencyUtil.getArabicName(line.currencyCode).replaceAll('﷼', AppStringsAr.sar)),
           DoubleCellValue(line.balanceMinorUnits / divisor),
         ]);
 
@@ -409,11 +411,11 @@ final class ExcelReportGenerator {
   // String _getClassificationDisplayName(AccountClassification classification) {
   //   if (classification.customName != null) return classification.customName!;
 
-  //   if (_isAsset(classification)) return 'الأصول';
-  //   if (_isLiability(classification)) return 'الخصوم';
-  //   if (_isEquity(classification)) return 'حقوق الملكية';
+  //   if (_isAsset(classification)) return AppStringsAr.assets;
+  //   if (_isLiability(classification)) return AppStringsAr.adversaries;
+  //   if (_isEquity(classification)) return AppStringsAr.propertyRights;
 
-  //   return classification.standardKind?.name ?? 'أخرى';
+  //   return classification.standardKind?.name ?? AppStringsAr.other;
   // }
 
   static bool _isAsset(AccountClassification c) =>

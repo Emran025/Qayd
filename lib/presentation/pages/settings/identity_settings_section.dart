@@ -165,9 +165,9 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
         const Divider(indent: 16, endIndent: 16),
         ListTile(
           leading: const Icon(Icons.sync_rounded),
-          title: const Text('رمز مزامنة P2P (Snap-Sync)'),
+          title: const Text(AppStringsAr.p2pSyncCodeSnapsync),
           subtitle:
-              const Text('لربط جهازين مباشرة عبر الشبكة المحلية دون إنترنت.'),
+              const Text(AppStringsAr.toConnectTwoDevices),
           trailing: const Icon(Icons.qr_code_2_rounded),
           onTap: _showP2PCode,
         ),
@@ -179,23 +179,23 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
     QaydDialog.show<void>(
       context: context,
       icon: Icons.qr_code_2_rounded,
-      title: 'مزامنة Snap-Sync',
+      title: AppStringsAr.snapsync,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            'امسح هذا الرمز من الجهاز الآخر لبدء المزامنة المباشرة عالية السرعة.',
+            AppStringsAr.scanThisCodeFrom,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13),
           ),
           const SizedBox(height: 8),
           Text(
-            'IP: (جارٍ اكتشاف الشبكة…)',
+            AppStringsAr.ipDiscoveringNetwork,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
-      primaryActionLabel: 'إغلاق',
+      primaryActionLabel: AppStringsAr.closing1,
       onPrimaryAction: () => Navigator.pop(context),
     );
   }

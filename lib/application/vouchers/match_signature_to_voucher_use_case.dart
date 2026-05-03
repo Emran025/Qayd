@@ -9,6 +9,8 @@ import 'package:qayd/domain/value_objects/digital_signature.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Matches an incoming signed QR payload to a local draft voucher.
 ///
@@ -84,7 +86,7 @@ class MatchSignatureToVoucherUseCase {
 
       if (draftsResult.isFailure) {
         return FailureResult(
-            DatabaseFailure(messageAr: 'تعذر البحث عن الإيصالات المسودة.'));
+            DatabaseFailure(messageAr: AppStringsAr.unableToSearchFor));
       }
 
       final drafts = draftsResult.valueOrNull!;
@@ -97,7 +99,7 @@ class MatchSignatureToVoucherUseCase {
       if (matchingDrafts.isEmpty) {
         return const FailureResult(ValidationFailure(
           messageAr:
-              'لم يتم العثور على مسودة إيصال مطابقة لهذا الإجمالي والتاريخ.',
+              AppStringsAr.noDraftReceiptMatching,
           code: 'no_match',
         ));
       }
@@ -116,13 +118,13 @@ class MatchSignatureToVoucherUseCase {
       final saveResult = await _voucherRepository.save(updatedVoucher);
       if (saveResult.isFailure) {
         return FailureResult(
-            DatabaseFailure(messageAr: 'تعذر حفظ الإيصال المحدث.'));
+            DatabaseFailure(messageAr: AppStringsAr.unableToSaveThe));
       }
 
       return Success(updatedVoucher);
     } catch (e, _) {
       return FailureResult(ValidationFailure(
-        messageAr: 'حدث خطأ غير متوقع أثناء معالجة التوقيع.',
+        messageAr: AppStringsAr.anUnexpectedErrorOccurred,
         code: 'match_exception',
       ));
     }

@@ -1,3 +1,4 @@
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 /// Represents the sync privacy policy modes.
 ///
 /// Controls who can discover the user's public key and sync vouchers with them:
@@ -39,11 +40,11 @@ enum SyncPolicyMode {
   /// Arabic display name for settings UI.
   String get displayNameAr {
     return switch (this) {
-      SyncPolicyMode.open => 'مفتوح للجميع',
-      SyncPolicyMode.openWithBlocklist => 'مفتوح مع قائمة حظر',
-      SyncPolicyMode.closedWithAllowlist => 'مقيّد — قائمة سماح فقط',
-      SyncPolicyMode.openToContacts => 'مفتوح لجهات حساباتي فقط',
-      SyncPolicyMode.closed => 'مغلق عن الجميع',
+      SyncPolicyMode.open => AppStringsAr.openToEveryone,
+      SyncPolicyMode.openWithBlocklist => AppStringsAr.openWithBlocklist,
+      SyncPolicyMode.closedWithAllowlist => AppStringsAr.restrictedAllowListOnly,
+      SyncPolicyMode.openToContacts => AppStringsAr.openToMyAccounts,
+      SyncPolicyMode.closed => AppStringsAr.closedToEveryone,
     };
   }
 
@@ -51,15 +52,15 @@ enum SyncPolicyMode {
   String get descriptionAr {
     return switch (this) {
       SyncPolicyMode.open =>
-        'يسمح لأي شخص لديه رقمك بمزامنة السندات معك.',
+        AppStringsAr.itAllowsAnyoneWith,
       SyncPolicyMode.openWithBlocklist =>
-        'يسمح للجميع ما عدا المستخدمين في قائمة الحظر.',
+        AppStringsAr.allowsEveryoneExceptUsers,
       SyncPolicyMode.closedWithAllowlist =>
-        'يسمح فقط للمستخدمين المحددين في قائمة السماح.',
+        AppStringsAr.onlyUsersSpecifiedIn,
       SyncPolicyMode.openToContacts =>
-        'يسمح فقط لمن هم في جهات حساباتك بالمزامنة معك.',
+        AppStringsAr.onlyPeopleOnYour,
       SyncPolicyMode.closed =>
-        'يمنع الجميع من المزامنة معك بشكل كامل.',
+        AppStringsAr.itPreventsEveryoneFrom,
     };
   }
 }

@@ -54,7 +54,7 @@ Future<void> shareVoucherAsPdf(
     affectedAccountId: data.affectedAccountId,
     affectedName: TextSanitizer.sanitizeText(data.affectedName),
     referenceNumber: data.referenceNumber,
-    description: TextSanitizer.sanitizeText(data.description?? ""),
+    description: TextSanitizer.sanitizeText(data.description ?? ""),
     notes: data.notes != null ? TextSanitizer.sanitizeText(data.notes!) : null,
     qrData: data.qrData,
     createdAtIso: data.createdAtIso,
@@ -120,20 +120,21 @@ Future<void> shareVoucherAsPdf(
             data.tripartiteRole == 'intermediary_receipt';
         final sender = isReceiptLeg
             ? data.counterpartyName
-            : (data.linkedPartyName ?? 'المرسل');
+            : (data.linkedPartyName ?? AppStringsAr.sender);
         final receiver = isReceiptLeg
-            ? (data.linkedPartyName ?? 'المستلم')
+            ? (data.linkedPartyName ?? AppStringsAr.recipient)
             : data.counterpartyName;
 
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
         shareText =
             'مرفق لكم إشعار تحويل مالي من حساب $sender إلى حساب $receiver.\n'
             'المبلغ: $amountTextFormatter\n'
-            'المرجع: ${data.referenceNumber ?? shortId}\n'
-            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+            'المرجع: ${data.referenceNumber ?? shortId}\n';
+        AppStringsAr.nautomaticallyExportedAndDigitally;
       } else {
-        final voucherType =
-            data.typeCode == 'receipt' ? 'إشعار قبض' : 'إشعار صرف';
+        final voucherType = data.typeCode == 'receipt'
+            ? AppStringsAr.receiptNotice
+            : AppStringsAr.disbursementNotice;
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
         shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
             'المبلغ: $amountTextFormatter\n';
@@ -146,11 +147,11 @@ Future<void> shareVoucherAsPdf(
           final absValue = value.abs();
           final label = data.counterpartyNature == 'debit'
               ? value > 0
-                  ? 'عليكم'
-                  : 'لكم'
+                  ? AppStringsAr.onYou
+                  : AppStringsAr.your
               : value < 0
-                  ? 'عليكم'
-                  : 'لكم';
+                  ? AppStringsAr.onYou
+                  : AppStringsAr.your;
           return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
               .trim();
         }).toList();
@@ -159,8 +160,8 @@ Future<void> shareVoucherAsPdf(
         }
 
         shareText += 'الحساب: ${data.affectedName}\n'
-            'المرجع: ${data.referenceNumber ?? shortId}\n'
-            '\nمُصدّر آلياً وموثق رقمياً عبر نظام قيد المالي.';
+            'المرجع: ${data.referenceNumber ?? shortId}\n';
+        AppStringsAr.nautomaticallyExportedAndDigitally;
       }
       if (data.senderSignatureHex != null ||
           data.receiverSignatureHex != null) {

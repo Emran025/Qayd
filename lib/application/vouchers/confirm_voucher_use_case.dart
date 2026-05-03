@@ -17,6 +17,8 @@ import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class ConfirmVoucherUseCase {
   ConfirmVoucherUseCase(
@@ -57,7 +59,7 @@ class ConfirmVoucherUseCase {
         return const FailureResult(
           ValidationFailure(
             messageAr:
-                'لا يمكن تأكيد السند حتى يتم توقيعه من قبلك أو من قبل الطرف الآخر.',
+                AppStringsAr.theBondCannotBe,
             code: 'voucher_not_signed',
           ),
         );

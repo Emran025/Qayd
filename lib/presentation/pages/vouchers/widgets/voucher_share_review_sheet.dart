@@ -3,6 +3,8 @@ import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class VoucherSharePreviewSheet extends StatefulWidget {
   final String initialText;
@@ -87,7 +89,7 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
               Icon(Icons.edit_note_rounded, color: gold),
               const SizedBox(width: SpacingTokens.sm),
               QaydText(
-                'مراجعة وتعديل نص المشاركة',
+                AppStringsAr.reviewAndEditThe,
                 slot: QaydTextStyleSlot.titleMedium,
                 color: scheme.onSurface,
               ),
@@ -139,7 +141,7 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
                                 size: 14, color: gold.withValues(alpha: 0.6)),
                             const SizedBox(width: 4),
                             QaydText(
-                              'انقر للتعديل',
+                              AppStringsAr.clickToEdit,
                               slot: QaydTextStyleSlot.labelSmall,
                               color: gold.withValues(alpha: 0.6),
                             ),
@@ -155,7 +157,7 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
               Expanded(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('إلغاء'),
+                  child: const Text(AppStringsAr.cancellation),
                 ),
               ),
               const SizedBox(width: SpacingTokens.md),
@@ -164,7 +166,7 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
                 child: FilledButton.icon(
                   onPressed: () => Navigator.pop(context, _controller.text),
                   icon: const Icon(Icons.send_rounded),
-                  label: const Text('تأكيد وإرسال'),
+                  label: const Text(AppStringsAr.confirmAndSend),
                   style: FilledButton.styleFrom(
                     backgroundColor: gold,
                     foregroundColor: ColorTokens.navy950,

@@ -156,7 +156,7 @@ class AccountDetailPage extends StatelessWidget {
                       _buildMenuItem(
                         value: 'chat',
                         icon: Icons.forum_outlined,
-                        label: 'محادثة كشف الحساب',
+                        label: AppStringsAr.accountStatementConversation,
                         iconColor: Colors.teal,
                       ),
                       _buildMenuItem(
@@ -321,7 +321,7 @@ class _DetailBody extends StatelessWidget {
 
         // ── 2. Information Cards ──
         _SectionHeader(
-            title: 'هوية الحساب',
+            title: AppStringsAr.accountId1,
             icon: Icons.fingerprint_rounded,
             color: ColorTokens.emerald600),
         const SizedBox(height: SpacingTokens.sm),
@@ -357,7 +357,7 @@ class _DetailBody extends StatelessWidget {
 
         const SizedBox(height: SpacingTokens.lg),
         _SectionHeader(
-            title: 'التسلسل الزمني والتبعية',
+            title: AppStringsAr.chronologyAndDependency,
             icon: Icons.account_tree_outlined,
             color: ColorTokens.navy700),
         const SizedBox(height: SpacingTokens.sm),

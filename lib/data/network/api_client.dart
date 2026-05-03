@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/core/error/exceptions.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Dio-based HTTP client for all qaydAPI v1 requests.
 ///
@@ -193,30 +195,30 @@ final class _ErrorInterceptor extends Interceptor {
     if (err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.sendTimeout ||
         err.type == DioExceptionType.receiveTimeout) {
-      return 'انتهت مهلة الاتصال. تحقق من اتصالك بالإنترنت.';
+      return AppStringsAr.theConnectionTimedOut;
     }
 
     if (err.type == DioExceptionType.connectionError) {
-      return 'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت.';
+      return AppStringsAr.unableToConnectTo;
     }
 
     final statusCode = err.response?.statusCode;
     if (statusCode != null) {
       switch (statusCode) {
         case 401:
-          return 'بيانات الدخول غير صحيحة.';
+          return AppStringsAr.loginDataIsIncorrect;
         case 403:
-          return 'الحساب موقوف أو انتهت فترته التجريبية. تواصل مع المسؤول.';
+          return AppStringsAr.theAccountHasBeen1;
         case 409:
-          return 'البريد الإلكتروني مسجّل مسبقاً.';
+          return AppStringsAr.emailIsAlreadyRegistered;
         case 422:
-          return 'بيانات غير صالحة. تحقق من المدخلات وأعد المحاولة.';
+          return AppStringsAr.invalidDataCheckThe;
         case >= 500:
-          return 'خطأ في الخادم. يرجى المحاولة لاحقاً.';
+          return AppStringsAr.serverErrorPleaseTry;
       }
     }
 
-    return serverMessage ?? 'خطأ غير متوقع. حاول مرة أخرى.';
+    return serverMessage ?? AppStringsAr.unexpectedErrorTryAgain;
   }
 }
 
@@ -226,6 +228,6 @@ extension DioExceptionX on DioException {
   AuthException toAuthException() {
     final err = error;
     if (err is AuthException) return err;
-    return AuthException(message ?? 'خطأ غير متوقع. حاول مرة أخرى.');
+    return AuthException(message ?? AppStringsAr.unexpectedErrorTryAgain);
   }
 }

@@ -1,5 +1,7 @@
 import 'package:qayd/domain/exceptions/immutable_entity_exception.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// A Cost or Profit Center that groups vouchers under a named analytical unit.
 ///
@@ -101,7 +103,7 @@ class CostCenter {
   CostCenter rename(String newName) {
     if (isDefault) {
       throw const ImmutableEntityException(
-        messageAr: 'لا يمكن تغيير اسم مركز التكلفة الافتراضي.',
+        messageAr: AppStringsAr.theNameOfThe,
         code: 'cost_center_rename_default',
       );
     }
@@ -121,7 +123,7 @@ class CostCenter {
     if (!isActive) return this;
     if (isDefault) {
       throw const ImmutableEntityException(
-        messageAr: 'لا يمكن إيقاف مركز التكلفة الافتراضي.',
+        messageAr: AppStringsAr.theDefaultCostCenter1,
         code: 'cost_center_suspend_default',
       );
     }

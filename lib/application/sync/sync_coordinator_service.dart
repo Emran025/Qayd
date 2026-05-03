@@ -88,8 +88,8 @@ class SyncCoordinatorService {
       } else if (node.eventType == SyncEventType.acceptance) {
         if (notificationFilterService.isSelfActivityEnabled) {
           await nativeNotificationService.showLocalNotification(
-            title: 'تم الاعتماد',
-            body: 'تم قبول السند الخاص بك ومزامنته.',
+            title: AppStringsAr.approved,
+            body: AppStringsAr.yourBondHasBeen,
             payload: 'voucher_chat:${node.senderId}',
           );
           await notificationMessageRepository.insert(

@@ -333,7 +333,7 @@ class _IncomeStreamsListState extends State<_IncomeStreamsList> {
               FilledButton.tonalIcon(
                 onPressed: widget.onSeed,
                 icon: const Icon(Icons.auto_awesome_outlined),
-                label: const Text('توليد التصنيفات التلقائية'),
+                label: const Text(AppStringsAr.automaticClassificationGeneration),
               ),
             ],
           ],

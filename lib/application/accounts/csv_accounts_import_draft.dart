@@ -1,5 +1,7 @@
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Parsed CSV row for future account import (no persistence yet).
 class CsvAccountImportDraftRow {
@@ -25,7 +27,7 @@ abstract final class CsvAccountsImportDraft {
     if (lines.isEmpty) {
       return const FailureResult(
         ValidationFailure(
-          messageAr: 'الملف فارغ.',
+          messageAr: AppStringsAr.theFileIsEmpty,
           code: 'csv_empty',
         ),
       );
@@ -35,7 +37,7 @@ abstract final class CsvAccountsImportDraft {
     if (nameIdx < 0) {
       return const FailureResult(
         ValidationFailure(
-          messageAr: 'يجب أن يحتوي الصف الأول على عمود باسم «name» أو «اسم».',
+          messageAr: AppStringsAr.theFirstRowMust,
           code: 'csv_header',
         ),
       );
@@ -83,7 +85,7 @@ abstract final class CsvAccountsImportDraft {
     if (out.isEmpty) {
       return const FailureResult(
         ValidationFailure(
-          messageAr: 'لم يُعثر على صفوف بيانات صالحة.',
+          messageAr: AppStringsAr.noValidDataRows,
           code: 'csv_rows',
         ),
       );
@@ -113,7 +115,7 @@ abstract final class CsvAccountsImportDraft {
   static int _indexOfName(List<String> header) {
     final lower = header.map((e) => e.trim().toLowerCase()).toList();
     final i = lower.indexWhere(
-      (h) => h == 'name' || h == 'اسم' || h == 'account' || h == 'account_name',
+      (h) => h == 'name' || h == AppStringsAr.name || h == 'account' || h == 'account_name',
     );
     return i;
   }
@@ -122,21 +124,21 @@ abstract final class CsvAccountsImportDraft {
     final lower = header.map((e) => e.trim().toLowerCase()).toList();
     return lower.indexWhere(
       (h) =>
-          h == 'nature' || h == 'طبيعة' || h == 'type' || h == 'debit_credit',
+          h == 'nature' || h == AppStringsAr.nature || h == 'type' || h == 'debit_credit',
     );
   }
 
   static int _indexOfPhone(List<String> header) {
     final lower = header.map((e) => e.trim().toLowerCase()).toList();
     return lower.indexWhere(
-      (h) => h == 'phone' || h == 'هاتف' || h == 'mobile' || h == 'جوال',
+      (h) => h == 'phone' || h == AppStringsAr.phone || h == 'mobile' || h == AppStringsAr.cellPhone,
     );
   }
 
   static int _indexOfWhatsapp(List<String> header) {
     final lower = header.map((e) => e.trim().toLowerCase()).toList();
     return lower.indexWhere(
-      (h) => h == 'whatsapp' || h == 'واتس' || h == 'واتساب',
+      (h) => h == 'whatsapp' || h == AppStringsAr.watts || h == AppStringsAr.whatsapp,
     );
   }
 }

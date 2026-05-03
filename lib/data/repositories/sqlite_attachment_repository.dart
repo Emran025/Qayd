@@ -6,6 +6,8 @@ import 'package:qayd/domain/value_objects/attachment_id.dart';
 import 'package:qayd/domain/value_objects/attachment_source_type.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// SQLite-backed implementation of [AttachmentRepository].
 final class SqliteAttachmentRepository implements AttachmentRepository {
@@ -30,7 +32,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return Success(attachments);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: 'فشل في تحميل المرفقات.'),
+        DatabaseFailure(messageAr: AppStringsAr.failedToDownloadAttachments),
       );
     }
   }
@@ -46,7 +48,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: 'فشل في حفظ المرفق.'),
+        DatabaseFailure(messageAr: AppStringsAr.failedToSaveThe),
       );
     }
   }
@@ -83,7 +85,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       }
       if (anyFailed) {
         return FailureResult(
-          DatabaseFailure(messageAr: 'فشل في حفظ بعض المرفقات.'),
+          DatabaseFailure(messageAr: AppStringsAr.failedToSaveSome),
         );
       }
       return const Success(null);
@@ -97,7 +99,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: 'فشل في حذف المرفق.'),
+        DatabaseFailure(messageAr: AppStringsAr.failedToDeleteThe),
       );
     }
   }
@@ -113,7 +115,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: 'فشل في حذف مرفقات السند.'),
+        DatabaseFailure(messageAr: AppStringsAr.failedToDeleteBond),
       );
     }
   }

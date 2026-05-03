@@ -5,6 +5,8 @@ import 'package:qayd/domain/entities/inbox_notification.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Fetches real inbound notifications from the local database.
 final class ListInboxNotificationsUseCase {
@@ -28,11 +30,11 @@ final class ListInboxNotificationsUseCase {
         final senderName =
             await _getAccountName(AccountId(msg.counterpartyAccountId));
 
-        String title = 'إشعار جديد';
+        String title = AppStringsAr.newNotification;
         String actionRoute = '/chat/${msg.counterpartyAccountId}';
 
         if (msg.channel == 'tripartite_event') {
-          title = 'طلب إنشاء حوالة';
+          title = AppStringsAr.requestToCreateA;
           try {
             final Map<String, dynamic> payload =
                 jsonDecode(msg.rawPayloadJson!);
@@ -52,31 +54,31 @@ final class ListInboxNotificationsUseCase {
           switch (eventType) {
             case 'claim':
               if (hasTripartite) {
-                title = 'حوالة وساطة جديدة';
+                title = AppStringsAr.newBrokerageTransfer;
               } else {
                 title =
-                    msg.channel == 'conflict' ? 'تعارض في السندات' : 'سند جديد';
+                    msg.channel == 'conflict' ? AppStringsAr.bondConflict : AppStringsAr.newBond;
               }
               break;
             case 'acceptance':
-              title = hasTripartite ? 'تم اعتماد الحوالة' : 'تم اعتماد السند';
+              title = hasTripartite ? AppStringsAr.theTransferHasBeen : AppStringsAr.theBondHasBeen3;
               break;
             case 'rejection':
-              title = hasTripartite ? 'تم رفض الحوالة' : 'تم رفض السند';
+              title = hasTripartite ? AppStringsAr.theTransferWasRejected : AppStringsAr.bondWasDenied;
               break;
             case 'withdrawal':
-              title = hasTripartite ? 'تم سحب الحوالة' : 'تم سحب السند';
+              title = hasTripartite ? AppStringsAr.theTransferHasBeen2 : AppStringsAr.theBondHasBeen2;
               break;
             case 'settlement':
-              title = hasTripartite ? 'تم سداد الحوالة' : 'تم سداد السند';
+              title = hasTripartite ? AppStringsAr.theTransferHasBeen1 : AppStringsAr.theBondHasBeen;
               break;
             default:
-              title = hasTripartite ? 'تحديث على الحوالة' : 'تحديث على السند';
+              title = hasTripartite ? AppStringsAr.updateOnTheTransfer : AppStringsAr.updateOnTheBond;
           }
-        } else if (msg.bodyText.contains('طلب')) {
-          title = 'طلب اعتماد سند';
-        } else if (msg.bodyText.contains('اعتماد')) {
-          title = 'تم اعتماد السند';
+        } else if (msg.bodyText.contains(AppStringsAr.toRequest)) {
+          title = AppStringsAr.requestToApproveA;
+        } else if (msg.bodyText.contains(AppStringsAr.adoption)) {
+          title = AppStringsAr.theBondHasBeen3;
         }
 
         notifications.add(
@@ -106,6 +108,6 @@ final class ListInboxNotificationsUseCase {
     if (r.isSuccess) {
       return r.valueOrNull!.name;
     }
-    return 'حساب غير معروف';
+    return AppStringsAr.unknownAccount;
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class CurrencyPickerSheet extends StatefulWidget {
   const CurrencyPickerSheet({super.key, this.selectedCode});
@@ -61,7 +63,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
           ),
           const SizedBox(height: 24),
           Text(
-            'اختر العملة',
+            AppStringsAr.selectCurrency,
             textAlign: TextAlign.right,
             style: TextStyle(
               fontSize: 16,

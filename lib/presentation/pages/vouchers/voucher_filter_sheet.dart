@@ -334,11 +334,11 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 }
               },
             ),
-            _sectionTitle('مركز التكلفة'),
+            _sectionTitle(AppStringsAr.costCenter),
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: const QaydText(
-                'تصفية حسب مركز التكلفة',
+                AppStringsAr.filterByCostCenter,
                 slot: QaydTextStyleSlot.bodyMedium,
               ),
               subtitle: QaydText(
@@ -365,7 +365,7 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const QaydText('اختر مركز التكلفة',
+                            const QaydText(AppStringsAr.selectCostCenter,
                                 slot: QaydTextStyleSlot.titleMedium),
                             const SizedBox(height: SpacingTokens.md),
                             ...centers.map((c) => ListTile(

@@ -15,7 +15,7 @@ class SupportSettingsPage extends StatefulWidget {
 }
 
 class _SupportSettingsPageState extends State<SupportSettingsPage> {
-  String _versionInfo = 'جاري التحميل...';
+  String _versionInfo = AppStringsAr.loading;
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
       });
     } catch (_) {
       setState(() {
-        _versionInfo = 'غير متوفر';
+        _versionInfo = AppStringsAr.unavailable;
       });
     }
   }
@@ -76,7 +76,7 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
               color: Theme.of(context).colorScheme.primary,
             ),
             title: Text(AppStringsAr.settingsContactSupport),
-            onTap: () => _showSubmitTicket('تواصل مع الدعم الفني', 'other'),
+            onTap: () => _showSubmitTicket(AppStringsAr.contactTechnicalSupport, 'other'),
           ),
           ListTile(
             leading: Icon(
@@ -84,15 +84,15 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
               color: Theme.of(context).colorScheme.primary,
             ),
             title: Text(AppStringsAr.settingsReportIssue),
-            onTap: () => _showSubmitTicket('الإبلاغ عن مشكلة', 'bug'),
+            onTap: () => _showSubmitTicket(AppStringsAr.reportAProblem, 'bug'),
           ),
           ListTile(
             leading: Icon(
               Icons.new_releases_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: const Text('طلب ميزة جديدة'),
-            onTap: () => _showSubmitTicket('طلب ميزة جديدة', 'feature_request'),
+            title: const Text(AppStringsAr.requestANewFeature),
+            onTap: () => _showSubmitTicket(AppStringsAr.requestANewFeature, 'feature_request'),
           ),
           const Divider(),
           ListTile(
@@ -156,7 +156,7 @@ class _DocumentViewerState extends State<_DocumentViewer> {
         if (mounted) {
           setState(() {
             _loading = false;
-            _fallbackContent = 'تعذر تحميل المحتوى.';
+            _fallbackContent = AppStringsAr.unableToLoadContent;
           });
         }
       },
@@ -171,10 +171,10 @@ class _DocumentViewerState extends State<_DocumentViewer> {
               } else {
                 _fallbackContent = doc.content.isNotEmpty
                     ? doc.content
-                    : 'لا يوجد محتوى متوفر حالياً.';
+                    : AppStringsAr.thereIsNoContent;
               }
             } else {
-              _fallbackContent = 'لا يوجد محتوى متوفر حالياً.';
+              _fallbackContent = AppStringsAr.thereIsNoContent;
             }
           });
         }
@@ -352,7 +352,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تم إرسال الطلب بنجاح. سنراجع طلبك في أقرب وقت.'),
+          content: Text(AppStringsAr.theRequestHasBeen),
           backgroundColor: Colors.green,
         ),
       );
@@ -371,7 +371,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
           controller: _msgCtrl,
           maxLines: 5,
           decoration: InputDecoration(
-            hintText: 'اكتب تفاصيل الرسالة هنا...',
+            hintText: AppStringsAr.writeMessageDetailsHere,
             border: const OutlineInputBorder(),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(
@@ -384,7 +384,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء'),
+          child: const Text(AppStringsAr.cancellation),
         ),
         ElevatedButton(
           onPressed: _loading ? null : _submit,
@@ -401,7 +401,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text('إرسال'),
+              : const Text(AppStringsAr.send),
         ),
       ],
     );

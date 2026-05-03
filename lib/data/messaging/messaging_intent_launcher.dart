@@ -2,10 +2,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qayd/core/constants/countries_names.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 enum WhatsAppFlavor {
-  standard('com.whatsapp', 'واتساب'),
-  business('com.whatsapp.w4b', 'واتساب للأعمال');
+  standard('com.whatsapp', AppStringsAr.whatsapp),
+  business('com.whatsapp.w4b', AppStringsAr.whatsappBusiness);
 
   final String packageName;
   final String displayName;

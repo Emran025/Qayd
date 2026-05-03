@@ -6,6 +6,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class GetCostCenterDetailsUseCase {
   const GetCostCenterDetailsUseCase(this._repository);
@@ -20,7 +22,7 @@ final class GetCostCenterDetailsUseCase {
         if (center == null) {
           return const FailureResult(
             ValidationFailure(
-              messageAr: 'مركز التكلفة غير موجود.',
+              messageAr: AppStringsAr.costCenterDoesNot,
               code: 'cost_center_not_found',
             ),
           );

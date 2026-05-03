@@ -2,6 +2,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/database/database_provider.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Ensures a file is an encrypted Qayd database (SQLCipher + expected tables).
 abstract final class QaydDatabaseValidator {
@@ -25,7 +27,7 @@ abstract final class QaydDatabaseValidator {
         await db.close();
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'نسخة قاعدة البيانات غير مدعومة.',
+            messageAr: AppStringsAr.theDatabaseVersionIs,
             code: 'backup_schema',
           ),
         );
@@ -38,7 +40,7 @@ abstract final class QaydDatabaseValidator {
         await db.close();
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'الملف لا يحتوي على جداول قيد متوقعة.',
+            messageAr: AppStringsAr.theFileDoesNot2,
             code: 'backup_tables',
           ),
         );
@@ -52,7 +54,7 @@ abstract final class QaydDatabaseValidator {
       return const FailureResult(
         ValidationFailure(
           messageAr:
-              'تعذر فتح الملف كقاعدة بيانات مشفّرة. تأكد أنه نسخة احتياطية من قيد وأن المفتاح لم يتغيّر.',
+              AppStringsAr.theFileCouldNot,
           code: 'backup_invalid',
         ),
       );

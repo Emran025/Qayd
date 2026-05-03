@@ -138,7 +138,7 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                 ),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert_rounded),
-                  tooltip: 'المزيد',
+                  tooltip: AppStringsAr.more,
                   color: scheme.surface,
                   elevation: 8,
                   shape: RoundedRectangleBorder(
@@ -404,8 +404,8 @@ class _VoucherDetailBody extends StatelessWidget {
                       Expanded(
                         child: QaydText(
                           data.typeCode == 'receipt'
-                              ? 'هذا السند جزء من عملية تحويل مزدوج. الطرف المستلم النهائي هو: ${data.linkedPartyName ?? 'غير محدد'}'
-                              : 'هذا السند جزء من عملية تحويل مزدوج. الطرف المرسل الأصلي هو: ${data.linkedPartyName ?? 'غير محدد'}',
+                              ? 'هذا السند جزء من عملية تحويل مزدوج. الطرف المستلم النهائي هو: ${data.linkedPartyName ?? AppStringsAr.undefined}'
+                              : 'هذا السند جزء من عملية تحويل مزدوج. الطرف المرسل الأصلي هو: ${data.linkedPartyName ?? AppStringsAr.undefined}',
                           slot: QaydTextStyleSlot.bodySmall,
                           color: scheme.onSurfaceVariant,
                         ),
@@ -437,7 +437,7 @@ class _VoucherDetailBody extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: QaydText(
-                              'تم سحب هذا السند. هل تريد تصحيح الوجهة وإعادة الإرسال؟',
+                              AppStringsAr.thisBondHasBeen,
                               slot: QaydTextStyleSlot.bodySmall,
                               color: Colors.orange.shade900,
                             ),
@@ -486,7 +486,7 @@ class _VoucherDetailBody extends StatelessWidget {
                           );
                         },
                         icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
-                        label: const Text('تصحيح وإعادة توجيه'),
+                        label: const Text(AppStringsAr.correctionAndRedirection),
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.orange,
                           foregroundColor: Colors.white,
@@ -1422,8 +1422,8 @@ class _AttachmentsSection extends StatelessWidget {
                           size: 18, color: gold),
                   label: Text(
                     loadingImages
-                        ? 'جاري فك تشفير الصور...'
-                        : 'استعراض الصور المرفقة',
+                        ? AppStringsAr.decryptingImages
+                        : AppStringsAr.reviewTheAttachedPictures,
                     style: TextStyle(color: gold, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -1529,10 +1529,10 @@ class _AttachmentsSection extends StatelessWidget {
                                         isPdf
                                             ? 'PDF'
                                             : isVideo
-                                                ? 'فيديو'
+                                                ? AppStringsAr.video
                                                 : isImage
-                                                    ? 'صورة'
-                                                    : 'ملف',
+                                                    ? AppStringsAr.image
+                                                    : AppStringsAr.file,
                                         style: TextStyle(
                                           color: gold,
                                           fontSize: 10,
@@ -1631,11 +1631,11 @@ class _CollateralSummaryCard extends StatelessWidget {
 
   String _statusLabel(String? statusCode) {
     return switch (statusCode) {
-      'active' => 'نشط',
-      'expired' => 'منتهي الصلاحية',
-      'liquidated' => 'تمت التصفية',
-      'released' => 'تم الإفراج',
-      _ => 'غير محدد',
+      'active' => AppStringsAr.active,
+      'expired' => AppStringsAr.expired,
+      'liquidated' => AppStringsAr.filtered,
+      'released' => AppStringsAr.released,
+      _ => AppStringsAr.undefined,
     };
   }
 
@@ -1777,7 +1777,7 @@ class _CollateralSummaryCard extends StatelessWidget {
                     value: data.collateralExpiryIso != null
                         ? DateFormat.yMMMd('ar')
                             .format(DateTime.parse(data.collateralExpiryIso!))
-                        : 'غير محدد',
+                        : AppStringsAr.undefined,
                     icon: Icons.event_outlined,
                     color: data.collateralStatusCode == 'expired'
                         ? const Color(0xFFFF9800)
@@ -1940,7 +1940,7 @@ class _CollateralSummaryCard extends StatelessWidget {
                         : Icon(Icons.info_outline_rounded,
                             size: 16, color: gold),
                     label: Text(
-                      loadingCollateral ? 'جاري التحميل...' : 'عرض التفاصيل',
+                      loadingCollateral ? AppStringsAr.loading : AppStringsAr.viewDetails,
                       style: TextStyle(
                           color: gold,
                           fontWeight: FontWeight.w600,
@@ -2007,7 +2007,7 @@ class _CollateralSummaryCard extends StatelessWidget {
                                     content: Text(
                                       surplus > 0
                                           ? 'تمت التسوية   فائض: ${(surplus / 100).toStringAsFixed(2)} ${data.currencyCode}'
-                                          : 'تمت تسوية الرهن بنجاح ',
+                                          : AppStringsAr.theMortgageHasBeen,
                                     ),
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
@@ -2042,7 +2042,7 @@ class _CollateralSummaryCard extends StatelessWidget {
                         size: 16,
                       ),
                       label: Text(
-                        canLiquidate ? 'تصفية الرهن' : 'إجراء تسوية',
+                        canLiquidate ? AppStringsAr.liquidationOfMortgage : AppStringsAr.makeASettlement,
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 12,

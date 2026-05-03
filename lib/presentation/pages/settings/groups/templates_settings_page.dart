@@ -19,8 +19,8 @@ class TemplatesSettingsPage extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.forum_outlined,
                 color: Theme.of(context).colorScheme.primary),
-            title: const Text('قوالب رسائل الواتساب والـ SMS'),
-            subtitle: const Text('إدارة النصوص التلقائية عند مشاركة السندات.'),
+            title: const Text(AppStringsAr.whatsappAndSmsMessage),
+            subtitle: const Text(AppStringsAr.manageAutomaticTextsWhen),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               QaydPageRoute.slideFromStart(
@@ -32,9 +32,9 @@ class TemplatesSettingsPage extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.picture_as_pdf_outlined,
                 color: Theme.of(context).colorScheme.primary),
-            title: const Text('تنسيق ملفات الـ PDF والصور'),
+            title: const Text(AppStringsAr.formatPdfFilesAnd),
             subtitle:
-                const Text('تخصيص الهوية البصرية، الشعار، والنصوص المطبوعة.'),
+                const Text(AppStringsAr.customizeVisualIdentityLogo),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               QaydPageRoute.slideFromStart(

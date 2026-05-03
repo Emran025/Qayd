@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:qayd/domain/repositories/collateral_repository.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Periodically checks for collaterals approaching or past their
 /// expiry date and triggers local notifications.
@@ -26,7 +28,7 @@ class CollateralExpiryChecker {
       final expiring = result.valueOrNull ?? [];
       for (final c in expiring) {
         await notificationService.showImportantNotification(
-          title: 'تنبيه: موعد استحقاق رهن',
+          title: AppStringsAr.alertMortgageDueDate,
           body: 'الرهن "${c.description}" يستحق اليوم',
           payload: 'collateral:${c.id.value}',
         );
@@ -48,7 +50,7 @@ class CollateralExpiryChecker {
           final daysLeft = c.expiryDate!.difference(DateTime.now()).inDays;
           if (daysLeft > 1) {
             await notificationService.showLocalNotification(
-              title: 'تذكير: رهن يستحق قريباً',
+              title: AppStringsAr.autostring,
               body: 'الرهن "${c.description}" يستحق خلال $daysLeft يوم',
               payload: 'collateral:${c.id.value}',
             );

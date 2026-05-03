@@ -1,3 +1,4 @@
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 enum AccrualFrequency {
   daily,
   weekly,
@@ -10,19 +11,19 @@ enum AccrualFrequency {
   String get labelAr {
     switch (this) {
       case AccrualFrequency.daily:
-        return 'يومياً';
+        return AppStringsAr.daily;
       case AccrualFrequency.weekly:
-        return 'أسبوعياً';
+        return AppStringsAr.weekly;
       case AccrualFrequency.monthly:
-        return 'شهرياً';
+        return AppStringsAr.monthly;
       case AccrualFrequency.quarterly:
-        return 'ربع سنوياً';
+        return AppStringsAr.quarterly;
       case AccrualFrequency.semiAnnually:
-        return 'نصف سنوياً';
+        return AppStringsAr.semiannually;
       case AccrualFrequency.yearly:
-        return 'سنوياً';
+        return AppStringsAr.annually;
       case AccrualFrequency.once:
-        return 'مرة واحدة';
+        return AppStringsAr.once;
     }
   }
 }

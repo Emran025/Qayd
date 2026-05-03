@@ -14,6 +14,8 @@ import 'package:qayd/presentation/pages/vouchers/conflict_resolution_cubit.dart'
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class ConflictResolutionPage extends StatelessWidget {
   const ConflictResolutionPage({super.key, required this.notification});
@@ -41,7 +43,7 @@ class ConflictResolutionPage extends StatelessWidget {
         if (state is ConflictResolutionSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('تمت معالجة التعارض بنجاح.'),
+              content: Text(AppStringsAr.theConflictWasSuccessfully),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -55,7 +57,7 @@ class ConflictResolutionPage extends StatelessWidget {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: QaydAppBar(title: 'معالجة تعارض السندات'),
+          appBar: QaydAppBar(title: AppStringsAr.addressingBondConflicts),
           body: _buildBody(context, state, gold),
         );
       },
@@ -72,12 +74,12 @@ class ConflictResolutionPage extends StatelessWidget {
         padding: const EdgeInsets.all(SpacingTokens.lg),
         children: [
           const QaydText(
-            'لقد تم العثور على تطابق محتمل بين مسودة قمت بإنشائها وسند وارد من طرف آخر. كيف ترغب في المتابعة؟',
+            AppStringsAr.aPossibleMatchHas,
             slot: QaydTextStyleSlot.bodyMedium,
           ),
           const SizedBox(height: SpacingTokens.lg),
           _ComparisonCard(
-            title: 'سجلك المحلي (مسودة)',
+            title: AppStringsAr.yourLocalRecordDraft,
             icon: Icons.file_present_rounded,
             color: ColorTokens.navy800,
             voucher: state.localVoucher,
@@ -87,7 +89,7 @@ class ConflictResolutionPage extends StatelessWidget {
             child: Icon(Icons.sync_alt_rounded, color: Colors.grey),
           ),
           _InboundComparisonCard(
-            title: 'السند الوارد (مزامنة)',
+            title: AppStringsAr.incomingBondSync,
             icon: Icons.cloud_sync_rounded,
             color: ColorTokens.navy950,
             payload: state.inboundPayload,
@@ -105,7 +107,7 @@ class ConflictResolutionPage extends StatelessWidget {
                           .resolve(merge: false),
                   style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.redAccent),
-                  child: const Text('تجاهل الوارد (مكرر)'),
+                  child: const Text(AppStringsAr.ignoreIncomingDuplicate),
                 ),
               ),
               const SizedBox(width: SpacingTokens.md),
@@ -125,7 +127,7 @@ class ConflictResolutionPage extends StatelessWidget {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('دمج وتأكيد المحلي'),
+                      : const Text(AppStringsAr.mergeAndConfirmLocal),
                 ),
               ),
             ],
@@ -186,7 +188,7 @@ class _ComparisonCard extends StatelessWidget {
                 size: QaydMoneyDisplaySize.large,
               ),
               QaydText(
-                voucher.typeCode == 'receipt' ? 'قبض' : 'صرف',
+                voucher.typeCode == 'receipt' ? AppStringsAr.catchStr : AppStringsAr.exchange,
                 color: voucher.typeCode == 'receipt'
                     ? Colors.greenAccent
                     : Colors.orangeAccent,
@@ -262,7 +264,7 @@ class _InboundComparisonCard extends StatelessWidget {
                 size: QaydMoneyDisplaySize.large,
               ),
               QaydText(
-                type == 'receipt' ? 'قبض' : 'صرف',
+                type == 'receipt' ? AppStringsAr.catchStr : AppStringsAr.exchange,
                 color: type == 'receipt'
                     ? Colors.greenAccent
                     : Colors.orangeAccent,

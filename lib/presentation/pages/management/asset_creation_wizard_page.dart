@@ -59,7 +59,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
     if (rootId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('خطأ: لم يتم العثور على الحساب الجذر للأصول.')),
+            content: Text(AppStringsAr.errorTheAssetRoot)),
       );
       return;
     }
@@ -102,7 +102,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('تم تسجيل الأصل وربطه بالدائرة الاقتصادية بنجاح.')),
+              content: Text(AppStringsAr.theAssetHasBeen)),
         );
         Navigator.pop(context, true);
       },
@@ -127,7 +127,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
           padding: const EdgeInsets.all(SpacingTokens.lg),
           children: [
             QaydText(
-              'تصنيف الأصل الاقتصادي',
+              AppStringsAr.classificationOfEconomicAsset,
               slot: QaydTextStyleSlot.titleMedium,
             ),
             const SizedBox(height: SpacingTokens.md),
@@ -136,7 +136,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                 Expanded(
                   child: _TypeCard(
                     title: AppStringsAr.managementInvestmentAssets,
-                    description: 'عقارات، أسهم، مشاريع تدر مالاً',
+                    description: AppStringsAr.realEstateStocksMoneymaking,
                     icon: Icons.account_balance_rounded,
                     color: ColorTokens.emerald400,
                     isSelected: _assetType == 'investment',
@@ -147,7 +147,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                 Expanded(
                   child: _TypeCard(
                     title: AppStringsAr.managementPersonalPossessions,
-                    description: 'سيارة، أثاث، أدوات شخصية',
+                    description: AppStringsAr.carFurniturePersonalItems,
                     icon: Icons.inventory_2_outlined,
                     color: Colors.blueAccent,
                     isSelected: _assetType == 'possession',
@@ -159,10 +159,10 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
             const SizedBox(height: SpacingTokens.xl),
             QaydTextField(
               controller: _nameController,
-              label: 'مسمى الأصل / الملك',
-              hint: 'عمارة ج، سيارة فورد، محفظة الأسهم...',
+              label: AppStringsAr.nameOfOriginking,
+              hint: AppStringsAr.buildingCFordCar,
               validator: (v) =>
-                  (v == null || v.isEmpty) ? 'يرجى إدخال مسمى للأصل' : null,
+                  (v == null || v.isEmpty) ? AppStringsAr.pleaseEnterAName : null,
             ),
             const SizedBox(height: SpacingTokens.md),
             Row(
@@ -181,7 +181,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                   child: DropdownButtonFormField<CurrencyCode>(
                     value: _purchaseCurrency,
                     decoration: InputDecoration(
-                      labelText: 'عملة الاستحواذ',
+                      labelText: AppStringsAr.acquisitionCurrency,
                       labelStyle: TextStyle(
                         fontFamily: 'Tajawal',
                         fontSize: 14,
@@ -232,7 +232,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                           QaydText(AppStringsAr.assetWizardIncomeSourceLabel,
                               slot: QaydTextStyleSlot.labelLarge),
                           const Text(
-                              'سيقوم النظام بتتبع الأرباح الموزعة من هذا الأصل تلقائياً',
+                              AppStringsAr.theSystemWillAutomatically,
                               style:
                                   TextStyle(fontSize: 10, color: Colors.grey)),
                         ],
@@ -250,8 +250,8 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
             const SizedBox(height: SpacingTokens.md),
             QaydTextField(
               controller: _notesController,
-              label: 'بيانات مرجعية (اختياري)',
-              hint: 'رقم السجل، الموقع، المواصفات...',
+              label: AppStringsAr.referenceDataOptional,
+              hint: AppStringsAr.registrationNumberLocationSpecifications,
               maxLines: 2,
             ),
             const SizedBox(height: SpacingTokens.xxl),
@@ -266,13 +266,13 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
               ),
               child: _isSubmitting
                   ? const CircularProgressIndicator(color: Colors.black)
-                  : const Text('تأكيد وتسجيل الأصل في المحفظة',
+                  : const Text(AppStringsAr.confirmAndRegisterThe,
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             ),
             const SizedBox(height: SpacingTokens.md),
             QaydText(
-              'سيتم إنشاء حساب مالي ومركز استثماري مرتبط بهذا الأصل مباشرة.',
+              AppStringsAr.aFinancialAccountAnd,
               slot: QaydTextStyleSlot.labelSmall,
               color: scheme.onSurfaceVariant,
               textAlign: TextAlign.center,

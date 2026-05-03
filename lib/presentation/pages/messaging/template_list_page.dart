@@ -39,7 +39,7 @@ class _TemplateListScaffold extends StatelessWidget {
     final nameCtrl = TextEditingController();
     final bodyCtrl = TemplateTextController(
         initialDbText:
-            'عزيزي {{customer}}،\nنود إفادتكم بتسجيل إشعار قبض...\nالتوقيع: {{signature}}');
+            AppStringsAr.dearCustomernweWouldLike2);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(

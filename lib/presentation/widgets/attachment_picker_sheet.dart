@@ -4,6 +4,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Bottom sheet for picking attachment images from camera or gallery.
 ///
@@ -46,7 +48,7 @@ class AttachmentPickerSheet extends StatelessWidget {
               ),
             ),
             Text(
-              'إرفاق صور',
+              AppStringsAr.attachPhotos,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: scheme.onSurface,
                     fontWeight: FontWeight.w600,
@@ -58,7 +60,7 @@ class AttachmentPickerSheet extends StatelessWidget {
                 Expanded(
                   child: _PickerOption(
                     icon: Icons.camera_alt_rounded,
-                    label: 'الكاميرا',
+                    label: AppStringsAr.camera,
                     color: gold,
                     onTap: () => _pickFromCamera(context),
                   ),
@@ -67,7 +69,7 @@ class AttachmentPickerSheet extends StatelessWidget {
                 Expanded(
                   child: _PickerOption(
                     icon: Icons.photo_library_rounded,
-                    label: 'المعرض',
+                    label: AppStringsAr.exhibition,
                     color: gold,
                     onTap: () => _pickFromGallery(context),
                   ),
@@ -86,7 +88,7 @@ class AttachmentPickerSheet extends StatelessWidget {
 
     if (status.isPermanentlyDenied || status.isDenied) {
       if (context.mounted) {
-        _showSettingsDialog(context, 'الكاميرا أو الصور');
+        _showSettingsDialog(context, AppStringsAr.cameraOrPhotos);
       }
       return;
     }
@@ -102,7 +104,7 @@ class AttachmentPickerSheet extends StatelessWidget {
     } catch (e) {
       debugPrint('Camera Error (Permission Denied or native error): $e');
       if (context.mounted) {
-        _showSettingsDialog(context, 'الكاميرا');
+        _showSettingsDialog(context, AppStringsAr.camera);
       }
     }
   }
@@ -117,7 +119,7 @@ class AttachmentPickerSheet extends StatelessWidget {
     } catch (e) {
       debugPrint('Gallery Picker Error: $e');
       if (context.mounted) {
-        _showSettingsDialog(context, 'الصور');
+        _showSettingsDialog(context, AppStringsAr.thePictures);
       }
     }
   }
@@ -126,12 +128,12 @@ class AttachmentPickerSheet extends StatelessWidget {
     QaydDialog.show(
       context: context,
       icon: Icons.shield_rounded,
-      title: 'صلاحية مفقودة',
+      title: AppStringsAr.missingValidity,
       content:
           'يبدو أنك قمت برفض السماح بالوصول لـ $serviceName مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.',
-      secondaryActionLabel: 'إلغاء',
+      secondaryActionLabel: AppStringsAr.cancellation,
       onSecondaryAction: () => Navigator.pop(context),
-      primaryActionLabel: 'فتح الإعدادات',
+      primaryActionLabel: AppStringsAr.openSettings,
       onPrimaryAction: () {
         Navigator.pop(context);
         openAppSettings(); // يفتح إعدادات التطبيق في الهاتف مباشرة

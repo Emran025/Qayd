@@ -2,6 +2,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/notification_log_repository.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class SqliteNotificationLogRepository
     implements NotificationLogRepository {
@@ -27,7 +29,7 @@ final class SqliteNotificationLogRepository
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        DatabaseFailure(messageAr: 'تعذر تسجيل محاولة الإرسال.'),
+        DatabaseFailure(messageAr: AppStringsAr.theSendingAttemptCould),
       );
     }
   }

@@ -15,6 +15,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Professional financial voucher PDF matching the Galal Nasser Exchange format.
 ///
@@ -53,22 +55,22 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       // 2. Fetch shared preferences values on main thread since SharedPreferences needs to be accessed here
       final prefs = InjectionContainer.sharedPreferences;
       final customHeaderTitle =
-          prefs.getString('pdf_header_title') ?? 'قيد — المحاسبة الشخصية';
+          prefs.getString('pdf_header_title') ?? AppStringsAr.entryPersonalAccounting;
       final customHeaderSubtitle = prefs.getString('pdf_header_subtitle') ??
-          'نظام السندات المالية المشفّرة';
+          AppStringsAr.cryptocurrencySystem;
       final customFooterText = prefs.getString('pdf_footer_text') ??
-          'المصدر: تطبيق قيد للمحاسبة الشخصية';
+          AppStringsAr.sourceQaidPersonalAccounting;
 
       final labelVoucherNo =
-          prefs.getString('pdf_label_voucher_no') ?? 'رقم السند:';
-      final labelDate = prefs.getString('pdf_label_date') ?? 'التاريخ:';
-      final labelFrom = prefs.getString('pdf_label_from') ?? 'من حساب العميل:';
+          prefs.getString('pdf_label_voucher_no') ?? AppStringsAr.bondNumber1;
+      final labelDate = prefs.getString('pdf_label_date') ?? AppStringsAr.theDate1;
+      final labelFrom = prefs.getString('pdf_label_from') ?? AppStringsAr.fromTheCustomersAccount;
       final labelDescription =
-          prefs.getString('pdf_label_description') ?? 'البيان:';
+          prefs.getString('pdf_label_description') ?? AppStringsAr.statement;
 
       final mediatorName = prefs.getString('pdf_mediator_name') ??
           prefs.getString('company_name') ??
-          'نظام قيد المالي';
+          AppStringsAr.autostring3;
 
       // 3. Run PDF generation in an Isolate
       return await Isolate.run(() async {
@@ -77,7 +79,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
         final isReceipt = report.typeCode == 'receipt';
         final accent = isReceipt ? _emerald : _gold;
-        final typeAr = isReceipt ? 'سند قبض' : 'سند صرف';
+        final typeAr = isReceipt ? AppStringsAr.receiptVoucher : AppStringsAr.billOfExchange;
 
         // Safe date parsing for pre-formatted strings
         DateTime safeParse(String iso, DateTime fallback) {
@@ -107,7 +109,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             ? NumberFormat('#,##0.${'0' * report.currencyDigits}', 'en')
             : NumberFormat('#,##0', 'en');
         final amountStr =
-            '${fmt.format(amount)} ${CurrencyUtil.getArabicName(report.currencyCode).replaceAll('﷼', 'ريال')}';
+            '${fmt.format(amount)} ${CurrencyUtil.getArabicName(report.currencyCode).replaceAll('﷼', AppStringsAr.sar)}';
 
         final qrPayload = report.qrData ?? report.voucherId;
 
@@ -468,11 +470,11 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
       if (isDebit) {
         // Debit = "from sender"
-        sectionLabel = 'بيانات القيد (المدين) — من حساب المُرسِل:';
+        sectionLabel = AppStringsAr.debitDataFromThe;
         accountName = senderName;
       } else {
         // Credit = "to receiver" — shows B (linkedParty), NOT the mediator C
-        sectionLabel = 'بيانات القيد (الدائن) — إلى حساب المُستلِم:';
+        sectionLabel = AppStringsAr.recordingDataCreditTo;
         accountName = receiverName;
       }
 
@@ -541,7 +543,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                       text: pw.TextSpan(
                         children: [
                           pw.TextSpan(
-                            text: 'الرصيد الإجمالي: ',
+                            text: AppStringsAr.totalBalance,
                             style: pw.TextStyle(
                               font: font,
                               fontSize: 9,
@@ -561,12 +563,12 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                               final absValue = value.abs();
                               final label = report.counterpartyNature == 'debit'
                                   ? value > 0
-                                      ? 'عليكم'
-                                      : 'لكم'
+                                      ? AppStringsAr.onYou
+                                      : AppStringsAr.your
                                   : value < 0
-                                      ? 'عليكم'
-                                      : 'لكم';
-                              return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key).replaceAll('﷼', 'ريال')} $label'
+                                      ? AppStringsAr.onYou
+                                      : AppStringsAr.your;
+                              return '${fmt.format(absValue)} ${CurrencyUtil.getArabicName(e.key).replaceAll('﷼', AppStringsAr.sar)} $label'
                                   .trim();
                             }).join(' | '),
                             style: pw.TextStyle(
@@ -591,13 +593,13 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   // Notes
                   if (notesText.trim().isNotEmpty) ...[
                     pw.SizedBox(height: 3),
-                    _labeledLine(font, 'الملاحظات:', notesText),
+                    _labeledLine(font, AppStringsAr.notes, notesText),
                   ],
 
                   // Reference
                   if (_notEmpty(report.referenceNumber)) ...[
                     pw.SizedBox(height: 3),
-                    _labeledLine(font, 'المرجع:', report.referenceNumber!),
+                    _labeledLine(font, AppStringsAr.reference, report.referenceNumber!),
                   ],
                 ],
               ),
@@ -687,14 +689,14 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       // Client 1 signature (counterparty - sender in receipt leg)
       columns.add(
         pw.Expanded(
-          child: _signatureBox(font, '(توقيع العميل الأول)', hasSenderSig),
+          child: _signatureBox(font, AppStringsAr.firstCustomerSignature, hasSenderSig),
         ),
       );
       columns.add(pw.SizedBox(width: 8));
       // Client 2 signature (linked party - receiver in receipt leg)
       columns.add(
         pw.Expanded(
-          child: _signatureBox(font, '(توقيع العميل الثاني)', hasReceiverSig),
+          child: _signatureBox(font, AppStringsAr.secondClientSignature, hasReceiverSig),
         ),
       );
     } else {
@@ -705,8 +707,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           child: _signatureBox(
             font,
             report.typeCode == 'receipt'
-                ? '(توقيع العميل المرسل)'
-                : '(توقيع العميل المستلم)',
+                ? AppStringsAr.signatureOfSendingClient
+                : AppStringsAr.signatureOfReceivingClient,
             report.typeCode == 'receipt' ? hasSenderSig : hasReceiverSig,
           ),
         ),
@@ -726,7 +728,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.center,
               children: [
                 pw.Text(
-                  'حالة التوقيع',
+                  AppStringsAr.signatureStatus,
                   style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
                 ),
                 pw.SizedBox(height: 2),
@@ -768,7 +770,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             pw.Expanded(
               child: pw.Center(
                 child: pw.Text(
-                  ' موقّع رقمياً',
+                  AppStringsAr.digitallySigned,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 9,
@@ -862,7 +864,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               ),
               pw.SizedBox(height: 2),
               pw.Text(
-                'تحقق من السند',
+                AppStringsAr.checkTheBond,
                 style: pw.TextStyle(
                   font: font,
                   fontSize: 7,
@@ -882,7 +884,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
   String _buildTitle(VoucherReportDto report, String typeAr) {
     if (!report.isTripartite) return typeAr;
-    return 'سند تحويل ثلاثي — إشعار للطرفين';
+    return AppStringsAr.tripleTransferDeedNotice;
   }
 
   String _buildTripartiteDescription(VoucherReportDto report, bool isDebit) {
@@ -919,9 +921,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
   String _buildTripartiteNotes(VoucherReportDto report, bool isDebit) {
     if (isDebit) {
-      return 'يُعتبر هذا الإشعار توثيقاً رسمياً بالخصم من حساب المُرسِل.';
+      return AppStringsAr.thisNoticeIsConsidered1;
     } else {
-      return 'يُعتبر هذا الإشعار توثيقاً رسمياً بالإضافة إلى حساب المُستلِم.';
+      return AppStringsAr.thisNoticeIsConsidered;
     }
   }
 
@@ -943,10 +945,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
   String _agreementAr(String code) {
     return switch (code) {
-      'underRequest' => 'بانتظار الموافقة',
-      'accepted' => 'مقبول وموقّع',
-      'rejected' => 'مرفوض',
-      'unverified' => 'غير مؤكد',
+      'underRequest' => AppStringsAr.waitingForApproval,
+      'accepted' => AppStringsAr.acceptedAndSigned,
+      'rejected' => AppStringsAr.unacceptable,
+      'unverified' => AppStringsAr.uncertain,
       _ => code,
     };
   }

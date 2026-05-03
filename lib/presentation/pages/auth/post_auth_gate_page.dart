@@ -197,7 +197,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       if (!_hasDriveBackup && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('لم يتم العثور على نسخة احتياطية في Google Drive'),
+            content: Text(AppStringsAr.noBackupFoundIn),
             backgroundColor: ColorTokens.warningAmber,
           ),
         );
@@ -210,7 +210,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(failure?.messageAr ?? 'فشل تسجيل الدخول إلى Google'),
+            content: Text(failure?.messageAr ?? AppStringsAr.googleLoginFailed),
             backgroundColor: isWarning
                 ? ColorTokens.warningAmber
                 : Theme.of(context).colorScheme.error,
@@ -506,8 +506,8 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
             const SizedBox(height: SpacingTokens.sm),
             _buildOptionCard(
               icon: Icons.cloud_sync_rounded,
-              title: 'البحث في Google Drive',
-              subtitle: 'سجل الدخول بحساب Google للبحث عن نسخة احتياطية',
+              title: AppStringsAr.searchInGoogleDrive,
+              subtitle: AppStringsAr.signInWithYour,
               color: const Color(0xFF4285F4), // Google Blue
               onTap: _signInAndCheckDrive,
             ),

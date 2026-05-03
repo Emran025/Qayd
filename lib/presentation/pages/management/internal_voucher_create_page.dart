@@ -326,7 +326,7 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
           if (state is VoucherCreateSuccess) {
             final msg = state.stateCode == 'draft'
                 ? AppStringsAr.voucherCreatedDraft
-                : 'تم تسجيل المعاملة الداخلية بنجاح.';
+                : AppStringsAr.theInternalTransactionWas;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(msg),
@@ -402,8 +402,8 @@ class _InternalVoucherCreatePageState extends State<InternalVoucherCreatePage>
                       subtitle: QaydText(
                         _categoryAccount?.name ??
                             (_type == VoucherType.payment
-                                ? 'اختر حساب المصروف أو التجارة'
-                                : 'اختر مصدر الدخل أو الأصل'),
+                                ? AppStringsAr.chooseExpenseOrTrade
+                                : AppStringsAr.chooseYourIncomeSource),
                         slot: QaydTextStyleSlot.bodyLarge,
                         color: _categoryAccount == null
                             ? scheme.onSurfaceVariant

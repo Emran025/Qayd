@@ -1,5 +1,7 @@
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Schema v27: seed gold (XAU) and silver (XAG) gram currencies (inactive by default).
 final class Migration027GoldSilverCurrencies implements SchemaMigration {
@@ -15,8 +17,8 @@ final class Migration027GoldSilverCurrencies implements SchemaMigration {
       'currencies',
       {
         'code': 'XAU',
-        'name_ar': 'جرام ذهب',
-        'symbol': 'ج.ذ',
+        'name_ar': AppStringsAr.aGramOfGold,
+        'symbol': AppStringsAr.cD,
         'fractional_digits': 2,
         'is_predefined': 1,
         'is_active': 0, // Inactive by default
@@ -30,8 +32,8 @@ final class Migration027GoldSilverCurrencies implements SchemaMigration {
       'currencies',
       {
         'code': 'XAG',
-        'name_ar': 'جرام فضة',
-        'symbol': 'ج.ف',
+        'name_ar': AppStringsAr.gramOfSilver,
+        'symbol': AppStringsAr.dry,
         'fractional_digits': 2,
         'is_predefined': 1,
         'is_active': 0, // Inactive by default

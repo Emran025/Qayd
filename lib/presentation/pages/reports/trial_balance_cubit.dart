@@ -9,6 +9,8 @@ import 'package:qayd/data/pdf/reports/trial_balance_pdf_generator.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_state.dart';
 import 'package:qayd/presentation/utils/share_export_bytes.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class TrialBalanceCubit extends Cubit<TrialBalanceState> {
   TrialBalanceCubit(this._generate) : super(const TrialBalanceInitial());
@@ -36,7 +38,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
       await sharePdfBytes(
         bytes,
         'trial_balance_${DateTime.now().millisecondsSinceEpoch}.pdf',
-        text: 'ميزان المراجعة — نظام قيد',
+        text: AppStringsAr.trialBalanceARecording,
       );
     } catch (e, stackTrace) {
       // ignore: avoid_print

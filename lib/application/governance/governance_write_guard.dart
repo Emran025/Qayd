@@ -3,6 +3,8 @@ import 'package:qayd/application/governance/dtos/check_governance_status_input.d
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Policy gate for mutating use cases: blocks writes when governance is not [GovernanceStatusKind.activated].
 class GovernanceWriteGuard {
@@ -26,7 +28,7 @@ class GovernanceWriteGuard {
         return FailureResult(
           ValidationFailure(
             messageAr: status.messageAr ??
-                'التطبيق في وضع التعليق: لا يمكن حفظ التعديلات حتى يتم استئناف الخدمة.',
+                AppStringsAr.theApplicationIsIn,
             code: 'governance_suspended',
           ),
         );
@@ -34,7 +36,7 @@ class GovernanceWriteGuard {
         return FailureResult(
           ValidationFailure(
             messageAr: status.messageAr ??
-                'انتهت صلاحية التفعيل. يرجى إدخال بيانات التفعيل من جديد.',
+                AppStringsAr.activationHasExpiredPlease,
             code: 'governance_revoked',
           ),
         );
@@ -42,7 +44,7 @@ class GovernanceWriteGuard {
         return FailureResult(
           ValidationFailure(
             messageAr: status.messageAr ??
-                'انتهت صلاحية الاشتراك. يرجى سداد الرسوم لتفعيل التطبيق.',
+                AppStringsAr.subscriptionHasExpiredPlease,
             code: 'governance_expired',
           ),
         );

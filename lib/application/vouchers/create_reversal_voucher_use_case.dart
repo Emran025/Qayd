@@ -9,6 +9,8 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Creates a reversal (مرتجع) voucher linked to the original via [originVoucherId].
 ///
@@ -61,7 +63,7 @@ final class CreateReversalVoucherUseCase {
         if (!original.state.isDraft) {
           return const FailureResult(
             ValidationFailure(
-              messageAr: 'لا يمكن إنشاء مرتجع لسند غير مؤكد.',
+              messageAr: AppStringsAr.aReturnCannotBe,
               code: 'reversal_source_not_confirmed',
             ),
           );

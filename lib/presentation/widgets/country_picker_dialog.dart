@@ -8,6 +8,8 @@ import 'package:qayd/core/constants/countries_names.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class CountryPickerDialog extends StatefulWidget {
   final CountryModel? initialCountry;
@@ -105,7 +107,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                         Icon(Icons.public, color: accentColor),
                         const SizedBox(width: SpacingTokens.sm),
                         Text(
-                          'تحديد الدولة',
+                          AppStringsAr.selectTheCountry,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.onSurface,
@@ -120,7 +122,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                       style: theme.textTheme.bodyLarge,
                       onChanged: _onSearchChanged,
                       decoration: InputDecoration(
-                        hintText: "ابحث عن الدولة (بالعربية أو الإنجليزية)",
+                        hintText: AppStringsAr.searchForTheCountry,
                         prefixIcon: Icon(Icons.search,
                             color: theme.colorScheme.onSurfaceVariant),
                         filled: true,
@@ -213,7 +215,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text("إلغاء"),
+                            child: const Text(AppStringsAr.cancellation),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -229,7 +231,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                                     widget.onCountrySelected(_tempSelected!);
                                     Navigator.pop(context);
                                   },
-                            child: const Text("تأكيد"),
+                            child: const Text(AppStringsAr.toBeSure),
                           ),
                         ),
                       ],

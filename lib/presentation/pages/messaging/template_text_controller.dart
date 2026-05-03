@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class TemplateVariable {
   final String key;
@@ -13,27 +15,27 @@ class TemplateVariable {
 
 // Private Use Area Unicode Characters
 final List<TemplateVariable> kTemplateVariables = [
-  const TemplateVariable('{{customer}}', 'الطرف الآخر', '\uE000'),
-  const TemplateVariable('{{counterparty}}', 'الطرف الآخر', '\uE001'),
-  const TemplateVariable('{{amount}}', 'المبلغ', '\uE002'),
-  const TemplateVariable('{{currency}}', 'العملة', '\uE003'),
-  const TemplateVariable('{{date}}', 'التاريخ', '\uE004'),
-  const TemplateVariable('{{affected_account}}', 'الحساب', '\uE005'),
-  const TemplateVariable('{{reference}}', 'الرقم المرجعي', '\uE006'),
-  const TemplateVariable('{{description}}', 'البيان', '\uE007'),
-  const TemplateVariable('{{notes}}', 'الملاحظات', '\uE008'),
-  const TemplateVariable('{{voucher_id}}', 'رقم السند', '\uE009'),
-  const TemplateVariable('{{type}}', 'النوع', '\uE00A'),
-  const TemplateVariable('{{signature}}', 'التوقيع الإلكتروني', '\uE00B'),
-  const TemplateVariable('{{net_balance}}', 'الرصيد الإجمالي', '\uE010'),
+  const TemplateVariable('{{customer}}', AppStringsAr.theOtherParty, '\uE000'),
+  const TemplateVariable('{{counterparty}}', AppStringsAr.theOtherParty, '\uE001'),
+  const TemplateVariable('{{amount}}', AppStringsAr.amount, '\uE002'),
+  const TemplateVariable('{{currency}}', AppStringsAr.currency, '\uE003'),
+  const TemplateVariable('{{date}}', AppStringsAr.theDate, '\uE004'),
+  const TemplateVariable('{{affected_account}}', AppStringsAr.theAccount, '\uE005'),
+  const TemplateVariable('{{reference}}', AppStringsAr.referenceNumber1, '\uE006'),
+  const TemplateVariable('{{description}}', AppStringsAr.statement1, '\uE007'),
+  const TemplateVariable('{{notes}}', AppStringsAr.notes1, '\uE008'),
+  const TemplateVariable('{{voucher_id}}', AppStringsAr.bondNumber, '\uE009'),
+  const TemplateVariable('{{type}}', AppStringsAr.type, '\uE00A'),
+  const TemplateVariable('{{signature}}', AppStringsAr.electronicSignature, '\uE00B'),
+  const TemplateVariable('{{net_balance}}', AppStringsAr.totalBalance1, '\uE010'),
   // Account Specific
-  const TemplateVariable('{{account_name}}', 'اسم الحساب', '\uE00C',
+  const TemplateVariable('{{account_name}}', AppStringsAr.accountName, '\uE00C',
       kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{balance}}', 'الرصيد', '\uE00D',
+  const TemplateVariable('{{balance}}', AppStringsAr.balance, '\uE00D',
       kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{nature}}', 'النوع (مدين/دائن)', '\uE00E',
+  const TemplateVariable('{{nature}}', AppStringsAr.typeDebitcredit, '\uE00E',
       kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{account_id}}', 'معرّف الحساب', '\uE00F'),
+  const TemplateVariable('{{account_id}}', AppStringsAr.accountId, '\uE00F'),
 ];
 
 class TemplateTextController extends TextEditingController {
@@ -41,7 +43,7 @@ class TemplateTextController extends TextEditingController {
     text = _dbToUi(initialDbText ?? '');
   }
 
-  /// Converts DB format e.g. "عزيزي {{customer}}" -> "عزيزي \uE000"
+  /// Converts DB format e.g. AppStringsAr.dearCustomer -> AppStringsAr.dearue000
   static String _dbToUi(String dbText) {
     String ui = dbText;
     for (final v in kTemplateVariables) {
@@ -50,7 +52,7 @@ class TemplateTextController extends TextEditingController {
     return ui;
   }
 
-  /// Converts UI format e.g. "عزيزي \uE000" -> "عزيزي {{customer}}"
+  /// Converts UI format e.g. AppStringsAr.dearue000 -> AppStringsAr.dearCustomer
   String get dbText {
     String db = text;
     for (final v in kTemplateVariables) {

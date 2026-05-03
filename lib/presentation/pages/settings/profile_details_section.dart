@@ -138,7 +138,7 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content:
-                    Text(result.failureOrNull?.messageAr ?? 'خطأ في التحديث')),
+                    Text(result.failureOrNull?.messageAr ?? AppStringsAr.updateError)),
           );
         }
       });

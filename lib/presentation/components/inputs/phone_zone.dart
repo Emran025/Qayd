@@ -10,6 +10,8 @@ import 'package:qayd/presentation/widgets/country_picker_dialog.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class PhoneZoneForm extends StatefulWidget {
   final TextEditingController zoneController;
@@ -380,9 +382,9 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       validator: (val) {
                         String? error;
                         if (selectedCountry == null) {
-                          error = "يجب اختيار الدولة";
+                          error = AppStringsAr.youMustSelectThe;
                         } else if (val == null || val.isEmpty) {
-                          error = "رقم الهاتف مطلوب";
+                          error = AppStringsAr.phoneNumberRequired;
                         }
 
                         // Update local error state to change border color
@@ -418,7 +420,7 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       color: accentColor.withValues(alpha: 0.7),
                       size: 22,
                     ),
-                    tooltip: 'اختر من جهات الاتصال',
+                    tooltip: AppStringsAr.chooseFromContacts,
                   ),
                 ),
               ],

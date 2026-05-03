@@ -5,6 +5,8 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Phase-A: "Resubmit" clears the red (invalid signature) look by setting the
 /// signature status back to `unsigned`.
@@ -43,7 +45,7 @@ final class ResubmitVoucherUseCase {
       if (!v.state.isDraft) {
         return const FailureResult(
           ValidationFailure(
-            messageAr: 'لا يمكن إعادة عرض سند مؤكد أو مسوّى.',
+            messageAr: AppStringsAr.aConfirmedOrSettled1,
             code: 'voucher_resubmit_not_draft',
           ),
         );

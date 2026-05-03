@@ -17,6 +17,8 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 // ─── Wizard phases ────────────────────────────────────────────────────────────
 
@@ -65,7 +67,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
     }
 
     if (content == null) {
-      _showError('تعذّر قراءة الملف.');
+      _showError(AppStringsAr.theFileCouldNot1);
       return;
     }
 
@@ -207,23 +209,23 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text(
-          'الوصول لجهات الاتصال',
+          AppStringsAr.accessToContacts,
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
         content: const Text(
-          'نحتاج للوصول لجهات الاتصال لمطابقة الأرقام وضمان سلامة التحويلات المالية وتوثيقها بشكل صحيح.',
+          AppStringsAr.autostring5,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('تخطي'),
+            child: const Text(AppStringsAr.skip),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
               backgroundColor: ColorTokens.emerald600,
             ),
-            child: const Text('السماح بالوصول'),
+            child: const Text(AppStringsAr.allowAccess),
           ),
         ],
       ),
@@ -241,7 +243,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
   Widget build(BuildContext context) {
     return QaydScaffold(
       appBar: QaydAppBar(
-        title: 'استيراد بيانات',
+        title: AppStringsAr.importData,
         actions: _phase == _Phase.resolving
             ? [
                 Padding(
@@ -260,7 +262,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
                       ),
                     ),
                     child: const Text(
-                      'بدء الاستيراد',
+                      AppStringsAr.startImport,
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 12,
@@ -281,7 +283,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
             ),
           _Phase.analyzing => const _LoadingPage(
               key: ValueKey('analyzing'),
-              message: 'جاري تحليل الحزمة...',
+              message: AppStringsAr.parsingThePackage,
             ),
           _Phase.resolving => _ResolvingPage(
               key: const ValueKey('resolving'),
@@ -294,7 +296,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
             ),
           _Phase.importing => _LoadingPage(
               key: const ValueKey('importing'),
-              message: 'جاري استيراد البيانات...',
+              message: AppStringsAr.importingData,
               progress: _importProgress,
             ),
           _Phase.done => _DonePage(
@@ -356,7 +358,7 @@ class _PickFilePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'وحدة الاستيراد من النظام القديم',
+                            AppStringsAr.importModuleFromOld,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -364,7 +366,7 @@ class _PickFilePage extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'استيراد الحسابات والحركات المالية من حزمة JSON',
+                            AppStringsAr.importAccountsAndFinancial,
                             style: TextStyle(
                               color: scheme.onSurfaceVariant,
                               fontSize: 13,
@@ -403,7 +405,7 @@ class _PickFilePage extends StatelessWidget {
                         ),
                         const SizedBox(height: SpacingTokens.sm),
                         Text(
-                          'اختر ملف الحزمة (.json)',
+                          AppStringsAr.choosePackageFileJson,
                           style: TextStyle(
                             color: scheme.primary,
                             fontWeight: FontWeight.w600,
@@ -440,7 +442,7 @@ class _PickFilePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'كيف يعمل الاستيراد؟',
+                  AppStringsAr.howDoesImportWork,
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
@@ -448,24 +450,24 @@ class _PickFilePage extends StatelessWidget {
                 ),
                 const SizedBox(height: SpacingTokens.md),
                 _StepHint(
-                  number: '١',
-                  title: 'تحليل الحسابات',
-                  subtitle: 'تحديد الحسابات المكررة ومطابقتها',
+                  number: AppStringsAr.s1,
+                  title: AppStringsAr.accountAnalysis,
+                  subtitle: AppStringsAr.identifyAndMatchDuplicate,
                 ),
                 _StepHint(
-                  number: '٢',
-                  title: 'حسم التعارضات',
-                  subtitle: 'لكل حساب: دمج مع موجود، أو إنشاء جديد، أو تخطي',
+                  number: AppStringsAr.s2,
+                  title: AppStringsAr.resolvingConflicts,
+                  subtitle: AppStringsAr.forEachAccountMerge,
                 ),
                 _StepHint(
-                  number: '٣',
-                  title: 'استيراد السندات',
-                  subtitle: 'تنشأ سندات الحركات في حالة انتظار للمراجعة',
+                  number: AppStringsAr.s3,
+                  title: AppStringsAr.importBonds,
+                  subtitle: AppStringsAr.transactionVouchersAreCreated,
                 ),
                 _StepHint(
-                  number: '٤',
-                  title: 'مراجعة وتأكيد',
-                  subtitle: 'اعتمد السندات من قائمة الانتظار في التطبيق',
+                  number: AppStringsAr.s4,
+                  title: AppStringsAr.reviewAndConfirm,
+                  subtitle: AppStringsAr.bondsAreApprovedFrom,
                   isLast: true,
                 ),
               ],
@@ -608,7 +610,7 @@ class _ResolvingPageState extends State<_ResolvingPage> {
             child: Row(
               children: [
                 _MiniStat(
-                  label: 'حسابات',
+                  label: AppStringsAr.accounts,
                   value: '${conflicts.length}',
                   color: scheme.primary,
                   isSelected: _filter == _Filter.all,
@@ -616,7 +618,7 @@ class _ResolvingPageState extends State<_ResolvingPage> {
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: 'حركات',
+                  label: AppStringsAr.movements,
                   value: '$txCount',
                   color: ColorTokens.emerald600,
                   isSelected: _filter == _Filter.vouchers,
@@ -624,7 +626,7 @@ class _ResolvingPageState extends State<_ResolvingPage> {
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: 'تطابق تام',
+                  label: AppStringsAr.perfectMatch,
                   value: '$exactCount',
                   color: ColorTokens.emerald700,
                   isSelected: _filter == _Filter.exact,
@@ -632,7 +634,7 @@ class _ResolvingPageState extends State<_ResolvingPage> {
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: 'جزئي',
+                  label: AppStringsAr.partial,
                   value: '$partialCount',
                   color: ColorTokens.warningAmber,
                   isSelected: _filter == _Filter.partial,
@@ -640,7 +642,7 @@ class _ResolvingPageState extends State<_ResolvingPage> {
                 ),
                 const SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: 'جديد',
+                  label: AppStringsAr.newStr,
                   value: '$newCount',
                   color: ColorTokens.debitBlue,
                   isSelected: _filter == _Filter.newAccounts,
@@ -662,8 +664,8 @@ class _ResolvingPageState extends State<_ResolvingPage> {
             ),
             child: Text(
               _filter == _Filter.vouchers
-                  ? 'قائمة السندات التي سيتم استيرادها في وضع المسودة.'
-                  : 'راجع كل حساب وحدّد كيفية التعامل معه. القرار الافتراضي مُعيَّن تلقائياً.',
+                  ? AppStringsAr.listOfBondsTo
+                  : AppStringsAr.reviewEachAccountAnd,
               style: TextStyle(
                 color: scheme.onSurfaceVariant,
                 fontSize: 13,
@@ -725,7 +727,7 @@ class _ResolvingPageState extends State<_ResolvingPage> {
             child: FilledButton.icon(
               onPressed: widget.onConfirm,
               icon: const Icon(Icons.download_done_rounded, size: 20),
-              label: const Text('بدء الاستيراد'),
+              label: const Text(AppStringsAr.startImport),
               style: FilledButton.styleFrom(
                 backgroundColor: ColorTokens.emerald600,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -764,9 +766,9 @@ class _ConflictCard extends StatelessWidget {
       };
 
   String _conflictLabel() => switch (conflict.type) {
-        AccountConflictType.exactMatch => 'تطابق تام',
-        AccountConflictType.partialMatch => 'تطابق جزئي',
-        AccountConflictType.noMatch => 'حساب جديد',
+        AccountConflictType.exactMatch => AppStringsAr.perfectMatch,
+        AccountConflictType.partialMatch => AppStringsAr.partialMatch,
+        AccountConflictType.noMatch => AppStringsAr.newAccount,
       };
 
   IconData _conflictIcon() => switch (conflict.type) {
@@ -804,7 +806,7 @@ class _ConflictCard extends StatelessWidget {
                   child: Text(
                     conflict.name.isNotEmpty
                         ? conflict.name.characters.first
-                        : '؟',
+                        : AppStringsAr.str1,
                     style: TextStyle(
                       color: accent,
                       fontWeight: FontWeight.w700,
@@ -942,7 +944,7 @@ class _ConflictCard extends StatelessWidget {
               children: [
                 // Merge
                 _ActionChip(
-                  label: 'دمج',
+                  label: AppStringsAr.toMerge,
                   icon: Icons.merge_rounded,
                   isSelected: resolution.action == ResolutionAction.merge,
                   color: ColorTokens.emerald600,
@@ -964,7 +966,7 @@ class _ConflictCard extends StatelessWidget {
 
                 // Create New
                 _ActionChip(
-                  label: 'إنشاء جديد',
+                  label: AppStringsAr.createNew,
                   icon: Icons.person_add_rounded,
                   isSelected: resolution.action == ResolutionAction.createNew,
                   color: ColorTokens.debitBlue,
@@ -975,7 +977,7 @@ class _ConflictCard extends StatelessWidget {
 
                 // Skip
                 _ActionChip(
-                  label: 'تخطي',
+                  label: AppStringsAr.skip,
                   icon: Icons.skip_next_rounded,
                   isSelected: resolution.action == ResolutionAction.skip,
                   color: scheme.outline,
@@ -993,7 +995,7 @@ class _ConflictCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'ربط بالحساب الجذر:',
+                    AppStringsAr.linkToRootAccount,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1070,7 +1072,7 @@ String _getDefaultParentName(
   final defaultRoot =
       roots.where((a) => a.standardClassificationKind == kindName).firstOrNull;
 
-  return defaultRoot?.name ?? (isPayable ? 'التزامات وديون' : 'حقوق ومستحقات');
+  return defaultRoot?.name ?? (isPayable ? AppStringsAr.obligationsAndDebts : AppStringsAr.rightsAndEntitlements);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1115,7 +1117,7 @@ class _DonePage extends StatelessWidget {
                 ),
                 const SizedBox(height: SpacingTokens.md),
                 Text(
-                  'اكتمل الاستيراد',
+                  AppStringsAr.importCompleted,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: ColorTokens.emerald700,
@@ -1123,7 +1125,7 @@ class _DonePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'تم إنشاء السندات في حالة انتظار — راجعها واعتمدها',
+                  AppStringsAr.bondsCreatedInPending,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,
@@ -1142,21 +1144,21 @@ class _DonePage extends StatelessWidget {
               children: [
                 _SummaryRow(
                   icon: Icons.receipt_long_rounded,
-                  label: 'سندات مستوردة',
+                  label: AppStringsAr.importedBonds,
                   value: '${summary.imported}',
                   color: ColorTokens.emerald600,
                 ),
                 const Divider(height: SpacingTokens.lg),
                 _SummaryRow(
                   icon: Icons.compare_arrows_rounded,
-                  label: 'منها تحويلات',
+                  label: AppStringsAr.includingTransfers,
                   value: '${summary.transfers}',
                   color: scheme.primary,
                 ),
                 const Divider(height: SpacingTokens.lg),
                 _SummaryRow(
                   icon: Icons.skip_next_rounded,
-                  label: 'حركات متخطاة',
+                  label: AppStringsAr.skippedMovements,
                   value: '${summary.skipped}',
                   color: scheme.outline,
                 ),
@@ -1172,7 +1174,7 @@ class _DonePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'الخطوات التالية',
+                  AppStringsAr.nextSteps,
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
@@ -1180,14 +1182,14 @@ class _DonePage extends StatelessWidget {
                 ),
                 const SizedBox(height: SpacingTokens.md),
                 _StepHint(
-                  number: '١',
-                  title: 'مراجعة السندات المعلقة',
-                  subtitle: 'ابحث في قائمة السندات عن حالة "انتظار"',
+                  number: AppStringsAr.s1,
+                  title: AppStringsAr.reviewOutstandingBonds,
+                  subtitle: 'ابحث في قائمة السندات عن حالة AppStringsAr.waiting',
                 ),
                 _StepHint(
-                  number: '٢',
-                  title: 'اعتماد السندات',
-                  subtitle: 'افتح كل سند وتحقق من البيانات ثم اعتمده',
+                  number: AppStringsAr.s2,
+                  title: AppStringsAr.bondApproval,
+                  subtitle: AppStringsAr.openEachDocumentVerify,
                   isLast: true,
                 ),
               ],
@@ -1200,7 +1202,7 @@ class _DonePage extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onReset,
             icon: const Icon(Icons.upload_file_rounded, size: 18),
-            label: const Text('استيراد ملف آخر'),
+            label: const Text(AppStringsAr.importAnotherFile),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 13),
             ),
@@ -1474,8 +1476,8 @@ class _TransactionCard extends StatelessWidget {
     final amount = (tx['amount_raw'] as num? ?? 0).toDouble();
     final currency = tx['currency_code']?.toString() ?? 'YER';
     final date = tx['date']?.toString() ?? '';
-    final description = tx['description']?.toString() ?? 'بدون وصف';
-    final counterparty = tx['counterparty_name']?.toString() ?? 'طرف مجهول';
+    final description = tx['description']?.toString() ?? AppStringsAr.withoutDescription;
+    final counterparty = tx['counterparty_name']?.toString() ?? AppStringsAr.anonymousParty;
 
     return Container(
       padding: const EdgeInsets.all(SpacingTokens.md),
@@ -1497,7 +1499,7 @@ class _TransactionCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  isReceipt ? 'قبض' : 'صرف',
+                  isReceipt ? AppStringsAr.catchStr : AppStringsAr.exchange,
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.bold,

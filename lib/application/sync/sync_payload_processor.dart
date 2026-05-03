@@ -35,6 +35,8 @@ import 'package:qayd/domain/entities/collateral_revaluation.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:uuid/uuid.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Intercepts inbound [SyncNode] streams, enforces E2EE Cryptographic rules,
 /// decrypts the payloads, and mutates the local Drift databases securely.
@@ -298,7 +300,7 @@ class SyncPayloadProcessor {
 
     if (reciprocalResult.isSuccess && reciprocalResult.valueOrNull != null) {
       final localMatch = reciprocalResult.valueOrNull!;
-      bodyText = 'سند مطابق — هل ترغب في دمج هذا السند مع المسودة المحلية؟';
+      bodyText = AppStringsAr.matchingBondWouldYou;
       channel = 'conflict';
 
       // We still use voucher_event as base but keep the conflict logic
@@ -465,7 +467,7 @@ class SyncPayloadProcessor {
       if (notificationFilterService.isPeerActivityEnabled) {
         await notificationMessageRepository.insert(
           id: nodeId,
-          bodyText: 'تم اعتماد السند من قبل الطرف الآخر',
+          bodyText: AppStringsAr.theBondIsApproved,
           counterpartyAccountId: senderId,
           createdAtIso: DateTime.now().toIso8601String(),
           channel: 'voucher_event',
@@ -717,7 +719,7 @@ class SyncPayloadProcessor {
       if (notificationFilterService.isPeerActivityEnabled) {
         await notificationMessageRepository.insert(
           id: nodeId,
-          bodyText: 'تم سحب السند من قبل صاحب السند',
+          bodyText: AppStringsAr.theBondIsWithdrawn,
           counterpartyAccountId: senderId,
           createdAtIso: DateTime.now().toIso8601String(),
           channel: 'voucher_event',
@@ -766,7 +768,7 @@ class SyncPayloadProcessor {
       if (notificationFilterService.isPeerActivityEnabled) {
         await notificationMessageRepository.insert(
           id: nodeId,
-          bodyText: 'تم سداد السند بالكامل',
+          bodyText: AppStringsAr.theBondHasBeen1,
           counterpartyAccountId: senderId,
           createdAtIso: DateTime.now().toIso8601String(),
           channel: 'voucher_event',
@@ -795,7 +797,7 @@ class SyncPayloadProcessor {
 
     // Resolve sender name for the notification UI
     final accountResult = await accountRepository.getById(AccountId(senderId));
-    final senderName = accountResult.valueOrNull?.name ?? 'المُرسل';
+    final senderName = accountResult.valueOrNull?.name ?? AppStringsAr.sender1;
 
     if (notificationFilterService.isPeerActivityEnabled) {
       await notificationMessageRepository.insert(

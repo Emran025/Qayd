@@ -78,15 +78,15 @@ String _agreementStatusAr(String code) {
 }
 
 Uint8List buildVouchersExcelBytes(List<VoucherSummaryDto> vouchers) {
-  final headers = [
-    'التاريخ',
-    'النوع',
-    'الحالة',
-    'اتفاق التوقيع',
-    'المبلغ',
-    'الطرف المقابل',
-    'الحساب المتأثر',
-    'المعرّف',
+  final headers = <String>[
+    AppStringsAr.theDate,
+    AppStringsAr.type,
+    AppStringsAr.theCondition,
+    AppStringsAr.signatureAgreement,
+    AppStringsAr.amount,
+    AppStringsAr.oppositeParty,
+    AppStringsAr.affectedAccount,
+    AppStringsAr.id,
   ];
   final rows = <List<Object?>>[];
   for (final v in vouchers) {
@@ -109,13 +109,13 @@ Uint8List buildVouchersExcelBytes(List<VoucherSummaryDto> vouchers) {
 }
 
 Uint8List buildAccountsExcelBytes(List<AccountSummaryDto> accounts) {
-  final headers = [
-    'اسم الحساب',
-    'الطبيعة',
-    'الرصيد',
-    'نشط',
-    'جذر',
-    'المعرّف',
+  final headers = <String>[
+    AppStringsAr.accountName,
+    AppStringsAr.nature1,
+    AppStringsAr.balance,
+    AppStringsAr.active,
+    AppStringsAr.root,
+    AppStringsAr.id,
   ];
   final rows = <List<Object?>>[];
   for (final a in accounts) {
@@ -138,13 +138,13 @@ Uint8List buildAccountStatementExcelBytes({
   required List<AccountStatementLineDto> lines,
   String? issuerName,
 }) {
-  final headers = [
-    'التاريخ',
-    'رقم السند',
-    'البيان',
-    'الحالة',
-    'دائن',
-    'مدين',
+  final headers = <String>[
+    AppStringsAr.theDate,
+    AppStringsAr.bondNumber,
+    AppStringsAr.statement1,
+    AppStringsAr.theCondition,
+    AppStringsAr.creditor,
+    AppStringsAr.debtor,
   ];
   final rows = <List<Object?>>[];
   int totalDebit = 0;
@@ -172,7 +172,7 @@ Uint8List buildAccountStatementExcelBytes({
     totalDebit: _moneyMinor(totalDebit),
     totalCredit: _moneyMinor(totalCredit),
     netBalance: _moneyMinor(netBalance),
-    notesText: 'شكراً لتعاملكم معنا!\nيرجى مراجعة الأرصدة والتأكد من صحتها.',
+    notesText: AppStringsAr.thankYouForDealing,
     issuerName: issuerName,
   );
 }
@@ -181,14 +181,14 @@ Uint8List buildCombinedExportExcelBytes({
   required List<VoucherSummaryDto> vouchers,
   required List<AccountSummaryDto> accounts,
 }) {
-  final vHeaders = [
-    'التاريخ',
-    'النوع',
-    'الحالة',
-    'اتفاق التوقيع',
-    'المبلغ',
-    'الطرف المقابل',
-    'الحساب المتأثر',
+  final vHeaders = <String>[
+    AppStringsAr.theDate,
+    AppStringsAr.type,
+    AppStringsAr.theCondition,
+    AppStringsAr.signatureAgreement,
+    AppStringsAr.amount,
+    AppStringsAr.oppositeParty,
+    AppStringsAr.affectedAccount,
   ];
   final vRows = <List<Object?>>[];
   for (final v in vouchers) {
@@ -206,11 +206,11 @@ Uint8List buildCombinedExportExcelBytes({
       v.affectedName,
     ]);
   }
-  final aHeaders = [
-    'اسم الحساب',
-    'الطبيعة',
-    'الرصيد',
-    'نشط',
+  final aHeaders = <String>[
+    AppStringsAr.accountName,
+    AppStringsAr.nature1,
+    AppStringsAr.balance,
+    AppStringsAr.active,
   ];
   final aRows = <List<Object?>>[];
   for (final a in accounts) {

@@ -10,6 +10,8 @@ import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class RestoreDiscoveryPage extends StatelessWidget {
   const RestoreDiscoveryPage({super.key});
@@ -21,7 +23,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
         listener: (context, state) {
           if (state is RestoreSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تمت استعادة البيانات بنجاح.')),
+              const SnackBar(content: Text(AppStringsAr.theDataHasBeen)),
             );
             Navigator.of(context).pop(true);
           } else if (state is RestoreFailure) {
@@ -66,17 +68,17 @@ class RestoreDiscoveryPage extends StatelessWidget {
             ),
             const SizedBox(height: SpacingTokens.lg),
             const AuthTitleBlock(
-              title: 'وجدنا نسخة احتياطية',
+              title: AppStringsAr.weFoundABackup,
               subtitle:
-                  'هناك نسخة احتياطية سابقة لبياناتك. هل تود استعادتها الآن؟',
+                  AppStringsAr.thereIsAPrevious,
             ),
             const SizedBox(height: SpacingTokens.xl),
             if (state.localFile.existsSync()) ...[
               _buildBackupCard(
                 context,
-                title: 'نسخة محلية على الجهاز',
+                title: AppStringsAr.localCopyOnThe,
                 subtitle:
-                    'بتاريخ: ${localMod != null ? dateFormat.format(localMod) : 'غير معروف'}',
+                    'بتاريخ: ${localMod != null ? dateFormat.format(localMod) : AppStringsAr.unknown}',
                 onTap: () => context.read<RestoreCubit>().performRestore(
                       localFile: state.localFile,
                     ),
@@ -86,9 +88,9 @@ class RestoreDiscoveryPage extends StatelessWidget {
             if (state.driveInfo != null) ...[
               _buildBackupCard(
                 context,
-                title: 'نسخة من Google Drive',
+                title: AppStringsAr.copyFromGoogleDrive,
                 subtitle:
-                    'بتاريخ: ${state.driveInfo!.lastModified != null ? dateFormat.format(state.driveInfo!.lastModified!) : 'غير معروف'}',
+                    'بتاريخ: ${state.driveInfo!.lastModified != null ? dateFormat.format(state.driveInfo!.lastModified!) : AppStringsAr.unknown}',
                 onTap: () => context.read<RestoreCubit>().performRestore(
                       fromDrive: true,
                     ),
@@ -97,7 +99,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
             ],
             const Spacer(),
             AuthSubmitButton(
-              label: 'استعادة النسخة المحددة',
+              label: AppStringsAr.restoreTheSelectedVersion,
               loading: state is RestoreInProgess,
               onPressed: () {
                 // If there's only one, we can define a default or just use the card clicks
@@ -106,7 +108,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(
-                'تخطي والبدء بجهاز جديد',
+                AppStringsAr.skipAndStartWith,
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
@@ -158,12 +160,12 @@ class RestoreDiscoveryPage extends StatelessWidget {
     QaydDialog.show(
       context: context,
       icon: Icons.vpn_key_rounded,
-      title: 'مفتاح التشفير مطلوب',
+      title: AppStringsAr.encryptionKeyRequired,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const QaydText(
-            'الرجاء إدخال المفتاح الأساسي (كلمات الاسترداد الـ 24) لفك تشفير النسخة الاحتياطية.',
+            AppStringsAr.pleaseEnterThePrimary,
             slot: QaydTextStyleSlot.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -176,7 +178,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
             decoration: InputDecoration(
               filled: true,
               fillColor: theme.colorScheme.surfaceContainerHighest,
-              hintText: 'ادخل عبارة الاسترداد هنا...',
+              hintText: AppStringsAr.enterRecoveryPhraseHere,
               hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -186,9 +188,9 @@ class RestoreDiscoveryPage extends StatelessWidget {
           ),
         ],
       ),
-      secondaryActionLabel: 'إلغاء',
+      secondaryActionLabel: AppStringsAr.cancellation,
       onSecondaryAction: () => Navigator.pop(context),
-      primaryActionLabel: 'تأكيد وفك التشفير',
+      primaryActionLabel: AppStringsAr.confirmAndDecrypt,
       onPrimaryAction: () {
         final phrase = controller.text.trim();
         if (phrase.isNotEmpty) {

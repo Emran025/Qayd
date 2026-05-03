@@ -8,6 +8,8 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/database/database_provider.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
 /// Manages automatic daily backups of [qayd_finance.db] to the device.
@@ -85,7 +87,7 @@ class AutoBackupService {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        FileSystemFailure(messageAr: 'تعذر إنشاء النسخة الاحتياطية التلقائية.'),
+        FileSystemFailure(messageAr: AppStringsAr.theAutomaticBackupCould),
       );
     }
   }
@@ -289,7 +291,7 @@ class AutoBackupService {
     } catch (_) {
       return const FailureResult(
         FileSystemFailure(
-          messageAr: 'تعذر حفظ النسخة الاحتياطية في وحدة التخزين الخارجية.',
+          messageAr: AppStringsAr.theBackupCouldNot,
         ),
       );
     }
@@ -301,7 +303,7 @@ class AutoBackupService {
       final srcPath = await DatabaseProvider.databaseFilePath();
       if (!File(srcPath).existsSync()) {
         return const FailureResult(
-            FileSystemFailure(messageAr: 'قاعدة البيانات غير موجودة.'));
+            FileSystemFailure(messageAr: AppStringsAr.theDatabaseDoesNot));
       }
       final tmpDir = await getTemporaryDirectory();
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -315,7 +317,7 @@ class AutoBackupService {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        FileSystemFailure(messageAr: 'تعذر مشاركة النسخة الاحتياطية.'),
+        FileSystemFailure(messageAr: AppStringsAr.theBackupCouldNot1),
       );
     }
   }

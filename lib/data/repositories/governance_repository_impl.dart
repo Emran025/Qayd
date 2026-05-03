@@ -4,6 +4,8 @@ import 'package:qayd/data/governance/remote/governance_remote_data_source.dart';
 import 'package:qayd/domain/repositories/governance_repository.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
 import 'package:qayd/domain/value_objects/submit_activation_request.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Caches governance status briefly to avoid hammering the remote stub / future API.
 final class GovernanceRepositoryImpl implements GovernanceRepository {
@@ -34,7 +36,7 @@ final class GovernanceRepositoryImpl implements GovernanceRepository {
     } on Object catch (_) {
       return FailureResult(
         NetworkFailure(
-          messageAr: 'تعذر التحقق من حالة الترخيص. تحقق من الاتصال.',
+          messageAr: AppStringsAr.unableToCheckLicense,
         ),
       );
     }
@@ -50,21 +52,21 @@ final class GovernanceRepositoryImpl implements GovernanceRepository {
     } on ArgumentError catch (_) {
       return FailureResult(
         ValidationFailure(
-          messageAr: 'يرجى إدخال معرف المنشأة ومفتاح التفعيل.',
+          messageAr: AppStringsAr.pleaseEnterYourFacility,
           code: 'governance_activation_invalid_input',
         ),
       );
     } on StateError catch (_) {
       return FailureResult(
         ValidationFailure(
-          messageAr: 'بيانات التفعيل غير صحيحة.',
+          messageAr: AppStringsAr.activationDataIsIncorrect,
           code: 'governance_activation_rejected',
         ),
       );
     } on Object catch (_) {
       return FailureResult(
         NetworkFailure(
-          messageAr: 'تعذر إكمال التفعيل. حاول مرة أخرى.',
+          messageAr: AppStringsAr.activationCouldNotBe,
         ),
       );
     }

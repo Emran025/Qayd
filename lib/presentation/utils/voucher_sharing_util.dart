@@ -50,11 +50,11 @@ Future<void> shareVoucherAsText(
       final absValue = value.abs();
       final label = data.counterpartyNature == 'debit'
           ? value > 0
-              ? 'عليكم'
-              : 'لكم'
+              ? AppStringsAr.onYou
+              : AppStringsAr.your
           : value < 0
-              ? 'عليكم'
-              : 'لكم';
+              ? AppStringsAr.onYou
+              : AppStringsAr.your;
       return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
           .trim();
     }).toList();
@@ -68,7 +68,7 @@ Future<void> shareVoucherAsText(
       buffer.writeln('البيان: ${data.description}');
     }
     buffer.writeln('\n--');
-    buffer.writeln('مُصدّر آلياً وموثق رقمياً عبر نظام قيد');
+    buffer.writeln(AppStringsAr.automaticallyExportedAndDigitally);
     if (data.senderSignatureHex != null) {
       buffer.write('\n- توقيع المرسل: ${data.senderSignatureHex}');
     }
@@ -127,7 +127,7 @@ Future<void> shareTripartiteAsText(
   // Fallback if no template is found
   if (shareText == null || shareText.isEmpty) {
     final buffer = StringBuffer();
-    buffer.writeln('إشعار تحويل وسيط');
+    buffer.writeln(AppStringsAr.brokerTransferNotice);
     buffer.writeln('التاريخ: $date');
     buffer.writeln('المبلغ: $amount');
     buffer.writeln('المرسل: ${data.sourceName}');
@@ -137,7 +137,7 @@ Future<void> shareTripartiteAsText(
       buffer.writeln('البيان: ${data.description}');
     }
     buffer.writeln('\n--');
-    buffer.writeln('مُصدّر آلياً وموثق رقمياً عبر نظام قيد');
+    buffer.writeln(AppStringsAr.automaticallyExportedAndDigitally);
     if (data.senderSignatureHex != null) {
       buffer.write('\n- توقيع المرسل: ${data.senderSignatureHex}');
     }

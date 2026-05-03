@@ -10,6 +10,8 @@ import 'package:qayd/data/backup/qayd_database_validator.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
 import 'package:qayd/data/backup/unified_backup_manager.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
 /// Copies the live encrypted DB and shares it, or restores from a validated backup.
@@ -75,7 +77,7 @@ class BackupService {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        FileSystemFailure(messageAr: 'تعذر إنشاء أو مشاركة النسخة الاحتياطية الموحدة.'),
+        FileSystemFailure(messageAr: AppStringsAr.unableToCreateOr),
       );
     }
   }
@@ -90,7 +92,7 @@ class BackupService {
       try {
         if (unpacked.databasePath == null) {
           return const FailureResult(ValidationFailure(
-              messageAr: 'الملف لا يحتوي على قاعدة بيانات قيد.'));
+              messageAr: AppStringsAr.theFileDoesNot1));
         }
         return await QaydDatabaseValidator.validateFile(
           path: unpacked.databasePath!,
@@ -150,7 +152,7 @@ class BackupService {
     } catch (_) {
       return const FailureResult(
         FileSystemFailure(
-            messageAr: 'تعذر حفظ النسخة الاحتياطية الموحدة في المسار المحدد.'),
+            messageAr: AppStringsAr.theConsolidatedBackupCould),
       );
     }
   }
@@ -170,7 +172,7 @@ class BackupService {
       if (unpacked.databasePath == null) {
         await unpacked.dispose();
         return const FailureResult(
-            ValidationFailure(messageAr: 'الملف لا يحتوي على قاعدة بيانات.'));
+            ValidationFailure(messageAr: AppStringsAr.theFileDoesNot));
       }
       finalDbPath = unpacked.databasePath!;
       finalIdPath = unpacked.identityPath;
@@ -229,7 +231,7 @@ class BackupService {
       return const Success(null);
     } catch (_) {
       return const FailureResult(
-        FileSystemFailure(messageAr: 'تعذر استبدال ملف قاعدة البيانات.'),
+        FileSystemFailure(messageAr: AppStringsAr.theDatabaseFileCould),
       );
     } finally {
       if (unpacked != null) await unpacked.dispose();

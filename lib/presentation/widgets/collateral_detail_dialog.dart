@@ -7,6 +7,8 @@ import 'package:qayd/domain/entities/collateral_revaluation.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/attachment_gallery_dialog.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Dialog showing collateral details, photos, valuation history, and
 /// action buttons for re-evaluation and liquidation.
@@ -31,7 +33,7 @@ class CollateralDetailDialog extends StatelessWidget {
   /// Callback for the "Re-evaluate" action.
   final VoidCallback? onRevaluate;
 
-  /// Callback for the "Liquidate / عرض للبيع" action.
+  /// Callback for the AppStringsAr.liquidateOfferForSale action.
   final VoidCallback? onLiquidate;
 
   static Future<void> show(
@@ -81,7 +83,7 @@ class CollateralDetailDialog extends StatelessWidget {
                   const SizedBox(width: SpacingTokens.sm),
                   Expanded(
                     child: Text(
-                      'تفاصيل الرهن',
+                      AppStringsAr.mortgageDetails,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
@@ -96,7 +98,7 @@ class CollateralDetailDialog extends StatelessWidget {
               // ── Description ──────────────────────────────────────
               _InfoRow(
                 icon: Icons.description_rounded,
-                label: 'الوصف',
+                label: AppStringsAr.description,
                 value: collateral.description,
               ),
               const SizedBox(height: SpacingTokens.md),
@@ -104,7 +106,7 @@ class CollateralDetailDialog extends StatelessWidget {
               // ── Value ────────────────────────────────────────────
               _InfoRow(
                 icon: Icons.attach_money_rounded,
-                label: 'القيمة التقديرية',
+                label: AppStringsAr.estimatedValue,
                 value: '$valueStr ${collateral.currency.code}',
               ),
               const SizedBox(height: SpacingTokens.md),
@@ -113,7 +115,7 @@ class CollateralDetailDialog extends StatelessWidget {
               if (collateral.expiryDate != null) ...[
                 _InfoRow(
                   icon: Icons.event_rounded,
-                  label: 'تاريخ الاستحقاق',
+                  label: AppStringsAr.dueDate,
                   value: DateFormat.yMMMd('en').format(collateral.expiryDate!),
                   valueColor:
                       collateral.isExpired ? theme.colorScheme.error : null,
@@ -138,7 +140,7 @@ class CollateralDetailDialog extends StatelessWidget {
                               color: theme.colorScheme.onErrorContainer),
                           const SizedBox(width: 6),
                           Text(
-                            'منتهي الصلاحية',
+                            AppStringsAr.expired,
                             style: TextStyle(
                               color: theme.colorScheme.onErrorContainer,
                               fontSize: 12,
@@ -155,7 +157,7 @@ class CollateralDetailDialog extends StatelessWidget {
               // ── Collateral images ────────────────────────────────
               if (decryptedImages.isNotEmpty) ...[
                 Text(
-                  'صور الرهن',
+                  AppStringsAr.mortgagePictures,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
@@ -194,7 +196,7 @@ class CollateralDetailDialog extends StatelessWidget {
               // ── Revaluation history ──────────────────────────────
               if (revaluations.isNotEmpty) ...[
                 Text(
-                  'سجل إعادة التقييم',
+                  AppStringsAr.reassessmentLog,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
@@ -217,7 +219,7 @@ class CollateralDetailDialog extends StatelessWidget {
                         ),
                         icon: Icon(Icons.edit_rounded, size: 18, color: gold),
                         label: Text(
-                          'إعادة تقييم',
+                          AppStringsAr.reevaluate,
                           style: TextStyle(color: gold),
                         ),
                       ),
@@ -232,7 +234,7 @@ class CollateralDetailDialog extends StatelessWidget {
                             foregroundColor: theme.colorScheme.onError,
                           ),
                           icon: const Icon(Icons.gavel_rounded, size: 18),
-                          label: const Text('عرض للبيع'),
+                          label: const Text(AppStringsAr.offerForSale),
                         ),
                       ),
                     ],
@@ -304,10 +306,10 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final (color, label) = switch (status) {
-      'active' => (Colors.green, 'نشط'),
-      'expired' => (Colors.orange, 'منتهي'),
-      'liquidated' => (scheme.error, 'تمت التصفية'),
-      'released' => (Colors.blue, 'محرر'),
+      'active' => (Colors.green, AppStringsAr.active),
+      'expired' => (Colors.orange, AppStringsAr.finished),
+      'liquidated' => (scheme.error, AppStringsAr.filtered),
+      'released' => (Colors.blue, AppStringsAr.editor),
       _ => (scheme.outline, status),
     };
 

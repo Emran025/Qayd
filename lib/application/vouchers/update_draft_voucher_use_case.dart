@@ -10,6 +10,8 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class UpdateDraftVoucherUseCase {
   UpdateDraftVoucherUseCase(
@@ -42,7 +44,7 @@ class UpdateDraftVoucherUseCase {
             await _currencyRepository.getByCode(input.currencyCode!);
         if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
           return FailureResult(ValidationFailure(
-            messageAr: 'العملة المختارة غير صالحة.',
+            messageAr: AppStringsAr.theSelectedCurrencyIs,
             code: 'invalid_currency',
           ));
         }

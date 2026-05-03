@@ -186,7 +186,7 @@ class IncomeStreamCard extends StatelessWidget {
                           _MetaLabel(
                             icon: Icons.timer_outlined,
                             text:
-                                '${(metadata['hourly_rate'] as num).toStringAsFixed(0)} /ساعة',
+                                '${(metadata['hourly_rateAppStringsAr.asNumtostringasfixed0Hour'])}'
                           ),
                         if (metadata['license_number'] != null &&
                             (metadata['license_number'] as String).isNotEmpty)

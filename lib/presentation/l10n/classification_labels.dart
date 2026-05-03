@@ -1,28 +1,30 @@
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 String standardClassificationKindLabelAr(
   StandardAccountClassificationKind kind,
 ) {
   switch (kind) {
     case StandardAccountClassificationKind.liquidAssets:
-      return 'نقدية وسيولة';
+      return AppStringsAr.cashAndLiquidity;
     case StandardAccountClassificationKind.receivables:
-      return 'حقوق ومستحقات';
+      return AppStringsAr.rightsAndEntitlements;
     case StandardAccountClassificationKind.payables:
-      return 'التزامات وديون';
+      return AppStringsAr.obligationsAndDebts;
     case StandardAccountClassificationKind.settlements:
-      return 'تسويات مالية وشخصية';
+      return AppStringsAr.financialAndPersonalSettlements;
     case StandardAccountClassificationKind.personalExpenses:
-      return 'مصروفات واستهلاك';
+      return AppStringsAr.expensesAndConsumption;
     case StandardAccountClassificationKind.personalRevenues:
-      return 'إيرادات ومكاسب';
+      return AppStringsAr.revenuesAndGains;
     case StandardAccountClassificationKind.clearingRemittances:
-      return 'مقاصة الحوالات';
+      return AppStringsAr.remittanceClearing;
     case StandardAccountClassificationKind.remittanceFees:
-      return 'رسوم الحوالات';
+      return AppStringsAr.transferFees;
     case StandardAccountClassificationKind.fixedDepreciableAssets:
-      return 'أصول ثابتة (مهلكة)';
+      return AppStringsAr.fixedAssetsDepreciated;
     case StandardAccountClassificationKind.fixedProfitableAssets:
-      return 'أصول ثابتة (ربحية)';
+      return AppStringsAr.fixedAssetsProfitable;
   }
 }

@@ -4,6 +4,8 @@ import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 final class ManageDimensionsUseCase {
   const ManageDimensionsUseCase(this._repository, this._idGenerator);
@@ -20,7 +22,7 @@ final class ManageDimensionsUseCase {
     if (trimmed.isEmpty) {
       return const FailureResult(
         ValidationFailure(
-          messageAr: 'يرجى إدخال اسم البُعد.',
+          messageAr: AppStringsAr.pleaseEnterADimension,
           code: 'dimension_name_required',
         ),
       );
@@ -64,7 +66,7 @@ final class ManageDimensionsUseCase {
     if (trimmed.isEmpty) {
       return const FailureResult(
         ValidationFailure(
-          messageAr: 'يرجى إدخال اسم التصنيف.',
+          messageAr: AppStringsAr.pleaseEnterTheCategory,
           code: 'category_name_required',
         ),
       );

@@ -10,6 +10,8 @@ import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:qayd/core/utils/currency_util.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Professional PDF generator for Balance Sheet reports.
 ///
@@ -68,14 +70,14 @@ final class BalanceSheetPdfGenerator {
             pw.SizedBox(height: 16),
             ..._buildSection(
               font,
-              'الأصول',
+              AppStringsAr.assets,
               'Assets',
               report.lines.where((l) => _isAsset(l.classification)).toList(),
             ),
             pw.SizedBox(height: 12),
             ..._buildSection(
               font,
-              'الخصوم',
+              AppStringsAr.adversaries,
               'Liabilities',
               report.lines
                   .where((l) => _isLiability(l.classification))
@@ -84,7 +86,7 @@ final class BalanceSheetPdfGenerator {
             pw.SizedBox(height: 12),
             ..._buildSection(
               font,
-              'حقوق الملكية',
+              AppStringsAr.propertyRights,
               'Equity',
               report.lines.where((l) => _isEquity(l.classification)).toList(),
             ),
@@ -137,7 +139,7 @@ final class BalanceSheetPdfGenerator {
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  'Balance Sheet — نظام السندات المالية المشفّرة',
+                  AppStringsAr.balanceSheetCryptocurrencySystem,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 7,
@@ -174,7 +176,7 @@ final class BalanceSheetPdfGenerator {
               ),
               child: pw.Center(
                 child: pw.Text(
-                  'قيد',
+                  AppStringsAr.restriction,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 14,
@@ -243,9 +245,9 @@ final class BalanceSheetPdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, 'اسم الشركة:', report.companyName),
+                    _infoLine(font, AppStringsAr.companyName, report.companyName),
                     pw.SizedBox(height: 4),
-                    _infoLine(font, 'التاريخ:', dateStr),
+                    _infoLine(font, AppStringsAr.theDate1, dateStr),
                   ],
                 ),
               ),
@@ -261,7 +263,7 @@ final class BalanceSheetPdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, 'تاريخ الإصدار:', genAt),
+                    _infoLine(font, AppStringsAr.releaseDate, genAt),
                   ],
                 ),
               ),
@@ -366,9 +368,9 @@ final class BalanceSheetPdfGenerator {
             decoration: const pw.BoxDecoration(
                 color: PdfColor.fromInt(0xFF0F2741)), // _navy
             children: [
-              _tableHeaderCell(font, 'الحساب'),
-              _tableHeaderCell(font, 'العملة'),
-              _tableHeaderCell(font, 'الرصيد'),
+              _tableHeaderCell(font, AppStringsAr.theAccount),
+              _tableHeaderCell(font, AppStringsAr.currency),
+              _tableHeaderCell(font, AppStringsAr.balance),
             ],
           ),
           // Data rows grouped by account
@@ -439,7 +441,7 @@ final class BalanceSheetPdfGenerator {
                       child: pw.RichText(
                         text: buildPdfNumericalScaledSpan(
                           CurrencyUtil.getArabicName(l.currencyCode)
-                              .replaceAll('﷼', 'ريال'),
+                              .replaceAll('﷼', AppStringsAr.sar),
                           pw.TextStyle(font: font, fontSize: 7, color: _muted),
                         ),
                       ),
@@ -554,7 +556,7 @@ final class BalanceSheetPdfGenerator {
                       children: [
                         pw.RichText(
                           text: buildPdfNumericalScaledSpan(
-                            'ملخص الإجماليات — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', 'ريال')}',
+                            'ملخص الإجماليات — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', AppStringsAr.sar)}',
                             pw.TextStyle(
                               font: font,
                               fontSize: 10,
@@ -574,7 +576,7 @@ final class BalanceSheetPdfGenerator {
                                 pw.Border.all(color: statusColor, width: 0.5),
                           ),
                           child: pw.Text(
-                            isBalanced ? 'متوازن' : 'غير متوازن',
+                            isBalanced ? AppStringsAr.balanced : AppStringsAr.unbalanced,
                             style: pw.TextStyle(
                               font: font,
                               fontSize: 8,
@@ -596,13 +598,13 @@ final class BalanceSheetPdfGenerator {
               padding: const pw.EdgeInsets.all(12),
               child: pw.Column(
                 children: [
-                  _summaryRow(font, 'إجمالي الأصول', s.totalAssetsMinorUnits,
+                  _summaryRow(font, AppStringsAr.totalAssets, s.totalAssetsMinorUnits,
                       s.currencyDigits),
                   pw.SizedBox(height: 4),
-                  _summaryRow(font, 'إجمالي الخصوم',
+                  _summaryRow(font, AppStringsAr.totalLiabilities,
                       s.totalLiabilitiesMinorUnits, s.currencyDigits),
                   pw.SizedBox(height: 4),
-                  _summaryRow(font, 'حقوق الملكية', s.totalEquityMinorUnits,
+                  _summaryRow(font, AppStringsAr.propertyRights, s.totalEquityMinorUnits,
                       s.currencyDigits),
                   pw.SizedBox(height: 8),
                   pw.Divider(thickness: 0.5, color: PdfColors.grey300),
@@ -611,7 +613,7 @@ final class BalanceSheetPdfGenerator {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(
-                        'صافي الخصوم والملكية',
+                        AppStringsAr.netLiabilitiesAndOwnership,
                         style: pw.TextStyle(
                           font: font,
                           fontSize: 10,
@@ -687,7 +689,7 @@ final class BalanceSheetPdfGenerator {
             style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
           ),
           pw.Text(
-            'تم إنشاء هذا التقرير بواسطة تطبيق قيد — Qayd App',
+            AppStringsAr.thisReportWasGenerated,
             style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
           ),
         ],

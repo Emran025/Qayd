@@ -11,6 +11,8 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/entry_side.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 class GetAccountStatementUseCase {
   GetAccountStatementUseCase(
@@ -32,7 +34,7 @@ class GetAccountStatementUseCase {
           input.fromDate!.isAfter(input.toDate!)) {
         return FailureResult(
           ValidationFailure(
-            messageAr: 'نطاق التواريخ غير صالح.',
+            messageAr: AppStringsAr.invalidDateRange,
             code: 'statement_date_range',
           ),
         );

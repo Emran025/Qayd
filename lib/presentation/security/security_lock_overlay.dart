@@ -516,7 +516,7 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
       // It succeeded but the account is still locked
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('حالة الحساب لم تتغير. يرجى التواصل مع الإدارة.'),
+          content: Text(AppStringsAr.theAccountStatusHas),
           backgroundColor: ColorTokens.slate800,
         ),
       );
@@ -551,7 +551,7 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
                   )
                 : const Icon(Icons.refresh_rounded),
             label: Text(
-              'تحديث حالة الحساب',
+              AppStringsAr.updateAccountStatus,
               style: const TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 15,

@@ -175,7 +175,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
             await _openDualCreate(context);
           }
         },
-        label: const Text('تحويل جديد'),
+        label: const Text(AppStringsAr.newConversion),
         icon: const Icon(Icons.add_rounded),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
@@ -196,7 +196,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                 return QaydTextField(
                   controller: _searchController,
                   textInputAction: TextInputAction.search,
-                  hint: 'بحث بتفاصيل التحويل...',
+                  hint: AppStringsAr.searchForConversionDetails,
                   prefixIcon: const Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isEmpty
                       ? null
@@ -264,7 +264,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                           FilledButton.tonal(
                             onPressed: () =>
                                 context.read<TripartiteListCubit>().load(),
-                            child: const Text('إعادة المحاولة'),
+                            child: const Text(AppStringsAr.retry),
                           ),
                         ],
                       ),
@@ -283,11 +283,11 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                           ? Icons.search_off_rounded
                           : Icons.swap_horizontal_circle_outlined,
                       title: hasQueryOrFilter
-                          ? 'لا توجد نتائج مطابقة'
-                          : 'لا توجد تحويلات بعد',
+                          ? AppStringsAr.noMatchingResultsFound
+                          : AppStringsAr.thereAreNoTransfers,
                       description: hasQueryOrFilter
-                          ? 'جرب البحث بكلمات أخرى أو تغيير عوامل التصفية'
-                          : 'لم تقم بإضافة أي تحويلات وسيطة في هذا النظام بعد',
+                          ? AppStringsAr.trySearchingWithOther
+                          : AppStringsAr.youHaveNotAdded,
                     );
                   }
 
@@ -499,7 +499,7 @@ class _TransferSummaryCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         QaydText(
-                          'تحويل وسيط',
+                          AppStringsAr.brokerConversion,
                           slot: QaydTextStyleSlot.labelLarge,
                         ),
                         if (isPending)

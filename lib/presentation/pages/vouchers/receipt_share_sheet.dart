@@ -154,7 +154,7 @@ class ReceiptShareSheet extends StatelessWidget {
           ),
         ),
       ),
-      primaryActionLabel: 'إغلاق',
+      primaryActionLabel: AppStringsAr.closing1,
       onPrimaryAction: () => Navigator.pop(context),
     );
   }

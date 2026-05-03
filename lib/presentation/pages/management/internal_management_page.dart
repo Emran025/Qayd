@@ -251,8 +251,8 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
             ? AppStringsAr.managementSearchNoResults
             : AppStringsAr.vouchersEmpty,
         description: isSearching
-            ? 'جرب البحث بكلمات أخرى'
-            : 'لم تقم بإضافة أي تدفقات مالية بعد',
+            ? AppStringsAr.trySearchingWithOther1
+            : AppStringsAr.youHaveNotAdded1,
       );
     }
     return ListView.builder(

@@ -43,18 +43,18 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
     QaydDialog.show(
       context: context,
       icon: Icons.currency_exchange_rounded,
-      title: 'إضافة عملة جديدة',
+      title: AppStringsAr.addANewCurrency,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           QaydTextField(
             controller: codeController,
-            label: 'رمز العملة (مثال: USD)',
+            label: AppStringsAr.currencySymbolExampleUsd,
           ),
           const SizedBox(height: SpacingTokens.md),
           QaydTextField(
             controller: nameController,
-            label: 'اسم العملة بالعربية',
+            label: AppStringsAr.theNameOfThe1,
           ),
           const SizedBox(height: SpacingTokens.md),
           QaydTextField(
@@ -64,14 +64,14 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
           const SizedBox(height: SpacingTokens.md),
           QaydNumericField(
             controller: digitsController,
-            label: 'عدد الأرقام العشرية',
+            label: AppStringsAr.numberOfDecimalDigits,
             maxLength: 1,
           ),
         ],
       ),
-      secondaryActionLabel: 'إلغاء',
+      secondaryActionLabel: AppStringsAr.cancellation,
       onSecondaryAction: () => Navigator.pop(context),
-      primaryActionLabel: 'إضافة',
+      primaryActionLabel: AppStringsAr.addition,
       onPrimaryAction: () async {
         if (codeController.text.isEmpty || nameController.text.isEmpty) {
           return;
@@ -191,7 +191,7 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              'الأساسية',
+                              AppStringsAr.basic,
                               style: TextStyle(
                                 color: scheme.primary,
                                 fontSize: 10,

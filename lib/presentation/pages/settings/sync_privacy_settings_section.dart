@@ -6,6 +6,8 @@ import 'package:qayd/presentation/pages/settings/sync_privacy_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Settings page for managing sync privacy policy.
 ///
@@ -48,7 +50,7 @@ class _SyncPrivacySettingsSectionState
     final state = _cubit.state;
     if (state.error != null) {
       final theme = Theme.of(context);
-      final isInternetError = state.error!.contains('فشل الاتصال بالإنترنت') ||
+      final isInternetError = state.error!.contains(AppStringsAr.internetConnectionFailed) ||
           state.error!.contains('SocketException');
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -125,7 +127,7 @@ class _SyncPrivacySettingsSectionState
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: QaydAppBar(title: 'خصوصية المزامنة'),
+      appBar: QaydAppBar(title: AppStringsAr.syncPrivacy),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -137,7 +139,7 @@ class _SyncPrivacySettingsSectionState
                 const SizedBox(height: SpacingTokens.lg),
 
                 // ── Policy Mode Selection ─────────────────────────────
-                _buildSectionLabel(context, 'وضع الخصوصية'),
+                _buildSectionLabel(context, AppStringsAr.privacyMode),
                 const SizedBox(height: SpacingTokens.sm),
 
                 for (final mode in SyncPolicyMode.values)
@@ -156,14 +158,14 @@ class _SyncPrivacySettingsSectionState
                   _buildSectionLabel(
                     context,
                     policy.mode == SyncPolicyMode.openWithBlocklist
-                        ? 'قائمة الحظر'
-                        : 'قائمة السماح',
+                        ? AppStringsAr.blockList
+                        : AppStringsAr.allowList,
                   ),
                   const SizedBox(height: SpacingTokens.xs),
                   Text(
                     policy.mode == SyncPolicyMode.openWithBlocklist
-                        ? 'المستخدمون المحظورون من المزامنة معك.'
-                        : 'المستخدمون المسموح فقط لهم بالمزامنة معك.',
+                        ? AppStringsAr.usersBlockedFromSyncing
+                        : AppStringsAr.onlyUsersAllowedTo,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.hintColor,
                       fontSize: 11,
@@ -193,8 +195,8 @@ class _SyncPrivacySettingsSectionState
                       icon: const Icon(Icons.group_add_outlined, size: 20),
                       label: Text(
                         policy.mode == SyncPolicyMode.openWithBlocklist
-                            ? 'إدارة قائمة الحظر'
-                            : 'إدارة قائمة السماح',
+                            ? AppStringsAr.manageBlockList
+                            : AppStringsAr.manageTheAllowList,
                       ),
                     ),
                   ),
@@ -217,7 +219,7 @@ class _SyncPrivacySettingsSectionState
                                 size: 40, color: colorScheme.onSurfaceVariant),
                             const SizedBox(height: SpacingTokens.sm),
                             Text(
-                              'القائمة فارغة',
+                              AppStringsAr.theListIsEmpty,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -300,7 +302,7 @@ class _SyncPrivacySettingsSectionState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'التحكم بالمزامنة',
+                  AppStringsAr.synchronizationControl,
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: tertiaryColor,
@@ -309,7 +311,7 @@ class _SyncPrivacySettingsSectionState
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  'حدد من يمكنه مزامنة السندات معك واكتشاف مفتاحك العام.',
+                  AppStringsAr.determineWhoCanSync,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 10.5,
@@ -339,7 +341,7 @@ class _SyncPrivacySettingsSectionState
           const SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: Text(
-              'المزامنة عبر مسح باركود QR مباشرة تعتبر موافقة صريحة وتتجاوز هذه الإعدادات.',
+              AppStringsAr.syncingViaDirectQr,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.hintColor,
                 fontSize: 11,
@@ -452,7 +454,7 @@ class _PolicyModeCard extends StatelessWidget {
 void _inviteByPhone(String name, String phone) {
   final greeting = name.isNotEmpty ? 'مرحباً $name، ' : '';
   final message =
-      '${greeting}أدعوك لاستخدام تطبيق "قيد" للمحاسبة والمزامنة السحابية.';
+      '${greeting}أدعوك لاستخدام تطبيق AppStringsAr.restriction للمحاسبة والمزامنة السحابية.';
   final uri = Uri.parse(
       'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
   launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -517,7 +519,7 @@ class _AccessListTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      entry.targetPhone.isEmpty ? 'سجل محلي' : 'غير مسجل',
+                      entry.targetPhone.isEmpty ? AppStringsAr.localRecord : AppStringsAr.notRegistered,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             fontSize: 9,
                             color: colorScheme.onSurfaceVariant,
@@ -532,7 +534,7 @@ class _AccessListTile extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          'دعوة الآن',
+                          AppStringsAr.callNow,
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     fontSize: 10,

@@ -16,6 +16,8 @@ import 'package:qayd/domain/value_objects/collateral_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Liquidates a collateral by generating automated settlement accounting entries.
 ///
@@ -70,7 +72,7 @@ class LiquidateCollateralUseCase {
 
       if (collateral.isTerminal) {
         return FailureResult(ValidationFailure(
-          messageAr: 'لا يمكن تسوية هذا الرهن — تمت تصفيته أو الإفراج عنه مسبقاً.',
+          messageAr: AppStringsAr.thisMortgageCannotBe,
           code: 'collateral_already_terminal',
         ));
       }
@@ -108,7 +110,7 @@ class LiquidateCollateralUseCase {
 
       if (debtMinor <= 0) {
         return FailureResult(ValidationFailure(
-          messageAr: 'لا يوجد دين مستحق للتسوية.',
+          messageAr: AppStringsAr.thereIsNoDebt,
           code: 'no_outstanding_debt',
         ));
       }
@@ -147,7 +149,7 @@ class LiquidateCollateralUseCase {
           counterpartyId: linkedVoucher.counterpartyId,
           affectedAccountId: linkedVoucher.affectedAccountId,
           createdAt: DateTime.now(),
-          description: 'فائض تصفية رهن - محتجز لصالح العميل',
+          description: AppStringsAr.mortgageLiquidationSurplusHeld,
         );
         await voucherRepository.save(surplusVoucher);
       }

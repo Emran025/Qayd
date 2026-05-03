@@ -836,7 +836,7 @@ class _ChatHeader extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.of(context).maybePop(),
-                tooltip: 'رجوع',
+                tooltip: AppStringsAr.back,
               ),
               // Avatar + Name
               Expanded(
@@ -1487,10 +1487,10 @@ class _ChronologySummaryTable extends StatelessWidget {
                       : custom.confirmedState;
 
               final label = isPositive
-                  ? ' دائن (عليك)'
+                  ? AppStringsAr.creditorToYou
                   : isNegative
-                      ? 'مدين (لك)'
-                      : 'متعادل';
+                      ? AppStringsAr.oweToYou
+                      : AppStringsAr.neutral;
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),

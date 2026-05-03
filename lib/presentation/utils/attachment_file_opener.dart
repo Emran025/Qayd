@@ -11,6 +11,8 @@ import 'package:qayd/domain/value_objects/attachment_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Opens an encrypted attachment file by decrypting it to a temporary
 /// directory and sharing/opening it via the OS intent system.
@@ -40,7 +42,7 @@ abstract final class AttachmentFileOpener {
           .firstOrNull;
 
       if (match == null) {
-        return 'المرفق غير موجود في قاعدة البيانات.';
+        return AppStringsAr.theAttachmentDoesNot;
       }
 
       // 2. Decrypt to bytes

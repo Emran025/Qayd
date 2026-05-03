@@ -1,4 +1,6 @@
 import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+
 
 /// Predefined regional currencies seeded on first run.
 ///
@@ -6,89 +8,89 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 abstract final class PredefinedCurrencies {
   static const sar = CurrencyCode(
     code: 'SAR',
-    nameAr: '﷼ سعودي',
+    nameAr: AppStringsAr.saudiRiyals,
     symbol: '﷼',
     fractionalDigits: 2,
   );
   static const yer = CurrencyCode(
     code: 'YER',
-    nameAr: '﷼ يمني',
+    nameAr: AppStringsAr.yemeni,
     symbol: '﷼',
     fractionalDigits: 2,
   );
   static const usd = CurrencyCode(
     code: 'USD',
-    nameAr: 'دولار أمريكي',
+    nameAr: AppStringsAr.usDollars,
     symbol: '\$',
     fractionalDigits: 2,
   );
   static const eur = CurrencyCode(
     code: 'EUR',
-    nameAr: 'يورو',
+    nameAr: AppStringsAr.euro,
     symbol: '€',
     fractionalDigits: 2,
     isActive: false,
   );
   static const aed = CurrencyCode(
     code: 'AED',
-    nameAr: 'درهم إماراتي',
-    symbol: 'د.إ',
+    nameAr: AppStringsAr.emiratiDirham,
+    symbol: AppStringsAr.de,
     fractionalDigits: 2,
     isActive: false,
   );
   static const kwd = CurrencyCode(
     code: 'KWD',
-    nameAr: 'دينار كويتي',
-    symbol: 'د.ك',
+    nameAr: AppStringsAr.kuwaitiDinar,
+    symbol: AppStringsAr.kwd,
     fractionalDigits: 3,
     isActive: false,
   );
   static const bhd = CurrencyCode(
     code: 'BHD',
-    nameAr: 'دينار بحريني',
-    symbol: 'د.ب',
+    nameAr: AppStringsAr.bahrainiDinar,
+    symbol: AppStringsAr.bear,
     fractionalDigits: 3,
     isActive: false,
   );
   static const omr = CurrencyCode(
     code: 'OMR',
-    nameAr: '﷼ عماني',
+    nameAr: AppStringsAr.omani,
     symbol: '﷼',
     fractionalDigits: 3,
     isActive: false,
   );
   static const qar = CurrencyCode(
     code: 'QAR',
-    nameAr: '﷼ قطري',
+    nameAr: AppStringsAr.qatari,
     symbol: '﷼',
     fractionalDigits: 2,
     isActive: false,
   );
   static const egp = CurrencyCode(
     code: 'EGP',
-    nameAr: 'جنيه مصري',
-    symbol: 'ج.م',
+    nameAr: AppStringsAr.egyptianPound,
+    symbol: AppStringsAr.jm,
     fractionalDigits: 2,
     isActive: false,
   );
   static const jod = CurrencyCode(
     code: 'JOD',
-    nameAr: 'دينار أردني',
-    symbol: 'د.ا',
+    nameAr: AppStringsAr.jordanianDinar,
+    symbol: AppStringsAr.da,
     fractionalDigits: 3,
     isActive: false,
   );
   static const xau = CurrencyCode(
     code: 'XAU',
-    nameAr: 'جرام ذهب',
-    symbol: 'ج.ذ',
+    nameAr: AppStringsAr.aGramOfGold,
+    symbol: AppStringsAr.cD,
     fractionalDigits: 2,
     isActive: false,
   );
   static const xag = CurrencyCode(
     code: 'XAG',
-    nameAr: 'جرام فضة',
-    symbol: 'ج.ف',
+    nameAr: AppStringsAr.gramOfSilver,
+    symbol: AppStringsAr.dry,
     fractionalDigits: 2,
     isActive: false,
   );
