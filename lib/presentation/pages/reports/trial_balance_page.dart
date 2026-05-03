@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_line_dto.dart';
@@ -250,6 +251,31 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     return groups;
   }
 
+  double _calculateBalanceColumnWidth(List<TrialBalanceLineDto> lines) {
+    int maxFormattedLen = 0;
+    for (final line in lines) {
+      final amounts = [
+        line.openingDebitMinorUnits,
+        line.openingCreditMinorUnits,
+        line.periodDebitMinorUnits,
+        line.periodCreditMinorUnits,
+        line.closingDebitMinorUnits,
+        line.closingCreditMinorUnits,
+      ];
+      for (final a in amounts) {
+        if (a == 0) continue;
+        final sMajor = (a.abs() ~/ 100).toString();
+        final commas = sMajor.length > 3 ? (sMajor.length - 1) ~/ 3 : 0;
+        final len = sMajor.length + commas + 3; // +1 for dot + 2 for decimals
+        if (len > maxFormattedLen) maxFormattedLen = len;
+      }
+    }
+    // Estimate width: 8.5px per character + padding.
+    final double neededForMoney = (maxFormattedLen * 8.5) + 16.0;
+    // Header labels like "الأرصدة الافتتاحية" need around 180px minimum.
+    return max(180.0, neededForMoney * 2);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -264,6 +290,7 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     }
 
     final groups = _groupLines(widget.output.lines);
+    final balanceWidth = _calculateBalanceColumnWidth(widget.output.lines);
 
     return Scrollbar(
       controller: _hScroll,
@@ -282,9 +309,14 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
           clipBehavior: Clip.antiAlias,
           child: IntrinsicWidth(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Branded header band ─────────────────────────────────
-                _TableHeader(qayd: qayd, scheme: scheme),
+                _TableHeader(
+                  qayd: qayd,
+                  scheme: scheme,
+                  balanceColumnWidth: balanceWidth,
+                ),
 
                 // ── Data rows ───────────────────────────────────────────
                 ...List.generate(groups.length, (i) {
@@ -292,6 +324,7 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
                   return _AccountGroupWidget(
                     group: group,
                     isEvenGroup: i.isEven,
+                    balanceColumnWidth: balanceWidth,
                   );
                 }),
               ],
@@ -308,13 +341,19 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class _TableHeader extends StatelessWidget {
-  const _TableHeader({required this.qayd, required this.scheme});
+  const _TableHeader({
+    required this.qayd,
+    required this.scheme,
+    required this.balanceColumnWidth,
+  });
   final QaydCustomColors qayd;
   final ColorScheme scheme;
+  final double balanceColumnWidth;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ── Primary Navy header band ────────────────────────────────────
         Container(
@@ -327,6 +366,7 @@ class _TableHeader extends StatelessWidget {
           ),
           child: IntrinsicHeight(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // الحساب (merged name+code column)
                 SizedBox(
@@ -373,18 +413,21 @@ class _TableHeader extends StatelessWidget {
                   label: 'الأرصدة الافتتاحية',
                   icon: Icons.lock_clock_outlined,
                   gold: qayd.goldAccent,
+                  width: balanceColumnWidth,
                 ),
                 _VerticalDivider(color: ColorTokens.navy700),
                 _BalanceColumnHeader(
                   label: 'حركة الفترة',
                   icon: Icons.swap_horiz_rounded,
                   gold: qayd.goldAccent,
+                  width: balanceColumnWidth,
                 ),
                 _VerticalDivider(color: ColorTokens.navy700),
                 _BalanceColumnHeader(
                   label: 'الأرصدة الختامية',
                   icon: Icons.flag_rounded,
                   gold: qayd.goldAccent,
+                  width: balanceColumnWidth,
                 ),
               ],
             ),
@@ -401,6 +444,7 @@ class _TableHeader extends StatelessWidget {
           ),
           child: IntrinsicHeight(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Empty space under "الحساب" and Currency
                 const SizedBox(width: 240),
@@ -408,11 +452,11 @@ class _TableHeader extends StatelessWidget {
                 const SizedBox(width: 48),
                 _VerticalDivider(color: scheme.outlineVariant),
 
-                _dualSubHeader(qayd),
+                _dualSubHeader(qayd, balanceColumnWidth),
                 _VerticalDivider(color: scheme.outlineVariant),
-                _dualSubHeader(qayd),
+                _dualSubHeader(qayd, balanceColumnWidth),
                 _VerticalDivider(color: scheme.outlineVariant),
-                _dualSubHeader(qayd),
+                _dualSubHeader(qayd, balanceColumnWidth),
               ],
             ),
           ),
@@ -421,9 +465,9 @@ class _TableHeader extends StatelessWidget {
     );
   }
 
-  Widget _dualSubHeader(QaydCustomColors qayd) {
+  Widget _dualSubHeader(QaydCustomColors qayd, double width) {
     return SizedBox(
-      width: 180,
+      width: width,
       child: Row(
         children: [
           Expanded(
@@ -466,15 +510,17 @@ class _BalanceColumnHeader extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.gold,
+    required this.width,
   });
   final String label;
   final IconData icon;
   final Color gold;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 180,
+      width: width,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -505,7 +551,11 @@ class _VerticalDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: 0.8, color: color);
+    return VerticalDivider(
+      width: 0.8,
+      thickness: 0.8,
+      color: color,
+    );
   }
 }
 
@@ -517,9 +567,11 @@ class _AccountGroupWidget extends StatelessWidget {
   const _AccountGroupWidget({
     required this.group,
     required this.isEvenGroup,
+    required this.balanceColumnWidth,
   });
   final _AccountGroup group;
   final bool isEvenGroup;
+  final double balanceColumnWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -569,9 +621,7 @@ class _AccountGroupWidget extends StatelessWidget {
                     _AccountCell(
                       code: group.accountCode,
                       name: group.accountName,
-                      currencyCode: group.currencyLines.length == 1
-                          ? group.currencyLines.first.currencyCode
-                          : null,
+                      currencyCode: null, // Always null to show in its own column
                       isBold: isBold,
                       isParent: group.isParent,
                       scheme: scheme,
@@ -587,6 +637,7 @@ class _AccountGroupWidget extends StatelessWidget {
             // ── المبالغ المتعددة والعملات ─────────────────────────────
             Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: group.currencyLines.asMap().entries.map((entry) {
                 final idx = entry.key;
                 final line = entry.value;
@@ -599,6 +650,7 @@ class _AccountGroupWidget extends StatelessWidget {
                   qayd: qayd,
                   scheme: scheme,
                   hasMultipleCurrencies: group.currencyLines.length > 1,
+                  balanceColumnWidth: balanceColumnWidth,
                 );
               }).toList(),
             ),
@@ -617,6 +669,7 @@ class _CurrencyValuesRow extends StatelessWidget {
     required this.qayd,
     required this.scheme,
     required this.hasMultipleCurrencies,
+    required this.balanceColumnWidth,
   });
 
   final TrialBalanceLineDto line;
@@ -625,6 +678,7 @@ class _CurrencyValuesRow extends StatelessWidget {
   final QaydCustomColors qayd;
   final ColorScheme scheme;
   final bool hasMultipleCurrencies;
+  final double balanceColumnWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -647,19 +701,18 @@ class _CurrencyValuesRow extends StatelessWidget {
       ),
       child: IntrinsicHeight(
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Ensure width is ALWAYS 48 to align with the new Header column.
             Container(
               width: 48,
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: hasMultipleCurrencies
-                  ? Center(
-                      child: _CurrencyBadge(
-                        code: line.currencyCode,
-                        scheme: scheme,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+              child: Center(
+                child: _CurrencyBadge(
+                  code: line.currencyCode,
+                  scheme: scheme,
+                ),
+              ),
             ),
 
             _VerticalDivider(color: scheme.outlineVariant.withAlpha(50)),
@@ -671,6 +724,7 @@ class _CurrencyValuesRow extends StatelessWidget {
               cur: cur,
               weight: weight,
               qayd: qayd,
+              width: balanceColumnWidth,
             ),
 
             _VerticalDivider(color: scheme.outlineVariant.withAlpha(50)),
@@ -682,6 +736,7 @@ class _CurrencyValuesRow extends StatelessWidget {
               cur: cur,
               weight: weight,
               qayd: qayd,
+              width: balanceColumnWidth,
             ),
 
             _VerticalDivider(color: scheme.outlineVariant.withAlpha(50)),
@@ -693,6 +748,7 @@ class _CurrencyValuesRow extends StatelessWidget {
               cur: cur,
               weight: weight,
               qayd: qayd,
+              width: balanceColumnWidth,
             ),
           ],
         ),
@@ -821,6 +877,7 @@ class _DualMoneyCell extends StatelessWidget {
     required this.cur,
     required this.weight,
     required this.qayd,
+    required this.width,
   });
 
   final int debit;
@@ -828,11 +885,12 @@ class _DualMoneyCell extends StatelessWidget {
   final CurrencyCode cur;
   final FontWeight weight;
   final QaydCustomColors qayd;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 180,
+      width: width,
       child: Row(
         children: [
           Expanded(child: _moneyText(debit, cur, weight)),

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
-import 'package:qayd/presentation/pages/settings/groups/backup_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/currency_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/profile_settings_page.dart';
-import 'package:qayd/presentation/pages/settings/groups/security_settings_page.dart';
-import 'package:qayd/presentation/pages/settings/groups/support_settings_page.dart';
-import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.dart';
-import 'package:qayd/presentation/pages/settings/groups/notification_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/system_settings_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/identity_qr_dialog.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_list_page.dart';
@@ -18,7 +14,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/pages/settings/audit_log_page.dart';
 import 'package:qayd/presentation/pages/settings/audit_log_cubit.dart';
-import 'package:qayd/presentation/pages/settings/sync_privacy_settings_section.dart';
 import 'package:qayd/presentation/components/settings/logout_button.dart';
 
 class SettingsSidebar extends StatelessWidget {
@@ -122,7 +117,7 @@ class SettingsSidebar extends StatelessWidget {
                 ),
                 _DrawerTile(
                   icon: Icons.event_repeat_rounded,
-                  title: "الاستحقاقات والالتزامات",
+                  title: AppStringsAr.accrualsAndLiabilitiesTitle,
                   onTap: () => _navTo(context, const AccrualListPage()),
                 ),
                 _DrawerTile(
@@ -130,48 +125,9 @@ class SettingsSidebar extends StatelessWidget {
                   title: AppStringsAr.incomeStreamsTitle,
                   onTap: () => _navTo(context, const IncomeStreamsPage()),
                 ),
-                const Divider(
-                  indent: 20,
-                  endIndent: 20,
-                  height: 30,
-                  thickness: 0.5,
-                ),
-                _DrawerTile(
-                  icon: Icons.cloud_done_outlined,
-                  title: AppStringsAr.settingsGroupBackup,
-                  onTap: () => _navTo(context, const BackupSettingsPage()),
-                ),
-                _DrawerTile(
-                  icon: Icons.sync_lock_outlined,
-                  title: 'خصوصية المزامنة',
-                  onTap: () =>
-                      _navTo(context, const SyncPrivacySettingsSection()),
-                ),
-                _DrawerTile(
-                  icon: Icons.receipt_long_outlined,
-                  title: AppStringsAr.settingsGroupTemplates,
-                  onTap: () => _navTo(context, const TemplatesSettingsPage()),
-                ),
-                const Divider(
-                  indent: 20,
-                  endIndent: 20,
-                  height: 30,
-                  thickness: 0.5,
-                ),
-                _DrawerTile(
-                  icon: Icons.security_rounded,
-                  title: AppStringsAr.settingsGroupSecurity,
-                  onTap: () => _navTo(context, const SecuritySettingsPage()),
-                ),
-                _DrawerTile(
-                  icon: Icons.notifications_active_outlined,
-                  title: AppStringsAr.settingsGroupNotifications,
-                  onTap: () =>
-                      _navTo(context, const NotificationSettingsPage()),
-                ),
                 _DrawerTile(
                   icon: Icons.history_rounded,
-                  title: 'سجل التدقيق',
+                  title: AppStringsAr.auditLogTitle,
                   onTap: () => _navTo(
                     context,
                     BlocProvider(
@@ -189,9 +145,9 @@ class SettingsSidebar extends StatelessWidget {
                   thickness: 0.5,
                 ),
                 _DrawerTile(
-                  icon: Icons.support_agent_rounded,
-                  title: AppStringsAr.settingsGroupSupport,
-                  onTap: () => _navTo(context, const SupportSettingsPage()),
+                  icon: Icons.tune_rounded,
+                  title: AppStringsAr.settingsSystemTitle,
+                  onTap: () => _navTo(context, const SystemSettingsPage()),
                 ),
                 const Divider(
                   indent: 20,

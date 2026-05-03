@@ -140,6 +140,7 @@ import 'package:qayd/data/repositories/outbox_dao.dart';
 import 'package:qayd/data/repositories/sync_watermark_dao.dart';
 import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
+import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/application/accruals/list_accruals_use_case.dart';
@@ -212,6 +213,9 @@ abstract final class InjectionContainer {
 
   /// The unified security cubit — shared by [main.dart].
   static late final SecurityCubit securityCubit;
+
+  /// Cubit for managing global appearance settings (theme, language).
+  static late final AppearanceSettingsCubit appearanceSettingsCubit;
 
   // ── Cryptographic identity ─────────────────────────────────────────────
 
@@ -377,6 +381,8 @@ abstract final class InjectionContainer {
   }) async {
     // Force SharedPreferences up early as Pigeon channels for it can be finicky after hot restarts
     sharedPreferences = await SharedPreferences.getInstance();
+    
+    appearanceSettingsCubit = AppearanceSettingsCubit(sharedPreferences);
 
     // ── Phase 7: Security bootstrap ─────────────────────────────────────────
 

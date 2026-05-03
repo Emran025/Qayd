@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:qayd/core/constants/app_constants.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
@@ -15,6 +14,7 @@ import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_lifecycle_observer.dart';
 import 'package:qayd/presentation/security/security_lock_overlay.dart';
 import 'package:qayd/presentation/security/security_state.dart';
+import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
 import 'package:qayd/presentation/theme/app_theme.dart';
 import 'package:qayd/presentation/utils/no_stretch_scroll_behavior.dart';
 
@@ -173,6 +173,9 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
                 BlocProvider<SecurityCubit>.value(
                   value: InjectionContainer.securityCubit,
                 ),
+                BlocProvider<AppearanceSettingsCubit>.value(
+                  value: InjectionContainer.appearanceSettingsCubit,
+                ),
                 BlocProvider<GovernanceCubit>(
                   create: (_) => GovernanceCubit(
                     InjectionContainer.checkGovernanceStatusUseCase,
@@ -189,27 +192,36 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
   }
 
   Widget _buildPreAuthApp() {
-    final locale = Locale(AppConstants.defaultLanguageCode);
-    return BlocProvider<SecurityCubit>.value(
-      value: InjectionContainer.securityCubit,
-      child: MaterialApp(
-        title: AppStringsAr.appTitle,
-        scrollBehavior: const NoStretchScrollBehavior(),
-        debugShowCheckedModeBanner: false,
-        locale: locale,
-        supportedLocales: const [Locale('ar')],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: ThemeMode.system,
-        home: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Builder(builder: (context) => _buildPreAuthBody(context)),
-        ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<SecurityCubit>.value(
+            value: InjectionContainer.securityCubit),
+        BlocProvider<AppearanceSettingsCubit>.value(
+            value: InjectionContainer.appearanceSettingsCubit),
+      ],
+      child: BlocBuilder<AppearanceSettingsCubit, AppearanceSettingsState>(
+        builder: (context, appearanceState) {
+          final locale = Locale(appearanceState.languageCode);
+          return MaterialApp(
+            title: AppStringsAr.appTitle,
+            scrollBehavior: const NoStretchScrollBehavior(),
+            debugShowCheckedModeBanner: false,
+            locale: locale,
+            supportedLocales: const [Locale('ar'), Locale('en')],
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: appearanceState.themeMode,
+            home: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Builder(builder: (context) => _buildPreAuthBody(context)),
+            ),
+          );
+        },
       ),
     );
   }
@@ -336,99 +348,105 @@ class _QaydAppState extends State<QaydApp> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = Locale(AppConstants.defaultLanguageCode);
-    final theme = Theme.of(context);
-    return MaterialApp(
-      title: AppStringsAr.appTitle,
-      scrollBehavior: const NoStretchScrollBehavior(),
-      debugShowCheckedModeBanner: false,
-      locale: locale,
-      supportedLocales: const [Locale('ar')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      builder: (context, child) {
-        return GestureDetector(
-          onTap: () {
-            // Dismiss focus/keyboard when tapping outside an input field
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
-          // Translucent behavior allows the tap to reach widgets below while still detecting it
-          behavior: HitTestBehavior.translucent,
-          child: Directionality(
-            textDirection: TextDirection.rtl,
-            // SecurityLockOverlay handles hard-blocks (license, clock tamper).
-            // AppLockScreen handles PIN lock.
-            child: SecurityLockOverlay(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  child ?? const SizedBox.shrink(),
-                  BlocBuilder<SecurityCubit, SecurityState>(
-                    builder: (context, sec) {
-                      if (!sec.isLocked) return const SizedBox.shrink();
-                      return const Positioned.fill(child: AppLockScreen());
-                    },
+    return BlocBuilder<AppearanceSettingsCubit, AppearanceSettingsState>(
+      builder: (context, appearanceState) {
+        final locale = Locale(appearanceState.languageCode);
+        final theme = Theme.of(context);
+        return MaterialApp(
+          title: AppStringsAr.appTitle,
+          scrollBehavior: const NoStretchScrollBehavior(),
+          debugShowCheckedModeBanner: false,
+          locale: locale,
+          supportedLocales: const [Locale('ar'), Locale('en')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          builder: (context, child) {
+            return GestureDetector(
+              onTap: () {
+                // Dismiss focus/keyboard when tapping outside an input field
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
+              // Translucent behavior allows the tap to reach widgets below while still detecting it
+              behavior: HitTestBehavior.translucent,
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                // SecurityLockOverlay handles hard-blocks (license, clock tamper).
+                // AppLockScreen handles PIN lock.
+                child: SecurityLockOverlay(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      child ?? const SizedBox.shrink(),
+                      BlocBuilder<SecurityCubit, SecurityState>(
+                        builder: (context, sec) {
+                          if (!sec.isLocked) return const SizedBox.shrink();
+                          return const Positioned.fill(child: AppLockScreen());
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
-      home: BlocConsumer<SecurityCubit, SecurityState>(
-        listenWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
-        listener: (context, state) {
-          if (state.licenseStatus == LicenseStatus.pending) {
-            // When a user logs out, we must reset the onboarding flag so the next
-            // user goes through the PostAuthGatePage for identity validation.
-            if (mounted) {
-              setState(() => _onboardingComplete = false);
-            }
-          }
-        },
-        buildWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
-        builder: (context, state) {
-          if (state.licenseStatus == LicenseStatus.booting) {
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      width: 150,
-                      height: 150,
-                    ),
-                    const SizedBox(height: 24),
-                    CircularProgressIndicator(color: theme.colorScheme.primary),
-                  ],
                 ),
               ),
             );
-          }
-          // Note: LicenseStatus.pending is handled by QaydAppBootstrapper unmounting this app.
+          },
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: appearanceState.themeMode,
+          home: BlocConsumer<SecurityCubit, SecurityState>(
+            listenWhen: (prev, next) =>
+                prev.licenseStatus != next.licenseStatus,
+            listener: (context, state) {
+              if (state.licenseStatus == LicenseStatus.pending) {
+                // When a user logs out, we must reset the onboarding flag so the next
+                // user goes through the PostAuthGatePage for identity validation.
+                if (mounted) {
+                  setState(() => _onboardingComplete = false);
+                }
+              }
+            },
+            buildWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
+            builder: (context, state) {
+              if (state.licenseStatus == LicenseStatus.booting) {
+                return Scaffold(
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/logo.png',
+                          width: 150,
+                          height: 150,
+                        ),
+                        const SizedBox(height: 24),
+                        CircularProgressIndicator(
+                            color: theme.colorScheme.primary),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              // Note: LicenseStatus.pending is handled by QaydAppBootstrapper unmounting this app.
 
-          // ── Post-Auth Gate ─────────────────────────────────────────────
-          // Show the onboarding gate for first-time setup.
-          if (!_onboardingComplete) {
-            return PostAuthGatePage(
-              onSetupComplete: _onGateComplete,
-            );
-          }
+              // ── Post-Auth Gate ─────────────────────────────────────────────
+              // Show the onboarding gate for first-time setup.
+              if (!_onboardingComplete) {
+                return PostAuthGatePage(
+                  onSetupComplete: _onGateComplete,
+                );
+              }
 
-          return ValueListenableBuilder<int>(
-            valueListenable: InjectionContainer.databaseEpoch,
-            builder: (context, gen, _) =>
-                GovernanceHostPage(key: ValueKey<int>(gen)),
-          );
-        },
-      ),
+              return ValueListenableBuilder<int>(
+                valueListenable: InjectionContainer.databaseEpoch,
+                builder: (context, gen, _) =>
+                    GovernanceHostPage(key: ValueKey<int>(gen)),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

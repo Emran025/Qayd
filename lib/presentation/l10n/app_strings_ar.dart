@@ -468,6 +468,29 @@ abstract final class AppStringsAr {
 
   // Settings / data portability (Phase 4)
   static const String settingsTitle = 'الإعدادات';
+  static const String settingsSystemTitle = 'إعدادات النظام';
+  static const String settingsSectionDataSync = 'البيانات والمزامنة';
+  static const String settingsSyncPrivacyTitle = 'خصوصية المزامنة';
+  static const String settingsBackupSubtitle = 'إدارة النسخ الاحتياطي واستعادة البيانات';
+  static const String settingsSyncPrivacySubtitle = 'تشفير وحماية البيانات المتزامنة';
+  static const String settingsSectionCustomization = 'التخصيص';
+  static const String settingsGroupAppearance = 'تخصيص المظهر';
+  static const String settingsAppearanceSubtitle = 'تخصيص الثيم واللغة';
+  static const String appearanceThemeMode = 'وضع المظهر';
+  static const String appearanceLanguage = 'لغة التطبيق';
+  static const String themeSystem = 'تلقائي حسب النظام';
+  static const String themeLight = 'الوضع الفاتح';
+  static const String themeDark = 'الوضع الداكن';
+  static const String langArabic = 'العربية';
+  static const String langEnglish = 'English (قريباً)';
+  static const String settingsTemplatesSubtitle = 'تخصيص قوالب الطباعة والفواتير';
+  static const String settingsSectionSecurityNotifications = 'الأمان والإشعارات';
+  static const String settingsSecuritySubtitle = 'الرمز السري والمصادقة البيومترية';
+  static const String settingsNotificationsSubtitle = 'تفضيلات التنبيهات والأصوات';
+  static const String settingsSectionSupport = 'الدعم الفني';
+  static const String settingsSupportSubtitle = 'التواصل مع خدمة العملاء والمساعدة';
+  static const String accrualsAndLiabilitiesTitle = 'الاستحقاقات والالتزامات';
+  static const String auditLogTitle = 'سجل التدقيق';
   static const String settingsSectionBackup = 'النسخ الاحتياطي والاستعادة';
   static const String settingsBackupShareTitle = 'نسخ احتياطي (مشاركة)';
   static const String settingsBackupShareSubtitle =
