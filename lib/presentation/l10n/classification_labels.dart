@@ -1,5 +1,5 @@
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 String standardClassificationKindLabelAr(
@@ -7,24 +7,24 @@ String standardClassificationKindLabelAr(
 ) {
   switch (kind) {
     case StandardAccountClassificationKind.liquidAssets:
-      return AppStringsAr.cashAndLiquidity;
+      return AppStrings.cashAndLiquidity;
     case StandardAccountClassificationKind.receivables:
-      return AppStringsAr.rightsAndEntitlements;
+      return AppStrings.rightsAndEntitlements;
     case StandardAccountClassificationKind.payables:
-      return AppStringsAr.obligationsAndDebts;
+      return AppStrings.obligationsAndDebts;
     case StandardAccountClassificationKind.settlements:
-      return AppStringsAr.financialAndPersonalSettlements;
+      return AppStrings.financialAndPersonalSettlements;
     case StandardAccountClassificationKind.personalExpenses:
-      return AppStringsAr.expensesAndConsumption;
+      return AppStrings.expensesAndConsumption;
     case StandardAccountClassificationKind.personalRevenues:
-      return AppStringsAr.revenuesAndGains;
+      return AppStrings.revenuesAndGains;
     case StandardAccountClassificationKind.clearingRemittances:
-      return AppStringsAr.remittanceClearing;
+      return AppStrings.remittanceClearing;
     case StandardAccountClassificationKind.remittanceFees:
-      return AppStringsAr.transferFees;
+      return AppStrings.transferFees;
     case StandardAccountClassificationKind.fixedDepreciableAssets:
-      return AppStringsAr.fixedAssetsDepreciated;
+      return AppStrings.fixedAssetsDepreciated;
     case StandardAccountClassificationKind.fixedProfitableAssets:
-      return AppStringsAr.fixedAssetsProfitable;
+      return AppStrings.fixedAssetsProfitable;
   }
 }

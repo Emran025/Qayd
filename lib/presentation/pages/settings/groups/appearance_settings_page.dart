@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
@@ -11,17 +11,17 @@ class AppearanceSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const QaydAppBar(title: AppStringsAr.settingsGroupAppearance),
+      appBar:  QaydAppBar(title: AppStrings.settingsGroupAppearance),
       body: BlocBuilder<AppearanceSettingsCubit, AppearanceSettingsState>(
         builder: (context, state) {
           final cubit = context.read<AppearanceSettingsCubit>();
           return ListView(
             padding: const EdgeInsets.all(SpacingTokens.lg),
             children: [
-              _buildSectionHeader(context, AppStringsAr.appearanceThemeMode),
+              _buildSectionHeader(context, AppStrings.appearanceThemeMode),
               _buildSelectionTile<ThemeMode>(
                 context,
-                title: AppStringsAr.themeSystem,
+                title: AppStrings.themeSystem,
                 icon: Icons.brightness_auto_rounded,
                 value: ThemeMode.system,
                 groupValue: state.themeMode,
@@ -29,7 +29,7 @@ class AppearanceSettingsPage extends StatelessWidget {
               ),
               _buildSelectionTile<ThemeMode>(
                 context,
-                title: AppStringsAr.themeLight,
+                title: AppStrings.themeLight,
                 icon: Icons.light_mode_rounded,
                 value: ThemeMode.light,
                 groupValue: state.themeMode,
@@ -37,17 +37,17 @@ class AppearanceSettingsPage extends StatelessWidget {
               ),
               _buildSelectionTile<ThemeMode>(
                 context,
-                title: AppStringsAr.themeDark,
+                title: AppStrings.themeDark,
                 icon: Icons.dark_mode_rounded,
                 value: ThemeMode.dark,
                 groupValue: state.themeMode,
                 onChanged: (val) => cubit.updateThemeMode(val!),
               ),
-              const SizedBox(height: SpacingTokens.xl),
-              _buildSectionHeader(context, AppStringsAr.appearanceLanguage),
+              SizedBox(height: SpacingTokens.xl),
+              _buildSectionHeader(context, AppStrings.appearanceLanguage),
               _buildSelectionTile<String>(
                 context,
-                title: AppStringsAr.langArabic,
+                title: AppStrings.langArabic,
                 icon: Icons.language_rounded,
                 value: 'ar',
                 groupValue: state.languageCode,
@@ -55,12 +55,11 @@ class AppearanceSettingsPage extends StatelessWidget {
               ),
               _buildSelectionTile<String>(
                 context,
-                title: AppStringsAr.langEnglish,
+                title: AppStrings.langEnglish,
                 icon: Icons.translate_rounded,
                 value: 'en',
                 groupValue: state.languageCode,
-                onChanged: null, // English is coming soon
-                subtitle: AppStringsAr.almost,
+                onChanged: (val) => cubit.updateLanguage(val!),
               ),
             ],
           );
@@ -99,10 +98,10 @@ class AppearanceSettingsPage extends StatelessWidget {
     final isDisabled = onChanged == null;
 
     return AnimatedOpacity(
-      duration: const Duration(milliseconds: 250),
+      duration:  Duration(milliseconds: 250),
       opacity: isDisabled ? 0.5 : 1.0,
       child: Container(
-        margin: const EdgeInsets.only(bottom: SpacingTokens.sm),
+        margin:  EdgeInsets.only(bottom: SpacingTokens.sm),
         decoration: BoxDecoration(
           color: isSelected
               ? theme.colorScheme.primary.withOpacity(0.08)
@@ -120,11 +119,11 @@ class AppearanceSettingsPage extends StatelessWidget {
             onTap: isDisabled ? null : () => onChanged(value),
             borderRadius: BorderRadius.circular(16),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding:  EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding:  EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? theme.colorScheme.primary.withOpacity(0.2)
@@ -134,7 +133,7 @@ class AppearanceSettingsPage extends StatelessWidget {
                     child:
                         Icon(icon, color: theme.colorScheme.primary, size: 19),
                   ),
-                  const SizedBox(width: SpacingTokens.md),
+                  SizedBox(width: SpacingTokens.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +149,7 @@ class AppearanceSettingsPage extends StatelessWidget {
                           ),
                         ),
                         if (subtitle != null) ...[
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Text(
                             subtitle,
                             style: theme.textTheme.bodySmall?.copyWith(

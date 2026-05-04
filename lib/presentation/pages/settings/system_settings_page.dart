@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/backup_settings_page.dart';
@@ -12,7 +12,7 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 
 class SystemSettingsPage extends StatelessWidget {
-  const SystemSettingsPage({super.key});
+   SystemSettingsPage({super.key});
 
   void _navTo(BuildContext context, Widget page) {
     Navigator.of(context)
@@ -22,66 +22,66 @@ class SystemSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const QaydAppBar(title: AppStringsAr.settingsSystemTitle),
+      appBar:  QaydAppBar(title: AppStrings.settingsSystemTitle),
       body: ListView(
         padding: const EdgeInsets.all(SpacingTokens.lg),
         children: [
-          _buildSectionHeader(context, AppStringsAr.settingsSectionDataSync),
+          _buildSectionHeader(context, AppStrings.settingsSectionDataSync),
           _buildSettingsTile(
             context,
             icon: Icons.cloud_done_outlined,
-            title: AppStringsAr.settingsGroupBackup,
-            subtitle: AppStringsAr.settingsBackupSubtitle,
+            title: AppStrings.settingsGroupBackup,
+            subtitle: AppStrings.settingsBackupSubtitle,
             onTap: () => _navTo(context, const BackupSettingsPage()),
           ),
           _buildSettingsTile(
             context,
             icon: Icons.sync_lock_outlined,
-            title: AppStringsAr.settingsSyncPrivacyTitle,
-            subtitle: AppStringsAr.settingsSyncPrivacySubtitle,
+            title: AppStrings.settingsSyncPrivacyTitle,
+            subtitle: AppStrings.settingsSyncPrivacySubtitle,
             onTap: () => _navTo(context, const SyncPrivacySettingsSection()),
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           _buildSectionHeader(
-              context, AppStringsAr.settingsSectionCustomization),
+              context, AppStrings.settingsSectionCustomization),
           _buildSettingsTile(
             context,
             icon: Icons.palette_outlined,
-            title: AppStringsAr.settingsGroupAppearance,
-            subtitle: AppStringsAr.settingsAppearanceSubtitle,
+            title: AppStrings.settingsGroupAppearance,
+            subtitle: AppStrings.settingsAppearanceSubtitle,
             onTap: () => _navTo(context, const AppearanceSettingsPage()),
           ),
           _buildSettingsTile(
             context,
             icon: Icons.receipt_long_outlined,
-            title: AppStringsAr.settingsGroupTemplates,
-            subtitle: AppStringsAr.settingsTemplatesSubtitle,
+            title: AppStrings.settingsGroupTemplates,
+            subtitle: AppStrings.settingsTemplatesSubtitle,
             onTap: () => _navTo(context, const TemplatesSettingsPage()),
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           _buildSectionHeader(
-              context, AppStringsAr.settingsSectionSecurityNotifications),
+              context, AppStrings.settingsSectionSecurityNotifications),
           _buildSettingsTile(
             context,
             icon: Icons.security_rounded,
-            title: AppStringsAr.settingsGroupSecurity,
-            subtitle: AppStringsAr.settingsSecuritySubtitle,
+            title: AppStrings.settingsGroupSecurity,
+            subtitle: AppStrings.settingsSecuritySubtitle,
             onTap: () => _navTo(context, const SecuritySettingsPage()),
           ),
           _buildSettingsTile(
             context,
             icon: Icons.notifications_active_outlined,
-            title: AppStringsAr.settingsGroupNotifications,
-            subtitle: AppStringsAr.settingsNotificationsSubtitle,
+            title: AppStrings.settingsGroupNotifications,
+            subtitle: AppStrings.settingsNotificationsSubtitle,
             onTap: () => _navTo(context, const NotificationSettingsPage()),
           ),
-          const SizedBox(height: SpacingTokens.md),
-          _buildSectionHeader(context, AppStringsAr.settingsSectionSupport),
+          SizedBox(height: SpacingTokens.md),
+          _buildSectionHeader(context, AppStrings.settingsSectionSupport),
           _buildSettingsTile(
             context,
             icon: Icons.support_agent_rounded,
-            title: AppStringsAr.settingsGroupSupport,
-            subtitle: AppStringsAr.settingsSupportSubtitle,
+            title: AppStrings.settingsGroupSupport,
+            subtitle: AppStrings.settingsSupportSubtitle,
             onTap: () => _navTo(context, const SupportSettingsPage()),
           ),
         ],
@@ -116,7 +116,7 @@ class SystemSettingsPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: SpacingTokens.sm),
+      margin:  EdgeInsets.only(bottom: SpacingTokens.sm),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(16),
@@ -132,14 +132,14 @@ class SystemSettingsPage extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding:  EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: theme.colorScheme.primary, size: 19),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +152,7 @@ class SystemSettingsPage extends StatelessWidget {
                         ),
                       ),
                       if (subtitle != null) ...[
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
                           subtitle,
                           style: theme.textTheme.bodySmall?.copyWith(

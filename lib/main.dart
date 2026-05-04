@@ -4,7 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/auth/database_recovery_page.dart';
 import 'package:qayd/presentation/pages/auth/login_page.dart';
 import 'package:qayd/presentation/pages/governance/governance_host_page.dart';
@@ -87,14 +87,14 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
         setState(() {
           _keyMismatch = true;
           _initializingDb = false;
-          _dbErrorMessage = AppStringsAr.dbKeyMismatchBody;
+          _dbErrorMessage = AppStrings.dbKeyMismatchBody;
         });
         break;
 
       case DatabaseOpenResult.otherError:
         setState(() {
           _initializingDb = false;
-          _dbErrorMessage = AppStringsAr.dbOpenErrorBody;
+          _dbErrorMessage = AppStrings.dbOpenErrorBody;
         });
         break;
     }
@@ -121,7 +121,7 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
       setState(() {
         _keyMismatch = true;
         _initializingDb = false;
-        _dbErrorMessage = AppStringsAr.dbKeyMismatchRetryFailed;
+        _dbErrorMessage = AppStrings.dbKeyMismatchRetryFailed;
       });
     }
   }
@@ -147,7 +147,7 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
     } else {
       setState(() {
         _initializingDb = false;
-        _dbErrorMessage = AppStringsAr.dbOpenErrorBody;
+        _dbErrorMessage = AppStrings.dbOpenErrorBody;
       });
     }
   }
@@ -201,9 +201,10 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
       ],
       child: BlocBuilder<AppearanceSettingsCubit, AppearanceSettingsState>(
         builder: (context, appearanceState) {
+          AppStrings.setLocale(appearanceState.languageCode);
           final locale = Locale(appearanceState.languageCode);
           return MaterialApp(
-            title: AppStringsAr.appTitle,
+            title: AppStrings.appTitle,
             scrollBehavior: const NoStretchScrollBehavior(),
             debugShowCheckedModeBanner: false,
             locale: locale,
@@ -217,7 +218,9 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
             darkTheme: AppTheme.dark(),
             themeMode: appearanceState.themeMode,
             home: Directionality(
-              textDirection: TextDirection.rtl,
+              textDirection: appearanceState.languageCode == 'ar'
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
               child: Builder(builder: (context) => _buildPreAuthBody(context)),
             ),
           );
@@ -249,11 +252,11 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset('assets/images/logo.png', width: 150, height: 150),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             CircularProgressIndicator(color: theme.colorScheme.primary),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
-              AppStringsAr.dbOpeningProgress,
+              AppStrings.dbOpeningProgress,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 fontSize: 13,
@@ -276,24 +279,24 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
             children: [
               Icon(Icons.error_outline,
                   size: 64, color: theme.colorScheme.error),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
-                AppStringsAr.dbOpenErrorTitle,
+                AppStrings.dbOpenErrorTitle,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(
                 _dbErrorMessage!,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: _openDatabase,
-                icon: const Icon(Icons.refresh),
-                label: Text(AppStringsAr.dbRetryAction),
+                icon: Icon(Icons.refresh),
+                label: Text(AppStrings.dbRetryAction),
               ),
             ],
           ),
@@ -350,10 +353,11 @@ class _QaydAppState extends State<QaydApp> {
   Widget build(BuildContext context) {
     return BlocBuilder<AppearanceSettingsCubit, AppearanceSettingsState>(
       builder: (context, appearanceState) {
+        AppStrings.setLocale(appearanceState.languageCode);
         final locale = Locale(appearanceState.languageCode);
         final theme = Theme.of(context);
         return MaterialApp(
-          title: AppStringsAr.appTitle,
+          title: AppStrings.appTitle,
           scrollBehavior: const NoStretchScrollBehavior(),
           debugShowCheckedModeBanner: false,
           locale: locale,
@@ -372,7 +376,9 @@ class _QaydAppState extends State<QaydApp> {
               // Translucent behavior allows the tap to reach widgets below while still detecting it
               behavior: HitTestBehavior.translucent,
               child: Directionality(
-                textDirection: TextDirection.rtl,
+                textDirection: appearanceState.languageCode == 'ar'
+                    ? TextDirection.rtl
+                    : TextDirection.ltr,
                 // SecurityLockOverlay handles hard-blocks (license, clock tamper).
                 // AppLockScreen handles PIN lock.
                 child: SecurityLockOverlay(
@@ -420,7 +426,7 @@ class _QaydAppState extends State<QaydApp> {
                           width: 150,
                           height: 150,
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24),
                         CircularProgressIndicator(
                             color: theme.colorScheme.primary),
                       ],
