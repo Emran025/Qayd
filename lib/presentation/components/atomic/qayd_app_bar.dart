@@ -38,6 +38,8 @@ class QaydAppBar extends StatelessWidget implements PreferredSizeWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(2),
         gradient: LinearGradient(
+          begin: AlignmentDirectional.centerStart,
+          end: AlignmentDirectional.centerEnd,
           colors: [
             gold.withValues(alpha: 0.85),
             gold.withValues(alpha: 0.12),

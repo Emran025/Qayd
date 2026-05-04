@@ -7,7 +7,7 @@ import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:share_plus/share_plus.dart';
@@ -59,8 +59,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     await Clipboard.setData(ClipboardData(text: _mnemonic!.phrase));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(AppStringsAr.identitySeedCopied),
+      SnackBar(
+        content: Text(AppStrings.identitySeedCopied),
         behavior: SnackBarBehavior.floating,
         backgroundColor: ColorTokens.emerald600,
       ),
@@ -71,7 +71,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     if (_mnemonic == null) return;
     await Share.share(
       _mnemonic!.phrase,
-      subject: AppStringsAr.identityShareSeedSubject,
+      subject: AppStrings.identityShareSeedSubject,
     );
   }
 
@@ -103,7 +103,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     return AuthGradientScaffold(
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
+          padding:  EdgeInsets.symmetric(
             horizontal: SpacingTokens.lg,
             vertical: SpacingTokens.xl,
           ),
@@ -113,22 +113,22 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                 iconData: Icons.vignette_rounded, // Identity/Seed icon
                 iconColor: theme.colorScheme.primary,
               ),
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
               AuthTitleBlock(
-                title: AppStringsAr.seedSetupTitle,
-                subtitle: AppStringsAr.seedSetupBody,
+                title: AppStrings.seedSetupTitle,
+                subtitle: AppStrings.seedSetupBody,
               ),
-              const SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.xl),
               if (_mnemonic == null) ...[
                 _buildIntroSection(context),
               ] else ...[
                 // ── Warning Banner (Professional Style) ─────────────────────────
                 _buildWarningBanner(context),
-                const SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.xl),
 
                 // ── Seed Words Grid (Professional Style) ────────────────────────
-                _buildSectionLabel(context, AppStringsAr.identityViewSeed),
-                const SizedBox(height: SpacingTokens.sm),
+                _buildSectionLabel(context, AppStrings.identityViewSeed),
+                SizedBox(height: SpacingTokens.sm),
                 Container(
                   padding: const EdgeInsets.all(SpacingTokens.md),
                   decoration: BoxDecoration(
@@ -147,7 +147,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                     }).toList(),
                   ),
                 ),
-                const SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.xl),
 
                 // Actions
                 Row(
@@ -156,34 +156,34 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                       child: _buildActionBtn(
                         context,
                         icon: Icons.copy_rounded,
-                        label: AppStringsAr.identitySeedCopy,
+                        label: AppStrings.identitySeedCopy,
                         onTap: _copyPhrase,
                       ),
                     ),
-                    const SizedBox(width: SpacingTokens.md),
+                    SizedBox(width: SpacingTokens.md),
                     Expanded(
                       child: _buildActionBtn(
                         context,
                         icon: Icons.ios_share_rounded,
-                        label: AppStringsAr.identitySeedShare,
+                        label: AppStrings.identitySeedShare,
                         onTap: _sharePhrase,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: SpacingTokens.xxl),
+                SizedBox(height: SpacingTokens.xxl),
 
                 AuthSubmitButton(
-                  label: AppStringsAr.seedBackupConfirmAction,
+                  label: AppStrings.seedBackupConfirmAction,
                   loading: _isLoading,
                   onPressed: _confirmBackup,
                 ),
-                const SizedBox(height: SpacingTokens.lg),
+                SizedBox(height: SpacingTokens.lg),
 
                 TextButton(
                   onPressed: () => _confirmBackup(),
                   child: Text(
-                    AppStringsAr.seedBackupSkipAction,
+                    AppStrings.seedBackupSkipAction,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant
                           .withValues(alpha: 0.7),
@@ -202,15 +202,15 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   Widget _buildIntroSection(BuildContext context) {
     return Column(
       children: [
-        const Text(
-          AppStringsAr.aNewDigitalIdentity,
+        Text(
+          AppStrings.aNewDigitalIdentity,
           textAlign: TextAlign.center,
           style:
               TextStyle(color: ColorTokens.slate400, fontSize: 14, height: 1.5),
         ),
-        const SizedBox(height: SpacingTokens.xl),
+        SizedBox(height: SpacingTokens.xl),
         AuthSubmitButton(
-          label: AppStringsAr.iHaveAPrevious,
+          label: AppStrings.iHaveAPrevious,
           loading: _isLoading,
           onPressed: () {
             Navigator.of(context).pushReplacement(
@@ -218,11 +218,11 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
             );
           },
         ),
-        const SizedBox(height: SpacingTokens.lg),
+        SizedBox(height: SpacingTokens.lg),
         TextButton(
           onPressed: _generateMnemonic,
-          child: const Text(
-            AppStringsAr.createANewIdentity,
+          child: Text(
+            AppStrings.createANewIdentity,
             style: TextStyle(
               color: ColorTokens.emerald500,
               fontWeight: FontWeight.bold,
@@ -237,9 +237,9 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   Widget _buildSectionLabel(BuildContext context, String title) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: SpacingTokens.sm, right: 4),
+      padding: const EdgeInsetsDirectional.only(bottom: SpacingTokens.sm, end: 4),
       child: Align(
-        alignment: Alignment.centerRight,
+        alignment: AlignmentDirectional.centerStart,
         child: Text(
           title,
           style: theme.textTheme.bodySmall?.copyWith(
@@ -263,8 +263,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
             theme.colorScheme.error.withValues(alpha: 0.12),
             theme.colorScheme.error.withValues(alpha: 0.06),
           ],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
+          begin: AlignmentDirectional.topEnd,
+          end: AlignmentDirectional.bottomStart,
         ),
         borderRadius: BorderRadius.circular(16),
         border:
@@ -284,21 +284,21 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               size: 22,
             ),
           ),
-          const SizedBox(width: SpacingTokens.sm),
+          SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppStringsAr.securityWarning,
+                  AppStrings.securityWarning,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.error,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
-                  AppStringsAr.seedBackupWarning,
+                  AppStrings.seedBackupWarning,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 11,
@@ -340,7 +340,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Text(
             word,
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -379,7 +379,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, color: theme.colorScheme.primary, size: 20),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text(
                 label,
                 style: theme.textTheme.bodyMedium?.copyWith(

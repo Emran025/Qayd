@@ -17,8 +17,7 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
-
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 // ─── Wizard phases ────────────────────────────────────────────────────────────
 
@@ -67,7 +66,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
     }
 
     if (content == null) {
-      _showError(AppStringsAr.theFileCouldNot1);
+      _showError(AppStrings.theFileCouldNot1);
       return;
     }
 
@@ -199,7 +198,8 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
   }
 
   Future<bool> _ensureContactsPermission() async {
-    final status = await InjectionContainer.deviceContactsService.requestPermission();
+    final status =
+        await InjectionContainer.deviceContactsService.requestPermission();
     if (status) return true;
 
     if (!mounted) return false;
@@ -208,24 +208,24 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(
-          AppStringsAr.accessToContacts,
+        title: Text(
+          AppStrings.accessToContacts,
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
-        content: const Text(
-          AppStringsAr.autostring5,
+        content: Text(
+          AppStrings.autostring5,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(AppStringsAr.skip),
+            child: Text(AppStrings.skip),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
               backgroundColor: ColorTokens.emerald600,
             ),
-            child: const Text(AppStringsAr.allowAccess),
+            child: Text(AppStrings.allowAccess),
           ),
         ],
       ),
@@ -243,7 +243,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
   Widget build(BuildContext context) {
     return QaydScaffold(
       appBar: QaydAppBar(
-        title: AppStringsAr.importData,
+        title: AppStrings.importData,
         actions: _phase == _Phase.resolving
             ? [
                 Padding(
@@ -261,8 +261,8 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
                         borderRadius: BorderRadius.circular(RadiusTokens.md),
                       ),
                     ),
-                    child: const Text(
-                      AppStringsAr.startImport,
+                    child: Text(
+                      AppStrings.startImport,
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 12,
@@ -281,9 +281,9 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
               onPick: _pickAndAnalyse,
               errorMessage: _errorMessage,
             ),
-          _Phase.analyzing => const _LoadingPage(
+          _Phase.analyzing =>  _LoadingPage(
               key: ValueKey('analyzing'),
-              message: AppStringsAr.parsingThePackage,
+              message: AppStrings.parsingThePackage,
             ),
           _Phase.resolving => _ResolvingPage(
               key: const ValueKey('resolving'),
@@ -296,7 +296,7 @@ class _ImportWizardPageState extends State<ImportWizardPage> {
             ),
           _Phase.importing => _LoadingPage(
               key: const ValueKey('importing'),
-              message: AppStringsAr.importingData,
+              message: AppStrings.importingData,
               progress: _importProgress,
             ),
           _Phase.done => _DonePage(
@@ -352,21 +352,21 @@ class _PickFilePage extends StatelessWidget {
                         size: 26,
                       ),
                     ),
-                    const SizedBox(width: SpacingTokens.md),
+                    SizedBox(width: SpacingTokens.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppStringsAr.importModuleFromOld,
+                            AppStrings.importModuleFromOld,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Text(
-                            AppStringsAr.importAccountsAndFinancial,
+                            AppStrings.importAccountsAndFinancial,
                             style: TextStyle(
                               color: scheme.onSurfaceVariant,
                               fontSize: 13,
@@ -377,7 +377,7 @@ class _PickFilePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: SpacingTokens.lg),
+                SizedBox(height: SpacingTokens.lg),
 
                 // Pick button
                 InkWell(
@@ -403,16 +403,16 @@ class _PickFilePage extends StatelessWidget {
                           size: 44,
                           color: scheme.primary,
                         ),
-                        const SizedBox(height: SpacingTokens.sm),
+                        SizedBox(height: SpacingTokens.sm),
                         Text(
-                          AppStringsAr.choosePackageFileJson,
+                          AppStrings.choosePackageFileJson,
                           style: TextStyle(
                             color: scheme.primary,
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           'qayd_bundle_v2_*.json',
                           style: TextStyle(
@@ -427,14 +427,14 @@ class _PickFilePage extends StatelessWidget {
                 ),
 
                 if (errorMessage != null) ...[
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   _WarningBanner(message: errorMessage!),
                 ],
               ],
             ),
           ),
 
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
 
           // ── How it works ──────────────────────────────────────────────────
           _SectionCard(
@@ -442,32 +442,32 @@ class _PickFilePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppStringsAr.howDoesImportWork,
+                  AppStrings.howDoesImportWork,
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
                 _StepHint(
-                  number: AppStringsAr.s1,
-                  title: AppStringsAr.accountAnalysis,
-                  subtitle: AppStringsAr.identifyAndMatchDuplicate,
+                  number: AppStrings.s1,
+                  title: AppStrings.accountAnalysis,
+                  subtitle: AppStrings.identifyAndMatchDuplicate,
                 ),
                 _StepHint(
-                  number: AppStringsAr.s2,
-                  title: AppStringsAr.resolvingConflicts,
-                  subtitle: AppStringsAr.forEachAccountMerge,
+                  number: AppStrings.s2,
+                  title: AppStrings.resolvingConflicts,
+                  subtitle: AppStrings.forEachAccountMerge,
                 ),
                 _StepHint(
-                  number: AppStringsAr.s3,
-                  title: AppStringsAr.importBonds,
-                  subtitle: AppStringsAr.transactionVouchersAreCreated,
+                  number: AppStrings.s3,
+                  title: AppStrings.importBonds,
+                  subtitle: AppStrings.transactionVouchersAreCreated,
                 ),
                 _StepHint(
-                  number: AppStringsAr.s4,
-                  title: AppStringsAr.reviewAndConfirm,
-                  subtitle: AppStringsAr.bondsAreApprovedFrom,
+                  number: AppStrings.s4,
+                  title: AppStrings.reviewAndConfirm,
+                  subtitle: AppStrings.bondsAreApprovedFrom,
                   isLast: true,
                 ),
               ],
@@ -517,7 +517,7 @@ class _LoadingPage extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                         ),
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: LinearProgressIndicator(
@@ -529,7 +529,7 @@ class _LoadingPage extends StatelessWidget {
                   ),
                 ],
               ),
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             Text(
               message,
               textAlign: TextAlign.center,
@@ -578,15 +578,21 @@ class _ResolvingPageState extends State<_ResolvingPage> {
     final conflicts = widget.analysis.accountConflicts;
     final filteredConflicts = conflicts.where((c) {
       if (_filter == _Filter.all) return true;
-      if (_filter == _Filter.exact) return c.type == AccountConflictType.exactMatch;
-      if (_filter == _Filter.partial)
+      if (_filter == _Filter.exact) {
+        return c.type == AccountConflictType.exactMatch;
+      }
+      if (_filter == _Filter.partial) {
         return c.type == AccountConflictType.partialMatch;
-      if (_filter == _Filter.newAccounts) return c.type == AccountConflictType.noMatch;
+      }
+      if (_filter == _Filter.newAccounts) {
+        return c.type == AccountConflictType.noMatch;
+      }
       return false;
     }).toList();
 
-    final transactions = (widget.analysis.rawBundle['transactions'] as List? ?? [])
-        .cast<Map<String, dynamic>>();
+    final transactions =
+        (widget.analysis.rawBundle['transactions'] as List? ?? [])
+            .cast<Map<String, dynamic>>();
 
     final exactCount = widget.analysis.exactMatchCount;
     final partialCount = widget.analysis.partialMatchCount;
@@ -610,39 +616,39 @@ class _ResolvingPageState extends State<_ResolvingPage> {
             child: Row(
               children: [
                 _MiniStat(
-                  label: AppStringsAr.accounts,
+                  label: AppStrings.accounts,
                   value: '${conflicts.length}',
                   color: scheme.primary,
                   isSelected: _filter == _Filter.all,
                   onTap: () => setState(() => _filter = _Filter.all),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: AppStringsAr.movements,
+                  label: AppStrings.movements,
                   value: '$txCount',
                   color: ColorTokens.emerald600,
                   isSelected: _filter == _Filter.vouchers,
                   onTap: () => setState(() => _filter = _Filter.vouchers),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: AppStringsAr.perfectMatch,
+                  label: AppStrings.perfectMatch,
                   value: '$exactCount',
                   color: ColorTokens.emerald700,
                   isSelected: _filter == _Filter.exact,
                   onTap: () => setState(() => _filter = _Filter.exact),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: AppStringsAr.partial,
+                  label: AppStrings.partial,
                   value: '$partialCount',
                   color: ColorTokens.warningAmber,
                   isSelected: _filter == _Filter.partial,
                   onTap: () => setState(() => _filter = _Filter.partial),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 _MiniStat(
-                  label: AppStringsAr.newStr,
+                  label: AppStrings.newStr,
                   value: '$newCount',
                   color: ColorTokens.debitBlue,
                   isSelected: _filter == _Filter.newAccounts,
@@ -664,8 +670,8 @@ class _ResolvingPageState extends State<_ResolvingPage> {
             ),
             child: Text(
               _filter == _Filter.vouchers
-                  ? AppStringsAr.listOfBondsTo
-                  : AppStringsAr.reviewEachAccountAnd,
+                  ? AppStrings.listOfBondsTo
+                  : AppStrings.reviewEachAccountAnd,
               style: TextStyle(
                 color: scheme.onSurfaceVariant,
                 fontSize: 13,
@@ -726,8 +732,8 @@ class _ResolvingPageState extends State<_ResolvingPage> {
             ),
             child: FilledButton.icon(
               onPressed: widget.onConfirm,
-              icon: const Icon(Icons.download_done_rounded, size: 20),
-              label: const Text(AppStringsAr.startImport),
+              icon: Icon(Icons.download_done_rounded, size: 20),
+              label: Text(AppStrings.startImport),
               style: FilledButton.styleFrom(
                 backgroundColor: ColorTokens.emerald600,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -766,9 +772,9 @@ class _ConflictCard extends StatelessWidget {
       };
 
   String _conflictLabel() => switch (conflict.type) {
-        AccountConflictType.exactMatch => AppStringsAr.perfectMatch,
-        AccountConflictType.partialMatch => AppStringsAr.partialMatch,
-        AccountConflictType.noMatch => AppStringsAr.newAccount,
+        AccountConflictType.exactMatch => AppStrings.perfectMatch,
+        AccountConflictType.partialMatch => AppStrings.partialMatch,
+        AccountConflictType.noMatch => AppStrings.newAccount,
       };
 
   IconData _conflictIcon() => switch (conflict.type) {
@@ -806,7 +812,7 @@ class _ConflictCard extends StatelessWidget {
                   child: Text(
                     conflict.name.isNotEmpty
                         ? conflict.name.characters.first
-                        : AppStringsAr.str1,
+                        : AppStrings.str1,
                     style: TextStyle(
                       color: accent,
                       fontWeight: FontWeight.w700,
@@ -814,7 +820,7 @@ class _ConflictCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -863,7 +869,7 @@ class _ConflictCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(_conflictIcon(), color: accent, size: 14),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
                         _conflictLabel(),
                         style: TextStyle(
@@ -921,7 +927,7 @@ class _ConflictCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.link_rounded, size: 16, color: scheme.primary),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         'مطابق في قيد: $mergeTargetName',
@@ -944,7 +950,7 @@ class _ConflictCard extends StatelessWidget {
               children: [
                 // Merge
                 _ActionChip(
-                  label: AppStringsAr.toMerge,
+                  label: AppStrings.toMerge,
                   icon: Icons.merge_rounded,
                   isSelected: resolution.action == ResolutionAction.merge,
                   color: ColorTokens.emerald600,
@@ -962,22 +968,22 @@ class _ConflictCard extends StatelessWidget {
                     onResolutionChanged(AccountResolution.merge(picked.id));
                   },
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
 
                 // Create New
                 _ActionChip(
-                  label: AppStringsAr.createNew,
+                  label: AppStrings.createNew,
                   icon: Icons.person_add_rounded,
                   isSelected: resolution.action == ResolutionAction.createNew,
                   color: ColorTokens.debitBlue,
                   onTap: () =>
                       onResolutionChanged(const AccountResolution.createNew()),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
 
                 // Skip
                 _ActionChip(
-                  label: AppStringsAr.skip,
+                  label: AppStrings.skip,
                   icon: Icons.skip_next_rounded,
                   isSelected: resolution.action == ResolutionAction.skip,
                   color: scheme.outline,
@@ -995,18 +1001,18 @@ class _ConflictCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AppStringsAr.linkToRootAccount,
+                    AppStrings.linkToRootAccount,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
                   SizedBox(
                     width: double.infinity,
                     child: DropdownButtonFormField<String>(
-                      value: resolution.forcedParentId,
+                      initialValue: resolution.forcedParentId,
                       isExpanded: true,
                       decoration: InputDecoration(
                         filled: true,
@@ -1072,7 +1078,10 @@ String _getDefaultParentName(
   final defaultRoot =
       roots.where((a) => a.standardClassificationKind == kindName).firstOrNull;
 
-  return defaultRoot?.name ?? (isPayable ? AppStringsAr.obligationsAndDebts : AppStringsAr.rightsAndEntitlements);
+  return defaultRoot?.name ??
+      (isPayable
+          ? AppStrings.obligationsAndDebts
+          : AppStrings.rightsAndEntitlements);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1115,17 +1124,17 @@ class _DonePage extends StatelessWidget {
                   size: 72,
                   color: ColorTokens.emerald600,
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
                 Text(
-                  AppStringsAr.importCompleted,
+                  AppStrings.importCompleted,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: ColorTokens.emerald700,
                       ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
-                  AppStringsAr.bondsCreatedInPending,
+                  AppStrings.bondsCreatedInPending,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: scheme.onSurfaceVariant,
@@ -1136,7 +1145,7 @@ class _DonePage extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
 
           // Stats
           _SectionCard(
@@ -1144,21 +1153,21 @@ class _DonePage extends StatelessWidget {
               children: [
                 _SummaryRow(
                   icon: Icons.receipt_long_rounded,
-                  label: AppStringsAr.importedBonds,
+                  label: AppStrings.importedBonds,
                   value: '${summary.imported}',
                   color: ColorTokens.emerald600,
                 ),
                 const Divider(height: SpacingTokens.lg),
                 _SummaryRow(
                   icon: Icons.compare_arrows_rounded,
-                  label: AppStringsAr.includingTransfers,
+                  label: AppStrings.includingTransfers,
                   value: '${summary.transfers}',
                   color: scheme.primary,
                 ),
                 const Divider(height: SpacingTokens.lg),
                 _SummaryRow(
                   icon: Icons.skip_next_rounded,
-                  label: AppStringsAr.skippedMovements,
+                  label: AppStrings.skippedMovements,
                   value: '${summary.skipped}',
                   color: scheme.outline,
                 ),
@@ -1166,7 +1175,7 @@ class _DonePage extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
 
           // Next steps
           _SectionCard(
@@ -1174,35 +1183,35 @@ class _DonePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppStringsAr.nextSteps,
+                  AppStrings.nextSteps,
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
                       ?.copyWith(fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
                 _StepHint(
-                  number: AppStringsAr.s1,
-                  title: AppStringsAr.reviewOutstandingBonds,
-                  subtitle: 'ابحث في قائمة السندات عن حالة AppStringsAr.waiting',
+                  number: AppStrings.s1,
+                  title: AppStrings.reviewOutstandingBonds,
+                  subtitle: 'ابحث في قائمة السندات عن حالة AppStrings.waiting',
                 ),
                 _StepHint(
-                  number: AppStringsAr.s2,
-                  title: AppStringsAr.bondApproval,
-                  subtitle: AppStringsAr.openEachDocumentVerify,
+                  number: AppStrings.s2,
+                  title: AppStrings.bondApproval,
+                  subtitle: AppStrings.openEachDocumentVerify,
                   isLast: true,
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
 
           // Import another
           OutlinedButton.icon(
             onPressed: onReset,
-            icon: const Icon(Icons.upload_file_rounded, size: 18),
-            label: const Text(AppStringsAr.importAnotherFile),
+            icon: Icon(Icons.upload_file_rounded, size: 18),
+            label: Text(AppStrings.importAnotherFile),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 13),
             ),
@@ -1253,7 +1262,7 @@ class _WarningBanner extends StatelessWidget {
         children: [
           Icon(Icons.error_outline_rounded,
               color: scheme.onErrorContainer, size: 18),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
@@ -1310,7 +1319,7 @@ class _StepHint extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(width: SpacingTokens.sm),
+          SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : SpacingTokens.md),
@@ -1446,7 +1455,7 @@ class _ActionChip extends StatelessWidget {
           child: Column(
             children: [
               Icon(icon, size: 18, color: isSelected ? color : scheme.outline),
-              const SizedBox(height: 3),
+              SizedBox(height: 3),
               Text(
                 label,
                 style: TextStyle(
@@ -1476,8 +1485,10 @@ class _TransactionCard extends StatelessWidget {
     final amount = (tx['amount_raw'] as num? ?? 0).toDouble();
     final currency = tx['currency_code']?.toString() ?? 'YER';
     final date = tx['date']?.toString() ?? '';
-    final description = tx['description']?.toString() ?? AppStringsAr.withoutDescription;
-    final counterparty = tx['counterparty_name']?.toString() ?? AppStringsAr.anonymousParty;
+    final description =
+        tx['description']?.toString() ?? AppStrings.withoutDescription;
+    final counterparty =
+        tx['counterparty_name']?.toString() ?? AppStrings.anonymousParty;
 
     return Container(
       padding: const EdgeInsets.all(SpacingTokens.md),
@@ -1499,7 +1510,7 @@ class _TransactionCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  isReceipt ? AppStringsAr.catchStr : AppStringsAr.exchange,
+                  isReceipt ? AppStrings.catchStr : AppStrings.exchange,
                   style: TextStyle(
                     color: color,
                     fontWeight: FontWeight.bold,
@@ -1517,19 +1528,19 @@ class _TransactionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           Text(
             counterparty,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             description,
             style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerEnd,
             child: Text(
               '${amount.toStringAsFixed(2)} $currency',
               style: TextStyle(
@@ -1592,7 +1603,7 @@ class _SummaryRow extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, color: color, size: 22),
-        const SizedBox(width: SpacingTokens.sm),
+        SizedBox(width: SpacingTokens.sm),
         Expanded(
           child: Text(
             label,

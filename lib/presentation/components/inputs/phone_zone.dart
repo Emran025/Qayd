@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart' as picker;
 import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,7 @@ import 'package:qayd/presentation/widgets/country_picker_dialog.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class PhoneZoneForm extends StatefulWidget {
@@ -214,7 +213,7 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     } else {
       // If no '+' but starts with 00, treat as international
       if (phone.startsWith('00')) {
-        _applyPhoneNumber('+' + phone.substring(2));
+        _applyPhoneNumber('+${phone.substring(2)}');
         return;
       }
 
@@ -382,9 +381,9 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       validator: (val) {
                         String? error;
                         if (selectedCountry == null) {
-                          error = AppStringsAr.youMustSelectThe;
+                          error = AppStrings.youMustSelectThe;
                         } else if (val == null || val.isEmpty) {
-                          error = AppStringsAr.phoneNumberRequired;
+                          error = AppStrings.phoneNumberRequired;
                         }
 
                         // Update local error state to change border color
@@ -420,7 +419,7 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       color: accentColor.withValues(alpha: 0.7),
                       size: 22,
                     ),
-                    tooltip: AppStringsAr.chooseFromContacts,
+                    tooltip: AppStrings.chooseFromContacts,
                   ),
                 ),
               ],

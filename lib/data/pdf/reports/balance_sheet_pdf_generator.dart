@@ -10,8 +10,8 @@ import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:qayd/core/utils/currency_util.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
-
+import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/presentation/l10n/app_strings_en.dart';
 
 /// Professional PDF generator for Balance Sheet reports.
 ///
@@ -28,7 +28,7 @@ final class BalanceSheetPdfGenerator {
   static final PdfColor _muted = PdfColor.fromInt(0xFF64748B);
   static final PdfColor _border = PdfColor.fromInt(0xFFCBD5E1);
   static final PdfColor _sectionBg = PdfColor.fromInt(0xFFF1F5F9);
-
+  static bool get isAr => AppStrings.i is! AppStringsEn;
   Future<Uint8List> generate(
     BalanceSheetOutput report,
   ) async {
@@ -60,7 +60,9 @@ final class BalanceSheetPdfGenerator {
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
-          textDirection: pw.TextDirection.rtl,
+          textDirection: AppStrings.i is AppStringsEn
+              ? pw.TextDirection.ltr
+              : pw.TextDirection.rtl,
           margin: const pw.EdgeInsets.all(32),
           header: (context) => _buildHeader(font, report, logoImage),
           footer: (context) => _buildFooter(font, context),
@@ -70,14 +72,14 @@ final class BalanceSheetPdfGenerator {
             pw.SizedBox(height: 16),
             ..._buildSection(
               font,
-              AppStringsAr.assets,
+              AppStrings.assets,
               'Assets',
               report.lines.where((l) => _isAsset(l.classification)).toList(),
             ),
             pw.SizedBox(height: 12),
             ..._buildSection(
               font,
-              AppStringsAr.adversaries,
+              AppStrings.adversaries,
               'Liabilities',
               report.lines
                   .where((l) => _isLiability(l.classification))
@@ -86,7 +88,7 @@ final class BalanceSheetPdfGenerator {
             pw.SizedBox(height: 12),
             ..._buildSection(
               font,
-              AppStringsAr.propertyRights,
+              AppStrings.propertyRights,
               'Equity',
               report.lines.where((l) => _isEquity(l.classification)).toList(),
             ),
@@ -139,7 +141,7 @@ final class BalanceSheetPdfGenerator {
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  AppStringsAr.balanceSheetCryptocurrencySystem,
+                  AppStrings.balanceSheetCryptocurrencySystem,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 7,
@@ -176,7 +178,7 @@ final class BalanceSheetPdfGenerator {
               ),
               child: pw.Center(
                 child: pw.Text(
-                  AppStringsAr.restriction,
+                  AppStrings.restriction,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 14,
@@ -226,7 +228,9 @@ final class BalanceSheetPdfGenerator {
 
   pw.Widget _buildInfoSection(pw.Font font, BalanceSheetOutput report) {
     final dateFmt = intl.DateFormat('yyyy-MM-dd');
-    final dateStr = 'كما في ${dateFmt.format(report.atDate)}';
+    final dateStr = isAr
+        ? 'كما في ${dateFmt.format(report.atDate)}'
+        : 'As of ${dateFmt.format(report.atDate)}';
     final genAt = intl.DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
     final borderColor = PdfColor.fromInt(0xFFCBD5E1);
 
@@ -245,9 +249,9 @@ final class BalanceSheetPdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, AppStringsAr.companyName, report.companyName),
+                    _infoLine(font, AppStrings.companyName, report.companyName),
                     pw.SizedBox(height: 4),
-                    _infoLine(font, AppStringsAr.theDate1, dateStr),
+                    _infoLine(font, AppStrings.theDate1, dateStr),
                   ],
                 ),
               ),
@@ -263,7 +267,7 @@ final class BalanceSheetPdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, AppStringsAr.releaseDate, genAt),
+                    _infoLine(font, AppStrings.releaseDate, genAt),
                   ],
                 ),
               ),
@@ -368,9 +372,9 @@ final class BalanceSheetPdfGenerator {
             decoration: const pw.BoxDecoration(
                 color: PdfColor.fromInt(0xFF0F2741)), // _navy
             children: [
-              _tableHeaderCell(font, AppStringsAr.theAccount),
-              _tableHeaderCell(font, AppStringsAr.currency),
-              _tableHeaderCell(font, AppStringsAr.balance),
+              _tableHeaderCell(font, AppStrings.theAccount),
+              _tableHeaderCell(font, AppStrings.currency),
+              _tableHeaderCell(font, AppStrings.balance),
             ],
           ),
           // Data rows grouped by account
@@ -440,8 +444,8 @@ final class BalanceSheetPdfGenerator {
                             ),
                       child: pw.RichText(
                         text: buildPdfNumericalScaledSpan(
-                          CurrencyUtil.getArabicName(l.currencyCode)
-                              .replaceAll('﷼', AppStringsAr.sar),
+                          CurrencyUtil.getLocalizedName(l.currencyCode)
+                              .replaceAll('﷼', AppStrings.sar),
                           pw.TextStyle(font: font, fontSize: 7, color: _muted),
                         ),
                       ),
@@ -556,7 +560,7 @@ final class BalanceSheetPdfGenerator {
                       children: [
                         pw.RichText(
                           text: buildPdfNumericalScaledSpan(
-                            'ملخص الإجماليات — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', AppStringsAr.sar)}',
+                            '${!isAr ? 'Summary of Totals' : 'ملخص الإجماليات'} — ${CurrencyUtil.getLocalizedName(s.currencyCode).replaceAll('﷼', AppStrings.sar)}',
                             pw.TextStyle(
                               font: font,
                               fontSize: 10,
@@ -576,7 +580,9 @@ final class BalanceSheetPdfGenerator {
                                 pw.Border.all(color: statusColor, width: 0.5),
                           ),
                           child: pw.Text(
-                            isBalanced ? AppStringsAr.balanced : AppStringsAr.unbalanced,
+                            isBalanced
+                                ? AppStrings.balanced
+                                : AppStrings.unbalanced,
                             style: pw.TextStyle(
                               font: font,
                               fontSize: 8,
@@ -598,14 +604,14 @@ final class BalanceSheetPdfGenerator {
               padding: const pw.EdgeInsets.all(12),
               child: pw.Column(
                 children: [
-                  _summaryRow(font, AppStringsAr.totalAssets, s.totalAssetsMinorUnits,
-                      s.currencyDigits),
+                  _summaryRow(font, AppStrings.totalAssets,
+                      s.totalAssetsMinorUnits, s.currencyDigits),
                   pw.SizedBox(height: 4),
-                  _summaryRow(font, AppStringsAr.totalLiabilities,
+                  _summaryRow(font, AppStrings.totalLiabilities,
                       s.totalLiabilitiesMinorUnits, s.currencyDigits),
                   pw.SizedBox(height: 4),
-                  _summaryRow(font, AppStringsAr.propertyRights, s.totalEquityMinorUnits,
-                      s.currencyDigits),
+                  _summaryRow(font, AppStrings.propertyRights,
+                      s.totalEquityMinorUnits, s.currencyDigits),
                   pw.SizedBox(height: 8),
                   pw.Divider(thickness: 0.5, color: PdfColors.grey300),
                   pw.SizedBox(height: 8),
@@ -613,7 +619,7 @@ final class BalanceSheetPdfGenerator {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(
-                        AppStringsAr.netLiabilitiesAndOwnership,
+                        AppStrings.netLiabilitiesAndOwnership,
                         style: pw.TextStyle(
                           font: font,
                           fontSize: 10,
@@ -685,11 +691,13 @@ final class BalanceSheetPdfGenerator {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'صفحة ${context.pageNumber} من ${context.pagesCount}',
+            isAr
+                ? 'صفحة ${context.pageNumber} من ${context.pagesCount}'
+                : 'Page ${context.pageNumber} of ${context.pagesCount}',
             style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
           ),
           pw.Text(
-            AppStringsAr.thisReportWasGenerated,
+            AppStrings.thisReportWasGenerated,
             style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
           ),
         ],

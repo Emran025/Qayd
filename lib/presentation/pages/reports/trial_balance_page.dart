@@ -11,7 +11,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_cubit.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_state.dart';
 import 'package:qayd/presentation/pages/reports/balance_sheet_page.dart';
@@ -64,20 +64,20 @@ class _TrialBalancePageState extends State<TrialBalancePage>
       child: QaydScaffold(
         appBar: QaydAppBar(
           showNotifications: true,
-          title: AppStringsAr.financialReports,
+          title: AppStrings.financialReports,
           bottom: TabBar(
             controller: _tabController,
             indicatorColor: gold,
-            tabs: const [
-              Tab(text: AppStringsAr.trialBalance),
-              Tab(text: AppStringsAr.balanceSheet),
+            tabs:  [
+              Tab(text: AppStrings.trialBalance),
+              Tab(text: AppStrings.balanceSheet),
             ],
           ),
           actions: [
             Builder(builder: (context) {
               return PopupMenuButton<String>(
-                icon: const Icon(Icons.file_download_outlined),
-                tooltip: AppStringsAr.exportTheReport,
+                icon: Icon(Icons.file_download_outlined),
+                tooltip: AppStrings.exportTheReport,
                 onSelected: (val) {
                   if (_tabController.index == 0) {
                     if (val == 'pdf') {
@@ -96,23 +96,23 @@ class _TrialBalancePageState extends State<TrialBalancePage>
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                   PopupMenuItem(
                     value: 'pdf',
                     child: Row(
                       children: [
                         Icon(Icons.picture_as_pdf_outlined, color: Colors.red),
                         SizedBox(width: 8),
-                        Text(AppStringsAr.exportPdf),
+                        Text(AppStrings.exportPdf),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                   PopupMenuItem(
                     value: 'excel',
                     child: Row(
                       children: [
                         Icon(Icons.table_view_outlined, color: Colors.green),
                         SizedBox(width: 8),
-                        Text(AppStringsAr.excelExport),
+                        Text(AppStrings.excelExport),
                       ],
                     ),
                   ),
@@ -147,17 +147,17 @@ class _TrialBalanceTab extends StatelessWidget {
         return switch (state) {
           TrialBalanceInitial() => const SizedBox.shrink(),
           TrialBalanceLoading() =>
-            const Center(child: CircularProgressIndicator()),
+            Center(child: CircularProgressIndicator()),
           TrialBalanceFailure(:final failure) => Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   QaydText(failure.messageAr,
                       slot: QaydTextStyleSlot.bodyLarge),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   FilledButton.tonal(
                     onPressed: () => context.read<TrialBalanceCubit>().load(),
-                    child: Text(AppStringsAr.retryAction),
+                    child: Text(AppStrings.retryAction),
                   ),
                 ],
               ),
@@ -169,7 +169,7 @@ class _TrialBalanceTab extends StatelessWidget {
                   Positioned.fill(
                     child: Container(
                       color: Colors.black26,
-                      child: const Center(
+                      child: Center(
                         child: CircularProgressIndicator(),
                       ),
                     ),
@@ -197,9 +197,9 @@ class _TrialBalanceBody extends StatelessWidget {
           child: Column(
             children: [
               _TrialBalanceLedger(output: output),
-              const SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.xl),
               _MultiCurrencyFooter(output: output),
-              const SizedBox(height: 80),
+              SizedBox(height: 80),
             ],
           ),
         ),
@@ -272,7 +272,7 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     }
     // Estimate width: 8.5px per character + padding.
     final double neededForMoney = (maxFormattedLen * 8.5) + 16.0;
-    // Header labels like AppStringsAr.openingBalances need around 180px minimum.
+    // Header labels like AppStrings.openingBalances need around 180px minimum.
     return max(180.0, neededForMoney * 2);
   }
 
@@ -282,10 +282,10 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     final qayd = Theme.of(context).extension<QaydCustomColors>()!;
 
     if (widget.output.lines.isEmpty) {
-      return const QaydEmptyState(
+      return  QaydEmptyState(
         icon: Icons.analytics_outlined,
-        title: AppStringsAr.trialBalanceEmpty,
-        description: AppStringsAr.noAccountBalancesWere,
+        title: AppStrings.trialBalanceEmpty,
+        description: AppStrings.noAccountBalancesWere,
       );
     }
 
@@ -360,8 +360,8 @@ class _TableHeader extends StatelessWidget {
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [ColorTokens.navy950, ColorTokens.navy800],
-              begin: Alignment.centerRight,
-              end: Alignment.centerLeft,
+              begin: AlignmentDirectional.centerStart,
+              end: AlignmentDirectional.centerEnd,
             ),
           ),
           child: IntrinsicHeight(
@@ -378,9 +378,9 @@ class _TableHeader extends StatelessWidget {
                       children: [
                         Icon(Icons.account_tree_outlined,
                             size: 15, color: qayd.goldAccent),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Text(
-                          AppStringsAr.theAccount,
+                          AppStrings.theAccount,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -398,7 +398,7 @@ class _TableHeader extends StatelessWidget {
                   width: 48,
                   child: Center(
                     child: Text(
-                      AppStringsAr.currency,
+                      AppStrings.currency,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -410,21 +410,21 @@ class _TableHeader extends StatelessWidget {
                 _VerticalDivider(color: ColorTokens.navy700),
 
                 _BalanceColumnHeader(
-                  label: AppStringsAr.openingBalances,
+                  label: AppStrings.openingBalances,
                   icon: Icons.lock_clock_outlined,
                   gold: qayd.goldAccent,
                   width: balanceColumnWidth,
                 ),
                 _VerticalDivider(color: ColorTokens.navy700),
                 _BalanceColumnHeader(
-                  label: AppStringsAr.periodMovement,
+                  label: AppStrings.periodMovement,
                   icon: Icons.swap_horiz_rounded,
                   gold: qayd.goldAccent,
                   width: balanceColumnWidth,
                 ),
                 _VerticalDivider(color: ColorTokens.navy700),
                 _BalanceColumnHeader(
-                  label: AppStringsAr.closingBalances,
+                  label: AppStrings.closingBalances,
                   icon: Icons.flag_rounded,
                   gold: qayd.goldAccent,
                   width: balanceColumnWidth,
@@ -446,10 +446,10 @@ class _TableHeader extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Empty space under AppStringsAr.theAccount and Currency
-                const SizedBox(width: 240),
+                // Empty space under AppStrings.theAccount and Currency
+                SizedBox(width: 240),
                 _VerticalDivider(color: scheme.outlineVariant),
-                const SizedBox(width: 48),
+                SizedBox(width: 48),
                 _VerticalDivider(color: scheme.outlineVariant),
 
                 _dualSubHeader(qayd, balanceColumnWidth),
@@ -473,7 +473,7 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                AppStringsAr.debtor,
+                AppStrings.debtor,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -490,7 +490,7 @@ class _TableHeader extends StatelessWidget {
           Expanded(
             child: Center(
               child: Text(
-                AppStringsAr.creditor,
+                AppStrings.creditor,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -528,7 +528,7 @@ class _BalanceColumnHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 13, color: gold),
-              const SizedBox(width: 4),
+              SizedBox(width: 4),
               Text(
                 label,
                 style: const TextStyle(
@@ -810,7 +810,7 @@ class _AccountCell extends StatelessWidget {
             ),
           ),
 
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
 
         // Account name
         Expanded(
@@ -828,7 +828,7 @@ class _AccountCell extends StatelessWidget {
 
         // Inline currency badge (only for single-currency accounts)
         if (currencyCode != null) ...[
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           _CurrencyBadge(code: currencyCode!, scheme: scheme),
         ],
       ],
@@ -854,7 +854,7 @@ class _CurrencyBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        CurrencyUtil.getArabicName(code).replaceAll('﷼', AppStringsAr.sar),
+        CurrencyUtil.getLocalizedName(code).replaceAll('﷼', AppStrings.sar),
         style: TextStyle(
           fontSize: 8.5,
           fontWeight: FontWeight.w600,
@@ -1016,9 +1016,9 @@ class _CurrencySectionFooter extends StatelessWidget {
                   color: statusColor,
                   size: 22,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
-                  '${AppStringsAr.trialBalanceGrandTotal} — ${CurrencyUtil.getArabicName(section.currencyCode).replaceAll('﷼', AppStringsAr.sar)}',
+                  '${AppStrings.trialBalanceGrandTotal} — ${CurrencyUtil.getLocalizedName(section.currencyCode).replaceAll('﷼', AppStrings.sar)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
@@ -1035,7 +1035,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                     border: Border.all(color: statusColor.withAlpha(50)),
                   ),
                   child: Text(
-                    balanced ? AppStringsAr.balanced1 : AppStringsAr.unbalanced,
+                    balanced ? AppStrings.balanced1 : AppStrings.unbalanced,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -1053,25 +1053,25 @@ class _CurrencySectionFooter extends StatelessWidget {
             child: Column(
               children: [
                 _SummaryRow(
-                  label: AppStringsAr.editorial,
+                  label: AppStrings.editorial,
                   debit: section.openingDebitMinorUnits,
                   credit: section.openingCreditMinorUnits,
                   cur: currency,
                   qayd: qayd,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _SummaryRow(
-                  label: AppStringsAr.movement,
+                  label: AppStrings.movement,
                   debit: section.periodDebitMinorUnits,
                   credit: section.periodCreditMinorUnits,
                   cur: currency,
                   qayd: qayd,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Divider(height: 1, color: scheme.outlineVariant),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 _SummaryRow(
-                  label: AppStringsAr.closing,
+                  label: AppStrings.closing,
                   debit: section.closingDebitMinorUnits,
                   credit: section.closingCreditMinorUnits,
                   cur: currency,
@@ -1126,7 +1126,7 @@ class _SummaryRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(AppStringsAr.creditor,
+              Text(AppStrings.creditor,
                   style:
                       TextStyle(fontSize: 9, color: qayd.debit.withAlpha(150))),
               QaydMoneyDisplay(
@@ -1147,7 +1147,7 @@ class _SummaryRow extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(AppStringsAr.debtor,
+              Text(AppStrings.debtor,
                   style: TextStyle(
                       fontSize: 9, color: qayd.credit.withAlpha(150))),
               QaydMoneyDisplay(

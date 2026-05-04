@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/settings/notification_settings_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -52,56 +52,56 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.settingsGroupNotifications),
+      appBar: QaydAppBar(title: AppStrings.settingsGroupNotifications),
       body: BlocBuilder<NotificationSettingsCubit, NotificationSettingsState>(
         builder: (context, state) {
           final cubit = context.read<NotificationSettingsCubit>();
 
           return ListView(
-            padding: const EdgeInsets.all(SpacingTokens.lg),
+            padding:  EdgeInsets.all(SpacingTokens.lg),
             children: [
               // ── OS Permission Banner ──────────────────────────────────
               if (!state.osPermissionGranted) _buildPermissionDeniedBanner(context),
               if (state.osPermissionGranted) _buildPermissionGrantedBanner(context),
 
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
 
               // ── Categories ────────────────────────────────────────────
-              _buildSectionHeader(context, AppStringsAr.notifDirectCategories),
+              _buildSectionHeader(context, AppStrings.notifDirectCategories),
               _buildSwitchTile(
                 context,
-                title: AppStringsAr.notifPeerActivityTitle,
-                subtitle: AppStringsAr.notifPeerActivityDesc,
+                title: AppStrings.notifPeerActivityTitle,
+                subtitle: AppStrings.notifPeerActivityDesc,
                 value: state.peerActivity,
                 icon: Icons.people_outline_rounded,
                 onChanged: state.osPermissionGranted ? cubit.togglePeerActivity : null,
               ),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
               _buildSwitchTile(
                 context,
-                title: AppStringsAr.notifSelfActivityTitle,
-                subtitle: AppStringsAr.notifSelfActivityDesc,
+                title: AppStrings.notifSelfActivityTitle,
+                subtitle: AppStrings.notifSelfActivityDesc,
                 value: state.selfActivity,
                 icon: Icons.my_location_rounded,
                 onChanged: state.osPermissionGranted ? cubit.toggleSelfActivity : null,
               ),
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
 
               // ── Media ─────────────────────────────────────────────────
-              _buildSectionHeader(context, AppStringsAr.notifMediaAlerts),
+              _buildSectionHeader(context, AppStrings.notifMediaAlerts),
               _buildSwitchTile(
                 context,
-                title: AppStringsAr.notifSoundEnabled,
-                subtitle: AppStringsAr.notifSoundDesc,
+                title: AppStrings.notifSoundEnabled,
+                subtitle: AppStrings.notifSoundDesc,
                 value: state.soundEnabled,
                 icon: Icons.volume_up_rounded,
                 onChanged: state.osPermissionGranted ? cubit.toggleSound : null,
               ),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
               _buildSwitchTile(
                 context,
-                title: AppStringsAr.notifVibrationEnabled,
-                subtitle: AppStringsAr.notifVibrationDesc,
+                title: AppStrings.notifVibrationEnabled,
+                subtitle: AppStrings.notifVibrationDesc,
                 value: state.vibrationEnabled,
                 icon: Icons.vibration_rounded,
                 onChanged: state.osPermissionGranted ? cubit.toggleVibration : null,
@@ -119,15 +119,15 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(SpacingTokens.md),
+      padding:  EdgeInsets.all(SpacingTokens.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
             ColorTokens.errorDeep.withOpacity(0.12),
             ColorTokens.errorSoft.withOpacity(0.06),
           ],
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
+          begin: AlignmentDirectional.topEnd,
+          end: AlignmentDirectional.bottomStart,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: ColorTokens.errorSoft.withOpacity(0.2)),
@@ -137,32 +137,32 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding:  EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: ColorTokens.errorSoft.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.notifications_off_rounded,
                   color: ColorTokens.errorSoft,
                   size: 22,
                 ),
               ),
-              const SizedBox(width: SpacingTokens.sm),
+              SizedBox(width: SpacingTokens.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppStringsAr.notifPermissionDeniedTitle,
+                      AppStrings.notifPermissionDeniedTitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: ColorTokens.errorSoft,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
-                      AppStringsAr.notifPermissionDeniedBody,
+                      AppStrings.notifPermissionDeniedBody,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.hintColor,
                         fontSize: 11,
@@ -174,14 +174,14 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
               ),
             ],
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: () => openAppSettings(),
-              icon: const Icon(Icons.settings_rounded, size: 16),
+              icon: Icon(Icons.settings_rounded, size: 16),
               label: Text(
-                AppStringsAr.notifPermissionOpenSettings,
+                AppStrings.notifPermissionOpenSettings,
                 style: const TextStyle(fontSize: 13),
               ),
               style: FilledButton.styleFrom(
@@ -205,7 +205,7 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
+      padding:  EdgeInsets.symmetric(
         horizontal: SpacingTokens.md,
         vertical: SpacingTokens.sm + 2,
       ),
@@ -217,33 +217,33 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(7),
+            padding:  EdgeInsets.all(7),
             decoration: BoxDecoration(
               color: ColorTokens.goldAccent.withOpacity(0.12),
               borderRadius: BorderRadius.circular(9),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.notifications_active_rounded,
               color: ColorTokens.goldAccent,
               size: 18,
             ),
           ),
-          const SizedBox(width: SpacingTokens.sm),
+          SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppStringsAr.notifPermissionGranted,
+                  AppStrings.notifPermissionGranted,
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: ColorTokens.goldAccent,
                     fontSize: 12,
                   ),
                 ),
-                const SizedBox(height: 1),
+                SizedBox(height: 1),
                 Text(
-                  AppStringsAr.notifPermissionGrantedBody,
+                  AppStrings.notifPermissionGrantedBody,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.hintColor,
                     fontSize: 10.5,
@@ -289,7 +289,7 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
     final disabled = onChanged == null;
 
     return AnimatedOpacity(
-      duration: const Duration(milliseconds: 250),
+      duration:  Duration(milliseconds: 250),
       opacity: disabled ? 0.45 : 1.0,
       child: Container(
         decoration: BoxDecoration(
@@ -301,7 +301,7 @@ class _NotificationSettingsViewState extends State<_NotificationSettingsView>
           value: value,
           onChanged: onChanged,
           secondary: Container(
-            padding: const EdgeInsets.all(8),
+            padding:  EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: theme.colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),

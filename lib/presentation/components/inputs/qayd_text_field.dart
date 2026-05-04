@@ -87,7 +87,8 @@ class QaydTextField extends StatelessWidget {
       ),
     );
 
-    final isLtrType = keyboardType == TextInputType.number ||
+    final isLtrType = obscureText ||
+        keyboardType == TextInputType.number ||
         keyboardType == const TextInputType.numberWithOptions(decimal: true) ||
         keyboardType == const TextInputType.numberWithOptions(signed: true) ||
         keyboardType == TextInputType.phone ||

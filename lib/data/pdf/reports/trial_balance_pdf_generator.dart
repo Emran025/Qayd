@@ -10,8 +10,8 @@ import 'package:intl/intl.dart' as intl;
 import 'package:qayd/data/pdf/cairo_pdf_fonts.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:qayd/core/utils/currency_util.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
-
+import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/presentation/l10n/app_strings_en.dart';
 
 /// Professional PDF generator for Trial Balance reports.
 ///
@@ -27,6 +27,7 @@ final class TrialBalancePdfGenerator {
   static final PdfColor _navy = PdfColor.fromInt(0xFF0F2741);
   static final PdfColor _gold = PdfColor.fromInt(0xFFC9A227);
   static final PdfColor _muted = PdfColor.fromInt(0xFF64748B);
+  static bool get isArabic => AppStrings.i is! AppStringsEn;
 
   Future<Uint8List> generate(
     TrialBalanceOutput report,
@@ -59,7 +60,8 @@ final class TrialBalancePdfGenerator {
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4.landscape,
-          textDirection: pw.TextDirection.rtl,
+          textDirection:
+              !isArabic ? pw.TextDirection.ltr : pw.TextDirection.rtl,
           margin: const pw.EdgeInsets.all(28),
           header: (context) => _buildHeader(font, report, logoImage),
           footer: (context) => _buildFooter(font, context, report),
@@ -117,7 +119,7 @@ final class TrialBalancePdfGenerator {
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  AppStringsAr.trialBalanceCryptocurrencySystem,
+                  AppStrings.trialBalanceCryptocurrencySystem,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 7,
@@ -154,7 +156,7 @@ final class TrialBalancePdfGenerator {
               ),
               child: pw.Center(
                 child: pw.Text(
-                  AppStringsAr.restriction,
+                  AppStrings.restriction,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 14,
@@ -205,7 +207,8 @@ final class TrialBalancePdfGenerator {
     final dateFmt = intl.DateFormat('yyyy-MM-dd');
     final fromStr = dateFmt.format(report.fromDate);
     final toStr = dateFmt.format(report.toDate);
-    final dateStr = 'من $fromStr إلى $toStr';
+    final isAr = AppStrings.i is! AppStringsEn;
+    final dateStr = isAr ? 'من $fromStr إلى $toStr' : 'From $fromStr To $toStr';
     final genAt = intl.DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
     final borderColor = PdfColor.fromInt(0xFFCBD5E1);
 
@@ -224,9 +227,9 @@ final class TrialBalancePdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, AppStringsAr.companyName, report.companyName),
+                    _infoLine(font, AppStrings.companyName, report.companyName),
                     pw.SizedBox(height: 4),
-                    _infoLine(font, AppStringsAr.period, dateStr),
+                    _infoLine(font, AppStrings.period, dateStr),
                   ],
                 ),
               ),
@@ -242,7 +245,7 @@ final class TrialBalancePdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, AppStringsAr.releaseDate, genAt),
+                    _infoLine(font, AppStrings.releaseDate, genAt),
                   ],
                 ),
               ),
@@ -314,12 +317,14 @@ final class TrialBalancePdfGenerator {
           decoration: const pw.BoxDecoration(
               color: PdfColor.fromInt(0xFF0F2741)), // _navy
           children: [
-            _headerCell(font, AppStringsAr.theAccount),
-            _headerCell(font, AppStringsAr.currency),
-            _headerCell(font, AppStringsAr.openingBalances,
-                subHeaders: [AppStringsAr.debtor, AppStringsAr.creditor]),
-            _headerCell(font, AppStringsAr.periodMovement, subHeaders: [AppStringsAr.debtor, AppStringsAr.creditor]),
-            _headerCell(font, AppStringsAr.closingBalances, subHeaders: [AppStringsAr.debtor, AppStringsAr.creditor]),
+            _headerCell(font, AppStrings.theAccount),
+            _headerCell(font, AppStrings.currency),
+            _headerCell(font, AppStrings.openingBalances,
+                subHeaders: [AppStrings.debtor, AppStrings.creditor]),
+            _headerCell(font, AppStrings.periodMovement,
+                subHeaders: [AppStrings.debtor, AppStrings.creditor]),
+            _headerCell(font, AppStrings.closingBalances,
+                subHeaders: [AppStrings.debtor, AppStrings.creditor]),
           ],
         ),
         // ── Data rows ───────────────────────────────────────────────────
@@ -388,7 +393,8 @@ final class TrialBalancePdfGenerator {
                             ),
                           ),
                     child: pw.Text(
-                      CurrencyUtil.getArabicName(l.currencyCode).replaceAll('﷼', AppStringsAr.sar),
+                      CurrencyUtil.getLocalizedName(l.currencyCode)
+                          .replaceAll('﷼', AppStrings.sar),
                       style:
                           pw.TextStyle(font: font, fontSize: 7, color: _muted),
                     ),
@@ -479,7 +485,7 @@ final class TrialBalancePdfGenerator {
         final debitColor = PdfColor.fromInt(0xFF16A34A);
         final creditColor = PdfColor.fromInt(0xFFDC2626);
 
-        pw.Widget _cardSummaryRow(
+        pw.Widget cardSummaryRow(
             String label, int debit, int credit, bool isBold) {
           return pw.Padding(
               padding: const pw.EdgeInsets.symmetric(vertical: 3),
@@ -498,7 +504,7 @@ final class TrialBalancePdfGenerator {
                     )),
                 pw.Expanded(child: pw.SizedBox()),
                 pw.Row(children: [
-                  pw.Text(AppStringsAr.creditor,
+                  pw.Text(AppStrings.creditor,
                       style: pw.TextStyle(
                           font: font, fontSize: 8, color: debitColor)),
                   pw.RichText(
@@ -520,7 +526,7 @@ final class TrialBalancePdfGenerator {
                       width: 0.5, height: 12, color: PdfColors.grey300),
                 ),
                 pw.Row(children: [
-                  pw.Text(AppStringsAr.debtor,
+                  pw.Text(AppStrings.debtor,
                       style: pw.TextStyle(
                           font: font, fontSize: 8, color: creditColor)),
                   pw.RichText(
@@ -569,7 +575,7 @@ final class TrialBalancePdfGenerator {
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
                           pw.Text(
-                            'خلاصة ميزان المراجعة — ${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', AppStringsAr.sar)}',
+                            '${isArabic ? 'خلاصة ميزان المراجعة' : 'Trial Balance Summary'} — ${CurrencyUtil.getLocalizedName(s.currencyCode).replaceAll('﷼', AppStrings.sar)}',
                             style: pw.TextStyle(
                               font: font,
                               fontSize: 10,
@@ -588,7 +594,9 @@ final class TrialBalancePdfGenerator {
                                   pw.Border.all(color: statusColor, width: 0.5),
                             ),
                             child: pw.Text(
-                              isBalanced ? AppStringsAr.balanced : AppStringsAr.unbalanced,
+                              isBalanced
+                                  ? AppStrings.balanced
+                                  : AppStrings.unbalanced,
                               style: pw.TextStyle(
                                 font: font,
                                 fontSize: 8,
@@ -610,15 +618,18 @@ final class TrialBalancePdfGenerator {
                 padding: const pw.EdgeInsets.all(12),
                 child: pw.Column(
                   children: [
-                    _cardSummaryRow(AppStringsAr.editorial, s.openingDebitMinorUnits,
-                        s.openingCreditMinorUnits, false),
+                    cardSummaryRow(
+                        AppStrings.editorial,
+                        s.openingDebitMinorUnits,
+                        s.openingCreditMinorUnits,
+                        false),
                     pw.SizedBox(height: 4),
-                    _cardSummaryRow(AppStringsAr.movement, s.periodDebitMinorUnits,
+                    cardSummaryRow(AppStrings.movement, s.periodDebitMinorUnits,
                         s.periodCreditMinorUnits, false),
                     pw.SizedBox(height: 8),
                     pw.Divider(thickness: 0.5, color: PdfColors.grey300),
                     pw.SizedBox(height: 8),
-                    _cardSummaryRow(AppStringsAr.closing, s.closingDebitMinorUnits,
+                    cardSummaryRow(AppStrings.closing, s.closingDebitMinorUnits,
                         s.closingCreditMinorUnits, true),
                   ],
                 ),
@@ -650,7 +661,9 @@ final class TrialBalancePdfGenerator {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            'صفحة ${context.pageNumber} من ${context.pagesCount}',
+            isArabic
+                ? 'صفحة ${context.pageNumber} من ${context.pagesCount}'
+                : 'Page ${context.pageNumber} of ${context.pagesCount}',
             style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
           ),
           pw.Row(
@@ -658,7 +671,7 @@ final class TrialBalancePdfGenerator {
                 .map((s) => pw.Padding(
                       padding: const pw.EdgeInsets.only(left: 12),
                       child: pw.Text(
-                        '${CurrencyUtil.getArabicName(s.currencyCode).replaceAll('﷼', AppStringsAr.sar)}: ${_formatMoney(s.closingDebitMinorUnits, s.currencyDigits)} / ${_formatMoney(s.closingCreditMinorUnits, s.currencyDigits)}',
+                        '${CurrencyUtil.getLocalizedName(s.currencyCode).replaceAll('﷼', AppStrings.sar)}: ${_formatMoney(s.closingDebitMinorUnits, s.currencyDigits)} / ${_formatMoney(s.closingCreditMinorUnits, s.currencyDigits)}',
                         style: pw.TextStyle(
                           font: font,
                           fontSize: 7,
@@ -670,7 +683,7 @@ final class TrialBalancePdfGenerator {
                 .toList(),
           ),
           pw.Text(
-            AppStringsAr.thisReportWasGenerated,
+            AppStrings.thisReportWasGenerated,
             style: pw.TextStyle(font: font, fontSize: 7, color: _muted),
           ),
         ],
