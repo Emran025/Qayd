@@ -1,43 +1,43 @@
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
-/// Utility to map ISO currency codes to Arabic names.
+import 'package:qayd/presentation/l10n/app_strings.dart';
+/// Utility to map ISO currency codes to localized names.
 abstract final class CurrencyUtil {
-  static String getArabicName(String code) {
+  static String getLocalizedName(String code) {
     switch (code.toUpperCase()) {
       case 'SAR':
-        return AppStringsAr.saudiRiyals;
+        return AppStrings.saudiRiyals;
       case 'YER':
-        return AppStringsAr.yemeni;
+        return AppStrings.yemeni;
       case 'USD':
-        return AppStringsAr.usDollars;
+        return AppStrings.usDollars;
       case 'AED':
-        return AppStringsAr.emiratiDirham;
+        return AppStrings.emiratiDirham;
       case 'EGP':
-        return AppStringsAr.egyptianPound;
+        return AppStrings.egyptianPound;
       case 'KWD':
-        return AppStringsAr.kuwaitiDinar;
+        return AppStrings.kuwaitiDinar;
       case 'BHD':
-        return AppStringsAr.bahrainiDinar;
+        return AppStrings.bahrainiDinar;
       case 'OMR':
-        return AppStringsAr.omani;
+        return AppStrings.omani;
       case 'QAR':
-        return AppStringsAr.qatari;
+        return AppStrings.qatari;
       case 'TRY':
-        return AppStringsAr.turkishLira;
+        return AppStrings.turkishLira;
       case 'EUR':
-        return AppStringsAr.euro;
+        return AppStrings.euro;
       case 'GBP':
-        return AppStringsAr.britishPounds;
+        return AppStrings.britishPounds;
       case 'XAU':
-        return AppStringsAr.aGramOfGold;
+        return AppStrings.aGramOfGold;
       case 'XAG':
-        return AppStringsAr.aGramOfSilver;
+        return AppStrings.aGramOfSilver;
       default:
         return code;
     }
   }
 
-  /// Formats currency for display by using the Arabic name if available.
+  /// Formats currency for display by using the localized name if available.
   static String formatCurrency(String code) {
-    return getArabicName(code);
+    return getLocalizedName(code);
   }
 }

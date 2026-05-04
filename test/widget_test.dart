@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/main.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_state.dart';
@@ -46,6 +46,6 @@ void ignored_main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text(AppStringsAr.loginTitle), findsOneWidget);
+    expect(find.text(AppStrings.loginTitle), findsOneWidget);
   });
 }
