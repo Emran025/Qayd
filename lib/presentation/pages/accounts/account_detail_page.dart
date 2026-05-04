@@ -67,7 +67,6 @@ class AccountDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AccountDetailCubit, AccountDetailState>(
       builder: (context, state) {
-        final scheme = Theme.of(context).colorScheme;
         return Scaffold(
           appBar: QaydAppBar(
             title: state is AccountDetailReady
@@ -77,16 +76,6 @@ class AccountDetailPage extends StatelessWidget {
               if (state is AccountDetailReady) ...[
                 PopupMenuButton<String>(
                   icon: Icon(Icons.more_vert_rounded),
-                  color: scheme.surface,
-                  surfaceTintColor: Colors.transparent,
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(RadiusTokens.md),
-                    side: BorderSide(
-                      color: scheme.outlineVariant,
-                      width: 1,
-                    ),
-                  ),
                   onSelected: (value) {
                     switch (value) {
                       case 'edit':

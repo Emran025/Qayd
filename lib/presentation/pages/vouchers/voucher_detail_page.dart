@@ -74,7 +74,6 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
   final GlobalKey _boundaryKey = GlobalKey();
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return BlocConsumer<VoucherDetailCubit, VoucherDetailState>(
       listenWhen: (prev, cur) {
         if (cur is VoucherDetailReady && cur.confirmErrorAr != null) {
@@ -139,14 +138,6 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                 PopupMenuButton<String>(
                   icon: Icon(Icons.more_vert_rounded),
                   tooltip: AppStrings.more,
-                  color: scheme.surface,
-                  elevation: 8,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: scheme.outlineVariant.withValues(alpha: 0.5),
-                    ),
-                  ),
                   onSelected: (val) {
                     switch (val) {
                       case 'share_text':
@@ -185,61 +176,48 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                         break;
                     }
                   },
-                  itemBuilder: (ctx) => [
-                    PopupMenuItem(
-                      value: 'share_text',
-                      child: ListTile(
-                        leading: Icon(Icons.text_snippet_outlined),
-                        title: Text(AppStrings.shareAsTextTooltip),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'share_image',
-                      child: ListTile(
-                        leading: Icon(Icons.image_outlined),
-                        title: Text(AppStrings.shareAsImageTooltip),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'share_pdf',
-                      child: ListTile(
-                        leading: Icon(Icons.picture_as_pdf_outlined),
-                        title: Text(AppStrings.exportSharePdfTooltip),
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    if (state.data.qrData != null)
-                      PopupMenuItem(
-                        value: 'qr_code',
-                        child: ListTile(
-                          leading: Icon(Icons.qr_code_2_rounded),
-                          title: Text(AppStrings.qrCodeShowTooltip),
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
+                  itemBuilder: (ctx) {
+                    final scheme = Theme.of(context).colorScheme;
+                    return [
+                      if (state.data.isCreator &&
+                          state.data.stateCode != 'settled' &&
+                          state.data.stateCode != 'withdrawn' &&
+                          state.data.receiverStatusCode != 'accepted') ...[
+                        _buildMenuItem(
+                          value: 'withdraw',
+                          icon: Icons.undo_rounded,
+                          label: AppStrings.statementChatWithdraw,
+                          iconColor: ColorTokens.errorDeep,
                         ),
+                        const PopupMenuDivider(),
+                      ],
+                      _buildMenuItem(
+                        value: 'share_text',
+                        icon: Icons.text_snippet_outlined,
+                        label: AppStrings.shareAsTextTooltip,
+                        iconColor: scheme.onSurfaceVariant,
                       ),
-                    if (state.data.isCreator &&
-                        state.data.stateCode != 'settled' &&
-                        state.data.stateCode != 'withdrawn' &&
-                        state.data.receiverStatusCode != 'accepted')
-                      PopupMenuItem(
-                        value: 'withdraw',
-                        child: ListTile(
-                          leading: Icon(Icons.undo_rounded,
-                              color: ColorTokens.errorDeep),
-                          title: Text(AppStrings.statementChatWithdraw,
-                              style: const TextStyle(
-                                  color: ColorTokens.errorDeep)),
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
+                      _buildMenuItem(
+                        value: 'share_image',
+                        icon: Icons.image_outlined,
+                        label: AppStrings.shareAsImageTooltip,
+                        iconColor: scheme.onSurfaceVariant,
+                      ),
+                      _buildMenuItem(
+                        value: 'share_pdf',
+                        icon: Icons.picture_as_pdf_outlined,
+                        label: AppStrings.exportSharePdfTooltip,
+                        iconColor: scheme.onSurfaceVariant,
+                      ),
+                      if (state.data.qrData != null)
+                        _buildMenuItem(
+                          value: 'qr_code',
+                          icon: Icons.qr_code_2_rounded,
+                          label: AppStrings.qrCodeShowTooltip,
+                          iconColor: scheme.onSurfaceVariant,
                         ),
-                      ),
-                  ],
+                    ];
+                  },
                 ),
               ],
             ],
@@ -361,6 +339,28 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
           )
           .then((_) => cubit.load(data.id));
     }
+  }
+
+  PopupMenuItem<String> _buildMenuItem({
+    required String value,
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: iconColor),
+          SizedBox(width: SpacingTokens.md),
+          QaydText(
+            label,
+            slot: QaydTextStyleSlot.bodyMedium,
+            color: iconColor == ColorTokens.errorDeep ? iconColor : null,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1159,8 +1159,7 @@ class _CostCenterSection extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
                 itemCount: cc.dimensions.length,
-                separatorBuilder: (_, __) =>
-                    SizedBox(height: SpacingTokens.md),
+                separatorBuilder: (_, __) => SizedBox(height: SpacingTokens.md),
                 itemBuilder: (context, index) {
                   final dim = cc.dimensions[index];
                   return Container(
@@ -1287,8 +1286,7 @@ class _AttachmentsSection extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding:
-                       EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: gold.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -1861,47 +1859,50 @@ class _CollateralSummaryCard extends StatelessWidget {
                     ),
               ),
               SizedBox(height: SpacingTokens.xs),
-              ...data.collateralSettlementVoucherIds.asMap().entries.map((e) =>
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(6),
-                      onTap: () => VoucherDetailPage.show(context, e.value),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: SpacingTokens.sm,
-                          vertical: SpacingTokens.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: scheme.surfaceContainerLow,
+              ...data.collateralSettlementVoucherIds
+                  .asMap()
+                  .entries
+                  .map((e) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: InkWell(
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: scheme.outlineVariant.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.receipt_long_rounded,
-                                size: 16, color: statusColor),
-                            SizedBox(width: SpacingTokens.xs),
-                            Expanded(
-                              child: Text(
-                                AppStrings.voucherCollateralSettlementLink(
-                                    e.key + 1),
-                                style: TextStyle(
-                                  color: statusColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                          onTap: () => VoucherDetailPage.show(context, e.value),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: SpacingTokens.sm,
+                              vertical: SpacingTokens.xs,
+                            ),
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: scheme.outlineVariant
+                                    .withValues(alpha: 0.3),
                               ),
                             ),
-                            Icon(Icons.chevron_left_rounded,
-                                size: 16, color: scheme.onSurfaceVariant),
-                          ],
+                            child: Row(
+                              children: [
+                                Icon(Icons.receipt_long_rounded,
+                                    size: 16, color: statusColor),
+                                SizedBox(width: SpacingTokens.xs),
+                                Expanded(
+                                  child: Text(
+                                    AppStrings.voucherCollateralSettlementLink(
+                                        e.key + 1),
+                                    style: TextStyle(
+                                      color: statusColor,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Icon(Icons.chevron_left_rounded,
+                                    size: 16, color: scheme.onSurfaceVariant),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  )),
+                      )),
             ],
 
             SizedBox(height: SpacingTokens.md),
@@ -1940,7 +1941,9 @@ class _CollateralSummaryCard extends StatelessWidget {
                         : Icon(Icons.info_outline_rounded,
                             size: 16, color: gold),
                     label: Text(
-                      loadingCollateral ? AppStrings.loading : AppStrings.viewDetails,
+                      loadingCollateral
+                          ? AppStrings.loading
+                          : AppStrings.viewDetails,
                       style: TextStyle(
                           color: gold,
                           fontWeight: FontWeight.w600,
@@ -2042,7 +2045,9 @@ class _CollateralSummaryCard extends StatelessWidget {
                         size: 16,
                       ),
                       label: Text(
-                        canLiquidate ? AppStrings.liquidationOfMortgage : AppStrings.makeASettlement,
+                        canLiquidate
+                            ? AppStrings.liquidationOfMortgage
+                            : AppStrings.makeASettlement,
                         style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 12,

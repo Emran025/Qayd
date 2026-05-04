@@ -377,10 +377,6 @@ class _DashboardViewState extends State<_DashboardView>
   Widget _actionsMenu(BuildContext context) {
     return PopupMenuButton<String>(
       iconColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(RadiusTokens.lg),
-      ),
-      elevation: 8,
       onSelected: (val) {
         if (val == 'status') {
           context.read<_Cubit>().toggleStatus();

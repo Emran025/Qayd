@@ -199,6 +199,18 @@ abstract final class AppTheme {
         unselectedLabelStyle: textTheme.labelLarge,
         indicatorSize: TabBarIndicatorSize.label,
       ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
+      ),
     );
   }
 }

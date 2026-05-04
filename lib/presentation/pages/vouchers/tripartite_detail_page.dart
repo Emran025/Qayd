@@ -105,8 +105,6 @@ class _ShareMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     // Use the receipt voucher for sharing (it's the "sender" facing document).
     // Falls back to payment voucher if receipt is not available.
     final shareData = data.receiptVoucher ?? data.paymentVoucher;
@@ -115,14 +113,6 @@ class _ShareMenu extends StatelessWidget {
     return PopupMenuButton<String>(
       icon: Icon(Icons.more_vert_rounded),
       tooltip: AppStrings.sharingOptions,
-      color: scheme.surface,
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: scheme.outlineVariant.withValues(alpha: 0.5),
-        ),
-      ),
       onSelected: (val) {
         switch (val) {
           case 'share_text':
