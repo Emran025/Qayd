@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
@@ -100,7 +101,7 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
         title: AppStrings.settingsSectionCurrency,
         centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: QaydFloatingActionButton(
         onPressed: _showAddCurrencyDialog,
         child: Icon(Icons.add),
       ),

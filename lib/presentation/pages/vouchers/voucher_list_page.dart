@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/core/result/result.dart';
@@ -151,7 +152,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
               content: Text(
                 AppStrings.thereIsNoAccount,
               ),
-              backgroundColor: Theme.of(context).colorScheme.error,
+              
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -163,7 +164,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
             content: Text(
               AppStrings.theCodeDoesNot,
             ),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -327,8 +328,6 @@ class _VoucherListViewState extends State<_VoucherListView> {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
-
     return QaydScaffold(
       appBar: QaydAppBar(
         showNotifications: true,
@@ -346,13 +345,13 @@ class _VoucherListViewState extends State<_VoucherListView> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: QaydFloatingActionButton.extended(
         heroTag: 'fab_voucher_list',
         onPressed: () => _openCreate(context),
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.voucherNewTitle),
-        backgroundColor: gold,
-        foregroundColor: ColorTokens.navy950,
+        
+        
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -519,11 +518,6 @@ class _VoucherTile extends StatelessWidget {
     final isReceipt = dto.typeCode == 'receipt';
     final icon =
         isReceipt ? Icons.south_west_rounded : Icons.north_east_rounded;
-    final iconBg = isReceipt
-        ? ColorTokens.emerald600.withValues(alpha: 0.2)
-        : ColorTokens.goldAccent.withValues(alpha: 0.22);
-    final iconFg = isReceipt ? ColorTokens.emerald700 : ColorTokens.navy900;
-
     final dateStr = DateFormat.yMMMd('en').format(DateTime.parse(dto.dateIso));
 
     return Padding(
@@ -541,8 +535,8 @@ class _VoucherTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    backgroundColor: iconBg,
-                    foregroundColor: iconFg,
+                    
+                    
                     child: Icon(icon, size: 22),
                   ),
                   SizedBox(width: SpacingTokens.md),

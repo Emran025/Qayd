@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/cost_center.dart';
@@ -74,18 +75,17 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
 
     return Scaffold(
       appBar: QaydAppBar(title: AppStrings.costCentersTitle),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: QaydFloatingActionButton.extended(
         heroTag: 'fab_cost_center_list',
         onPressed: _openCreate,
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.addCostCenterFab),
-        backgroundColor: gold,
-        foregroundColor: ColorTokens.navy950,
+        
+        
       ),
       body: Column(
         children: [

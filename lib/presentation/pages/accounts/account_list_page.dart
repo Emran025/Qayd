@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -24,7 +25,6 @@ import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_state.dart';
 import 'package:qayd/presentation/pages/accounts/archived_accounts_page.dart';
 import 'package:qayd/presentation/pages/accounts/archived_accounts_cubit.dart';
-import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -162,8 +162,6 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
-
     return QaydScaffold(
       appBar: QaydAppBar(
         showNotifications: true,
@@ -194,7 +192,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: QaydFloatingActionButton.extended(
         heroTag: 'fab_account_list',
         onPressed: () {
           final state = context.read<AccountListCubit>().state;
@@ -207,8 +205,8 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
         },
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.addAccountFab),
-        backgroundColor: gold,
-        foregroundColor: ColorTokens.navy950,
+        
+        
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

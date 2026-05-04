@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -10,7 +11,6 @@ import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_state.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/pages/messaging/template_text_controller.dart';
@@ -384,11 +384,11 @@ class _TemplateListScaffold extends StatelessWidget {
           };
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: QaydFloatingActionButton.extended(
         heroTag: 'fab_template_list',
         onPressed: () => _openCreate(context),
-        backgroundColor: gold,
-        foregroundColor: ColorTokens.navy950,
+        
+        
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.templateAddFab),
       ),
@@ -410,7 +410,7 @@ class _TemplateListScaffold extends StatelessWidget {
             padding: const EdgeInsets.only(left: SpacingTokens.xs),
             child: ActionChip(
               label: Text(v.label, style:  TextStyle(fontSize: 12)),
-              backgroundColor: Colors.amber.withOpacity(0.1),
+              
               side: BorderSide(color: Colors.amber.shade300),
               labelStyle: TextStyle(color: Colors.amber.shade900),
               onPressed: () {

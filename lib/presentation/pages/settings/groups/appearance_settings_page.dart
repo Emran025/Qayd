@@ -10,12 +10,12 @@ class AppearanceSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar:  QaydAppBar(title: AppStrings.settingsGroupAppearance),
-      body: BlocBuilder<AppearanceSettingsCubit, AppearanceSettingsState>(
-        builder: (context, state) {
-          final cubit = context.read<AppearanceSettingsCubit>();
-          return ListView(
+    return BlocBuilder<AppearanceSettingsCubit, AppearanceSettingsState>(
+      builder: (context, state) {
+        final cubit = context.read<AppearanceSettingsCubit>();
+        return Scaffold(
+          appBar: QaydAppBar(title: AppStrings.settingsGroupAppearance),
+          body: ListView(
             padding: const EdgeInsets.all(SpacingTokens.lg),
             children: [
               _buildSectionHeader(context, AppStrings.appearanceThemeMode),
@@ -62,9 +62,9 @@ class AppearanceSettingsPage extends StatelessWidget {
                 onChanged: (val) => cubit.updateLanguage(val!),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -98,10 +98,10 @@ class AppearanceSettingsPage extends StatelessWidget {
     final isDisabled = onChanged == null;
 
     return AnimatedOpacity(
-      duration:  Duration(milliseconds: 250),
+      duration: Duration(milliseconds: 250),
       opacity: isDisabled ? 0.5 : 1.0,
       child: Container(
-        margin:  EdgeInsets.only(bottom: SpacingTokens.sm),
+        margin: EdgeInsets.only(bottom: SpacingTokens.sm),
         decoration: BoxDecoration(
           color: isSelected
               ? theme.colorScheme.primary.withOpacity(0.08)
@@ -119,11 +119,11 @@ class AppearanceSettingsPage extends StatelessWidget {
             onTap: isDisabled ? null : () => onChanged(value),
             borderRadius: BorderRadius.circular(16),
             child: Padding(
-              padding:  EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(
                 children: [
                   Container(
-                    padding:  EdgeInsets.all(8),
+                    padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? theme.colorScheme.primary.withOpacity(0.2)

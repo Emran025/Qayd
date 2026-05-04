@@ -12,7 +12,7 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 
 class SystemSettingsPage extends StatelessWidget {
-   SystemSettingsPage({super.key});
+  SystemSettingsPage({super.key});
 
   void _navTo(BuildContext context, Widget page) {
     Navigator.of(context)
@@ -22,7 +22,7 @@ class SystemSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:  QaydAppBar(title: AppStrings.settingsSystemTitle),
+      appBar: QaydAppBar(title: AppStrings.settingsSystemTitle),
       body: ListView(
         padding: const EdgeInsets.all(SpacingTokens.lg),
         children: [
@@ -42,8 +42,7 @@ class SystemSettingsPage extends StatelessWidget {
             onTap: () => _navTo(context, const SyncPrivacySettingsSection()),
           ),
           SizedBox(height: SpacingTokens.md),
-          _buildSectionHeader(
-              context, AppStrings.settingsSectionCustomization),
+          _buildSectionHeader(context, AppStrings.settingsSectionCustomization),
           _buildSettingsTile(
             context,
             icon: Icons.palette_outlined,
@@ -116,7 +115,7 @@ class SystemSettingsPage extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      margin:  EdgeInsets.only(bottom: SpacingTokens.sm),
+      margin: EdgeInsets.only(bottom: SpacingTokens.sm),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
         borderRadius: BorderRadius.circular(16),
@@ -132,7 +131,7 @@ class SystemSettingsPage extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding:  EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -14,7 +15,6 @@ import 'package:qayd/presentation/pages/management/income_source_type_sheet.dart
 import 'package:qayd/presentation/pages/management/income_stream_detail_page.dart';
 import 'package:qayd/presentation/pages/management/profession_creation_wizard.dart';
 import 'package:qayd/presentation/pages/management/widgets/income_stream_card.dart';
-import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
@@ -133,9 +133,6 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final gold = theme.extension<QaydCustomColors>()!.goldAccent;
-
     if (_isLoadingRoots) {
       return const QaydScaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -209,7 +206,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
               animation: tabController,
               builder: (context, _) {
                 final isExpenseTab = tabController.index == 2;
-                return FloatingActionButton.extended(
+                return QaydFloatingActionButton.extended(
                   heroTag: 'fab_income_streams',
                   onPressed:
                       isExpenseTab ? _openAddExpenseAccount : _openAddWizard,
@@ -217,8 +214,8 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
                   label: Text(isExpenseTab
                       ? AppStrings.incomeStreamsAddExpense
                       : AppStrings.incomeStreamsAddSource),
-                  backgroundColor: gold,
-                  foregroundColor: Colors.black,
+                  
+                  
                 );
               },
             );

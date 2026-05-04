@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
@@ -161,12 +162,12 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
         showNotifications: true,
         title: AppStrings.managementTabFundFlows,
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: QaydFloatingActionButton.extended(
         onPressed: () => _openCreate(context),
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.managementAddFlowFab),
-        backgroundColor: gold,
-        foregroundColor: Colors.black,
+        
+        
       ),
       body: BlocBuilder<VoucherListCubit, VoucherListState>(
         builder: (context, state) {

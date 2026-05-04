@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:intl/intl.dart' hide TextDirection;
@@ -326,7 +327,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
+      
       builder: (ctx) => Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -540,14 +541,14 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         );
 
         return Scaffold(
-          backgroundColor: widget.isEmbedded ? Colors.transparent : null,
+          
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           floatingActionButton: widget.isEmbedded
               ? null
               : Padding(
                   padding: const EdgeInsets.only(
                       bottom: 40.0), // Lift it a bit higher
-                  child: FloatingActionButton.extended(
+                  child: QaydFloatingActionButton.extended(
                     onPressed: () {
                       RequestTripartiteSheet.show(
                         context,
@@ -565,8 +566,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                         Icon(Icons.send_rounded),
                       ],
                     ),
-                    backgroundColor: custom.goldAccent,
-                    foregroundColor: ColorTokens.navy950,
+                    
+                    
                   ),
                 ),
           body: Column(
@@ -847,8 +848,8 @@ class _ChatHeader extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        backgroundColor: custom.debit.withValues(alpha: 0.15),
-                        foregroundColor: custom.debit,
+                        
+                        
                         child: Text(
                           counterpartyName.isNotEmpty
                               ? counterpartyName.trim().substring(0, 1)
@@ -2084,8 +2085,8 @@ class _MessageBubble extends StatelessWidget {
                 icon: Icon(Icons.check_rounded, size: 16),
                 label: Text(AppStrings.statementChatAccept),
                 style: FilledButton.styleFrom(
-                  backgroundColor: statusColor,
-                  foregroundColor: Colors.white,
+                  
+                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2103,7 +2104,7 @@ class _MessageBubble extends StatelessWidget {
                 icon: Icon(Icons.close_rounded, size: 16),
                 label: Text(AppStrings.statementChatReject),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: ColorTokens.errorDeep,
+                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2142,7 +2143,7 @@ class _MessageBubble extends StatelessWidget {
                 icon: Icon(Icons.refresh_rounded, size: 16),
                 label: Text(AppStrings.statementChatResubmit),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: custom.confirmedState,
+                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2165,7 +2166,7 @@ class _MessageBubble extends StatelessWidget {
                 icon: Icon(Icons.undo_rounded, size: 16),
                 label: Text(AppStrings.statementChatWithdraw),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: ColorTokens.errorDeep,
+                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2294,12 +2295,7 @@ class _ViewModeToggle extends StatelessWidget {
           side: WidgetStateProperty.all(
             BorderSide(color: scheme.outline.withOpacity(0.2)),
           ),
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return scheme.primaryContainer.withOpacity(0.4);
-            }
-            return null;
-          }),
+          
         ),
       ),
     );

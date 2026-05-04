@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
 import 'package:qayd/application/cost_centers/dtos/center_voucher_summary.dart';
@@ -195,7 +196,6 @@ class _DashboardViewState extends State<_DashboardView>
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     // final custom = Theme.of(context).extension<QaydCustomColors>()!;
 
     final filtered = _activeDimId == null
@@ -205,7 +205,7 @@ class _DashboardViewState extends State<_DashboardView>
             .toList();
 
     return Scaffold(
-      backgroundColor: scheme.surface,
+      
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
@@ -220,7 +220,7 @@ class _DashboardViewState extends State<_DashboardView>
             stretch: true,
             leading: const BackButton(color: Colors.white),
             iconTheme: const IconThemeData(color: Colors.white),
-            backgroundColor: _typeColor,
+            
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             scrolledUnderElevation: 0,
@@ -349,11 +349,11 @@ class _DashboardViewState extends State<_DashboardView>
   // ── FAB ────────────────────────────────────────────────────────────────────
 
   Widget _buildFab() {
-    return FloatingActionButton.extended(
+    return QaydFloatingActionButton.extended(
       heroTag: 'cost_center_fab',
       onPressed: () => _openChatView(context),
-      backgroundColor: _typeColor,
-      foregroundColor: Colors.white,
+      
+      
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(RadiusTokens.lg),
@@ -499,7 +499,7 @@ class _ActivitySection extends StatelessWidget {
           icon: Icon(Icons.forum_outlined, size: 16),
           label: Text(AppStrings.costCenterViewMoreVouchers),
           style: OutlinedButton.styleFrom(
-            foregroundColor: typeColor,
+            
             side: BorderSide(color: typeColor.withValues(alpha: 0.3)),
             minimumSize: const Size.fromHeight(44),
             shape: RoundedRectangleBorder(

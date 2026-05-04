@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/application/vouchers/dtos/tripartite_transfer_summary_dto.dart';
@@ -164,7 +165,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: QaydFloatingActionButton.extended(
         heroTag: 'fab_tripartite_list',
         onPressed: () async {
           final type = await showTransferTypeSheet(context);
@@ -177,8 +178,8 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
         },
         label: Text(AppStrings.newConversion),
         icon: Icon(Icons.add_rounded),
-        backgroundColor: gold,
-        foregroundColor: ColorTokens.navy950,
+        
+        
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -484,8 +485,8 @@ class _TransferSummaryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                backgroundColor: gold.withValues(alpha: 0.15),
-                foregroundColor: gold,
+                
+                
                 child: Icon(Icons.swap_horiz_rounded, size: 22),
               ),
               SizedBox(width: SpacingTokens.md),

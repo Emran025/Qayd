@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -6,7 +7,6 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/management/asset_creation_wizard_page.dart';
 import 'package:qayd/presentation/pages/management/widgets/personal_accounts_list_view.dart';
-import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class PersonalFlowManagementPage extends StatefulWidget {
@@ -67,8 +67,6 @@ class _PersonalFlowManagementPageState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final gold = theme.extension<QaydCustomColors>()!.goldAccent;
 
     return DefaultTabController(
       length: 2,
@@ -124,12 +122,12 @@ class _PersonalFlowManagementPageState
               animation: tabController,
               builder: (context, _) {
                 if (tabController.index == 0) {
-                  return FloatingActionButton.extended(
+                  return QaydFloatingActionButton.extended(
                     onPressed: _openAssetWizard,
                     icon: Icon(Icons.add_business_rounded),
                     label: Text(AppStrings.managementAddAssetFab),
-                    backgroundColor: gold,
-                    foregroundColor: Colors.black,
+                    
+                    
                   );
                 }
                 // Possibly another FAB for tab 2 if needed

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -9,7 +10,6 @@ import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/accruals/accrual_create_page.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_dashboard_widgets.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
-import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -45,7 +45,6 @@ class _AccrualListPageState extends State<AccrualListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final totalMonthly = _calculateMonthlyTotal();
 
     return Scaffold(
@@ -53,15 +52,15 @@ class _AccrualListPageState extends State<AccrualListPage> {
         title: Text(AppStrings.accrualListTitle),
         leading: const BackButton(),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: QaydFloatingActionButton.extended(
         onPressed: () => Navigator.of(context).push(
           MaterialPageRoute(
               builder: (_) => AccrualCreatePage(onCreated: _load)),
         ),
         label: Text(AppStrings.accrualAddFab),
         icon: Icon(Icons.add_task_rounded),
-        backgroundColor: gold,
-        foregroundColor: ColorTokens.navy950,
+        
+        
       ),
       body: _loading
           ? Center(child: CircularProgressIndicator())
@@ -382,9 +381,8 @@ class _AccrualCard extends StatelessWidget {
                     icon: Icon(Icons.payments_rounded, size: 20),
                     tooltip: AppStrings.accrualPayTooltip,
                     style: IconButton.styleFrom(
-                      backgroundColor:
-                          ColorTokens.emerald400.withValues(alpha: 0.1),
-                      foregroundColor: ColorTokens.emerald400,
+                      
+                      
                     ),
                   ),
                 ],
