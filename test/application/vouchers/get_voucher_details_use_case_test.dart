@@ -10,6 +10,7 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
@@ -36,6 +37,9 @@ class MockCostCenterRepository extends Mock implements CostCenterRepository {}
 
 class MockLedgerRepository extends Mock implements LedgerRepository {}
 
+class MockSignatureVerificationEngine extends Mock
+    implements SignatureVerificationEngine {}
+
 class FakeVoucher extends Fake implements Voucher {}
 
 void main() {
@@ -53,6 +57,7 @@ void main() {
   late MockCollateralRepository mockCollateralRepo;
   late MockCostCenterRepository mockCostCenterRepo;
   late MockLedgerRepository mockLedgerRepo;
+  late MockSignatureVerificationEngine mockVerificationEngine;
 
   setUp(() {
     mockVoucherRepo = MockVoucherRepository();
@@ -63,6 +68,7 @@ void main() {
     mockCollateralRepo = MockCollateralRepository();
     mockCostCenterRepo = MockCostCenterRepository();
     mockLedgerRepo = MockLedgerRepository();
+    mockVerificationEngine = MockSignatureVerificationEngine();
 
     useCase = GetVoucherDetailsUseCase(
       mockVoucherRepo,
@@ -73,6 +79,7 @@ void main() {
       mockCollateralRepo,
       mockCostCenterRepo,
       mockLedgerRepo,
+      mockVerificationEngine,
     );
 
     // Default stub for ledger entries to avoid breaking existing tests

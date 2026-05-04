@@ -214,6 +214,15 @@ class CreateVoucherUseCase {
           notes: input.notes,
           tripartiteMeta: tripartiteMeta,
           attachmentRefs: attachmentRefs,
+          senderSignatureHex: input.senderSignatureHex,
+          senderPublicKeyHex: input.senderPublicKeyHex,
+          receiverSignatureHex: input.receiverSignatureHex,
+          receiverPublicKeyHex: input.receiverPublicKeyHex,
+          // Freeze canonical phones from QR if provided (v2.1 protocol).
+          // qrSignerPhone = Party A (original QR issuer = sender).
+          // qrReceiverPhone = Party B (scanner = current user = receiver).
+          canonicalSenderPhone: input.qrSignerPhone,
+          canonicalReceiverPhone: input.qrReceiverPhone,
           originVoucherId: input.originVoucherId != null
               ? VoucherId(input.originVoucherId!)
               : null,
@@ -244,13 +253,19 @@ class CreateVoucherUseCase {
               receiptUuid: voucherId.value,
             );
 
+            // If it already has a sender signature from QR, we sign as receiver.
+            final shouldSignAsSender = voucher.senderSignatureHex == null;
+
             final signature = _signingService!.signReceipt(signable, keyPair);
             voucher = voucher.attachSignature(
               signatureHex: signature.signatureHex,
               publicKeyHex: signature.signerPublicKeyHex,
-              isSender: true,
+              isSender: shouldSignAsSender,
               status: AgreementStatus.accepted,
               signerPhone: myPhone,
+              // Freeze canonical phones at point of signing.
+              canonicalSenderPhone: shouldSignAsSender ? myPhone : (voucher.canonicalSenderPhone ?? voucher.signerPhone),
+              canonicalReceiverPhone: shouldSignAsSender ? cpPhone : (voucher.canonicalReceiverPhone ?? myPhone),
             );
           }
         }

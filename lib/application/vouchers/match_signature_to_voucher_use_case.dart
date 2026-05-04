@@ -113,6 +113,9 @@ class MatchSignatureToVoucherUseCase {
         isSender: false, // The counterparty (receiver) signed.
         status: agreementStatus,
         signerPhone: incomingReceipt.senderPhone,
+        // Canonical phones: senderPhone = A (the QR issuer), receiverPhone = B (us).
+        canonicalSenderPhone: incomingReceipt.senderPhone,
+        canonicalReceiverPhone: incomingReceipt.receiverPhone,
       );
 
       final saveResult = await _voucherRepository.save(updatedVoucher);

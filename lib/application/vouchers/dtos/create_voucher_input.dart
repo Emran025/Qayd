@@ -34,6 +34,12 @@ class CreateVoucherInput {
     this.confirm = false,
     this.costCenterTags = const [],
     this.collateral,
+    this.senderSignatureHex,
+    this.senderPublicKeyHex,
+    this.receiverSignatureHex,
+    this.receiverPublicKeyHex,
+    this.qrSignerPhone,
+    this.qrReceiverPhone,
   });
 
   final VoucherType type;
@@ -63,6 +69,21 @@ class CreateVoucherInput {
 
   /// Optional collateral (رهن / ضمان) details.
   final CreateCollateralInput? collateral;
+
+  // Digital signature fields from QR
+  final String? senderSignatureHex;
+  final String? senderPublicKeyHex;
+  final String? receiverSignatureHex;
+  final String? receiverPublicKeyHex;
+
+  /// Phone of the QR issuer (Party A — the original signer).
+  /// Passed when creating a voucher from a scanned QR so that
+  /// [canonicalSenderPhone] is set correctly on the resulting entity.
+  final String? qrSignerPhone;
+
+  /// Phone of the local user when creating from QR (Party B — the receiver).
+  /// Combined with [qrSignerPhone] to fully populate the canonical phones.
+  final String? qrReceiverPhone;
 }
 
 class CreateCollateralInput {

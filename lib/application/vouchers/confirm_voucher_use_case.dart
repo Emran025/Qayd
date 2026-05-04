@@ -3,7 +3,6 @@ import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_output.dart';
-import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
@@ -17,7 +16,11 @@ import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
-import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/services/receipt_signing_service.dart';
+import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
+import 'package:qayd/domain/value_objects/signable_receipt.dart';
+import 'package:qayd/data/security/license_vault.dart';
 
 
 class ConfirmVoucherUseCase {
@@ -26,15 +29,27 @@ class ConfirmVoucherUseCase {
     this._entryGenerator,
     this._idGenerator,
     this._writeGuard, {
+    AccountRepository? accountRepository,
+    ReceiptSigningService? signingService,
+    Future<CryptoKeyPair?> Function()? getKeyPair,
+    LicenseVault? licenseVault,
     SyncEventDispatcher? syncEventDispatcher,
     AuditLogService? auditLogService,
-  })  : _syncEventDispatcher = syncEventDispatcher,
+  })  : _accountRepository = accountRepository,
+        _signingService = signingService,
+        _getKeyPair = getKeyPair,
+        _licenseVault = licenseVault,
+        _syncEventDispatcher = syncEventDispatcher,
         _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final EntryGenerator _entryGenerator;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final AccountRepository? _accountRepository;
+  final ReceiptSigningService? _signingService;
+  final Future<CryptoKeyPair?> Function()? _getKeyPair;
+  final LicenseVault? _licenseVault;
   final SyncEventDispatcher? _syncEventDispatcher;
   final AuditLogService? _auditLogService;
 
@@ -56,17 +71,55 @@ class ConfirmVoucherUseCase {
       // We don't block local accounting just because the counterparty hasn't signed yet.
       if (draft.senderStatus != AgreementStatus.accepted &&
           draft.receiverStatus != AgreementStatus.accepted) {
-        return  FailureResult(
-          ValidationFailure(
-            messageAr:
-                AppStrings.theBondCannotBe,
-            code: 'voucher_not_signed',
-          ),
-        );
+        // If it's not signed at all, we will sign it now as creator.
+      }
+
+      var voucherToConfirm = draft;
+
+      // §2.A: Digital Signing
+      if (_signingService != null && _getKeyPair != null && _licenseVault != null) {
+        final keyPair = await _getKeyPair!();
+        if (keyPair != null) {
+          final licenseData = await _licenseVault!.readLicenseData();
+          final myPhone = (licenseData?['user']?['phone'] ?? licenseData?['phone']) as String? ?? '';
+
+          String cpPhone = '';
+          if (_accountRepository != null) {
+            final cpParty = await _accountRepository!.getPartyDetails(
+              draft.counterpartyId,
+            );
+            cpPhone = cpParty.valueOrNull?.phoneNumber ?? '';
+          }
+
+          final signable = SignableReceipt(
+            amountMinor: draft.amount.minorUnits,
+            currencyCode: draft.currency.code,
+            senderPhone: myPhone,
+            receiverPhone: cpPhone,
+            dateIso: draft.date.toIso8601String().split('T').first,
+            receiptUuid: draft.id.value,
+          );
+
+          // If it already has a sender signature (e.g. from QR scan), we sign as receiver.
+          final shouldSignAsSender = draft.senderSignatureHex == null;
+
+          final signature = _signingService!.signReceipt(signable, keyPair);
+          voucherToConfirm = draft.attachSignature(
+            signatureHex: signature.signatureHex,
+            publicKeyHex: signature.signerPublicKeyHex,
+            isSender: shouldSignAsSender,
+            status: AgreementStatus.accepted,
+            signerPhone: myPhone,
+            // Freeze the canonical phones so verification can always reconstruct
+            // the exact payload regardless of who opens the voucher details later.
+            canonicalSenderPhone: shouldSignAsSender ? myPhone : draft.canonicalSenderPhone ?? draft.signerPhone,
+            canonicalReceiverPhone: shouldSignAsSender ? cpPhone : (draft.canonicalReceiverPhone ?? myPhone),
+          );
+        }
       }
 
       final now = DateTime.now();
-      final confirmed = draft.confirm(now);
+      final confirmed = voucherToConfirm.confirm(now);
 
       final transactionId = TransactionId(_idGenerator.next());
       final debitEntryId = EntryId(_idGenerator.next());
@@ -150,6 +203,7 @@ class ConfirmVoucherUseCase {
       if (!siblingMeta.isContingent) continue;
 
       // Release the contingent flag by restoring with updated meta.
+      // Preserve canonical phones so verification remains possible after release.
       final released = Voucher.restore(
         id: sibling.id,
         type: sibling.type,
@@ -175,6 +229,8 @@ class ConfirmVoucherUseCase {
         receiverPublicKeyHex: sibling.receiverPublicKeyHex,
         lifecycleStatus: sibling.lifecycleStatus,
         signerPhone: sibling.signerPhone,
+        canonicalSenderPhone: sibling.canonicalSenderPhone,
+        canonicalReceiverPhone: sibling.canonicalReceiverPhone,
         tripartiteMeta: siblingMeta.release(),
       );
       await _voucherRepository.save(released);

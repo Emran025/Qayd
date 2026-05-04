@@ -49,6 +49,8 @@ class GetVoucherDetailsOutput {
     this.costCenters = const [],
     this.isCreator = true,
     this.counterpartyBalances = const {},
+    this.isSenderSignatureVerified = false,
+    this.isReceiverSignatureVerified = false,
   });
 
   final String id;
@@ -87,6 +89,8 @@ class GetVoucherDetailsOutput {
   final String? receiverPublicKeyHex;
   final String senderStatusCode;
   final String receiverStatusCode;
+  final bool isSenderSignatureVerified;
+  final bool isReceiverSignatureVerified;
   final bool canApprove;
   final String? originVoucherId;
 

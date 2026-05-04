@@ -51,6 +51,8 @@ class Voucher {
     this.receiverPublicKeyHex,
     required this.lifecycleStatus,
     required this.signerPhone,
+    this.canonicalSenderPhone,
+    this.canonicalReceiverPhone,
     required this.tripartiteMeta,
     required this.originVoucherId,
     required this.rejectionReason,
@@ -103,6 +105,18 @@ class Voucher {
 
   /// Phone number of the counterparty (for discovery/matching).
   final String? signerPhone;
+
+  // ── Canonical Signature Phones (Protocol v2.1) ──────────────────────────
+
+  /// The sender's phone number **at the time of signing** (Party A).
+  /// Frozen on first signature and never overwritten by subsequent operations.
+  /// Used to reconstruct the canonical payload for integrity verification.
+  final String? canonicalSenderPhone;
+
+  /// The receiver's phone number **at the time of signing** (Party B).
+  /// Frozen on first signature and never overwritten by subsequent operations.
+  /// Used to reconstruct the canonical payload for integrity verification.
+  final String? canonicalReceiverPhone;
 
   // ── Tripartite transfer fields ──────────────────────────────────────────
 
@@ -184,6 +198,8 @@ class Voucher {
     String? receiverPublicKeyHex,
     VoucherLifecycle lifecycleStatus = VoucherLifecycle.draft,
     String? signerPhone,
+    String? canonicalSenderPhone,
+    String? canonicalReceiverPhone,
     TripartiteMeta? tripartiteMeta,
     VoucherId? originVoucherId,
     String? rejectionReason,
@@ -216,6 +232,8 @@ class Voucher {
       receiverPublicKeyHex: receiverPublicKeyHex,
       lifecycleStatus: lifecycleStatus,
       signerPhone: signerPhone,
+      canonicalSenderPhone: canonicalSenderPhone,
+      canonicalReceiverPhone: canonicalReceiverPhone,
       tripartiteMeta: tripartiteMeta,
       originVoucherId: originVoucherId,
       rejectionReason: rejectionReason,
@@ -246,7 +264,11 @@ class Voucher {
     List<String> tags = const [],
     String? senderSignatureHex,
     String? senderPublicKeyHex,
+    String? receiverSignatureHex,
+    String? receiverPublicKeyHex,
     String? signerPhone,
+    String? canonicalSenderPhone,
+    String? canonicalReceiverPhone,
     TripartiteMeta? tripartiteMeta,
     VoucherId? originVoucherId,
   }) {
@@ -266,8 +288,9 @@ class Voucher {
     // Policy v2.0:
     // Creating the voucher constitutes implicit approval by the sender.
     // Documentation completion requires the receiver's signature.
-    const senderStatus = AgreementStatus.accepted;
-    const receiverStatus = AgreementStatus.underRequest;
+    final senderStatus = senderSignatureHex != null ? AgreementStatus.accepted : AgreementStatus.accepted; 
+    // Wait, if I am creating it, I am the sender, so I accept it by default.
+    final receiverStatus = receiverSignatureHex != null ? AgreementStatus.accepted : AgreementStatus.underRequest;
     const lifecycleStatus = VoucherLifecycle.draft;
 
     return Voucher._(
@@ -290,11 +313,13 @@ class Voucher {
       senderStatus: senderStatus,
       receiverStatus: receiverStatus,
       senderSignatureHex: senderSignatureHex,
-      receiverSignatureHex: null,
+      receiverSignatureHex: receiverSignatureHex,
       senderPublicKeyHex: senderPublicKeyHex,
-      receiverPublicKeyHex: null,
+      receiverPublicKeyHex: receiverPublicKeyHex,
       lifecycleStatus: lifecycleStatus,
       signerPhone: signerPhone,
+      canonicalSenderPhone: canonicalSenderPhone,
+      canonicalReceiverPhone: canonicalReceiverPhone,
       tripartiteMeta: tripartiteMeta,
       originVoucherId: originVoucherId,
       rejectionReason: null,
@@ -356,12 +381,18 @@ class Voucher {
   }
 
   /// Attaches a cryptographic signature to a voucher from either party.
+  ///
+  /// [canonicalSenderPhone] and [canonicalReceiverPhone] are frozen on the
+  /// **first** call (i.e. when the sender signs). Subsequent calls (receiver)
+  /// must NOT overwrite them so the payload remains reconstructible.
   Voucher attachSignature({
     required String signatureHex,
     required String publicKeyHex,
     required bool isSender,
     required AgreementStatus status,
     String? signerPhone,
+    String? canonicalSenderPhone,
+    String? canonicalReceiverPhone,
   }) {
     return _copyWith(
       senderSignatureHex: isSender ? signatureHex : senderSignatureHex,
@@ -371,6 +402,9 @@ class Voucher {
       senderStatus: isSender ? status : senderStatus,
       receiverStatus: !isSender ? status : receiverStatus,
       signerPhone: signerPhone ?? this.signerPhone,
+      // Freeze canonical phones on first write; never overwrite if already set.
+      canonicalSenderPhone: this.canonicalSenderPhone ?? canonicalSenderPhone,
+      canonicalReceiverPhone: this.canonicalReceiverPhone ?? canonicalReceiverPhone,
     );
   }
 
@@ -494,6 +528,8 @@ class Voucher {
     String? receiverPublicKeyHex,
     VoucherLifecycle? lifecycleStatus,
     String? signerPhone,
+    String? canonicalSenderPhone,
+    String? canonicalReceiverPhone,
     String? rejectionReason,
     TripartiteMeta? tripartiteMeta,
     VoucherId? originVoucherId,
@@ -523,6 +559,8 @@ class Voucher {
       receiverPublicKeyHex: receiverPublicKeyHex ?? this.receiverPublicKeyHex,
       lifecycleStatus: lifecycleStatus ?? this.lifecycleStatus,
       signerPhone: signerPhone ?? this.signerPhone,
+      canonicalSenderPhone: canonicalSenderPhone ?? this.canonicalSenderPhone,
+      canonicalReceiverPhone: canonicalReceiverPhone ?? this.canonicalReceiverPhone,
       tripartiteMeta: tripartiteMeta ?? this.tripartiteMeta,
       originVoucherId: originVoucherId ?? this.originVoucherId,
       rejectionReason: rejectionReason ?? this.rejectionReason,

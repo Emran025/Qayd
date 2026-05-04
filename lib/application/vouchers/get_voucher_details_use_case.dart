@@ -7,6 +7,7 @@ import 'package:qayd/domain/repositories/attachment_repository.dart';
 import 'package:qayd/domain/repositories/collateral_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/entry_id.dart';
@@ -31,6 +32,7 @@ class GetVoucherDetailsUseCase {
     this._collateralRepository,
     this._costCenterRepository,
     this._ledgerRepository,
+    this._verificationEngine,
   );
 
   final VoucherRepository _voucherRepository;
@@ -41,6 +43,7 @@ class GetVoucherDetailsUseCase {
   final CollateralRepository _collateralRepository;
   final CostCenterRepository _costCenterRepository;
   final LedgerRepository _ledgerRepository;
+  final SignatureVerificationEngine _verificationEngine;
 
   Future<Result<GetVoucherDetailsOutput>> call(
     GetVoucherDetailsInput input,
@@ -264,6 +267,47 @@ class GetVoucherDetailsUseCase {
         }
       }
 
+      // ── Digital Signature Verification ───────────────────────────────────
+      bool isSenderVerified = false;
+      bool isReceiverVerified = false;
+
+      // Protocol v2.1: Use frozen canonical phones when available.
+      // These were recorded at the time of signing and never change,
+      // guaranteeing an identical payload reconstruction for any viewer.
+      //
+      // Fallback (legacy vouchers pre-v28):
+      //   - senderPhone: signerPhone (best guess for sender)
+      //   - receiverPhone: ownerPhone (current user, works only if they are B)
+      final senderPhone = v.canonicalSenderPhone
+          ?? v.signerPhone
+          ?? '';
+      final receiverPhone = v.canonicalReceiverPhone
+          ?? ownerPhone
+          ?? '';
+
+      // Only verify if we have a meaningful payload (non-empty phones).
+      final canVerify = senderPhone.isNotEmpty && receiverPhone.isNotEmpty;
+
+      if (canVerify && v.senderSignatureHex != null && v.senderPublicKeyHex != null) {
+        isSenderVerified = _verificationEngine.verifyIntegrity(
+          voucher: v,
+          senderPhone: senderPhone,
+          receiverPhone: receiverPhone,
+          signatureHex: v.senderSignatureHex!,
+          publicKeyHex: v.senderPublicKeyHex!,
+        );
+      }
+
+      if (canVerify && v.receiverSignatureHex != null && v.receiverPublicKeyHex != null) {
+        isReceiverVerified = _verificationEngine.verifyIntegrity(
+          voucher: v,
+          senderPhone: senderPhone,
+          receiverPhone: receiverPhone,
+          signatureHex: v.receiverSignatureHex!,
+          publicKeyHex: v.receiverPublicKeyHex!,
+        );
+      }
+
       return Success(
         GetVoucherDetailsOutput(
           id: v.id.value,
@@ -305,6 +349,8 @@ class GetVoucherDetailsUseCase {
           receiverPublicKeyHex: v.receiverPublicKeyHex,
           senderStatusCode: v.senderStatus.name,
           receiverStatusCode: v.receiverStatus.name,
+          isSenderSignatureVerified: isSenderVerified,
+          isReceiverSignatureVerified: isReceiverVerified,
           canApprove: canApprove,
           originVoucherId: v.originVoucherId?.value,
           attachmentCount: attachmentCount,

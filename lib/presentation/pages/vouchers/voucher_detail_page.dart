@@ -665,6 +665,11 @@ class _VoucherDetailBody extends StatelessWidget {
                 ),
               ],
             ),
+            if (data.senderSignatureHex != null ||
+                data.receiverSignatureHex != null) ...[
+              SizedBox(height: SpacingTokens.sm),
+              _SignatureIntegrityBadge(data: data),
+            ],
             SizedBox(height: SpacingTokens.md),
 
             // ── Amount card (Light Premium Redesign) ─────────────────────
@@ -2336,6 +2341,86 @@ class _FlowNode extends StatelessWidget {
           color: isActive ? scheme.onSurface : scheme.onSurfaceVariant,
         ),
       ],
+    );
+  }
+}
+
+class _SignatureIntegrityBadge extends StatelessWidget {
+  const _SignatureIntegrityBadge({required this.data});
+
+  final GetVoucherDetailsOutput data;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSender = data.senderSignatureHex != null;
+    final hasReceiver = data.receiverSignatureHex != null;
+
+    // ── No signatures at all → nothing to show ─────────────────────────
+    if (!hasSender && !hasReceiver) return const SizedBox.shrink();
+
+    // ── Sender signed but receiver hasn't yet → Pending state ──────────
+    // Don't punish the badge with "mismatch" when there's simply nothing
+    // to verify yet from the receiver side.
+    final awaitingReceiver = hasSender && !hasReceiver;
+    if (awaitingReceiver) {
+      const pendingColor = Color(0xFFF59E0B); // amber
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: pendingColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: pendingColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.hourglass_top_rounded, size: 16, color: pendingColor),
+            const SizedBox(width: 6),
+            Flexible(
+              child: QaydText(
+                AppStrings.voucherSignaturePendingCounterparty,
+                slot: QaydTextStyleSlot.labelSmall,
+                color: const Color(0xFF92400E),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ── At least one signature exists → verify what we have ─────────────
+    // A side is considered "bad" only if it HAS a signature AND it failed.
+    final senderBad = hasSender && !data.isSenderSignatureVerified;
+    final receiverBad = hasReceiver && !data.isReceiverSignatureVerified;
+    final allVerified = !senderBad && !receiverBad;
+
+    final color = allVerified ? ColorTokens.emerald500 : Colors.red;
+    final icon = allVerified ? Icons.verified_rounded : Icons.gpp_bad_rounded;
+    final text = allVerified
+        ? AppStrings.voucherSignatureMatchesData
+        : AppStrings.voucherSignatureMismatchData;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Flexible(
+            child: QaydText(
+              text,
+              slot: QaydTextStyleSlot.labelSmall,
+              color: allVerified ? ColorTokens.emerald700 : Colors.red.shade900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

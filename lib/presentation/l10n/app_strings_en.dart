@@ -4303,6 +4303,16 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get voucherSignatureStatusLabel => 'Signatures Status';
   @override
+  String get voucherSignatureMatchesData =>
+      'Counterparty signature matches current data';
+  @override
+  String get voucherSignatureMismatchData =>
+      'Attached signature does not match modified amount or data';
+  @override
+  String get voucherSignaturePendingCounterparty =>
+      'Awaiting counterparty signature';
+
+  @override
   String get voucherStateConfirmed => 'Confirmed (On Account)';
   @override
   String get voucherStateDraft => 'Draft';

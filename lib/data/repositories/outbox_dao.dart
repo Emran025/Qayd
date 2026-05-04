@@ -158,6 +158,17 @@ class OutboxDao {
     );
   }
 
+  /// Checks if an entry for this voucher and event type already exists.
+  Future<bool> exists(String voucherId, String eventType) async {
+    final rows = await _db.query(
+      _table,
+      where: 'voucher_id = ? AND event_type = ?',
+      whereArgs: [voucherId, eventType],
+      limit: 1,
+    );
+    return rows.isNotEmpty;
+  }
+
   /// Purge delivered entries older than [days] from the outbox.
   Future<void> purgeDelivered({int days = 30}) async {
     final cutoff =

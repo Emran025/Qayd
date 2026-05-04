@@ -2204,6 +2204,11 @@ abstract class AppStringsBase {
   String get voucherSettledAtLabel => 'تاريخ التسوية';
   String get voucherSettlementIndicator => ' تسوية';
   String get voucherSignatureStatusLabel => 'حالة التوقيعات';
+  String get voucherSignatureMatchesData => 'توقيع الطرف الآخر مطابق للبيانات الحالية';
+  String get voucherSignatureMismatchData =>
+      'التوقيع المرفق لا يطابق المبلغ أو البيانات المعدلة';
+  String get voucherSignaturePendingCounterparty =>
+      'بانتظار توقيع الطرف الآخر';
   String get voucherStateConfirmed => 'مؤكد (على الحساب)';
   String get voucherStateDraft => 'مسودة';
   String get voucherStateSent => 'مرسل مجهول';

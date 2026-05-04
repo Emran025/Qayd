@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/repositories/outbox_dao.dart';
@@ -11,7 +12,6 @@ import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:uuid/uuid.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
-
 
 /// Centralizes the encryption and enqueuing of financial mutations into the Local Outbox.
 ///
@@ -50,6 +50,8 @@ class SyncEventDispatcher {
         'sender_signature_hex': voucher.senderSignatureHex,
         'sender_public_key_hex': voucher.senderPublicKeyHex,
         'signer_phone': voucher.signerPhone,
+        'canonical_sender_phone': voucher.canonicalSenderPhone,
+        'canonical_receiver_phone': voucher.canonicalReceiverPhone,
         'origin_voucher_id': voucher.originVoucherId?.value,
         'reference_number': voucher.referenceNumber,
       },
@@ -125,15 +127,15 @@ class SyncEventDispatcher {
   }) async {
     try {
       final senderKeyPair = await getCurrentUserKeyPair();
-      if (senderKeyPair == null) return  Success(null);
+      if (senderKeyPair == null) return Success(null);
 
       // 1. Resolve counterparty public key.
       final partyResult = await accountRepository
           .getPartyDetails(AccountId(counterpartyAccountId));
       final party = partyResult.valueOrNull;
       if (party == null) {
-        return  FailureResult(ValidationFailure(
-            messageAr: AppStrings.noCounterpartyDataFound));
+        return FailureResult(
+            ValidationFailure(messageAr: AppStrings.noCounterpartyDataFound));
       }
 
       String? receiverPubKey = party.currentPublicKeyHex;
@@ -152,7 +154,7 @@ class SyncEventDispatcher {
 
         // §6: Sync Privacy Policy — check if target has restricted access.
         if (serverIdentity != null && serverIdentity.syncBlocked) {
-          return  FailureResult(ValidationFailure(
+          return FailureResult(ValidationFailure(
             messageAr: AppStrings.theCounterpartyHasRestricted,
           ));
         }
@@ -171,9 +173,10 @@ class SyncEventDispatcher {
         // ── Queue Suspension ──────────────────────────────────────────────────
         // If we cannot find a public key, we cannot encrypt.
         // Synchronous flows must stop here to prevent "Plaintext Leakage".
-        return  FailureResult(ValidationFailure(
-          messageAr:
-              AppStrings.theCounterpartysPublicKey,
+        debugPrint(
+            'Sync: ⚠️ Discovery failed for party $counterpartyAccountId. Enqueueing suspended.');
+        return FailureResult(ValidationFailure(
+          messageAr: AppStrings.theCounterpartysPublicKey,
         ));
       }
 
@@ -200,9 +203,11 @@ class SyncEventDispatcher {
     } catch (e) {
       // Gracefully handle network or encryption errors.
       // We don't want to throw and break the main local transaction.
+      final msg =
+          'فشل المزامنة المحلية: ${TextSanitizer.sanitizeErrorMessage(e)}';
+      debugPrint('Sync: ❌ Dispatch failure for $eventType: $msg');
       return FailureResult(DatabaseFailure(
-        messageAr:
-            'فشل المزامنة المحلية: ${TextSanitizer.sanitizeErrorMessage(e)}',
+        messageAr: msg,
       ));
     }
   }

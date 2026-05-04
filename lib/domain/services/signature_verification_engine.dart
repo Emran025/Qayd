@@ -179,6 +179,39 @@ class SignatureVerificationEngine {
     }
   }
 
+  /// Performs a low-level integrity check against a specific signature and phones.
+  /// Used for "Tamper Detection" on existing vouchers.
+  bool verifyIntegrity({
+    required Voucher voucher,
+    required String senderPhone,
+    required String receiverPhone,
+    required String signatureHex,
+    required String publicKeyHex,
+  }) {
+    try {
+      final signable = SignableReceipt(
+        amountMinor: voucher.amount.minorUnits,
+        currencyCode: voucher.currency.code,
+        senderPhone: senderPhone,
+        receiverPhone: receiverPhone,
+        dateIso: voucher.date.toIso8601String().split('T').first,
+        receiptUuid: voucher.id.value,
+      );
+
+      final payloadHash = _signing.hashPayload(signable.canonicalPayload);
+      final signatureBytes = _hexToBytes(signatureHex);
+      final publicKeyBytes = _hexToBytes(publicKeyHex);
+
+      return _signing.verifyRaw(
+        signatureBytes: signatureBytes,
+        payloadHash: payloadHash,
+        publicKey: publicKeyBytes,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
   static Uint8List _hexToBytes(String hex) {
     if (hex.length % 2 != 0) {
       throw ArgumentError('Odd-length hex string: ${hex.length}');

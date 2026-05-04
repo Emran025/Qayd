@@ -685,6 +685,8 @@ abstract final class InjectionContainer {
       notificationMessageRepository: notificationMessageRepository,
       outboxDao: outboxDao,
       watermarkDao: syncWatermarkDao,
+      voucherRepository: voucherRepository,
+      syncEventDispatcher: syncEventDispatcher,
     );
 
     if (userId > 0) {
@@ -726,6 +728,11 @@ abstract final class InjectionContainer {
     );
 
     accountRepository = SqliteAccountRepository(database);
+    signatureVerificationEngine = SignatureVerificationEngine(
+      signingService: receiptSigningService,
+      accountRepository: accountRepository,
+      identityRepository: identityRepository,
+    );
     ledgerRepository = SqliteLedgerRepository(database);
     final transactionRunner = DatabaseTransactionRunner(database);
     voucherRepository = SqliteVoucherRepository(database, transactionRunner);
@@ -877,6 +884,10 @@ abstract final class InjectionContainer {
       entryGenerator,
       _idGenerator,
       governanceWriteGuard,
+      accountRepository: accountRepository,
+      signingService: receiptSigningService,
+      getKeyPair: () => setupIdentityUseCase.getKeyPair(),
+      licenseVault: licenseVault,
       syncEventDispatcher: syncEventDispatcher,
       auditLogService: auditLogService,
     );
@@ -903,6 +914,7 @@ abstract final class InjectionContainer {
       collateralRepository,
       costCenterRepository,
       ledgerRepository,
+      signatureVerificationEngine,
     );
 
     syncIdentityToInternalAccountsUseCase =
@@ -987,11 +999,6 @@ abstract final class InjectionContainer {
     );
 
     // ── Digital Signature Protocol services ────────────────────────────────
-    signatureVerificationEngine = SignatureVerificationEngine(
-      signingService: receiptSigningService,
-      accountRepository: accountRepository,
-      identityRepository: identityRepository,
-    );
     verifyIncomingVoucherUseCase = VerifyIncomingVoucherUseCase(
       voucherRepository: voucherRepository,
       accountRepository: accountRepository,

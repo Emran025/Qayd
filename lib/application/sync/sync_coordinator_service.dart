@@ -10,6 +10,10 @@ import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/data/repositories/outbox_dao.dart';
 import 'package:qayd/data/repositories/sync_watermark_dao.dart';
+import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
+import 'package:qayd/domain/value_objects/voucher_state.dart';
+import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/core/result/result.dart';
 
@@ -27,6 +31,8 @@ class SyncCoordinatorService {
     required this.outboxDao,
     required this.watermarkDao,
     required this.currentUserId,
+    required this.voucherRepository,
+    required this.syncEventDispatcher,
     this.collateralExpiryChecker,
     this.syncInterval = const Duration(minutes: 10),
   });
@@ -40,6 +46,8 @@ class SyncCoordinatorService {
   final OutboxDao outboxDao;
   final SyncWatermarkDao watermarkDao;
   final int currentUserId;
+  final VoucherRepository voucherRepository;
+  final SyncEventDispatcher syncEventDispatcher;
   final CollateralExpiryChecker? collateralExpiryChecker;
   final Duration syncInterval;
 
@@ -157,7 +165,10 @@ class SyncCoordinatorService {
   /// Delta fetch capturing any encrypted nodes missed while socket disconnected
   Future<void> _catchUpSync() async {
     try {
-      // 1. Flush local outbox to server
+      // 1. Attempt to discover identities and enqueue vouchers that failed initial sync
+      await _reSyncUnsyncedVouchers();
+
+      // 2. Flush local outbox to server
       await _flushOutbox();
 
       // 2. Fetch server-side watermark or last sync time
@@ -177,7 +188,34 @@ class SyncCoordinatorService {
         await _acknowledge(ids, 'delivered');
       }
     } catch (e) {
-      debugPrint('Sync Coordinator caught error during Catch-Up: $e');
+      debugPrint('Sync: ❌ Catch-Up error: $e');
+    }
+  }
+
+  /// Scans for confirmed vouchers that were never enqueued to the outbox
+  /// (usually due to a missing public key during creation).
+  Future<void> _reSyncUnsyncedVouchers() async {
+    try {
+      debugPrint('Sync: 🔍 Scanning for unsynced vouchers...');
+      
+      // Fetch vouchers that are confirmed but might be missing from outbox
+      final filter = VoucherQueryFilter(state: VoucherState.confirmed);
+      final vouchersRes = await voucherRepository.getAll(filter: filter);
+      if (vouchersRes.isFailure) return;
+
+      final vouchers = vouchersRes.valueOrNull ?? [];
+      for (final voucher in vouchers) {
+        // Check if a 'claim' event exists in outbox for this voucher
+        final exists = await outboxDao.exists(voucher.id.value, 'claim');
+        if (!exists) {
+          debugPrint('Sync: ♻️ Re-attempting identity discovery for voucher ${voucher.id.value}');
+          // This will attempt E2EE encryption and outbox enqueueing.
+          // If the public key is still missing, it will return FailureResult.
+          await syncEventDispatcher.dispatchVoucherClaim(voucher);
+        }
+      }
+    } catch (e) {
+      debugPrint('Sync: ❌ Unsynced scan error: $e');
     }
   }
 
@@ -185,7 +223,7 @@ class SyncCoordinatorService {
     try {
       await syncRepository.acknowledgeNodes(nodeIds, state);
     } catch (e) {
-      debugPrint('Failed to acknowledge Delivery state: $e');
+      debugPrint('Sync: ❌ Acknowledge error: $e');
     }
   }
 
@@ -212,7 +250,9 @@ class SyncCoordinatorService {
 
         await syncRepository.pushNode(node);
         deliveredIds.add(entry.id);
+        debugPrint('Sync: ✅ Pushed node ${entry.id} (${entry.eventType})');
       } catch (e) {
+        debugPrint('Sync: ❌ Push failed for ${entry.id}: $e');
         await outboxDao.incrementRetry(entry.id);
       }
     }

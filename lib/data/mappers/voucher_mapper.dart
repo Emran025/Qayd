@@ -60,6 +60,8 @@ final class VoucherMapper {
       receiverPublicKeyHex: voucher.receiverPublicKeyHex,
       lifecycleStatus: voucher.lifecycleStatus.name,
       signerPhone: voucher.signerPhone,
+      canonicalSenderPhone: voucher.canonicalSenderPhone,
+      canonicalReceiverPhone: voucher.canonicalReceiverPhone,
       transferGroupId: voucher.tripartiteMeta?.transferGroupId,
       tripartiteRole: voucher.tripartiteMeta?.role.columnValue,
       linkedPartyId: voucher.tripartiteMeta?.linkedPartyId.value,
@@ -121,6 +123,8 @@ final class VoucherMapper {
       receiverPublicKeyHex: model.receiverPublicKeyHex,
       lifecycleStatus: _parseLifecycleStatus(model.lifecycleStatus),
       signerPhone: model.signerPhone,
+      canonicalSenderPhone: model.canonicalSenderPhone,
+      canonicalReceiverPhone: model.canonicalReceiverPhone,
       tripartiteMeta: _parseTripartiteMeta(model, currency),
       originVoucherId: model.originVoucherId != null
           ? VoucherId(model.originVoucherId!)

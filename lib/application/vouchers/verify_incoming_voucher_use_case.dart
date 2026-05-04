@@ -102,6 +102,7 @@ class VerifyIncomingVoucherUseCase {
       }
 
       // Store the voucher with the determined status.
+      // Freeze canonical phones: senderPhone = A (creator), myPhone = B (us).
       final storedVoucher = voucher.attachSignature(
         signatureHex: voucher.senderSignatureHex ?? '',
         publicKeyHex: voucher.senderPublicKeyHex ?? '',
@@ -109,6 +110,8 @@ class VerifyIncomingVoucherUseCase {
             true, // The counterparty (the one who sent this) is the creator/sender.
         status: finalStatus,
         signerPhone: senderPhone,
+        canonicalSenderPhone: senderPhone,
+        canonicalReceiverPhone: myPhone,
       );
 
       final saveResult = await voucherRepository.save(storedVoucher);

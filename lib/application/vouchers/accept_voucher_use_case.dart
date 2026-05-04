@@ -98,6 +98,10 @@ class AcceptVoucherUseCase {
         isSender: false, // The user is accepting an inbound claim.
         status: AgreementStatus.accepted,
         signerPhone: myPhone,
+        // counterpartyPhone = the original sender (A); myPhone = receiver (B).
+        // These are frozen on first write so they never change after this call.
+        canonicalSenderPhone: counterpartyPhone,
+        canonicalReceiverPhone: myPhone,
       );
 
       // Auto-confirm state to record in local ledger.

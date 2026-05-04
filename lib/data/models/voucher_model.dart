@@ -1,4 +1,4 @@
-/// SQLite projection for [vouchers] (v21 schema — dual signatures protocol).
+/// SQLite projection for [vouchers] (v28 schema — canonical signature phones).
 final class VoucherModel {
   const VoucherModel({
     required this.id,
@@ -18,6 +18,8 @@ final class VoucherModel {
     this.confirmedAtIso,
     this.settledAtIso,
     this.signerPhone,
+    this.canonicalSenderPhone,
+    this.canonicalReceiverPhone,
     this.transferGroupId,
     this.tripartiteRole,
     this.linkedPartyId,
@@ -55,6 +57,10 @@ final class VoucherModel {
   final String? confirmedAtIso;
   final String? settledAtIso;
   final String? signerPhone;
+
+  // Canonical Signature Phones (Protocol v2.1)
+  final String? canonicalSenderPhone;
+  final String? canonicalReceiverPhone;
 
   // Tripartite transfer fields
   final String? transferGroupId;
@@ -98,6 +104,8 @@ final class VoucherModel {
         'confirmed_at': confirmedAtIso,
         'settled_at': settledAtIso,
         'signer_phone': signerPhone,
+        'canonical_sender_phone': canonicalSenderPhone,
+        'canonical_receiver_phone': canonicalReceiverPhone,
         'transfer_group_id': transferGroupId,
         'tripartite_role': tripartiteRole,
         'linked_party_id': linkedPartyId,
@@ -135,6 +143,8 @@ final class VoucherModel {
       confirmedAtIso: map['confirmed_at'] as String?,
       settledAtIso: map['settled_at'] as String?,
       signerPhone: map['signer_phone'] as String?,
+      canonicalSenderPhone: map['canonical_sender_phone'] as String?,
+      canonicalReceiverPhone: map['canonical_receiver_phone'] as String?,
       transferGroupId: map['transfer_group_id'] as String?,
       tripartiteRole: map['tripartite_role'] as String?,
       linkedPartyId: map['linked_party_id'] as String?,

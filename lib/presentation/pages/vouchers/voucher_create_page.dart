@@ -58,6 +58,17 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   String? _hiddenLinkedPartyId;
   bool _hiddenIsContingent = false;
 
+  // Signature fields from QR
+  String? _qrSenderSignatureHex;
+  String? _qrSenderPublicKeyHex;
+  String? _qrReceiverSignatureHex;
+  String? _qrReceiverPublicKeyHex;
+  bool _isQrSignatureValid = false;
+
+  /// Phone of the QR issuer (Party A) — frozen from QR and passed to use case
+  /// so [canonicalSenderPhone] is correctly set on the created voucher.
+  String? _qrSignerPhone;
+
   // Attachment & collateral state
   final List<XFile> _pickedImages = [];
   CollateralInput? _collateralInput;
@@ -90,6 +101,30 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
       _loadBaseCurrency();
     }
     _loadDefaultFundAccount();
+
+    _amountController.addListener(_updateSignatureValidity);
+  }
+
+  void _updateSignatureValidity() {
+    if (_qrSenderSignatureHex == null || widget.initialQrData == null) return;
+
+    final currentMinor = parsePositiveMinorUnits(_amountController.text) ?? 0;
+    final qrMinor = widget.initialQrData!['amountMinorUnits'] as int? ?? 0;
+
+    final amountMatches = currentMinor == qrMinor;
+    final currencyMatches = _currencyCode == widget.initialQrData!['currencyCode'];
+    final dateMatches = _date.year ==
+            (widget.initialQrData!['date'] as DateTime).year &&
+        _date.month == (widget.initialQrData!['date'] as DateTime).month &&
+        _date.day == (widget.initialQrData!['date'] as DateTime).day;
+
+    final isValid = amountMatches && currencyMatches && dateMatches;
+
+    if (isValid != _isQrSignatureValid) {
+      setState(() {
+        _isQrSignatureValid = isValid;
+      });
+    }
   }
 
   Future<void> _loadDefaultFundAccount() async {
@@ -160,6 +195,20 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
         _hiddenTripartiteRole = 'intermediaryPayment';
       }
     }
+
+    if (data['signatureHex'] != null) {
+      _qrSenderSignatureHex = data['signatureHex'] as String?;
+      _qrSenderPublicKeyHex = data['signerPublicKeyHex'] as String?;
+      _isQrSignatureValid = true;
+    }
+    // Capture the QR issuer's phone (Party A = sender) for canonical payload.
+    if (data['signerPhone'] != null) {
+      _qrSignerPhone = data['signerPhone'] as String?;
+    }
+    if (data['receiverSignatureHex'] != null) {
+      _qrReceiverSignatureHex = data['receiverSignatureHex'] as String?;
+      _qrReceiverPublicKeyHex = data['receiverPublicKeyHex'] as String?;
+    }
   }
 
   Future<void> _loadAccountSummaryForCounterparty(String id) async {
@@ -185,6 +234,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
 
   @override
   void dispose() {
+    _amountController.removeListener(_updateSignatureValidity);
     _slideController.dispose();
     _amountController.dispose();
     _descriptionController.dispose();
@@ -216,6 +266,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     );
     if (picked != null) {
       setState(() => _date = picked);
+      _updateSignatureValidity();
     }
   }
 
@@ -272,6 +323,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
         await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
     if (c != null && mounted) {
       setState(() => _currencyCode = c.code);
+      _updateSignatureValidity();
     }
   }
 
@@ -414,6 +466,13 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
               expiryDate: _collateralInput!.expiryDate,
               imagePaths: _collateralInput!.imagePaths,
             ),
+      senderSignatureHex: _isQrSignatureValid ? _qrSenderSignatureHex : null,
+      senderPublicKeyHex: _isQrSignatureValid ? _qrSenderPublicKeyHex : null,
+      receiverSignatureHex: _qrReceiverSignatureHex,
+      receiverPublicKeyHex: _qrReceiverPublicKeyHex,
+      // Pass QR issuer phone as canonical sender; receiver phone is resolved
+      // from LicenseVault inside CreateVoucherUseCase / ConfirmVoucherUseCase.
+      qrSignerPhone: _isQrSignatureValid ? _qrSignerPhone : null,
     );
 
     await context.read<VoucherCreateCubit>().submit(input);
@@ -566,6 +625,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                             maxLines: 2,
                             textInputAction: TextInputAction.done,
                           ),
+                          if (_qrSenderSignatureHex != null)
+                            _buildSignatureStatusBanner(gold),
                           SizedBox(height: SpacingTokens.md),
 
                           CostCenterTagSelector(
@@ -863,6 +924,46 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSignatureStatusBanner(Color gold) {
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(
+        color: _isQrSignatureValid
+            ? ColorTokens.emerald500.withValues(alpha: 0.1)
+            : Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isQrSignatureValid
+              ? ColorTokens.emerald500.withValues(alpha: 0.3)
+              : Colors.orange.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _isQrSignatureValid
+                ? Icons.verified_user_rounded
+                : Icons.warning_amber_rounded,
+            color: _isQrSignatureValid ? ColorTokens.emerald500 : Colors.orange,
+            size: 20,
+          ),
+          SizedBox(width: SpacingTokens.sm),
+          Expanded(
+            child: QaydText(
+              _isQrSignatureValid
+                  ? AppStrings.voucherSignatureMatchesData
+                  : AppStrings.voucherSignatureMismatchData,
+              slot: QaydTextStyleSlot.bodySmall,
+              color: _isQrSignatureValid
+                  ? ColorTokens.emerald700
+                  : Colors.orange.shade900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

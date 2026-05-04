@@ -274,6 +274,10 @@ class SyncPayloadProcessor {
       senderSignatureHex: payload['sender_signature_hex'],
       senderPublicKeyHex: payload['sender_public_key_hex'],
       signerPhone: payload['signer_phone'],
+      // v2.1: record canonical phones when available from sync payload.
+      canonicalSenderPhone: payload['canonical_sender_phone'] as String?
+          ?? payload['signer_phone'] as String?,
+      canonicalReceiverPhone: payload['canonical_receiver_phone'] as String?,
       originVoucherId: payload['origin_voucher_id'] != null
           ? VoucherId(payload['origin_voucher_id'])
           : null,
@@ -456,6 +460,9 @@ class SyncPayloadProcessor {
         isSender: false, // The counterparty (receiver) signed.
         status: AgreementStatus.accepted,
         signerPhone: senderPhone,
+        // Freeze canonical phones: myPhone = A (original sender), senderPhone = B (acceptor).
+        canonicalSenderPhone: myPhone,
+        canonicalReceiverPhone: senderPhone,
       );
       await voucherRepository.save(signedVoucher);
       debugPrint(

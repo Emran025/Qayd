@@ -2145,6 +2145,12 @@ class AppStrings {
   static String get voucherSettlementIndicator => i.voucherSettlementIndicator;
   static String get voucherSignatureStatusLabel =>
       i.voucherSignatureStatusLabel;
+  static String get voucherSignatureMatchesData =>
+      i.voucherSignatureMatchesData;
+  static String get voucherSignatureMismatchData =>
+      i.voucherSignatureMismatchData;
+  static String get voucherSignaturePendingCounterparty =>
+      i.voucherSignaturePendingCounterparty;
   static String get voucherStateConfirmed => i.voucherStateConfirmed;
   static String get voucherStateDraft => i.voucherStateDraft;
   static String get voucherStateSent => i.voucherStateSent;
