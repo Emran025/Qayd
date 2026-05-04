@@ -11,12 +11,14 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 class QaydBadge extends StatelessWidget {
   const QaydBadge._({
     required this.label,
+    required this.icon,
     required this.bgColor,
     required this.fgColor,
     this.isDashed = false,
   });
 
   final String label;
+  final IconData icon;
   final Color bgColor;
   final Color fgColor;
   final bool isDashed;
@@ -43,8 +45,9 @@ class QaydBadge extends StatelessWidget {
         ),
     };
     final label = _stateLabel(state);
+    final icon = _stateIcon(state);
     return QaydBadge._(
-        label: label, bgColor: bg, fgColor: fg, isDashed: dashed);
+        label: label, icon: icon, bgColor: bg, fgColor: fg, isDashed: dashed);
   }
 
   factory QaydBadge.agreement({
@@ -76,9 +79,14 @@ class QaydBadge extends StatelessWidget {
         ),
     };
     final statusLabel = _agreementLabel(status);
+    final icon = _agreementIcon(status);
     final finalLabel = label != null ? '$label: $statusLabel' : statusLabel;
     return QaydBadge._(
-        label: finalLabel, bgColor: bg, fgColor: fg, isDashed: dashed);
+        label: finalLabel,
+        icon: icon,
+        bgColor: bg,
+        fgColor: fg,
+        isDashed: dashed);
   }
 
   static String _stateLabel(VoucherState state) {
@@ -99,28 +107,38 @@ class QaydBadge extends StatelessWidget {
     };
   }
 
+  static IconData _stateIcon(VoucherState state) {
+    return switch (state) {
+      VoucherState.draft => Icons.edit_note_rounded,
+      VoucherState.confirmed => Icons.check_circle_outline_rounded,
+      VoucherState.settled => Icons.verified_rounded,
+      VoucherState.withdrawn => Icons.u_turn_right_rounded,
+    };
+  }
+
+  static IconData _agreementIcon(AgreementStatus status) {
+    return switch (status) {
+      AgreementStatus.underRequest => Icons.pending_outlined,
+      AgreementStatus.accepted => Icons.assignment_turned_in_rounded,
+      AgreementStatus.rejected => Icons.unpublished_outlined,
+      AgreementStatus.unverified => Icons.help_outline_rounded,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    final text = Text(
-      label,
-      style: textTheme.labelMedium?.copyWith(
-        fontSize: 8,
-        color: fgColor,
-        fontWeight: FontWeight.w700,
-      ),
+    final iconWidget = Icon(
+      icon,
+      size: 14,
+      color: fgColor,
     );
 
     final padding = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: SpacingTokens.sm + 2,
-        vertical: SpacingTokens.xs,
-      ),
-      child: text,
+      padding: const EdgeInsets.all(SpacingTokens.xs),
+      child: iconWidget,
     );
 
-    return DecoratedBox(
+    final badge = DecoratedBox(
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(RadiusTokens.xs),
@@ -135,6 +153,12 @@ class QaydBadge extends StatelessWidget {
               child: padding,
             )
           : padding,
+    );
+
+    return Tooltip(
+      message: label,
+      preferBelow: false,
+      child: badge,
     );
   }
 }

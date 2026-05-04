@@ -42,6 +42,12 @@ Future<void> shareVoucherAsText(
     buffer.writeln('التاريخ: $date');
     buffer.writeln('المبلغ: $amount');
 
+    buffer.writeln('العميل: ${data.counterpartyName}');
+    buffer.writeln('الحساب: ${data.affectedName}');
+    if (data.description != null && data.description!.isNotEmpty) {
+      buffer.writeln('البيان: ${data.description}');
+    }
+
     // Include net balance in fallback if available
     final balanceParts = data.counterpartyBalances.entries.map((e) {
       final digits = (e.key == data.currencyCode) ? data.currencyDigits : 2;
@@ -60,12 +66,6 @@ Future<void> shareVoucherAsText(
     }).toList();
     if (balanceParts.isNotEmpty) {
       buffer.writeln('الرصيد الإجمالي: ${balanceParts.join(", ")}');
-    }
-
-    buffer.writeln('العميل: ${data.counterpartyName}');
-    buffer.writeln('الحساب: ${data.affectedName}');
-    if (data.description != null && data.description!.isNotEmpty) {
-      buffer.writeln('البيان: ${data.description}');
     }
     buffer.writeln('\n--');
     buffer.writeln(AppStrings.automaticallyExportedAndDigitally);

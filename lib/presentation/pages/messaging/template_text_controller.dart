@@ -45,7 +45,9 @@ class TemplateTextController extends TextEditingController {
 
   /// Converts DB format e.g. AppStrings.dearCustomer -> AppStrings.dearue000
   static String _dbToUi(String dbText) {
-    String ui = dbText;
+    // Unescape literal \n from DB to show as actual newlines in the editor
+    String ui = dbText.replaceAll('\\n', '\n');
+
     for (final v in kTemplateVariables) {
       ui = ui.replaceAll(v.key, v.charCode);
     }

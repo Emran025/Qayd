@@ -123,7 +123,7 @@ class _TrialBalancePageState extends State<TrialBalancePage>
         ),
         body: TabBarView(
           controller: _tabController,
-          children: const [
+          children: [
             _TrialBalanceTab(),
             BalanceSheetView(),
           ],

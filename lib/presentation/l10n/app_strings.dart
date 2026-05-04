@@ -5,7 +5,10 @@ import 'app_strings_en.dart';
 class AppStrings {
   static AppStringsBase i = AppStringsAr();
 
+  static String languageCode = 'ar';
+
   static void setLocale(String languageCode) {
+    AppStrings.languageCode = languageCode;
     if (languageCode == 'en') {
       i = AppStringsEn();
     } else {
@@ -1512,7 +1515,6 @@ class AppStrings {
   static String get shareAsQr => i.shareAsQr;
   static String get shareAsSms => i.shareAsSms;
   static String get shareAsTextTooltip => i.shareAsTextTooltip;
-  static String get shareAsWhatsappTooltip => i.shareAsWhatsappTooltip;
   static String get shareReceiptTitle => i.shareReceiptTitle;
   static String get shareViaWhatsApp => i.shareViaWhatsApp;
   static String get sharingAcrossTheSystem => i.sharingAcrossTheSystem;

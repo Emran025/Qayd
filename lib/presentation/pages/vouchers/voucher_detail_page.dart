@@ -180,12 +180,14 @@ class _VoucherDetailPageState extends State<VoucherDetailPage> {
                     final scheme = Theme.of(context).colorScheme;
                     return [
                       if (state.data.isCreator &&
-                          state.data.stateCode != 'settled' &&
                           state.data.stateCode != 'withdrawn' &&
-                          state.data.receiverStatusCode != 'accepted') ...[
+                          state.data.stateCode != 'settled' &&
+                          !AgreementStatus.values
+                              .byName(state.data.receiverStatusCode)
+                              .isAccepted) ...[
                         _buildMenuItem(
                           value: 'withdraw',
-                          icon: Icons.undo_rounded,
+                          icon: Icons.u_turn_right_rounded,
                           label: AppStrings.statementChatWithdraw,
                           iconColor: ColorTokens.errorDeep,
                         ),
@@ -375,7 +377,7 @@ class _VoucherDetailBody extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final isReceipt = data.typeCode == 'receipt';
-    final dateStr = DateFormat.yMMMd('en').format(DateTime.parse(data.dateIso));
+    final dateStr = DateFormat.yMMMd(AppStrings.languageCode).format(DateTime.parse(data.dateIso));
     final createdStr = DateFormat('hh:mm a  dd/MM/yyyy', 'en')
         .format(DateTime.parse(data.createdAtIso));
 
@@ -1773,7 +1775,7 @@ class _CollateralSummaryCard extends StatelessWidget {
                   child: _CollateralInfoTile(
                     label: AppStrings.voucherCollateralExpiryLabel,
                     value: data.collateralExpiryIso != null
-                        ? DateFormat.yMMMd('ar')
+                        ? DateFormat.yMMMd(AppStrings.languageCode)
                             .format(DateTime.parse(data.collateralExpiryIso!))
                         : AppStrings.undefined,
                     icon: Icons.event_outlined,

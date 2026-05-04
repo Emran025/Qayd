@@ -67,7 +67,7 @@ class _TripartiteListPageState extends State<TripartiteListPage> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _cubit,
-      child: const _TripartiteListView(),
+      child: _TripartiteListView(),
     );
   }
 }
@@ -178,8 +178,6 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
         },
         label: Text(AppStrings.newConversion),
         icon: Icon(Icons.add_rounded),
-        
-        
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -383,7 +381,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
       );
     }
     if (f.fromDate != null || f.toDate != null) {
-      final df = DateFormat.yMMMd('ar');
+      final df = DateFormat.yMMMd(AppStrings.languageCode);
       final from = f.fromDate != null ? df.format(f.fromDate!) : '…';
       final to = f.toDate != null ? df.format(f.toDate!) : '…';
       chips.add(
@@ -455,7 +453,7 @@ class _TransferSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final date = DateTime.parse(transfer.dateIso);
-    final dateStr = DateFormat.yMMMd('ar').format(date);
+    final dateStr = DateFormat.yMMMd(AppStrings.languageCode).format(date);
 
     // Check if the transfer is still pending
     final isPending = transfer.receiptVoucher?.receiverStatusCode !=
@@ -485,8 +483,8 @@ class _TransferSummaryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                
-                
+                backgroundColor: ColorTokens.goldAccent.withValues(alpha: 0.22),
+                foregroundColor: ColorTokens.navy900,
                 child: Icon(Icons.swap_horiz_rounded, size: 22),
               ),
               SizedBox(width: SpacingTokens.md),

@@ -560,7 +560,7 @@ final class BalanceSheetPdfGenerator {
                       children: [
                         pw.RichText(
                           text: buildPdfNumericalScaledSpan(
-                            '${!isAr ? 'Summary of Totals' : 'ملخص الإجماليات'} — ${CurrencyUtil.getLocalizedName(s.currencyCode).replaceAll('﷼', AppStrings.sar)}',
+                            '${AppStrings.totalsSummaryPrefix} — ${CurrencyUtil.getLocalizedName(s.currencyCode).replaceAll('﷼', AppStrings.sar)}',
                             pw.TextStyle(
                               font: font,
                               fontSize: 10,

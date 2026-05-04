@@ -234,9 +234,21 @@ class GetVoucherDetailsUseCase {
           (v.senderPublicKeyHex != null && v.senderPublicKeyHex == myPubKey) ||
               (v.senderPublicKeyHex == null && isAffectedInternal);
 
+      // The local user is the creator if:
+      // - They are the sender (isMeSender is true)
+      // - OR there are no signatures yet, meaning it's a local draft.
+      // - OR the affected account is an internal account (not a customer/supplier).
+      final isInternalAccount =
+          affectedRes.valueOrNull?.nature.name != 'customer' &&
+              affectedRes.valueOrNull?.nature.name != 'supplier';
+
+      final isCreator = isMeSender ||
+          (v.senderPublicKeyHex == null && v.receiverPublicKeyHex == null) ||
+          isInternalAccount;
+
       if (!v.isWithdrawn && v.state == VoucherState.draft) {
         // The creator can always confirm their own draft into the ledger.
-        if (isMeSender) {
+        if (isCreator) {
           canApprove = true;
         }
         // The receiver can approve (sign) if it's under request.
@@ -245,7 +257,7 @@ class GetVoucherDetailsUseCase {
         }
       } else if (!v.isWithdrawn && v.state == VoucherState.confirmed) {
         // If it's already confirmed but we are the receiver and haven't signed, we can still "Approve" (sign).
-        if (!isMeSender && v.receiverStatus == AgreementStatus.underRequest) {
+        if (!isCreator && v.receiverStatus == AgreementStatus.underRequest) {
           canApprove = true;
         }
       }
@@ -299,7 +311,7 @@ class GetVoucherDetailsUseCase {
           collateralSettlementVoucherIds: collateralSettlementVoucherIds,
           successorVoucherId: successorVoucherId,
           costCenters: costCenters,
-          isCreator: isMeSender,
+          isCreator: isCreator,
           counterpartyBalances: counterpartyBalances,
         ),
       );

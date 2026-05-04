@@ -224,7 +224,7 @@ class _DetailBody extends StatelessWidget {
     final scheme = theme.colorScheme;
     final custom = theme.extension<QaydCustomColors>()!;
     final created =
-        intl.DateFormat.yMMMd('ar').format(DateTime.parse(data.createdAtIso));
+        intl.DateFormat.yMMMd(AppStrings.languageCode).format(DateTime.parse(data.createdAtIso));
 
     final classificationText = data.standardClassificationKind != null
         ? AppStrings.standardClassificationLabel(

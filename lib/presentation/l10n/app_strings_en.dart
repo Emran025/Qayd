@@ -974,15 +974,15 @@ class AppStringsEn extends AppStringsBase {
   String get dearCustomer => 'Dear {{customer}}';
   @override
   String get dearCustomernweWouldLike =>
-      'Dear {{customer}}،\\nWe would like to inform you that an amount of {{amount}} has been deducted in {{type}} voucher No: {{voucher_id}} on {{date}}.\\nTotal Balance: {{net_balance}}\\nSender: {{sender_party}}\\nRecipient: {{receiver_party}}\\nDescription: {{description}}\\nSignature: {{signature}}\\n— Qayd System';
+      'Dear {{customer}}،\nWe would like to inform you that an amount of {{amount}} has been deducted in {{type}} voucher No: {{voucher_id}} on {{date}}.\nSender: {{sender_party}}\nRecipient: {{receiver_party}}\nDescription: {{description}}\nTotal Balance: {{net_balance}}\nSignature: {{signature}}\n— Qayd System';
   @override
   String get dearCustomernweWouldLike1 =>
-      'Dear {{customer}}،\\nWe would like to inform you that an amount of {{amount}} has been received in {{type}} voucher No: {{voucher_id}} on {{date}}.\\nTotal Balance: {{net_balance}}\\nSender: {{sender_party}}\\nRecipient: {{receiver_party}}\\nDescription: {{description}}\\nSignature: {{signature}}\\n— Qayd System';
+      'Dear {{customer}}،\nWe would like to inform you that an amount of {{amount}} has been received in {{type}} voucher No: {{voucher_id}} on {{date}}.\nSender: {{sender_party}}\nRecipient: {{receiver_party}}\nDescription: {{description}}\nTotal Balance: {{net_balance}}\nSignature: {{signature}}\n— Qayd System';
   @override
   String get dearCustomernweWouldLike2 =>
-      'Dear {{customer}}،\\nWe would like to inform you that a receipt notice has been recorded...\\nSignature: {{signature}}';
+      'Dear {{customer}}،\nWe would like to inform you that a receipt notice has been recorded...\nSignature: {{signature}}';
   @override
-  String get dearue000 => 'Dear \\uE000';
+  String get dearue000 => 'Dear \uE000';
   @override
   String get debitDataFromThe => 'Debit Data (From) — Sender\'s Account:';
   @override
@@ -1288,7 +1288,7 @@ class AppStringsEn extends AppStringsBase {
   String get financialReports => 'Financial Reports';
   @override
   String get fingerprintsignaturesigsignaturessafaf0932128 =>
-      '(?:fingerprint|signature|sig|signature)\\s*[:=]?\\s*([a-fA-F0-9]{32,128})';
+      r'(?:fingerprint|signature|sig|signature)\s*[:=]?\s*([a-fA-F0-9]{32,128})';
   @override
   String get finished => 'Finished';
   @override
@@ -3004,8 +3004,6 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get shareAsTextTooltip => 'Share as Text';
   @override
-  String get shareAsWhatsappTooltip => 'Share Account Statement';
-  @override
   String get shareReceiptTitle => 'Share Receipt';
   @override
   String get shareViaWhatsApp => 'WhatsApp';
@@ -4356,8 +4354,7 @@ class AppStringsEn extends AppStringsBase {
   String get zimbabwe => 'Zimbabwe';
 
   @override
-  String get identityQrScanHint =>
-      'Point the camera at the identity QR code';
+  String get identityQrScanHint => 'Point the camera at the identity QR code';
   @override
   String get identityQrScanTitle => 'Scan Identity Code';
   @override

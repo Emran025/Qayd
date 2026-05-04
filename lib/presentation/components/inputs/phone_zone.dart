@@ -1,4 +1,5 @@
-import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart' as picker;
+import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart'
+    as picker;
 import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +11,6 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
-
 
 class PhoneZoneForm extends StatefulWidget {
   final TextEditingController zoneController;
@@ -323,7 +323,9 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       ),
                       maxLength: 4,
                       inputFormatters: [
-                        FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+                        FilteringTextInputFormatter.deny(
+                            TextSanitizer.emojiRegex,
+                            replacementString: ' '),
                       ],
                       buildCounter: (
                         _, {
@@ -338,6 +340,8 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
                       ),
                       onChanged: _onZoneChanged,
                     ),
@@ -365,7 +369,9 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                       style: theme.textTheme.bodyLarge,
                       maxLength: 14,
                       inputFormatters: [
-                        FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
+                        FilteringTextInputFormatter.deny(
+                            TextSanitizer.emojiRegex,
+                            replacementString: ' '),
                       ],
                       buildCounter: (
                         _, {
@@ -403,6 +409,8 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
                         errorStyle: const TextStyle(height: 0, fontSize: 0),
                       ),
                     ),
@@ -481,4 +489,3 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
     );
   }
 }
-

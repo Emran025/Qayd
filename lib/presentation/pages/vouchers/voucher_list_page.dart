@@ -72,7 +72,7 @@ class _VoucherListPageState extends State<VoucherListPage> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _cubit,
-      child: const _VoucherListView(),
+      child: _VoucherListView(),
     );
   }
 }
@@ -134,7 +134,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
   Future<void> _scanQr(BuildContext context) async {
     final data = await Navigator.of(context).push<Map<String, dynamic>?>(
       QaydPageRoute.slideFromStart<Map<String, dynamic>?>(
-        builder: (ctx) =>  VoucherQrScannerPage(),
+        builder: (ctx) => VoucherQrScannerPage(),
       ),
     );
 
@@ -152,7 +152,6 @@ class _VoucherListViewState extends State<_VoucherListView> {
               content: Text(
                 AppStrings.thereIsNoAccount,
               ),
-              
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -164,7 +163,6 @@ class _VoucherListViewState extends State<_VoucherListView> {
             content: Text(
               AppStrings.theCodeDoesNot,
             ),
-            
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -259,7 +257,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
       );
     }
     if (f.fromDate != null || f.toDate != null) {
-      final df = DateFormat.yMMMd('en');
+      final df = DateFormat.yMMMd(AppStrings.languageCode);
       final from = f.fromDate != null ? df.format(f.fromDate!) : '…';
       final to = f.toDate != null ? df.format(f.toDate!) : '…';
       chips.add(
@@ -350,8 +348,6 @@ class _VoucherListViewState extends State<_VoucherListView> {
         onPressed: () => _openCreate(context),
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.voucherNewTitle),
-        
-        
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -518,7 +514,7 @@ class _VoucherTile extends StatelessWidget {
     final isReceipt = dto.typeCode == 'receipt';
     final icon =
         isReceipt ? Icons.south_west_rounded : Icons.north_east_rounded;
-    final dateStr = DateFormat.yMMMd('en').format(DateTime.parse(dto.dateIso));
+    final dateStr = DateFormat.yMMMd(AppStrings.languageCode).format(DateTime.parse(dto.dateIso));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
@@ -535,8 +531,12 @@ class _VoucherTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    
-                    
+                    backgroundColor: isReceipt
+                        ? ColorTokens.emerald600.withValues(alpha: 0.2)
+                        : ColorTokens.goldAccent.withValues(alpha: 0.22),
+                    foregroundColor: isReceipt
+                        ? ColorTokens.emerald700
+                        : ColorTokens.navy900,
                     child: Icon(icon, size: 22),
                   ),
                   SizedBox(width: SpacingTokens.md),
@@ -636,8 +636,7 @@ class _VoucherTile extends StatelessWidget {
                                 padding: EdgeInsets.zero,
                                 labelPadding:
                                     const EdgeInsets.symmetric(horizontal: 4),
-                                avatar:
-                                    Icon(Icons.history_rounded, size: 12),
+                                avatar: Icon(Icons.history_rounded, size: 12),
                                 label: QaydText(
                                   '${AppStrings.voucherReversalIndicator} ${dto.reversalCount}',
                                   slot: QaydTextStyleSlot.labelSmall,

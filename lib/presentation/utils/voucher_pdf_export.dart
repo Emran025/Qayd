@@ -139,6 +139,11 @@ Future<void> shareVoucherAsPdf(
         shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
             'المبلغ: $amountTextFormatter\n';
 
+        shareText += 'الحساب: ${data.affectedName}\n';
+        if (data.description != null && data.description!.isNotEmpty) {
+          shareText += 'البيان: ${data.description}\n';
+        }
+
         final balanceParts = data.counterpartyBalances.entries.map((e) {
           final digits = (e.key == data.currencyCode) ? data.currencyDigits : 2;
           final divisor =
@@ -159,8 +164,7 @@ Future<void> shareVoucherAsPdf(
           shareText += 'الرصيد الإجمالي: ${balanceParts.join(", ")}\n';
         }
 
-        shareText += 'الحساب: ${data.affectedName}\n'
-            'المرجع: ${data.referenceNumber ?? shortId}\n';
+        shareText += 'المرجع: ${data.referenceNumber ?? shortId}\n';
         AppStrings.nautomaticallyExportedAndDigitally;
       }
       if (data.senderSignatureHex != null ||

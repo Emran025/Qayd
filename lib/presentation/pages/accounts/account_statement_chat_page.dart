@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:intl/intl.dart' hide TextDirection;
@@ -327,7 +326,6 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
 
     showModalBottomSheet<void>(
       context: context,
-      
       builder: (ctx) => Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
@@ -370,7 +368,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                           .byName(msg.signatureStatusCode)
                           .isAccepted)
                     _ActionButton(
-                      icon: Icons.undo_rounded,
+                      icon: Icons.u_turn_right_rounded,
                       label: AppStrings.statementChatWithdraw,
                       color: ColorTokens.errorDeep,
                       onTap: () {
@@ -541,35 +539,6 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         );
 
         return Scaffold(
-          
-          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          floatingActionButton: widget.isEmbedded
-              ? null
-              : Padding(
-                  padding: const EdgeInsets.only(
-                      bottom: 40.0), // Lift it a bit higher
-                  child: QaydFloatingActionButton.extended(
-                    onPressed: () {
-                      RequestTripartiteSheet.show(
-                        context,
-                        destinationAccountId: data.counterpartyAccountId,
-                        destinationName: data.counterpartyName,
-                      );
-                    },
-                    // Swap positions: Text on right, Icon on left (in RTL)
-                    icon: null,
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(AppStrings.tripartiteRequestFunds),
-                        SizedBox(width: 8),
-                        Icon(Icons.send_rounded),
-                      ],
-                    ),
-                    
-                    
-                  ),
-                ),
           body: Column(
             children: [
               // ── Header ──
@@ -583,6 +552,13 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   isUnified: data.isUnified,
                   onProfileTap: () =>
                       _openAccountProfile(data.counterpartyAccountId),
+                  onRequestFunds: () {
+                    RequestTripartiteSheet.show(
+                      context,
+                      destinationAccountId: data.counterpartyAccountId,
+                      destinationName: data.counterpartyName,
+                    );
+                  },
                   onSearchToggle: () {
                     setState(() {
                       _showSearch = !_showSearch;
@@ -660,7 +636,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                 child: data.messages.isEmpty
                     ? Center(
                         child: Padding(
-                          padding:  EdgeInsets.all(SpacingTokens.lg),
+                          padding: EdgeInsets.all(SpacingTokens.lg),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -801,6 +777,7 @@ class _ChatHeader extends StatelessWidget {
     required this.onExportPdf,
     required this.onShareWhatsapp,
     required this.onExportExcel,
+    this.onRequestFunds,
   });
 
   final String counterpartyName;
@@ -815,6 +792,7 @@ class _ChatHeader extends StatelessWidget {
   final VoidCallback onExportPdf;
   final VoidCallback onShareWhatsapp;
   final VoidCallback onExportExcel;
+  final VoidCallback? onRequestFunds;
 
   @override
   Widget build(BuildContext context) {
@@ -848,8 +826,6 @@ class _ChatHeader extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 20,
-                        
-                        
                         child: Text(
                           counterpartyName.isNotEmpty
                               ? counterpartyName.trim().substring(0, 1)
@@ -929,8 +905,21 @@ class _ChatHeader extends StatelessWidget {
                   if (val == 'pdf') onExportPdf();
                   if (val == 'whatsapp') onShareWhatsapp();
                   if (val == 'excel') onExportExcel();
+                  if (val == 'request_funds') onRequestFunds?.call();
                 },
                 itemBuilder: (context) => [
+                  if (onRequestFunds != null)
+                    PopupMenuItem(
+                      value: 'request_funds',
+                      child: Row(
+                        children: [
+                          Icon(Icons.send_rounded,
+                              size: 20, color: custom.goldAccent),
+                          SizedBox(width: SpacingTokens.sm),
+                          Text(AppStrings.tripartiteRequestFunds),
+                        ],
+                      ),
+                    ),
                   PopupMenuItem(
                     value: 'excel',
                     child: Row(
@@ -948,17 +937,6 @@ class _ChatHeader extends StatelessWidget {
                         Icon(Icons.picture_as_pdf_outlined, size: 20),
                         SizedBox(width: SpacingTokens.sm),
                         Text(AppStrings.accountStatementExportPdfTooltip),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'whatsapp',
-                    child: Row(
-                      children: [
-                        Icon(Icons.chat_bubble_outline_rounded,
-                            size: 20, color: Colors.green),
-                        SizedBox(width: SpacingTokens.sm),
-                        Text(AppStrings.shareAsWhatsappTooltip),
                       ],
                     ),
                   ),
@@ -992,7 +970,7 @@ class _SearchBar extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       color: scheme.surfaceContainerLow,
-      padding:  EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         horizontal: SpacingTokens.md,
         vertical: SpacingTokens.sm,
       ),
@@ -1840,7 +1818,8 @@ class _MessageBubble extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  CurrencyUtil.getLocalizedName(msg.currencyCode),
+                                  CurrencyUtil.getLocalizedName(
+                                      msg.currencyCode),
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
@@ -2085,8 +2064,6 @@ class _MessageBubble extends StatelessWidget {
                 icon: Icon(Icons.check_rounded, size: 16),
                 label: Text(AppStrings.statementChatAccept),
                 style: FilledButton.styleFrom(
-                  
-                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2104,7 +2081,6 @@ class _MessageBubble extends StatelessWidget {
                 icon: Icon(Icons.close_rounded, size: 16),
                 label: Text(AppStrings.statementChatReject),
                 style: OutlinedButton.styleFrom(
-                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2143,7 +2119,6 @@ class _MessageBubble extends StatelessWidget {
                 icon: Icon(Icons.refresh_rounded, size: 16),
                 label: Text(AppStrings.statementChatResubmit),
                 style: OutlinedButton.styleFrom(
-                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2156,17 +2131,15 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ),
             ),
-          if (showResubmit && showWithdraw)
-            SizedBox(width: SpacingTokens.sm),
+          if (showResubmit && showWithdraw) SizedBox(width: SpacingTokens.sm),
           if (showWithdraw)
             Expanded(
               child: OutlinedButton.icon(
                 onPressed:
                     mutating ? null : () async => onWithdraw(msg.voucherId),
-                icon: Icon(Icons.undo_rounded, size: 16),
+                icon: Icon(Icons.u_turn_right_rounded, size: 16),
                 label: Text(AppStrings.statementChatWithdraw),
                 style: OutlinedButton.styleFrom(
-                  
                   padding: const EdgeInsets.symmetric(
                     vertical: SpacingTokens.sm,
                   ),
@@ -2281,7 +2254,7 @@ class _ViewModeToggle extends StatelessWidget {
             value: StatementChatViewMode.otherPartyAccounts,
             label: Text(
               AppStrings.statementViewModeOther,
-              style:  TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
             icon: Icon(Icons.people_alt_outlined, size: 18),
           ),
@@ -2295,7 +2268,6 @@ class _ViewModeToggle extends StatelessWidget {
           side: WidgetStateProperty.all(
             BorderSide(color: scheme.outline.withOpacity(0.2)),
           ),
-          
         ),
       ),
     );

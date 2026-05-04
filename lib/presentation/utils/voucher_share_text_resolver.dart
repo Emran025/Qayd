@@ -52,12 +52,16 @@ Future<String> resolveVoucherShareTextWithFallback(
     body = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
         'المبلغ: ${bindings['amount']}\n';
 
+    body += 'الحساب: ${data.affectedName}\n';
+    if (data.description != null && data.description!.isNotEmpty) {
+      body += 'البيان: ${data.description}\n';
+    }
+
     if (bindings['net_balance']?.isNotEmpty == true) {
       body += 'الرصيد الإجمالي: ${bindings['net_balance']}\n';
     }
 
-    body += 'الحساب: ${data.affectedName}\n'
-        'المرجع: $reference\n';
+    body += 'المرجع: $reference\n';
     AppStrings.nautomaticallyExportedAndDigitally;
   }
 

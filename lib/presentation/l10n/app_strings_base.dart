@@ -494,12 +494,12 @@ abstract class AppStringsBase {
   String get de => 'د.إ';
   String get dearCustomer => 'عزيزي {{customer}}';
   String get dearCustomernweWouldLike =>
-      'عزيزي {{customer}}،\\nنحيطكم علماً بأنه تم خصم مبلغ {{amount}} في سند {{type}} رقم: {{voucher_id}} بتاريخ {{date}}.\\nالرصيد الإجمالي: {{net_balance}}\\nالمرسل: {{sender_party}}\\nالمستلم: {{receiver_party}}\\nالبيان: {{description}}\\nالتوثيق: {{signature}}\\n— نظام قيد';
+      'عزيزي {{customer}}،\nنحيطكم علماً بأنه تم خصم مبلغ {{amount}} في سند {{type}} رقم: {{voucher_id}} بتاريخ {{date}}.\nالبيان: {{description}}\nالرصيد الإجمالي: {{net_balance}}\nالمرسل: {{sender_party}}\nالمستلم: {{receiver_party}}\nالتوثيق: {{signature}}\n— نظام قيد';
   String get dearCustomernweWouldLike1 =>
-      'عزيزي {{customer}}،\\nنحيطكم علماً بأنه تم استلام مبلغ {{amount}} في سند {{type}} رقم: {{voucher_id}} بتاريخ {{date}}.\\nالرصيد الإجمالي: {{net_balance}}\\nالمرسل: {{sender_party}}\\nالمستلم: {{receiver_party}}\\nالبيان: {{description}}\\nالتوثيق: {{signature}}\\n— نظام قيد';
+      'عزيزي {{customer}}،\nنحيطكم علماً بأنه تم استلام مبلغ {{amount}} في سند {{type}} رقم: {{voucher_id}} بتاريخ {{date}}.\nالبيان: {{description}}\nالرصيد الإجمالي: {{net_balance}}\nالمرسل: {{sender_party}}\nالمستلم: {{receiver_party}}\nالتوثيق: {{signature}}\n— نظام قيد';
   String get dearCustomernweWouldLike2 =>
-      'عزيزي {{customer}}،\\nنود إفادتكم بتسجيل إشعار قبض...\\nالتوقيع: {{signature}}';
-  String get dearue000 => 'عزيزي \\uE000';
+      'عزيزي {{customer}}،\nنود إفادتكم بتسجيل إشعار قبض...\nالبيان: {{description}}\nالتوقيع: {{signature}}';
+  String get dearue000 => 'عزيزي \uE000';
   String get debitDataFromThe => 'بيانات القيد (المدين) — من حساب المُرسِل:';
   String get debtSettlement => 'تسوية الدين';
   String get debtor => 'مدين';
@@ -1557,7 +1557,6 @@ abstract class AppStringsBase {
   String get shareAsQr => 'رمز QR';
   String get shareAsSms => 'رسالة نصية SMS';
   String get shareAsTextTooltip => 'مشاركة كنص';
-  String get shareAsWhatsappTooltip => 'مشاركة كشف الحساب';
   String get shareReceiptTitle => 'مشاركة الإيصال';
   String get shareViaWhatsApp => 'واتساب';
   String get sharingAcrossTheSystem => 'المشاركة عبر النظام';

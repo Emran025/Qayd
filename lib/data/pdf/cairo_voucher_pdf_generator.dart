@@ -18,7 +18,6 @@ import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/l10n/app_strings_en.dart';
 
-
 /// Professional financial voucher PDF matching the Galal Nasser Exchange format.
 ///
 /// Layout: RTL, Cairo font.
@@ -56,8 +55,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
       // 2. Fetch shared preferences values on main thread since SharedPreferences needs to be accessed here
       final prefs = InjectionContainer.sharedPreferences;
-      final customHeaderTitle =
-          prefs.getString('pdf_header_title') ?? AppStrings.entryPersonalAccounting;
+      final customHeaderTitle = prefs.getString('pdf_header_title') ??
+          AppStrings.entryPersonalAccounting;
       final customHeaderSubtitle = prefs.getString('pdf_header_subtitle') ??
           AppStrings.cryptocurrencySystem;
       final customFooterText = prefs.getString('pdf_footer_text') ??
@@ -65,8 +64,10 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
       final labelVoucherNo =
           prefs.getString('pdf_label_voucher_no') ?? AppStrings.bondNumber1;
-      final labelDate = prefs.getString('pdf_label_date') ?? AppStrings.theDate1;
-      final labelFrom = prefs.getString('pdf_label_from') ?? AppStrings.fromTheCustomersAccount;
+      final labelDate =
+          prefs.getString('pdf_label_date') ?? AppStrings.theDate1;
+      final labelFrom = prefs.getString('pdf_label_from') ??
+          AppStrings.fromTheCustomersAccount;
       final labelDescription =
           prefs.getString('pdf_label_description') ?? AppStrings.statement;
 
@@ -81,7 +82,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
         final isReceipt = report.typeCode == 'receipt';
         final accent = isReceipt ? _emerald : _gold;
-        final typeAr = isReceipt ? AppStrings.receiptVoucher : AppStrings.billOfExchange;
+        final typeAr =
+            isReceipt ? AppStrings.receiptVoucher : AppStrings.billOfExchange;
 
         // Safe date parsing for pre-formatted strings
         DateTime safeParse(String iso, DateTime fallback) {
@@ -129,9 +131,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
           pw.Page(
             // Dynamic widget-like sizing: Height adapts to the voucher type, Width matches the Image Export (550)
             pageFormat: PdfPageFormat(550, report.isTripartite ? 680 : 580),
-            textDirection: isArabic
-                ? pw.TextDirection.rtl
-                : pw.TextDirection.ltr,
+            textDirection:
+                isArabic ? pw.TextDirection.rtl : pw.TextDirection.ltr,
             margin: const pw.EdgeInsets.all(12),
             build: (ctx) => pw.Container(
               decoration: pw.BoxDecoration(
@@ -539,6 +540,12 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                     textAlign: pw.TextAlign.right,
                   ),
 
+                  // Description
+                  if (descriptionText.trim().isNotEmpty) ...[
+                    pw.SizedBox(height: 4),
+                    _labeledLine(font, labelDescription, descriptionText),
+                  ],
+
                   // Total Balance display
                   if (report.counterpartyBalances.isNotEmpty &&
                       !report.isTripartite) ...[
@@ -588,12 +595,6 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                     ),
                   ],
 
-                  // Description
-                  if (descriptionText.trim().isNotEmpty) ...[
-                    pw.SizedBox(height: 4),
-                    _labeledLine(font, labelDescription, descriptionText),
-                  ],
-
                   // Notes
                   if (notesText.trim().isNotEmpty) ...[
                     pw.SizedBox(height: 3),
@@ -603,7 +604,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   // Reference
                   if (_notEmpty(report.referenceNumber)) ...[
                     pw.SizedBox(height: 3),
-                    _labeledLine(font, AppStrings.reference, report.referenceNumber!),
+                    _labeledLine(
+                        font, AppStrings.reference, report.referenceNumber!),
                   ],
                 ],
               ),
@@ -693,14 +695,16 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       // Client 1 signature (counterparty - sender in receipt leg)
       columns.add(
         pw.Expanded(
-          child: _signatureBox(font, AppStrings.firstCustomerSignature, hasSenderSig),
+          child: _signatureBox(
+              font, AppStrings.firstCustomerSignature, hasSenderSig),
         ),
       );
       columns.add(pw.SizedBox(width: 8));
       // Client 2 signature (linked party - receiver in receipt leg)
       columns.add(
         pw.Expanded(
-          child: _signatureBox(font, AppStrings.secondClientSignature, hasReceiverSig),
+          child: _signatureBox(
+              font, AppStrings.secondClientSignature, hasReceiverSig),
         ),
       );
     } else {

@@ -27,7 +27,7 @@ class InternalVoucherTile extends StatelessWidget {
         : ColorTokens.goldAccent.withValues(alpha: 0.22);
     final iconFg = isReceipt ? ColorTokens.emerald700 : ColorTokens.navy900;
 
-    final dateStr = DateFormat.yMMMd('ar').format(DateTime.parse(dto.dateIso));
+    final dateStr = DateFormat.yMMMd(AppStrings.languageCode).format(DateTime.parse(dto.dateIso));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: SpacingTokens.sm),

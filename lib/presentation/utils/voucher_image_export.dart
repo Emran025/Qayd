@@ -495,6 +495,15 @@ class VoucherImageCard extends StatelessWidget {
                         _text(accountName, 10, accent, bold: true),
                       ],
                     ),
+                    if (_notEmpty(descText)) ...[
+                      SizedBox(height: 5),
+                      _labeledLine(
+                          InjectionContainer.sharedPreferences
+                                  .getString('pdf_label_description') ??
+                              AppStrings.statement,
+                          descText!,
+                          context),
+                    ],
                     if (data.counterpartyBalances.isNotEmpty &&
                         !_isTripartite) ...[
                       SizedBox(height: 2),
@@ -526,18 +535,10 @@ class VoucherImageCard extends StatelessWidget {
                             8.5,
                             _navy,
                             bold: true,
+                            // maxLines: 2,
                           ),
                         ],
                       ),
-                    ],
-                    if (_notEmpty(descText)) ...[
-                      SizedBox(height: 5),
-                      _labeledLine(
-                          InjectionContainer.sharedPreferences
-                                  .getString('pdf_label_description') ??
-                              AppStrings.statement,
-                          descText!,
-                          context),
                     ],
                     if (_notEmpty(notesText)) ...[
                       SizedBox(height: 3),
