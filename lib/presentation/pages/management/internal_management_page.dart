@@ -9,7 +9,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/management/internal_voucher_create_page.dart';
 import 'package:qayd/presentation/pages/management/widgets/internal_voucher_tile.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
@@ -159,12 +159,12 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
     return QaydScaffold(
       appBar: QaydAppBar(
         showNotifications: true,
-        title: AppStringsAr.managementTabFundFlows,
+        title: AppStrings.managementTabFundFlows,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreate(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text(AppStringsAr.managementAddFlowFab),
+        icon: Icon(Icons.add_rounded),
+        label: Text(AppStrings.managementAddFlowFab),
         backgroundColor: gold,
         foregroundColor: Colors.black,
       ),
@@ -180,34 +180,34 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
                   children: [
                     QaydTextField(
                       controller: _searchController,
-                      hint: AppStringsAr.managementSearchVouchersHint,
-                      prefixIcon: const Icon(Icons.search_rounded),
+                      hint: AppStrings.managementSearchVouchersHint,
+                      prefixIcon: Icon(Icons.search_rounded),
                       onChanged: (v) =>
                           context.read<VoucherListCubit>().setSearchText(v),
                     ),
-                    const SizedBox(height: SpacingTokens.sm),
+                    SizedBox(height: SpacingTokens.sm),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           FilterChip(
-                            label: const Text(AppStringsAr.filterNatureAll),
+                            label: Text(AppStrings.filterNatureAll),
                             selected: _flowFilter == 'all',
                             onSelected: (_) =>
                                 setState(() => _flowFilter = 'all'),
                           ),
-                          const SizedBox(width: SpacingTokens.sm),
+                          SizedBox(width: SpacingTokens.sm),
                           FilterChip(
-                            label: const Text(
-                                AppStringsAr.managementLabelExpenses),
+                            label: Text(
+                                AppStrings.managementLabelExpenses),
                             selected: _flowFilter == 'expenses',
                             onSelected: (_) =>
                                 setState(() => _flowFilter = 'expenses'),
                           ),
-                          const SizedBox(width: SpacingTokens.sm),
+                          SizedBox(width: SpacingTokens.sm),
                           FilterChip(
-                            label: const Text(
-                                AppStringsAr.managementLabelRevenues),
+                            label: Text(
+                                AppStrings.managementLabelRevenues),
                             selected: _flowFilter == 'revenues',
                             onSelected: (_) =>
                                 setState(() => _flowFilter = 'revenues'),
@@ -221,7 +221,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
               const Divider(height: 1),
               Expanded(
                 child: state is VoucherListLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator())
                     : _buildList(context, state),
               ),
             ],
@@ -248,11 +248,11 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
             ? Icons.search_off_rounded
             : Icons.account_balance_wallet_outlined,
         title: isSearching
-            ? AppStringsAr.managementSearchNoResults
-            : AppStringsAr.vouchersEmpty,
+            ? AppStrings.managementSearchNoResults
+            : AppStrings.vouchersEmpty,
         description: isSearching
-            ? AppStringsAr.trySearchingWithOther1
-            : AppStringsAr.youHaveNotAdded1,
+            ? AppStrings.trySearchingWithOther1
+            : AppStrings.youHaveNotAdded1,
       );
     }
     return ListView.builder(
@@ -306,14 +306,14 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _StatCard(
-            label: AppStringsAr.managementLabelExpenses,
+            label: AppStrings.managementLabelExpenses,
             balances: expensesByCurrency,
             color: custom.debit,
             icon: Icons.north_east_rounded,
           ),
-          const SizedBox(width: SpacingTokens.md),
+          SizedBox(width: SpacingTokens.md),
           _StatCard(
-            label: AppStringsAr.managementLabelRevenues,
+            label: AppStrings.managementLabelRevenues,
             balances: revenuesByCurrency,
             color: custom.credit,
             icon: Icons.south_west_rounded,
@@ -358,12 +358,12 @@ class _StatCard extends StatelessWidget {
           children: [
             Row(children: [
               Icon(icon, size: 14, color: color),
-              const SizedBox(width: 4),
+              SizedBox(width: 4),
               QaydText(label,
                   slot: QaydTextStyleSlot.labelSmall,
                   color: scheme.onSurfaceVariant),
             ]),
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             ...displayBalances.entries.map((e) {
               final amountStr = e.value.toStringAsFixed(2);
               final symbol = e.key;
@@ -379,7 +379,7 @@ class _StatCard extends StatelessWidget {
                         color: scheme.onSurface,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     QaydText(
                       symbol,
                       slot: QaydTextStyleSlot.labelSmall,

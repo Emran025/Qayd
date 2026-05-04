@@ -5,7 +5,7 @@ import 'package:qayd/domain/exceptions/invalid_amount_exception.dart';
 import 'package:qayd/domain/exceptions/invalid_state_transition_exception.dart';
 import 'package:qayd/domain/exceptions/invalid_voucher_transition_exception.dart';
 import 'package:qayd/domain/exceptions/self_canceling_entry_exception.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 Failure failureFromDomainException(Object error) {
@@ -29,11 +29,11 @@ Failure failureFromDomainException(Object error) {
   }
   if (error is ArgumentError) {
     return ValidationFailure(
-      messageAr: error.message?.toString() ?? AppStringsAr.invalidData,
+      messageAr: error.message?.toString() ?? AppStrings.invalidData,
       code: 'argument_error',
     );
   }
   return UnexpectedFailure(
-    messageAr: AppStringsAr.anUnexpectedErrorOccurred3,
+    messageAr: AppStrings.anUnexpectedErrorOccurred3,
   );
 }

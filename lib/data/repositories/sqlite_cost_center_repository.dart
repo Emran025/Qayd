@@ -8,7 +8,7 @@ import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteCostCenterRepository implements CostCenterRepository {
@@ -34,8 +34,8 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
       );
       return Success(rows.map(_centerFromRow).toList(growable: false));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadCost1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadCost1),
       );
     }
   }
@@ -49,11 +49,11 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
         whereArgs: [id],
         limit: 1,
       );
-      if (rows.isEmpty) return const Success(null);
+      if (rows.isEmpty) return  Success(null);
       return Success(_centerFromRow(rows.first));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theCostCenterCould),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theCostCenterCould),
       );
     }
   }
@@ -66,10 +66,10 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
         _centerToRow(center),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theCostCenterCould1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theCostCenterCould1),
       );
     }
   }
@@ -78,16 +78,16 @@ final class SqliteCostCenterRepository implements CostCenterRepository {
   Future<Result<void>> delete(String id) async {
     try {
       await _db.delete(_centers, where: 'id = ?', whereArgs: [id]);
-      return const Success(null);
+      return  Success(null);
     } on DatabaseException {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.unableToDeleteCost,
+          messageAr: AppStrings.unableToDeleteCost,
         ),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToDeleteCost1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToDeleteCost1),
       );
     }
   }
@@ -124,8 +124,8 @@ ORDER BY d.category, d.name COLLATE NOCASE
       );
       return Success(rows.map(_dimFromRow).toList(growable: false));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadDimensions),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadDimensions),
       );
     }
   }
@@ -138,10 +138,10 @@ ORDER BY d.category, d.name COLLATE NOCASE
         _dimToRow(dimension),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theDimensionCouldNot1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theDimensionCouldNot1),
       );
     }
   }
@@ -150,10 +150,10 @@ ORDER BY d.category, d.name COLLATE NOCASE
   Future<Result<void>> deleteDimension(String id) async {
     try {
       await _db.delete(_dims, where: 'id = ?', whereArgs: [id]);
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theDimensionCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theDimensionCouldNot),
       );
     }
   }
@@ -166,8 +166,8 @@ ORDER BY d.category, d.name COLLATE NOCASE
       final rows = await _db.query(_cats, orderBy: 'is_default DESC, name');
       return Success(rows.map(_catFromRow).toList(growable: false));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadLabels),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadLabels),
       );
     }
   }
@@ -181,10 +181,10 @@ ORDER BY d.category, d.name COLLATE NOCASE
         _catToRow(category),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theCategoryCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theCategoryCouldNot),
       );
     }
   }
@@ -227,10 +227,10 @@ ORDER BY d.category, d.name COLLATE NOCASE
           );
         }
       });
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theVoucherCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theVoucherCouldNot),
       );
     }
   }
@@ -253,10 +253,10 @@ ORDER BY d.category, d.name COLLATE NOCASE
           whereArgs: [voucherId, costCenterId],
         );
       });
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theBondCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theBondCouldNot),
       );
     }
   }
@@ -274,9 +274,9 @@ ORDER BY d.category, d.name COLLATE NOCASE
       );
       return Success(rows.map((r) => r['cost_center_id'] as String).toList());
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.unableToReadCost,
+          messageAr: AppStrings.unableToReadCost,
         ),
       );
     }
@@ -309,8 +309,8 @@ ORDER BY d.category, d.name COLLATE NOCASE
       );
       return Success(rows.map((r) => r['voucher_id'] as String).toList());
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadVouchers),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadVouchers),
       );
     }
   }
@@ -334,8 +334,8 @@ ORDER BY c.name, d.name
       );
       return Success(rows.map(_dimFromRow).toList());
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theDimensionsOfThe),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theDimensionsOfThe),
       );
     }
   }
@@ -364,8 +364,8 @@ GROUP BY v.currency_code
       }
       return Success(map);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToCalculateCost),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToCalculateCost),
       );
     }
   }
@@ -399,8 +399,8 @@ ORDER BY month_key ASC
       );
       return Success(rows.map((r) => Map<String, dynamic>.from(r)).toList());
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadMonthly),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadMonthly),
       );
     }
   }
@@ -456,8 +456,8 @@ WHERE cost_center_id = ? AND voucher_id IN ($placeholders)
         };
       }).toList());
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadRecent),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadRecent),
       );
     }
   }
@@ -485,8 +485,8 @@ LIMIT 8
       );
       return Success(rows.map((r) => Map<String, dynamic>.from(r)).toList());
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadDimension),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadDimension),
       );
     }
   }

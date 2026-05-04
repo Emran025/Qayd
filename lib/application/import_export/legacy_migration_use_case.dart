@@ -29,7 +29,7 @@ import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/data/services/device_contacts_service.dart';
 import 'package:qayd/data/services/phone_normalization_service.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 
@@ -327,7 +327,7 @@ class LegacyMigrationUseCase {
         case ResolutionAction.createNew:
           final newId = AccountId(const Uuid().v4());
           final accountName =
-              conflict.name.isNotEmpty ? conflict.name : AppStringsAr.importedAccount;
+              conflict.name.isNotEmpty ? conflict.name : AppStrings.importedAccount;
 
           // Determine parent based on user override or bundle classification.
           Account? parentAccount;
@@ -436,8 +436,8 @@ class LegacyMigrationUseCase {
                   a.classification.standardKind ==
                       StandardAccountClassificationKind.liquidAssets &&
                   (a.isDefault ||
-                      a.name == AppStringsAr.theBox ||
-                      a.name.contains(AppStringsAr.restriction)))
+                      a.name == AppStrings.theBox ||
+                      a.name.contains(AppStrings.restriction)))
               .firstOrNull ??
           allAccounts
               .where((a) =>
@@ -445,14 +445,14 @@ class LegacyMigrationUseCase {
                   StandardAccountClassificationKind.liquidAssets)
               .firstOrNull ??
           allAccounts
-              .where((a) => a.name == AppStringsAr.theBox || a.name.contains(AppStringsAr.restriction))
+              .where((a) => a.name == AppStrings.theBox || a.name.contains(AppStrings.restriction))
               .firstOrNull;
 
       if (fundAccount == null) {
-        return const FailureResult(
+        return  FailureResult(
           UnexpectedFailure(
             messageAr:
-                AppStringsAr.theMainFundAccount,
+                AppStrings.theMainFundAccount,
           ),
         );
       }
@@ -756,27 +756,27 @@ class LegacyMigrationUseCase {
   }
 
   String _fallbackNameAr(String code) {
-    const map = {
-      'SAR': AppStringsAr.saudiRiyals,
-      'YER': AppStringsAr.yemeni,
-      'USD': AppStringsAr.usDollars,
-      'EGP': AppStringsAr.egyptianPound,
-      'AED': AppStringsAr.emiratiDirham,
-      'KWD': AppStringsAr.kuwaitiDinar,
-      'QAR': AppStringsAr.qatari,
-      'OMR': AppStringsAr.omani,
-      'BHD': AppStringsAr.bahrainiDinar,
-      'JOD': AppStringsAr.jordanianDinar,
-      'EUR': AppStringsAr.euro,
-      'GBP': AppStringsAr.britishPounds,
-      'XAU': AppStringsAr.aGramOfGold,
-      'XAG': AppStringsAr.gramOfSilver,
+    final map = {
+      'SAR': AppStrings.saudiRiyals,
+      'YER': AppStrings.yemeni,
+      'USD': AppStrings.usDollars,
+      'EGP': AppStrings.egyptianPound,
+      'AED': AppStrings.emiratiDirham,
+      'KWD': AppStrings.kuwaitiDinar,
+      'QAR': AppStrings.qatari,
+      'OMR': AppStrings.omani,
+      'BHD': AppStrings.bahrainiDinar,
+      'JOD': AppStrings.jordanianDinar,
+      'EUR': AppStrings.euro,
+      'GBP': AppStrings.britishPounds,
+      'XAU': AppStrings.aGramOfGold,
+      'XAG': AppStrings.gramOfSilver,
     };
     return map[code] ?? 'عملة $code';
   }
 
   String _fallbackSymbol(String code) {
-    const map = {
+    final map = {
       'SAR': '﷼',
       'YER': '﷼',
       'QAR': '﷼',
@@ -784,13 +784,13 @@ class LegacyMigrationUseCase {
       'USD': r'$',
       'EUR': '€',
       'GBP': '£',
-      'EGP': AppStringsAr.jm,
-      'AED': AppStringsAr.de,
-      'KWD': AppStringsAr.kwd,
-      'BHD': AppStringsAr.bear,
-      'JOD': AppStringsAr.da1,
-      'XAU': AppStringsAr.cD,
-      'XAG': AppStringsAr.dry,
+      'EGP': AppStrings.jm,
+      'AED': AppStrings.de,
+      'KWD': AppStrings.kwd,
+      'BHD': AppStrings.bear,
+      'JOD': AppStrings.da1,
+      'XAU': AppStrings.cD,
+      'XAG': AppStrings.dry,
     };
     return map[code] ?? code;
   }

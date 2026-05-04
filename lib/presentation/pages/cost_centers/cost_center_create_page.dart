@@ -5,7 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -114,7 +114,7 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppStringsAr.costCenterCreatedSnackbar),
+            content: Text(AppStrings.costCenterCreatedSnackbar),
           ),
         );
         widget.onCreated();
@@ -131,8 +131,8 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.initialCostCenter != null
-            ? AppStringsAr.costCenterEditAction
-            : AppStringsAr.newCostCenterTitle),
+            ? AppStrings.costCenterEditAction
+            : AppStrings.newCostCenterTitle),
         leading: const BackButton(),
       ),
       body: Form(
@@ -141,13 +141,13 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
           padding: const EdgeInsets.all(SpacingTokens.md),
           children: [
             // ── Type Selector ──────────────────────────────────────────────
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             QaydText(
-              AppStringsAr.costCenterTypeSelectorLabel,
+              AppStrings.costCenterTypeSelectorLabel,
               slot: QaydTextStyleSlot.labelLarge,
               color: scheme.onSurfaceVariant,
             ),
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             Row(
               children: [
                 Expanded(
@@ -157,7 +157,7 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
                     onTap: () => setState(() => _type = CostCenterType.cost),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 Expanded(
                   child: _TypeCard(
                     type: CostCenterType.profit,
@@ -167,31 +167,31 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
                 ),
               ],
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             // ── Name ──────────────────────────────────────────────────────
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: AppStringsAr.costCenterNameHint,
-                prefixIcon: const Icon(Icons.label_important_outline_rounded),
+                labelText: AppStrings.costCenterNameHint,
+                prefixIcon: Icon(Icons.label_important_outline_rounded),
               ),
               validator: (v) => (v == null || v.trim().isEmpty)
-                  ? AppStringsAr.costCenterNameValidator
+                  ? AppStrings.costCenterNameValidator
                   : null,
               inputFormatters: [
                 FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
               ],
               textInputAction: TextInputAction.next,
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             // ── Description ───────────────────────────────────────────────
             TextFormField(
               controller: _descController,
               decoration: InputDecoration(
-                labelText: AppStringsAr.costCenterDescHint,
-                prefixIcon: const Icon(Icons.notes_rounded),
+                labelText: AppStrings.costCenterDescHint,
+                prefixIcon: Icon(Icons.notes_rounded),
               ),
               maxLines: 2,
               inputFormatters: [
@@ -199,31 +199,31 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
               ],
               textInputAction: TextInputAction.next,
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             // ── Budget ────────────────────────────────────────────────────
             TextFormField(
               controller: _budgetController,
               decoration: InputDecoration(
-                labelText: AppStringsAr.costCenterBudgetHint,
-                prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
-                hintText: AppStringsAr.costCenterBudgetNoneHint,
+                labelText: AppStrings.costCenterBudgetHint,
+                prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                hintText: AppStrings.costCenterBudgetNoneHint,
               ),
               keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+                   TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.done,
             ),
 
             // ── Categories (Dimensions) ──────────────────────────────────
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             QaydText(
-              AppStringsAr.costCenterDimensionSelectorLabel,
+              AppStrings.costCenterDimensionSelectorLabel,
               slot: QaydTextStyleSlot.labelLarge,
               color: scheme.onSurfaceVariant,
             ),
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             if (_categories.isEmpty)
-              const Center(
+              Center(
                   child: Padding(
                 padding: EdgeInsets.all(SpacingTokens.md),
                 child: CircularProgressIndicator(),
@@ -246,19 +246,19 @@ class _CostCenterCreatePageState extends State<CostCenterCreatePage> {
                 }).toList(),
               ),
 
-            const SizedBox(height: SpacingTokens.xl),
+            SizedBox(height: SpacingTokens.xl),
 
             // ── Save ──────────────────────────────────────────────────────
             FilledButton.icon(
               onPressed: _saving ? null : _save,
               icon: _saving
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.check_rounded),
-              label: Text(AppStringsAr.costCenterSaveAction),
+                  : Icon(Icons.check_rounded),
+              label: Text(AppStrings.costCenterSaveAction),
               style: FilledButton.styleFrom(
                 backgroundColor: gold,
                 foregroundColor: ColorTokens.navy950,
@@ -316,7 +316,7 @@ class _TypeCard extends StatelessWidget {
               color: selected ? color : scheme.onSurfaceVariant,
               size: 28,
             ),
-            const SizedBox(height: SpacingTokens.xs),
+            SizedBox(height: SpacingTokens.xs),
             Text(
               type.labelAr,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(

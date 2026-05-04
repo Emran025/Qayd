@@ -10,7 +10,7 @@ import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/data/repositories/outbox_dao.dart';
 import 'package:qayd/data/repositories/sync_watermark_dao.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/core/result/result.dart';
 
 /// Manages multi-tiered polling and live WS connection for Real-Time Synchronization.
@@ -73,13 +73,13 @@ class SyncCoordinatorService {
       if (node.eventType == SyncEventType.claim) {
         if (notificationFilterService.isPeerActivityEnabled) {
           await nativeNotificationService.showImportantNotification(
-            title: AppStringsAr.syncClaimTitle,
-            body: AppStringsAr.syncClaimBody,
+            title: AppStrings.syncClaimTitle,
+            body: AppStrings.syncClaimBody,
             payload: 'voucher_chat:${node.senderId}',
           );
           await notificationMessageRepository.insert(
             id: node.id,
-            bodyText: AppStringsAr.syncClaimBody,
+            bodyText: AppStrings.syncClaimBody,
             counterpartyAccountId: node.senderId.toString(),
             createdAtIso: DateTime.now().toIso8601String(),
             channel: 'server',
@@ -88,8 +88,8 @@ class SyncCoordinatorService {
       } else if (node.eventType == SyncEventType.acceptance) {
         if (notificationFilterService.isSelfActivityEnabled) {
           await nativeNotificationService.showLocalNotification(
-            title: AppStringsAr.approved,
-            body: AppStringsAr.yourBondHasBeen,
+            title: AppStrings.approved,
+            body: AppStrings.yourBondHasBeen,
             payload: 'voucher_chat:${node.senderId}',
           );
           await notificationMessageRepository.insert(

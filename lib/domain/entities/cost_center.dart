@@ -1,6 +1,6 @@
 import 'package:qayd/domain/exceptions/immutable_entity_exception.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// A Cost or Profit Center that groups vouchers under a named analytical unit.
@@ -102,8 +102,8 @@ class CostCenter {
 
   CostCenter rename(String newName) {
     if (isDefault) {
-      throw const ImmutableEntityException(
-        messageAr: AppStringsAr.theNameOfThe,
+      throw  ImmutableEntityException(
+        messageAr: AppStrings.theNameOfThe,
         code: 'cost_center_rename_default',
       );
     }
@@ -122,8 +122,8 @@ class CostCenter {
   CostCenter suspend(DateTime at) {
     if (!isActive) return this;
     if (isDefault) {
-      throw const ImmutableEntityException(
-        messageAr: AppStringsAr.theDefaultCostCenter1,
+      throw  ImmutableEntityException(
+        messageAr: AppStrings.theDefaultCostCenter1,
         code: 'cost_center_suspend_default',
       );
     }

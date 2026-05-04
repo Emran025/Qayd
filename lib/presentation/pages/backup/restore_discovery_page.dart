@@ -10,7 +10,7 @@ import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class RestoreDiscoveryPage extends StatelessWidget {
@@ -23,7 +23,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
         listener: (context, state) {
           if (state is RestoreSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text(AppStringsAr.theDataHasBeen)),
+              SnackBar(content: Text(AppStrings.theDataHasBeen)),
             );
             Navigator.of(context).pop(true);
           } else if (state is RestoreFailure) {
@@ -40,7 +40,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
           if (state is RestoreFound) {
             return _buildFoundUI(context, state);
           }
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(color: ColorTokens.emerald500),
           );
         },
@@ -62,44 +62,44 @@ class RestoreDiscoveryPage extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const AuthAnimatedIcon(
+             AuthAnimatedIcon(
               iconData: Icons.cloud_download_rounded,
               iconColor: ColorTokens.emerald500,
             ),
-            const SizedBox(height: SpacingTokens.lg),
-            const AuthTitleBlock(
-              title: AppStringsAr.weFoundABackup,
+            SizedBox(height: SpacingTokens.lg),
+             AuthTitleBlock(
+              title: AppStrings.weFoundABackup,
               subtitle:
-                  AppStringsAr.thereIsAPrevious,
+                  AppStrings.thereIsAPrevious,
             ),
-            const SizedBox(height: SpacingTokens.xl),
+            SizedBox(height: SpacingTokens.xl),
             if (state.localFile.existsSync()) ...[
               _buildBackupCard(
                 context,
-                title: AppStringsAr.localCopyOnThe,
+                title: AppStrings.localCopyOnThe,
                 subtitle:
-                    'بتاريخ: ${localMod != null ? dateFormat.format(localMod) : AppStringsAr.unknown}',
+                    'بتاريخ: ${localMod != null ? dateFormat.format(localMod) : AppStrings.unknown}',
                 onTap: () => context.read<RestoreCubit>().performRestore(
                       localFile: state.localFile,
                     ),
               ),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
             ],
             if (state.driveInfo != null) ...[
               _buildBackupCard(
                 context,
-                title: AppStringsAr.copyFromGoogleDrive,
+                title: AppStrings.copyFromGoogleDrive,
                 subtitle:
-                    'بتاريخ: ${state.driveInfo!.lastModified != null ? dateFormat.format(state.driveInfo!.lastModified!) : AppStringsAr.unknown}',
+                    'بتاريخ: ${state.driveInfo!.lastModified != null ? dateFormat.format(state.driveInfo!.lastModified!) : AppStrings.unknown}',
                 onTap: () => context.read<RestoreCubit>().performRestore(
                       fromDrive: true,
                     ),
               ),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
             ],
             const Spacer(),
             AuthSubmitButton(
-              label: AppStringsAr.restoreTheSelectedVersion,
+              label: AppStrings.restoreTheSelectedVersion,
               loading: state is RestoreInProgess,
               onPressed: () {
                 // If there's only one, we can define a default or just use the card clicks
@@ -108,7 +108,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(
-                AppStringsAr.skipAndStartWith,
+                AppStrings.skipAndStartWith,
                 style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
@@ -160,16 +160,16 @@ class RestoreDiscoveryPage extends StatelessWidget {
     QaydDialog.show(
       context: context,
       icon: Icons.vpn_key_rounded,
-      title: AppStringsAr.encryptionKeyRequired,
+      title: AppStrings.encryptionKeyRequired,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const QaydText(
-            AppStringsAr.pleaseEnterThePrimary,
+          QaydText(
+            AppStrings.pleaseEnterThePrimary,
             slot: QaydTextStyleSlot.bodyMedium,
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           TextField(
             controller: controller,
             maxLines: 4,
@@ -178,7 +178,7 @@ class RestoreDiscoveryPage extends StatelessWidget {
             decoration: InputDecoration(
               filled: true,
               fillColor: theme.colorScheme.surfaceContainerHighest,
-              hintText: AppStringsAr.enterRecoveryPhraseHere,
+              hintText: AppStrings.enterRecoveryPhraseHere,
               hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -188,9 +188,9 @@ class RestoreDiscoveryPage extends StatelessWidget {
           ),
         ],
       ),
-      secondaryActionLabel: AppStringsAr.cancellation,
+      secondaryActionLabel: AppStrings.cancellation,
       onSecondaryAction: () => Navigator.pop(context),
-      primaryActionLabel: AppStringsAr.confirmAndDecrypt,
+      primaryActionLabel: AppStrings.confirmAndDecrypt,
       onPrimaryAction: () {
         final phrase = controller.text.trim();
         if (phrase.isNotEmpty) {

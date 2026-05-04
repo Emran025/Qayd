@@ -3,7 +3,7 @@ import 'package:qayd/application/governance/dtos/check_governance_status_input.d
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Policy gate for mutating use cases: blocks writes when governance is not [GovernanceStatusKind.activated].
@@ -28,7 +28,7 @@ class GovernanceWriteGuard {
         return FailureResult(
           ValidationFailure(
             messageAr: status.messageAr ??
-                AppStringsAr.theApplicationIsIn,
+                AppStrings.theApplicationIsIn,
             code: 'governance_suspended',
           ),
         );
@@ -36,7 +36,7 @@ class GovernanceWriteGuard {
         return FailureResult(
           ValidationFailure(
             messageAr: status.messageAr ??
-                AppStringsAr.activationHasExpiredPlease,
+                AppStrings.activationHasExpiredPlease,
             code: 'governance_revoked',
           ),
         );
@@ -44,7 +44,7 @@ class GovernanceWriteGuard {
         return FailureResult(
           ValidationFailure(
             messageAr: status.messageAr ??
-                AppStringsAr.subscriptionHasExpiredPlease,
+                AppStrings.subscriptionHasExpiredPlease,
             code: 'governance_expired',
           ),
         );

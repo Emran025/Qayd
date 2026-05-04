@@ -9,7 +9,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class ArchiveAccountUseCase {
@@ -53,7 +53,7 @@ class ArchiveAccountUseCase {
         balanceCheck = Money.nonNegative(entry.value.abs(), entry.key);
       } else {
         balanceCheck = Money.zero(
-            const CurrencyCode(code: 'SAR', nameAr: '﷼', symbol: AppStringsAr.rs));
+             CurrencyCode(code: 'SAR', nameAr: '﷼', symbol: AppStrings.rs));
       }
 
       final archived = account.archive(balance: balanceCheck);

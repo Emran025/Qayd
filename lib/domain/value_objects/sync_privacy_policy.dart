@@ -1,4 +1,4 @@
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 /// Represents the sync privacy policy modes.
 ///
 /// Controls who can discover the user's public key and sync vouchers with them:
@@ -40,11 +40,11 @@ enum SyncPolicyMode {
   /// Arabic display name for settings UI.
   String get displayNameAr {
     return switch (this) {
-      SyncPolicyMode.open => AppStringsAr.openToEveryone,
-      SyncPolicyMode.openWithBlocklist => AppStringsAr.openWithBlocklist,
-      SyncPolicyMode.closedWithAllowlist => AppStringsAr.restrictedAllowListOnly,
-      SyncPolicyMode.openToContacts => AppStringsAr.openToMyAccounts,
-      SyncPolicyMode.closed => AppStringsAr.closedToEveryone,
+      SyncPolicyMode.open => AppStrings.openToEveryone,
+      SyncPolicyMode.openWithBlocklist => AppStrings.openWithBlocklist,
+      SyncPolicyMode.closedWithAllowlist => AppStrings.restrictedAllowListOnly,
+      SyncPolicyMode.openToContacts => AppStrings.openToMyAccounts,
+      SyncPolicyMode.closed => AppStrings.closedToEveryone,
     };
   }
 
@@ -52,15 +52,15 @@ enum SyncPolicyMode {
   String get descriptionAr {
     return switch (this) {
       SyncPolicyMode.open =>
-        AppStringsAr.itAllowsAnyoneWith,
+        AppStrings.itAllowsAnyoneWith,
       SyncPolicyMode.openWithBlocklist =>
-        AppStringsAr.allowsEveryoneExceptUsers,
+        AppStrings.allowsEveryoneExceptUsers,
       SyncPolicyMode.closedWithAllowlist =>
-        AppStringsAr.onlyUsersSpecifiedIn,
+        AppStrings.onlyUsersSpecifiedIn,
       SyncPolicyMode.openToContacts =>
-        AppStringsAr.onlyPeopleOnYour,
+        AppStrings.onlyPeopleOnYour,
       SyncPolicyMode.closed =>
-        AppStringsAr.itPreventsEveryoneFrom,
+        AppStrings.itPreventsEveryoneFrom,
     };
   }
 }

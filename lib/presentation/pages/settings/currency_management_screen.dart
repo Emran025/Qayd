@@ -6,7 +6,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 class CurrencyManagementScreen extends StatefulWidget {
@@ -43,35 +43,35 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
     QaydDialog.show(
       context: context,
       icon: Icons.currency_exchange_rounded,
-      title: AppStringsAr.addANewCurrency,
+      title: AppStrings.addANewCurrency,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           QaydTextField(
             controller: codeController,
-            label: AppStringsAr.currencySymbolExampleUsd,
+            label: AppStrings.currencySymbolExampleUsd,
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           QaydTextField(
             controller: nameController,
-            label: AppStringsAr.theNameOfThe1,
+            label: AppStrings.theNameOfThe1,
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           QaydTextField(
             controller: symbolController,
             label: 'رمز العملة (مثال: \$)',
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           QaydNumericField(
             controller: digitsController,
-            label: AppStringsAr.numberOfDecimalDigits,
+            label: AppStrings.numberOfDecimalDigits,
             maxLength: 1,
           ),
         ],
       ),
-      secondaryActionLabel: AppStringsAr.cancellation,
+      secondaryActionLabel: AppStrings.cancellation,
       onSecondaryAction: () => Navigator.pop(context),
-      primaryActionLabel: AppStringsAr.addition,
+      primaryActionLabel: AppStrings.addition,
       onPrimaryAction: () async {
         if (codeController.text.isEmpty || nameController.text.isEmpty) {
           return;
@@ -97,18 +97,18 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: QaydAppBar(
-        title: AppStringsAr.settingsSectionCurrency,
+        title: AppStrings.settingsSectionCurrency,
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddCurrencyDialog,
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
       body: FutureBuilder<List<Object>>(
         future: Future.wait([_currenciesFuture, _baseCurrencyFuture]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
           final currenciesRes = snapshot.data![0] as Result<List<CurrencyCode>>;
           final baseRes = snapshot.data![1] as Result<String>;
@@ -140,12 +140,12 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                         : null,
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
+                    contentPadding:  EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 8,
                     ),
                     leading: Container(
-                      padding: const EdgeInsets.all(10),
+                      padding:  EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: isBase
                             ? scheme.primary.withOpacity(0.1)
@@ -182,7 +182,7 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                       children: [
                         if (isBase)
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding:  EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 4,
                             ),
@@ -191,7 +191,7 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              AppStringsAr.basic,
+                              AppStrings.basic,
                               style: TextStyle(
                                 color: scheme.primary,
                                 fontSize: 10,
@@ -222,7 +222,7 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
                           ),
                         if (!isBase && c.isActive)
                           IconButton(
-                            icon: const Icon(Icons.star_border, size: 20),
+                            icon: Icon(Icons.star_border, size: 20),
                             onPressed: () async {
                               final res = await InjectionContainer
                                   .setBaseCurrencyUseCase(

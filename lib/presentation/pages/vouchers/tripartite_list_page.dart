@@ -12,7 +12,7 @@ import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
@@ -150,17 +150,17 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
     return QaydScaffold(
       appBar: QaydAppBar(
         showNotifications: true,
-        title: AppStringsAr.navTripartiteTab,
+        title: AppStrings.navTripartiteTab,
         actions: [
           IconButton(
-            tooltip: AppStringsAr.qrScannerTitle,
+            tooltip: AppStrings.qrScannerTitle,
             onPressed: () => _scanQr(context),
-            icon: const Icon(Icons.qr_code_scanner_rounded),
+            icon: Icon(Icons.qr_code_scanner_rounded),
           ),
           IconButton(
-            tooltip: AppStringsAr.voucherFilterSheetTitle,
+            tooltip: AppStrings.voucherFilterSheetTitle,
             onPressed: () => _openFilterSheet(context),
-            icon: const Icon(Icons.tune_rounded),
+            icon: Icon(Icons.tune_rounded),
           ),
         ],
       ),
@@ -175,8 +175,8 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
             await _openDualCreate(context);
           }
         },
-        label: const Text(AppStringsAr.newConversion),
-        icon: const Icon(Icons.add_rounded),
+        label: Text(AppStrings.newConversion),
+        icon: Icon(Icons.add_rounded),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
       ),
@@ -196,12 +196,12 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                 return QaydTextField(
                   controller: _searchController,
                   textInputAction: TextInputAction.search,
-                  hint: AppStringsAr.searchForConversionDetails,
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  hint: AppStrings.searchForConversionDetails,
+                  prefixIcon: Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isEmpty
                       ? null
                       : IconButton(
-                          icon: const Icon(Icons.clear_rounded),
+                          icon: Icon(Icons.clear_rounded),
                           onPressed: () {
                             _searchController.clear();
                             context.read<TripartiteListCubit>().clearSearch();
@@ -235,7 +235,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                     ),
                     itemCount: chipWidgets.length,
                     separatorBuilder: (_, __) =>
-                        const SizedBox(width: SpacingTokens.xs),
+                        SizedBox(width: SpacingTokens.xs),
                     itemBuilder: (_, i) => chipWidgets[i],
                   ),
                 ),
@@ -246,7 +246,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
             child: BlocBuilder<TripartiteListCubit, TripartiteListState>(
               builder: (context, state) {
                 if (state is TripartiteListLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 }
                 if (state is TripartiteListFailure) {
                   return Center(
@@ -260,11 +260,11 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                             slot: QaydTextStyleSlot.bodyLarge,
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: SpacingTokens.md),
+                          SizedBox(height: SpacingTokens.md),
                           FilledButton.tonal(
                             onPressed: () =>
                                 context.read<TripartiteListCubit>().load(),
-                            child: const Text(AppStringsAr.retry),
+                            child: Text(AppStrings.retry),
                           ),
                         ],
                       ),
@@ -283,11 +283,11 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
                           ? Icons.search_off_rounded
                           : Icons.swap_horizontal_circle_outlined,
                       title: hasQueryOrFilter
-                          ? AppStringsAr.noMatchingResultsFound
-                          : AppStringsAr.thereAreNoTransfers,
+                          ? AppStrings.noMatchingResultsFound
+                          : AppStrings.thereAreNoTransfers,
                       description: hasQueryOrFilter
-                          ? AppStringsAr.trySearchingWithOther
-                          : AppStringsAr.youHaveNotAdded,
+                          ? AppStrings.trySearchingWithOther
+                          : AppStrings.youHaveNotAdded,
                     );
                   }
 
@@ -349,7 +349,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
       chips.add(
         InputChip(
           label: Text(
-            '${AppStringsAr.voucherFilterChipSearchPrefix}$q',
+            '${AppStrings.voucherFilterChipSearchPrefix}$q',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -366,8 +366,8 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
         InputChip(
           label: Text(
             f.type == VoucherType.receipt
-                ? AppStringsAr.voucherTypeReceipt
-                : AppStringsAr.voucherTypePayment,
+                ? AppStrings.voucherTypeReceipt
+                : AppStrings.voucherTypePayment,
           ),
           onDeleted: () => cubit.patchAdvancedFilter((x) => x.clearType()),
         ),
@@ -398,7 +398,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
       chips.add(
         InputChip(
           label: Text(
-            '${AppStringsAr.voucherCounterpartyLabel}: $name',
+            '${AppStrings.voucherCounterpartyLabel}: $name',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -413,7 +413,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
       chips.add(
         InputChip(
           label: Text(
-            '${AppStringsAr.voucherAffectedAccountLabel}: $name',
+            '${AppStrings.voucherAffectedAccountLabel}: $name',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -424,7 +424,7 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
     if (chips.isNotEmpty) {
       chips.add(
         ActionChip(
-          label: Text(AppStringsAr.voucherClearAllFiltersChip),
+          label: Text(AppStrings.voucherClearAllFiltersChip),
           onPressed: () {
             _searchController.clear();
             cubit.clearAllFiltersAndSearch();
@@ -437,10 +437,10 @@ class _TripartiteListViewState extends State<_TripartiteListView> {
 
   String _stateLabel(VoucherState s) {
     return switch (s) {
-      VoucherState.draft => AppStringsAr.voucherStateDraft,
-      VoucherState.confirmed => AppStringsAr.voucherStateConfirmed,
-      VoucherState.settled => AppStringsAr.voucherStateSettled,
-      VoucherState.withdrawn => AppStringsAr.voucherStateWithdrawn,
+      VoucherState.draft => AppStrings.voucherStateDraft,
+      VoucherState.confirmed => AppStrings.voucherStateConfirmed,
+      VoucherState.settled => AppStrings.voucherStateSettled,
+      VoucherState.withdrawn => AppStrings.voucherStateWithdrawn,
     };
   }
 }
@@ -486,9 +486,9 @@ class _TransferSummaryCard extends StatelessWidget {
               CircleAvatar(
                 backgroundColor: gold.withValues(alpha: 0.15),
                 foregroundColor: gold,
-                child: const Icon(Icons.swap_horiz_rounded, size: 22),
+                child: Icon(Icons.swap_horiz_rounded, size: 22),
               ),
-              const SizedBox(width: SpacingTokens.md),
+              SizedBox(width: SpacingTokens.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,7 +499,7 @@ class _TransferSummaryCard extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         QaydText(
-                          AppStringsAr.brokerConversion,
+                          AppStrings.brokerConversion,
                           slot: QaydTextStyleSlot.labelLarge,
                         ),
                         if (isPending)
@@ -514,7 +514,7 @@ class _TransferSummaryCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: SpacingTokens.sm),
+                    SizedBox(height: SpacingTokens.sm),
                     // Compact Flow
                     _buildFlowStep(
                       context,
@@ -535,7 +535,7 @@ class _TransferSummaryCard extends StatelessWidget {
                       Icons.arrow_forward_rounded,
                       gold,
                     ),
-                    const SizedBox(height: SpacingTokens.sm),
+                    SizedBox(height: SpacingTokens.sm),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -584,7 +584,7 @@ class _TransferSummaryCard extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 14, color: color),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: QaydText(
               name,

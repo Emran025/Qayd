@@ -6,7 +6,7 @@ import 'package:qayd/presentation/pages/settings/sync_privacy_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Settings page for managing sync privacy policy.
@@ -50,7 +50,7 @@ class _SyncPrivacySettingsSectionState
     final state = _cubit.state;
     if (state.error != null) {
       final theme = Theme.of(context);
-      final isInternetError = state.error!.contains(AppStringsAr.internetConnectionFailed) ||
+      final isInternetError = state.error!.contains(AppStrings.internetConnectionFailed) ||
           state.error!.contains('SocketException');
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +64,7 @@ class _SyncPrivacySettingsSectionState
                 color: Colors.white,
                 size: 20,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(child: Text(state.error!)),
             ],
           ),
@@ -127,20 +127,20 @@ class _SyncPrivacySettingsSectionState
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.syncPrivacy),
+      appBar: QaydAppBar(title: AppStrings.syncPrivacy),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(SpacingTokens.lg),
               children: [
                 // ── Header Banner ─────────────────────────────────────
                 _buildHeaderBanner(context),
 
-                const SizedBox(height: SpacingTokens.lg),
+                SizedBox(height: SpacingTokens.lg),
 
                 // ── Policy Mode Selection ─────────────────────────────
-                _buildSectionLabel(context, AppStringsAr.privacyMode),
-                const SizedBox(height: SpacingTokens.sm),
+                _buildSectionLabel(context, AppStrings.privacyMode),
+                SizedBox(height: SpacingTokens.sm),
 
                 for (final mode in SyncPolicyMode.values)
                   _PolicyModeCard(
@@ -154,24 +154,24 @@ class _SyncPrivacySettingsSectionState
                 if (policy != null &&
                     (policy.mode == SyncPolicyMode.openWithBlocklist ||
                      policy.mode == SyncPolicyMode.closedWithAllowlist)) ...[
-                  const SizedBox(height: SpacingTokens.lg),
+                  SizedBox(height: SpacingTokens.lg),
                   _buildSectionLabel(
                     context,
                     policy.mode == SyncPolicyMode.openWithBlocklist
-                        ? AppStringsAr.blockList
-                        : AppStringsAr.allowList,
+                        ? AppStrings.blockList
+                        : AppStrings.allowList,
                   ),
-                  const SizedBox(height: SpacingTokens.xs),
+                  SizedBox(height: SpacingTokens.xs),
                   Text(
                     policy.mode == SyncPolicyMode.openWithBlocklist
-                        ? AppStringsAr.usersBlockedFromSyncing
-                        : AppStringsAr.onlyUsersAllowedTo,
+                        ? AppStrings.usersBlockedFromSyncing
+                        : AppStrings.onlyUsersAllowedTo,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.hintColor,
                       fontSize: 11,
                     ),
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
 
                   // Manage list trigger
                   SizedBox(
@@ -192,16 +192,16 @@ class _SyncPrivacySettingsSectionState
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      icon: const Icon(Icons.group_add_outlined, size: 20),
+                      icon: Icon(Icons.group_add_outlined, size: 20),
                       label: Text(
                         policy.mode == SyncPolicyMode.openWithBlocklist
-                            ? AppStringsAr.manageBlockList
-                            : AppStringsAr.manageTheAllowList,
+                            ? AppStrings.manageBlockList
+                            : AppStrings.manageTheAllowList,
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
 
                   // List entries
                   if (_relevantEntries(policy).isEmpty)
@@ -217,9 +217,9 @@ class _SyncPrivacySettingsSectionState
                           children: [
                             Icon(Icons.person_off_outlined,
                                 size: 40, color: colorScheme.onSurfaceVariant),
-                            const SizedBox(height: SpacingTokens.sm),
+                            SizedBox(height: SpacingTokens.sm),
                             Text(
-                              AppStringsAr.theListIsEmpty,
+                              AppStrings.theListIsEmpty,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -242,11 +242,11 @@ class _SyncPrivacySettingsSectionState
                     ),
                 ],
 
-                const SizedBox(height: SpacingTokens.lg),
+                SizedBox(height: SpacingTokens.lg),
 
                 // Info box
                 _buildInfoBanner(context),
-                const SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.xl),
               ],
             ),
     );
@@ -296,22 +296,22 @@ class _SyncPrivacySettingsSectionState
               size: 18,
             ),
           ),
-          const SizedBox(width: SpacingTokens.sm),
+          SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppStringsAr.synchronizationControl,
+                  AppStrings.synchronizationControl,
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: tertiaryColor,
                     fontSize: 12,
                   ),
                 ),
-                const SizedBox(height: 1),
+                SizedBox(height: 1),
                 Text(
-                  AppStringsAr.determineWhoCanSync,
+                  AppStrings.determineWhoCanSync,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 10.5,
@@ -328,7 +328,7 @@ class _SyncPrivacySettingsSectionState
   Widget _buildInfoBanner(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(SpacingTokens.md),
+      padding:  EdgeInsets.all(SpacingTokens.md),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.15),
         borderRadius: BorderRadius.circular(16),
@@ -338,10 +338,10 @@ class _SyncPrivacySettingsSectionState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.info_outline, size: 20, color: theme.colorScheme.tertiary),
-          const SizedBox(width: SpacingTokens.sm),
+          SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: Text(
-              AppStringsAr.syncingViaDirectQr,
+              AppStrings.syncingViaDirectQr,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.hintColor,
                 fontSize: 11,
@@ -454,7 +454,7 @@ class _PolicyModeCard extends StatelessWidget {
 void _inviteByPhone(String name, String phone) {
   final greeting = name.isNotEmpty ? 'مرحباً $name، ' : '';
   final message =
-      '${greeting}أدعوك لاستخدام تطبيق AppStringsAr.restriction للمحاسبة والمزامنة السحابية.';
+      '$greetingأدعوك لاستخدام تطبيق AppStrings.restriction للمحاسبة والمزامنة السحابية.';
   final uri = Uri.parse(
       'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
   launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -477,7 +477,7 @@ class _AccessListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.only(bottom: SpacingTokens.xs),
+      margin:  EdgeInsets.only(bottom: SpacingTokens.xs),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -519,7 +519,7 @@ class _AccessListTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      entry.targetPhone.isEmpty ? AppStringsAr.localRecord : AppStringsAr.notRegistered,
+                      entry.targetPhone.isEmpty ? AppStrings.localRecord : AppStrings.notRegistered,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             fontSize: 9,
                             color: colorScheme.onSurfaceVariant,
@@ -527,14 +527,14 @@ class _AccessListTile extends StatelessWidget {
                     ),
                   ),
                   if (entry.targetPhone.isNotEmpty) ...[
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     GestureDetector(
                       onTap: () =>
                           _inviteByPhone(entry.targetName, entry.targetPhone),
                       child: Padding(
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
-                          AppStringsAr.callNow,
+                          AppStrings.callNow,
                           style:
                               Theme.of(context).textTheme.labelSmall?.copyWith(
                                     fontSize: 10,

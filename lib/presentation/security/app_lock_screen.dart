@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_state.dart';
 import 'package:qayd/presentation/security/security_lock_overlay.dart';
@@ -34,7 +34,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
   Future<void> _tryBiometric() async {
     await context.read<SecurityCubit>().unlockWithBiometric(
-          localizedReason: AppStringsAr.securityBiometricReason,
+          localizedReason: AppStrings.securityBiometricReason,
         );
   }
 
@@ -56,7 +56,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
     final stillLocked = context.read<SecurityCubit>().state.isLocked;
     if (wasLocked && stillLocked) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.securityPinWrong)),
+        SnackBar(content: Text(AppStrings.securityPinWrong)),
       );
     }
     setState(() => _pin = '');
@@ -76,24 +76,24 @@ class _AppLockScreenState extends State<AppLockScreen> {
           padding: const EdgeInsets.all(SpacingTokens.lg),
           child: Column(
             children: [
-              const SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.xl),
               Icon(
                 Icons.lock_rounded,
                 size: 56,
                 color: accentColor.withValues(alpha: 0.95),
               ),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
               Text(
-                AppStringsAr.lockScreenTitle,
+                AppStrings.lockScreenTitle,
                 style: textStyle.headlineSmall?.copyWith(
                   color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
               Text(
-                AppStringsAr.lockScreenSubtitle,
+                AppStrings.lockScreenSubtitle,
                 style: textStyle.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -111,7 +111,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   return const SizedBox.shrink();
                 },
               ),
-              const SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.xl),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: SpacingTokens.lg,
@@ -141,7 +141,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
               Expanded(
                 child: _Keypad(
                   onDigit: _addDigit,
@@ -155,7 +155,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                     onPressed: _tryBiometric,
                     icon: Icon(Icons.fingerprint_rounded, color: accentColor),
                     label: Text(
-                      AppStringsAr.biometricUnlock,
+                      AppStrings.biometricUnlock,
                       style: textStyle.labelLarge?.copyWith(
                         color: accentColor,
                       ),
@@ -172,7 +172,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   ),
                   onPressed: _pin.length >= _minLen ? _submit : null,
                   child: Text(
-                    AppStringsAr.unlockAction,
+                    AppStrings.unlockAction,
                     style: textStyle.titleMedium?.copyWith(
                       color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.w700,
@@ -250,7 +250,7 @@ class _KeyCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     if (label.isEmpty) {
-      return const SizedBox(width: 72, height: 52);
+      return SizedBox(width: 72, height: 52);
     }
     return SizedBox(
       width: 72,

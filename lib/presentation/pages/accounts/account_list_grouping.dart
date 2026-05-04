@@ -1,5 +1,5 @@
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 String accountSectionKey(AccountSummaryDto a) {
   if (a.standardClassificationKind != null) {
@@ -10,12 +10,12 @@ String accountSectionKey(AccountSummaryDto a) {
 
 String accountSectionTitleAr(AccountSummaryDto representative) {
   if (representative.standardClassificationKind != null) {
-    return AppStringsAr.standardClassificationLabel(
+    return AppStrings.standardClassificationLabel(
       representative.standardClassificationKind!,
     );
   }
   return representative.customClassificationName ??
-      AppStringsAr.classificationOther;
+      AppStrings.classificationOther;
 }
 
 int _sectionRank(String key) {

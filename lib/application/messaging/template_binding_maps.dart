@@ -3,14 +3,14 @@ import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/core/utils/currency_util.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 /// Maps domain DTOs to `{{placeholder}}` keys for [PlaceholderResolver].
 abstract final class TemplateBindingMaps {
   static Map<String, String> forVoucher(GetVoucherDetailsOutput d) {
     final date = DateFormat.yMMMd('ar').format(DateTime.parse(d.dateIso));
     final typeAr =
-        d.typeCode == 'receipt' ? AppStringsAr.catchStr : AppStringsAr.exchange;
+        d.typeCode == 'receipt' ? AppStrings.catchStr : AppStrings.exchange;
 
     // ── Smart party labels ────────────────────────────────────────────────
     // For standard (non-transfer) vouchers:
@@ -43,14 +43,14 @@ abstract final class TemplateBindingMaps {
     }
 
     final sigParts = <String>[];
-    if (d.senderSignatureHex != null) sigParts.add(AppStringsAr.sender);
-    if (d.receiverSignatureHex != null) sigParts.add(AppStringsAr.recipient);
+    if (d.senderSignatureHex != null) sigParts.add(AppStrings.sender);
+    if (d.receiverSignatureHex != null) sigParts.add(AppStrings.recipient);
 
     String signatureLabel;
     if (sigParts.isEmpty) {
-      signatureLabel = AppStringsAr.includedWithDigitalDocumentation;
+      signatureLabel = AppStrings.includedWithDigitalDocumentation;
     } else {
-      final names = sigParts.join(AppStringsAr.and);
+      final names = sigParts.join(AppStrings.and);
       signatureLabel = 'تم التوقيع بواسطة: $names';
 
       // If only one signature, we can append a truncated hex for quick reference
@@ -71,10 +71,10 @@ abstract final class TemplateBindingMaps {
       'amount': MoneyFormatter.formatWithSymbol(
         d.amountMinorUnits /
             (d.currencyDigits == 0 ? 1 : (d.currencyDigits == 2 ? 100 : 1000)),
-        CurrencyUtil.getArabicName(d.currencyCode),
+        CurrencyUtil.getLocalizedName(d.currencyCode),
         fractionalDigits: d.currencyDigits,
       ),
-      'currency': CurrencyUtil.getArabicName(d.currencyCode),
+      'currency': CurrencyUtil.getLocalizedName(d.currencyCode),
 
       'date': date,
       'affected_account': affectedAccountLabel,
@@ -97,12 +97,12 @@ abstract final class TemplateBindingMaps {
         final absValue = value.abs();
         final label = d.counterpartyNature == 'debit'
             ? value > 0
-                ? AppStringsAr.onYou
-                : AppStringsAr.your
+                ? AppStrings.onYou
+                : AppStrings.your
             : value < 0
-                ? AppStringsAr.onYou
-                : AppStringsAr.your;
-        return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
+                ? AppStrings.onYou
+                : AppStrings.your;
+        return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getLocalizedName(e.key)} $label'
             .trim();
       }).join(', '),
     };
@@ -113,38 +113,38 @@ abstract final class TemplateBindingMaps {
     final hasReceiver = d.receiverSignatureHex != null;
 
     if (!hasSender && !hasReceiver) {
-      return AppStringsAr.automaticallyExportedAndDigitally;
+      return AppStrings.automaticallyExportedAndDigitally;
     }
 
-    final buffer = StringBuffer(AppStringsAr.blockchainVerification);
+    final buffer = StringBuffer(AppStrings.blockchainVerification);
 
     if (hasSender) {
       final label = (d.transferGroupId != null || d.isTripartite) &&
               d.typeCode == 'receipt'
-          ? AppStringsAr.signatureOfTheSending
-          : AppStringsAr.signatureOfTheBond;
+          ? AppStrings.signatureOfTheSending
+          : AppStrings.signatureOfTheBond;
       buffer.write('\n- $label: ${d.senderSignatureHex}');
     }
 
     if (hasReceiver) {
       final label = (d.transferGroupId != null || d.isTripartite) &&
               d.typeCode == 'payment'
-          ? AppStringsAr.signatureOfTheReceiving
-          : AppStringsAr.signatureOfTheOpposite;
+          ? AppStrings.signatureOfTheReceiving
+          : AppStrings.signatureOfTheOpposite;
       buffer.write('\n- $label: ${d.receiverSignatureHex}');
     }
 
-    buffer.write(AppStringsAr.nTheAuthenticityOf);
+    buffer.write(AppStrings.nTheAuthenticityOf);
     return buffer.toString();
   }
 
   static Map<String, String> forAccount(GetAccountDetailsOutput d) {
     final balanceStr = d.balancesMinorUnits.entries
         .map((e) =>
-            '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${CurrencyUtil.getArabicName(e.key)}')
+            '${MoneyFormatter.formatDecimal(e.value.abs() / 100)} ${CurrencyUtil.getLocalizedName(e.key)}')
         .join(', ');
     final nature =
-        d.natureCode == 'debit' ? AppStringsAr.creditor : AppStringsAr.debtor;
+        d.natureCode == 'debit' ? AppStrings.creditor : AppStrings.debtor;
     return {
       'account_name': d.name,
       'balance': balanceStr,

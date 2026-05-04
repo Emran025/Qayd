@@ -4,7 +4,7 @@ import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/account_nature.dart';
 import 'package:qayd/domain/value_objects/money.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Node in the chart of accounts. Nature and classification are fixed after creation.
@@ -199,14 +199,14 @@ class Account {
   /// Deactivate only when [balance] is zero (see accounting domain model).
   Account deactivate({required Money balance}) {
     if (isDefault) {
-      throw const AccountDeletionException(
-        messageAr: AppStringsAr.theDefaultAccountCannot1,
+      throw  AccountDeletionException(
+        messageAr: AppStrings.theDefaultAccountCannot1,
         code: 'account_deactivate_default',
       );
     }
     if (!balance.isZero) {
-      throw const AccountDeletionException(
-        messageAr: AppStringsAr.anAccountWithA,
+      throw  AccountDeletionException(
+        messageAr: AppStrings.anAccountWithA,
         code: 'account_balance_blocks_deactivate',
       );
     }
@@ -229,8 +229,8 @@ class Account {
   Account relocateUnder(Account newParent) {
     if (classification != newParent.classification ||
         nature != newParent.nature) {
-      throw const InvalidStateTransitionException(
-        messageAr: AppStringsAr.theAccountCannotBe,
+      throw  InvalidStateTransitionException(
+        messageAr: AppStrings.theAccountCannotBe,
         code: 'account_reparent_classification_mismatch',
       );
     }
@@ -254,20 +254,20 @@ class Account {
     required bool hasChildAccounts,
   }) {
     if (isDefault) {
-      throw const AccountDeletionException(
-        messageAr: AppStringsAr.theDefaultAccountCannot2,
+      throw  AccountDeletionException(
+        messageAr: AppStrings.theDefaultAccountCannot2,
         code: 'account_delete_default',
       );
     }
     if (!balance.isZero) {
-      throw const AccountDeletionException(
-        messageAr: AppStringsAr.anAccountWithA1,
+      throw  AccountDeletionException(
+        messageAr: AppStrings.anAccountWithA1,
         code: 'account_delete_balance',
       );
     }
     if (hasChildAccounts) {
-      throw const AccountDeletionException(
-        messageAr: AppStringsAr.anAccountThatHas,
+      throw  AccountDeletionException(
+        messageAr: AppStrings.anAccountThatHas,
         code: 'account_delete_children',
       );
     }
@@ -276,14 +276,14 @@ class Account {
   /// Archive an account that has been fully settled (balance == 0).
   Account archive({required Money balance}) {
     if (isDefault) {
-      throw const AccountDeletionException(
-        messageAr: AppStringsAr.theDefaultAccountCannot,
+      throw  AccountDeletionException(
+        messageAr: AppStrings.theDefaultAccountCannot,
         code: 'account_archive_default',
       );
     }
     if (!balance.isZero) {
-      throw const AccountDeletionException(
-        messageAr: AppStringsAr.anAccountWithA2,
+      throw  AccountDeletionException(
+        messageAr: AppStrings.anAccountWithA2,
         code: 'account_archive_balance',
       );
     }

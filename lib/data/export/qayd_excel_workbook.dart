@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Builds `.xlsx` exports with professional branded styling matching Qayd's identity.
@@ -168,8 +168,8 @@ abstract final class QaydExcelWorkbook {
     required List<String> headers,
     required List<List<Object?>> rows,
   }) {
-    final excel = _baseExcel(AppStringsAr.bonds);
-    final sheet = excel[AppStringsAr.bonds];
+    final excel = _baseExcel(AppStrings.bonds);
+    final sheet = excel[AppStrings.bonds];
     _writeHeader(sheet, headers);
     _writeRows(sheet, rows, 1);
     final raw = excel.save(fileName: 'qayd_vouchers.xlsx');
@@ -184,8 +184,8 @@ abstract final class QaydExcelWorkbook {
     required List<String> headers,
     required List<List<Object?>> rows,
   }) {
-    final excel = _baseExcel(AppStringsAr.theAccounts);
-    final sheet = excel[AppStringsAr.theAccounts];
+    final excel = _baseExcel(AppStrings.theAccounts);
+    final sheet = excel[AppStrings.theAccounts];
     _writeHeader(sheet, headers);
     _writeRows(sheet, rows, 1);
     final raw = excel.save(fileName: 'qayd_accounts.xlsx');
@@ -241,11 +241,11 @@ abstract final class QaydExcelWorkbook {
     final brandCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
-    brandCell.value = TextCellValue(AppStringsAr.autostring4);
+    brandCell.value = TextCellValue(AppStrings.autostring4);
     brandCell.cellStyle = _brandHeaderStyle();
     currentRow++;
 
-    // Sub-header: AppStringsAr.accountStatement1 (Account Statement title)
+    // Sub-header: AppStrings.accountStatement1 (Account Statement title)
     sheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
       CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: currentRow),
@@ -253,7 +253,7 @@ abstract final class QaydExcelWorkbook {
     final titleCell = sheet.cell(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
-    titleCell.value = TextCellValue(AppStringsAr.accountStatement);
+    titleCell.value = TextCellValue(AppStrings.accountStatement);
     titleCell.cellStyle = CellStyle(
       bold: true,
       fontSize: 12,
@@ -268,10 +268,10 @@ abstract final class QaydExcelWorkbook {
     currentRow++;
 
     // ── ROW 3-6: Info Section (إلى / من) ────────────────────────────────────
-    // Left side: AppStringsAr.toMe (counterparty) — columns 0-2
-    // Right side: AppStringsAr.from (account owner) — columns 3-5
+    // Left side: AppStrings.toMe (counterparty) — columns 0-2
+    // Right side: AppStrings.from (account owner) — columns 3-5
 
-    void _writeInfoPair(int row, String label, String value, int startCol) {
+    void writeInfoPair(int row, String label, String value, int startCol) {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: startCol, rowIndex: row),
       );
@@ -289,14 +289,14 @@ abstract final class QaydExcelWorkbook {
       valueC.cellStyle = _valueStyle();
     }
 
-    _writeInfoPair(currentRow, AppStringsAr.toMe, counterpartyName ?? accountName, 0);
-    _writeInfoPair(currentRow, AppStringsAr.from, AppStringsAr.accountHolderData, 3);
+    writeInfoPair(currentRow, AppStrings.toMe, counterpartyName ?? accountName, 0);
+    writeInfoPair(currentRow, AppStrings.from, AppStrings.accountHolderData, 3);
     currentRow++;
 
     // Period row
     if (periodFrom != null || periodTo != null) {
       final periodStr = '${periodFrom ?? '…'} — ${periodTo ?? '…'}';
-      _writeInfoPair(currentRow, AppStringsAr.period, periodStr, 0);
+      writeInfoPair(currentRow, AppStrings.period, periodStr, 0);
     }
     currentRow++;
 
@@ -304,24 +304,24 @@ abstract final class QaydExcelWorkbook {
     currentRow++;
 
     // ── ROW: Date & Meta info ──────────────────────────────────────────────
-    _writeInfoPair(
+    writeInfoPair(
       currentRow,
-      AppStringsAr.theDate1,
+      AppStrings.theDate1,
       statementDate ?? '',
       0,
     );
-    _writeInfoPair(
+    writeInfoPair(
       currentRow,
-      AppStringsAr.referenceNumber,
+      AppStrings.referenceNumber,
       referenceNumber ?? '',
       3,
     );
     currentRow++;
 
     if (openingBalance != null && openingBalance.isNotEmpty) {
-      _writeInfoPair(
+      writeInfoPair(
         currentRow,
-        AppStringsAr.openingBalance,
+        AppStrings.openingBalance,
         openingBalance,
         3,
       );
@@ -419,7 +419,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
-      labelC.value = TextCellValue(AppStringsAr.totalDebit);
+      labelC.value = TextCellValue(AppStrings.totalDebit);
       labelC.cellStyle = _totalsLabelStyle();
 
       sheet.merge(
@@ -438,7 +438,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
-      labelC.value = TextCellValue(AppStringsAr.totalCredit);
+      labelC.value = TextCellValue(AppStrings.totalCredit);
       labelC.cellStyle = _totalsLabelStyle();
 
       sheet.merge(
@@ -458,7 +458,7 @@ abstract final class QaydExcelWorkbook {
       final labelC = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: currentRow),
       );
-      labelC.value = TextCellValue(AppStringsAr.netBalance);
+      labelC.value = TextCellValue(AppStrings.netBalance);
       labelC.cellStyle = _totalRowLabelStyle();
 
       sheet.merge(
@@ -500,7 +500,7 @@ abstract final class QaydExcelWorkbook {
       final issuerLabelCell = sheet.cell(
         CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
       );
-      issuerLabelCell.value = TextCellValue(AppStringsAr.thePartyOriginatingThe);
+      issuerLabelCell.value = TextCellValue(AppStrings.thePartyOriginatingThe);
       issuerLabelCell.cellStyle = CellStyle(
         bold: true,
         fontSize: 9,
@@ -542,7 +542,7 @@ abstract final class QaydExcelWorkbook {
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow),
     );
     footerCell.value = TextCellValue(
-      AppStringsAr.thisStatementWasGenerated,
+      AppStrings.thisStatementWasGenerated,
     );
     footerCell.cellStyle = CellStyle(
       fontSize: 8,
@@ -566,11 +566,11 @@ abstract final class QaydExcelWorkbook {
   }) {
     final excel = Excel.createExcel();
     final first = excel.sheets.keys.first;
-    excel.rename(first, AppStringsAr.bonds);
-    final v = excel[AppStringsAr.bonds];
+    excel.rename(first, AppStrings.bonds);
+    final v = excel[AppStrings.bonds];
     _writeHeader(v, voucherHeaders);
     _writeRows(v, voucherRows, 1);
-    final a = excel[AppStringsAr.theAccounts];
+    final a = excel[AppStrings.theAccounts];
     _writeHeader(a, accountHeaders);
     _writeRows(a, accountRows, 1);
     final raw = excel.save(fileName: 'qayd_export_all.xlsx');

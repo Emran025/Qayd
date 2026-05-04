@@ -24,7 +24,7 @@ import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Creates a tripartite intermediary transfer (A → Me → B).
@@ -73,7 +73,7 @@ class CreateTripartiteTransferUseCase {
       if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
         return FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theSelectedCurrencyIs,
+            messageAr: AppStrings.theSelectedCurrencyIs,
             code: 'invalid_currency',
           ),
         );
@@ -86,17 +86,17 @@ class CreateTripartiteTransferUseCase {
       final affectedId = AccountId(input.affectedAccountId);
 
       if (sourceId == destId) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theSourceAndDestination,
+            messageAr: AppStrings.theSourceAndDestination,
             code: 'tripartite_same_source_dest',
           ),
         );
       }
       if (sourceId == affectedId || destId == affectedId) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theIntermediateAccountMust,
+            messageAr: AppStrings.theIntermediateAccountMust,
             code: 'tripartite_affected_conflict',
           ),
         );
@@ -176,10 +176,10 @@ class CreateTripartiteTransferUseCase {
         Account? clearingRemittancesAccount;
         if (accountsRes.isSuccess) {
           feeAccount = accountsRes.valueOrNull!
-              .where((a) => a.name == AppStringsAr.transferFeeIncome)
+              .where((a) => a.name == AppStrings.transferFeeIncome)
               .firstOrNull;
           clearingRemittancesAccount = accountsRes.valueOrNull!
-              .where((a) => a.name == AppStringsAr.remittanceClearing)
+              .where((a) => a.name == AppStrings.remittanceClearing)
               .firstOrNull;
 
           if (clearingRemittancesAccount == null) {
@@ -187,7 +187,7 @@ class CreateTripartiteTransferUseCase {
             final clearingRemittancesAccountId = AccountId(_idGenerator.next());
             clearingRemittancesAccount = Account.createRoot(
               id: clearingRemittancesAccountId,
-              name: AppStringsAr.remittanceClearing,
+              name: AppStrings.remittanceClearing,
               classification: AccountClassification.clearingRemittances,
               createdAt: now,
             );
@@ -198,7 +198,7 @@ class CreateTripartiteTransferUseCase {
             final feeAccountId = AccountId(_idGenerator.next());
             feeAccount = Account.createRoot(
               id: feeAccountId,
-              name: AppStringsAr.transferFeeIncome,
+              name: AppStrings.transferFeeIncome,
               classification: AccountClassification.remittanceFees,
               createdAt: now,
             );

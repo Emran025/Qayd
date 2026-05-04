@@ -22,7 +22,7 @@ import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Creates a dual transfer (two standard vouchers through the fund/cashbox).
@@ -32,11 +32,11 @@ import 'package:qayd/presentation/l10n/app_strings_ar.dart';
 ///
 /// 1. **Receipt** (Sender → Fund): Debits the sender, credits the fund.
 ///    - counterparty = Sender, affectedAccount = Fund
-///    - Description: AppStringsAr.deductingAnAmountfromThe
+///    - Description: AppStrings.deductingAnAmountfromThe
 ///
 /// 2. **Payment** (Fund → Receiver): Debits the fund, credits the receiver.
 ///    - counterparty = Receiver, affectedAccount = Fund
-///    - Description: AppStringsAr.addAnAmounttoRecipients
+///    - Description: AppStrings.addAnAmounttoRecipients
 ///
 /// Both vouchers are linked via a shared [dualGroupId] and carry
 /// [DualTransferMeta] so the UI can distinguish them from regular vouchers.
@@ -76,7 +76,7 @@ class CreateDualTransferUseCase {
       if (currencyRes.isFailure || currencyRes.valueOrNull == null) {
         return FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theSelectedCurrencyIs,
+            messageAr: AppStrings.theSelectedCurrencyIs,
             code: 'invalid_currency',
           ),
         );
@@ -89,17 +89,17 @@ class CreateDualTransferUseCase {
       final fundId = AccountId(input.fundAccountId);
 
       if (senderId == receiverId) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theSenderAndRecipient,
+            messageAr: AppStrings.theSenderAndRecipient,
             code: 'dual_same_sender_receiver',
           ),
         );
       }
       if (senderId == fundId || receiverId == fundId) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theFundAccountMust,
+            messageAr: AppStrings.theFundAccountMust,
             code: 'dual_fund_conflict',
           ),
         );

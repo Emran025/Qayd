@@ -1,7 +1,7 @@
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Data model for an outbox entry.
@@ -79,10 +79,10 @@ class OutboxDao {
         entry.toMap(),
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theEntryCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theEntryCouldNot),
       );
     }
   }
@@ -98,8 +98,8 @@ class OutboxDao {
       );
       return Success(rows.map(OutboxEntry.fromMap).toList());
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theOutboxCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theOutboxCouldNot),
       );
     }
   }
@@ -117,8 +117,8 @@ class OutboxDao {
       );
       return Success(rows.map(OutboxEntry.fromMap).toList());
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.thePartysOutboxCould),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.thePartysOutboxCould),
       );
     }
   }
@@ -142,10 +142,10 @@ class OutboxDao {
           whereArgs: [id],
         );
       }
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToUpdateDelivery),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToUpdateDelivery),
       );
     }
   }

@@ -4,7 +4,7 @@ import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/governance/governance_ui_state.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -92,18 +92,18 @@ class _ActivationPageState extends State<ActivationPage> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             QaydText(
-                              AppStringsAr.appTitle,
+                              AppStrings.appTitle,
                               slot: QaydTextStyleSlot.displaySmall,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: SpacingTokens.xs),
+                            SizedBox(height: SpacingTokens.xs),
                             QaydText(
-                              AppStringsAr.activationSubtitle,
+                              AppStrings.activationSubtitle,
                               slot: QaydTextStyleSlot.bodyMedium,
                               color: scheme.onSurfaceVariant,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: SpacingTokens.xl),
+                            SizedBox(height: SpacingTokens.xl),
                             BlocBuilder<GovernanceCubit, GovernanceUiState>(
                               builder: (context, state) {
                                 final msg = state.statusMessage;
@@ -136,19 +136,16 @@ class _ActivationPageState extends State<ActivationPage> {
                                           color: scheme.onSurface,
                                           textAlign: TextAlign.center,
                                         ),
-                                        const SizedBox(
-                                            height: SpacingTokens.md),
+                                        SizedBox(height: SpacingTokens.md),
                                       ],
                                       if (account != null) ...[
                                         QaydText(
-                                          AppStringsAr
-                                              .governancePaymentInstruction,
+                                          AppStrings.governancePaymentInstruction,
                                           slot: QaydTextStyleSlot.labelSmall,
                                           color: scheme.onSurfaceVariant,
                                           textAlign: TextAlign.center,
                                         ),
-                                        const SizedBox(
-                                            height: SpacingTokens.xs),
+                                        SizedBox(height: SpacingTokens.xs),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
                                             vertical: SpacingTokens.sm,
@@ -168,8 +165,7 @@ class _ActivationPageState extends State<ActivationPage> {
                                                       .account_balance_wallet_outlined,
                                                   size: 16,
                                                   color: gold),
-                                              const SizedBox(
-                                                  width: SpacingTokens.sm),
+                                              SizedBox(width: SpacingTokens.sm),
                                               SelectableText(
                                                 account,
                                                 style: TextStyle(
@@ -181,10 +177,9 @@ class _ActivationPageState extends State<ActivationPage> {
                                             ],
                                           ),
                                         ),
-                                        const SizedBox(
-                                            height: SpacingTokens.md),
+                                        SizedBox(height: SpacingTokens.md),
                                         QaydText(
-                                          AppStringsAr.governanceContactAdmin,
+                                          AppStrings.governanceContactAdmin,
                                           slot: QaydTextStyleSlot.labelSmall,
                                           color: scheme.onSurfaceVariant,
                                           textAlign: TextAlign.center,
@@ -197,30 +192,30 @@ class _ActivationPageState extends State<ActivationPage> {
                             ),
                             QaydTextField(
                               controller: _orgController,
-                              label: AppStringsAr.activationOrgIdLabel,
+                              label: AppStrings.activationOrgIdLabel,
                               textInputAction: TextInputAction.next,
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
-                                  return AppStringsAr.activationFieldRequired;
+                                  return AppStrings.activationFieldRequired;
                                 }
                                 return null;
                               },
                             ),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             QaydTextField(
                               controller: _keyController,
-                              label: AppStringsAr.activationLicenseLabel,
+                              label: AppStrings.activationLicenseLabel,
                               obscureText: true,
                               textInputAction: TextInputAction.done,
                               onFieldSubmitted: (_) => _submit(),
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
-                                  return AppStringsAr.activationFieldRequired;
+                                  return AppStrings.activationFieldRequired;
                                 }
                                 return null;
                               },
                             ),
-                            const SizedBox(height: SpacingTokens.xl),
+                            SizedBox(height: SpacingTokens.xl),
                             BlocBuilder<GovernanceCubit, GovernanceUiState>(
                               builder: (context, state) {
                                 final busy = state.refreshInFlight;
@@ -234,14 +229,14 @@ class _ActivationPageState extends State<ActivationPage> {
                                     ),
                                   ),
                                   child: busy
-                                      ? const SizedBox(
+                                      ? SizedBox(
                                           height: 22,
                                           width: 22,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                           ),
                                         )
-                                      : Text(AppStringsAr.activationSubmit),
+                                      : Text(AppStrings.activationSubmit),
                                 );
                               },
                             ),

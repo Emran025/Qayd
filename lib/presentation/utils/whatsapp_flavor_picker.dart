@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 enum ShareMethod { system, whatsappStandard, whatsappBusiness }
@@ -19,27 +19,27 @@ class ShareMethodPicker {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
+             Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                AppStringsAr.chooseHowToShare,
+                AppStrings.chooseHowToShare,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.share, color: Colors.blue),
-              title: const Text(AppStringsAr.sharingAcrossTheSystem),
+              leading: Icon(Icons.share, color: Colors.blue),
+              title:  Text(AppStrings.sharingAcrossTheSystem),
               onTap: () => Navigator.of(ctx).pop(ShareMethod.system),
             ),
             if (hasStandard)
               ListTile(
-                leading: const Icon(Icons.chat, color: Colors.green),
+                leading: Icon(Icons.chat, color: Colors.green),
                 title: Text(WhatsAppFlavor.standard.displayName),
                 onTap: () => Navigator.of(ctx).pop(ShareMethod.whatsappStandard),
               ),
             if (hasBusiness)
               ListTile(
-                leading: const Icon(Icons.store, color: Colors.teal),
+                leading: Icon(Icons.store, color: Colors.teal),
                 title: Text(WhatsAppFlavor.business.displayName),
                 onTap: () => Navigator.of(ctx).pop(ShareMethod.whatsappBusiness),
               ),
@@ -60,7 +60,7 @@ class WhatsAppFlavorPicker {
     if (!hasStandard && !hasBusiness) {
       if (!context.mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.whatsappIsNotInstalled)),
+         SnackBar(content: Text(AppStrings.whatsappIsNotInstalled)),
       );
       return null;
     }
@@ -75,20 +75,20 @@ class WhatsAppFlavorPicker {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
+             Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                AppStringsAr.chooseTheAppTo,
+                AppStrings.chooseTheAppTo,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.chat, color: Colors.green),
+              leading: Icon(Icons.chat, color: Colors.green),
               title: Text(WhatsAppFlavor.standard.displayName),
               onTap: () => Navigator.of(ctx).pop(WhatsAppFlavor.standard),
             ),
             ListTile(
-              leading: const Icon(Icons.store, color: Colors.teal),
+              leading: Icon(Icons.store, color: Colors.teal),
               title: Text(WhatsAppFlavor.business.displayName),
               onTap: () => Navigator.of(ctx).pop(WhatsAppFlavor.business),
             ),

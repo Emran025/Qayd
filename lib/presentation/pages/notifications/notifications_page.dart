@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/inbox_notification.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_create_page.dart';
@@ -55,11 +55,11 @@ class _NotificationsView extends StatelessWidget {
 
     return Scaffold(
       appBar: QaydAppBar(
-          title: AppStringsAr.messagingInboxTab, showNotifications: true),
+          title: AppStrings.messagingInboxTab, showNotifications: true),
       body: BlocBuilder<NotificationsCubit, NotificationsState>(
         builder: (context, state) {
           if (state is NotificationsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
 
           if (state is NotificationsFailure) {
@@ -79,7 +79,7 @@ class _NotificationsView extends StatelessWidget {
             if (notifications.isEmpty) {
               return Center(
                 child: Text(
-                  AppStringsAr.thereAreNoNew,
+                  AppStrings.thereAreNoNew,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -91,7 +91,7 @@ class _NotificationsView extends StatelessWidget {
               padding: const EdgeInsets.all(SpacingTokens.md),
               itemCount: notifications.length,
               separatorBuilder: (_, __) =>
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
               itemBuilder: (context, index) {
                 final notif = notifications[index];
                 return _NotificationTile(
@@ -177,7 +177,7 @@ class _NotificationTile extends StatelessWidget {
                   ),
                 )
               else
-                const SizedBox(width: 16), // Spacer to align text
+                SizedBox(width: 16), // Spacer to align text
 
               Expanded(
                 child: Column(
@@ -200,7 +200,7 @@ class _NotificationTile extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: SpacingTokens.xs),
+                    SizedBox(height: SpacingTokens.xs),
                     Text(
                       notification.title,
                       style: theme.textTheme.titleSmall?.copyWith(
@@ -208,7 +208,7 @@ class _NotificationTile extends StatelessWidget {
                             isUnread ? FontWeight.bold : FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: SpacingTokens.xs),
+                    SizedBox(height: SpacingTokens.xs),
                     Text(
                       notification.body,
                       style: theme.textTheme.bodyMedium?.copyWith(

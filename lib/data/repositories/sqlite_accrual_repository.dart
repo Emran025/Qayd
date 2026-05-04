@@ -3,14 +3,14 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/repositories/accrual_repository.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteAccrualRepository implements AccrualRepository {
   SqliteAccrualRepository(this._db);
 
   final Database _db;
-  static const _table = 'accrual_components';
+  static final  _table = 'accrual_components';
 
   @override
   Future<Result<List<AccrualComponent>>> getAll() async {
@@ -18,8 +18,8 @@ final class SqliteAccrualRepository implements AccrualRepository {
       final rows = await _db.query(_table, orderBy: 'next_due_date ASC');
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
-      return const FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.entitlementsCouldNotBe));
+      return  FailureResult(
+          DatabaseFailure(messageAr: AppStrings.entitlementsCouldNotBe));
     }
   }
 
@@ -28,11 +28,11 @@ final class SqliteAccrualRepository implements AccrualRepository {
     try {
       final rows =
           await _db.query(_table, where: 'id = ?', whereArgs: [id], limit: 1);
-      if (rows.isEmpty) return const Success(null);
+      if (rows.isEmpty) return  Success(null);
       return Success(_fromRow(rows.first));
     } catch (_) {
-      return const FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.theEntitlementCouldNot));
+      return  FailureResult(
+          DatabaseFailure(messageAr: AppStrings.theEntitlementCouldNot));
     }
   }
 
@@ -44,8 +44,8 @@ final class SqliteAccrualRepository implements AccrualRepository {
           where: 'cost_center_id = ?', whereArgs: [costCenterId]);
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
-      return const FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.unableToReadPosition));
+      return  FailureResult(
+          DatabaseFailure(messageAr: AppStrings.unableToReadPosition));
     }
   }
 
@@ -60,8 +60,8 @@ final class SqliteAccrualRepository implements AccrualRepository {
       );
       return Success(rows.map(_fromRow).toList());
     } catch (_) {
-      return const FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.unableToReadAccrued));
+      return  FailureResult(
+          DatabaseFailure(messageAr: AppStrings.unableToReadAccrued));
     }
   }
 
@@ -73,10 +73,10 @@ final class SqliteAccrualRepository implements AccrualRepository {
         _toRow(component),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.theEntitlementCouldNot2));
+      return  FailureResult(
+          DatabaseFailure(messageAr: AppStrings.theEntitlementCouldNot2));
     }
   }
 
@@ -84,10 +84,10 @@ final class SqliteAccrualRepository implements AccrualRepository {
   Future<Result<void>> delete(String id) async {
     try {
       await _db.delete(_table, where: 'id = ?', whereArgs: [id]);
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.theEntitlementCouldNot1));
+      return  FailureResult(
+          DatabaseFailure(messageAr: AppStrings.theEntitlementCouldNot1));
     }
   }
 

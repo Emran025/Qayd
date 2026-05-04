@@ -15,7 +15,7 @@ import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
@@ -133,7 +133,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
   Future<void> _scanQr(BuildContext context) async {
     final data = await Navigator.of(context).push<Map<String, dynamic>?>(
       QaydPageRoute.slideFromStart<Map<String, dynamic>?>(
-        builder: (ctx) => const VoucherQrScannerPage(),
+        builder: (ctx) =>  VoucherQrScannerPage(),
       ),
     );
 
@@ -149,7 +149,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                AppStringsAr.thereIsNoAccount,
+                AppStrings.thereIsNoAccount,
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
@@ -161,7 +161,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppStringsAr.theCodeDoesNot,
+              AppStrings.theCodeDoesNot,
             ),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
@@ -224,7 +224,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
       chips.add(
         InputChip(
           label: QaydText(
-            '${AppStringsAr.voucherFilterChipSearchPrefix}$q',
+            '${AppStrings.voucherFilterChipSearchPrefix}$q',
             slot: QaydTextStyleSlot.labelMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -242,8 +242,8 @@ class _VoucherListViewState extends State<_VoucherListView> {
         InputChip(
           label: Text(
             f.type == VoucherType.receipt
-                ? AppStringsAr.voucherTypeReceipt
-                : AppStringsAr.voucherTypePayment,
+                ? AppStrings.voucherTypeReceipt
+                : AppStrings.voucherTypePayment,
           ),
           onDeleted: () => cubit.patchAdvancedFilter((x) => x.clearType()),
         ),
@@ -277,7 +277,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
       chips.add(
         InputChip(
           label: QaydText(
-            '${AppStringsAr.voucherCounterpartyLabel}: $name',
+            '${AppStrings.voucherCounterpartyLabel}: $name',
             slot: QaydTextStyleSlot.labelMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -293,7 +293,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
       chips.add(
         InputChip(
           label: QaydText(
-            '${AppStringsAr.voucherAffectedAccountLabel}: $name',
+            '${AppStrings.voucherAffectedAccountLabel}: $name',
             slot: QaydTextStyleSlot.labelMedium,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -305,7 +305,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
     if (chips.isNotEmpty) {
       chips.add(
         ActionChip(
-          label: Text(AppStringsAr.voucherClearAllFiltersChip),
+          label: Text(AppStrings.voucherClearAllFiltersChip),
           onPressed: () {
             _searchController.clear();
             cubit.clearAllFiltersAndSearch();
@@ -318,10 +318,10 @@ class _VoucherListViewState extends State<_VoucherListView> {
 
   String _stateLabel(VoucherState s) {
     return switch (s) {
-      VoucherState.draft => AppStringsAr.voucherStateDraft,
-      VoucherState.confirmed => AppStringsAr.voucherStateConfirmed,
-      VoucherState.settled => AppStringsAr.voucherStateSettled,
-      VoucherState.withdrawn => AppStringsAr.voucherStateWithdrawn,
+      VoucherState.draft => AppStrings.voucherStateDraft,
+      VoucherState.confirmed => AppStrings.voucherStateConfirmed,
+      VoucherState.settled => AppStrings.voucherStateSettled,
+      VoucherState.withdrawn => AppStrings.voucherStateWithdrawn,
     };
   }
 
@@ -332,25 +332,25 @@ class _VoucherListViewState extends State<_VoucherListView> {
     return QaydScaffold(
       appBar: QaydAppBar(
         showNotifications: true,
-        title: AppStringsAr.voucherListTitle,
+        title: AppStrings.voucherListTitle,
         actions: [
           IconButton(
-            tooltip: AppStringsAr.qrScannerTitle,
+            tooltip: AppStrings.qrScannerTitle,
             onPressed: () => _scanQr(context),
-            icon: const Icon(Icons.qr_code_scanner_rounded),
+            icon: Icon(Icons.qr_code_scanner_rounded),
           ),
           IconButton(
-            tooltip: AppStringsAr.voucherFilterSheetTitle,
+            tooltip: AppStrings.voucherFilterSheetTitle,
             onPressed: () => _openFilterSheet(context),
-            icon: const Icon(Icons.tune_rounded),
+            icon: Icon(Icons.tune_rounded),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_voucher_list',
         onPressed: () => _openCreate(context),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(AppStringsAr.voucherNewTitle),
+        icon: Icon(Icons.add_rounded),
+        label: Text(AppStrings.voucherNewTitle),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
       ),
@@ -379,12 +379,12 @@ class _VoucherListViewState extends State<_VoucherListView> {
                 return QaydTextField(
                   controller: _searchController,
                   textInputAction: TextInputAction.search,
-                  hint: AppStringsAr.voucherSearchHint,
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  hint: AppStrings.voucherSearchHint,
+                  prefixIcon: Icon(Icons.search_rounded),
                   suffixIcon: _searchController.text.isEmpty
                       ? null
                       : IconButton(
-                          icon: const Icon(Icons.clear_rounded),
+                          icon: Icon(Icons.clear_rounded),
                           onPressed: () {
                             _searchController.clear();
                             context.read<VoucherListCubit>().clearSearch();
@@ -417,7 +417,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
                     ),
                     itemCount: chipWidgets.length,
                     separatorBuilder: (_, __) =>
-                        const SizedBox(width: SpacingTokens.xs),
+                        SizedBox(width: SpacingTokens.xs),
                     itemBuilder: (_, i) => chipWidgets[i],
                   ),
                 ),
@@ -429,7 +429,7 @@ class _VoucherListViewState extends State<_VoucherListView> {
               builder: (context, state) {
                 return switch (state) {
                   VoucherListInitial() => const SizedBox.shrink(),
-                  VoucherListLoading() => const Center(
+                  VoucherListLoading() => Center(
                       child: CircularProgressIndicator(),
                     ),
                   VoucherListFailure(:final failure) => Center(
@@ -443,11 +443,11 @@ class _VoucherListViewState extends State<_VoucherListView> {
                               slot: QaydTextStyleSlot.bodyLarge,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             FilledButton.tonal(
                               onPressed: () =>
                                   context.read<VoucherListCubit>().load(),
-                              child: Text(AppStringsAr.retryAction),
+                              child: Text(AppStrings.retryAction),
                             ),
                           ],
                         ),
@@ -460,11 +460,11 @@ class _VoucherListViewState extends State<_VoucherListView> {
                                 ? Icons.search_off_rounded
                                 : Icons.receipt_long_outlined,
                             title: hasActiveQuery
-                                ? AppStringsAr.vouchersEmptyFiltered
-                                : AppStringsAr.vouchersEmpty,
+                                ? AppStrings.vouchersEmptyFiltered
+                                : AppStrings.vouchersEmpty,
                             description: hasActiveQuery
-                                ? AppStringsAr.tryChangingTheFilters
-                                : AppStringsAr.startByAddingYour,
+                                ? AppStrings.tryChangingTheFilters
+                                : AppStrings.startByAddingYour,
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(
@@ -545,7 +545,7 @@ class _VoucherTile extends StatelessWidget {
                     foregroundColor: iconFg,
                     child: Icon(icon, size: 22),
                   ),
-                  const SizedBox(width: SpacingTokens.md),
+                  SizedBox(width: SpacingTokens.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -560,10 +560,10 @@ class _VoucherTile extends StatelessWidget {
                                 children: [
                                   Icon(Icons.reply_rounded,
                                       size: 14, color: scheme.primary),
-                                  const SizedBox(width: SpacingTokens.xs),
+                                  SizedBox(width: SpacingTokens.xs),
                                   Expanded(
                                     child: Text(
-                                      AppStringsAr.voucherReplyHeader,
+                                      AppStrings.voucherReplyHeader,
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelSmall
@@ -584,8 +584,8 @@ class _VoucherTile extends StatelessWidget {
                           children: [
                             QaydText(
                               isReceipt
-                                  ? AppStringsAr.voucherTypeReceipt
-                                  : AppStringsAr.voucherTypePayment,
+                                  ? AppStrings.voucherTypeReceipt
+                                  : AppStrings.voucherTypePayment,
                               slot: QaydTextStyleSlot.labelLarge,
                             ),
                             QaydBadge(
@@ -600,7 +600,7 @@ class _VoucherTile extends StatelessWidget {
                             ),
                             if (dto.isTripartite)
                               Tooltip(
-                                message: AppStringsAr.tripartiteBridgeTooltip,
+                                message: AppStrings.tripartiteBridgeTooltip,
                                 child: Icon(
                                   Icons
                                       .account_tree_outlined, // Bridge/tree icon
@@ -621,7 +621,7 @@ class _VoucherTile extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: QaydText(
-                                  AppStringsAr.tripartiteContingentBadge,
+                                  AppStrings.tripartiteContingentBadge,
                                   slot: QaydTextStyleSlot.labelSmall,
                                   // fontWeight: FontWeight.bold,
                                   color: scheme.onSurfaceVariant,
@@ -629,7 +629,7 @@ class _VoucherTile extends StatelessWidget {
                               ),
                             if (dto.hasCollateral)
                               Tooltip(
-                                message: AppStringsAr.voucherCollateralSection,
+                                message: AppStrings.voucherCollateralSection,
                                 child: Icon(
                                   Icons.shield_rounded,
                                   size: 16,
@@ -643,9 +643,9 @@ class _VoucherTile extends StatelessWidget {
                                 labelPadding:
                                     const EdgeInsets.symmetric(horizontal: 4),
                                 avatar:
-                                    const Icon(Icons.history_rounded, size: 12),
+                                    Icon(Icons.history_rounded, size: 12),
                                 label: QaydText(
-                                  '${AppStringsAr.voucherReversalIndicator} ${dto.reversalCount}',
+                                  '${AppStrings.voucherReversalIndicator} ${dto.reversalCount}',
                                   slot: QaydTextStyleSlot.labelSmall,
                                 ),
                                 onPressed: onChildTap,
@@ -660,7 +660,7 @@ class _VoucherTile extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: QaydText(
-                                  AppStringsAr.voucherSettlementIndicator,
+                                  AppStrings.voucherSettlementIndicator,
                                   slot: QaydTextStyleSlot.labelSmall,
                                   // fontWeight: FontWeight.bold,
                                   color: ColorTokens.emerald700,
@@ -679,7 +679,7 @@ class _VoucherTile extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: SpacingTokens.md),
+                            SizedBox(width: SpacingTokens.md),
                             QaydMoneyDisplay(
                               money: Money.nonNegative(
                                 dto.amountMinorUnits,

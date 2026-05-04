@@ -2,7 +2,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class UpdateCostCenterUseCase {
@@ -24,9 +24,9 @@ final class UpdateCostCenterUseCase {
       (f) => FailureResult(f),
       (existing) async {
         if (existing == null) {
-          return const FailureResult(
+          return  FailureResult(
             ValidationFailure(
-              messageAr: AppStringsAr.costCenterDoesNot,
+              messageAr: AppStrings.costCenterDoesNot,
               code: 'cost_center_not_found',
             ),
           );

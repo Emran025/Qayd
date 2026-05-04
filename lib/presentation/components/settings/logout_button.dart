@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 
@@ -37,12 +37,12 @@ class LogoutButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child:
-                      const Icon(Icons.logout_rounded, color: color, size: 22),
+                      Icon(Icons.logout_rounded, color: color, size: 22),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Text(
-                    AppStringsAr.logoutAction,
+                    AppStrings.logoutAction,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -61,16 +61,16 @@ class LogoutButton extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     QaydDialog.show(
       context: context,
-      title: AppStringsAr.logoutConfirmTitle,
-      content: AppStringsAr.logoutConfirmBody,
+      title: AppStrings.logoutConfirmTitle,
+      content: AppStrings.logoutConfirmBody,
       icon: Icons.logout_rounded,
       iconColor: ColorTokens.errorSoft,
-      primaryActionLabel: AppStringsAr.logoutAction,
+      primaryActionLabel: AppStrings.logoutAction,
       onPrimaryAction: () {
         Navigator.pop(context);
         context.read<SecurityCubit>().logout();
       },
-      secondaryActionLabel: AppStringsAr.actionCancel,
+      secondaryActionLabel: AppStrings.actionCancel,
       onSecondaryAction: () => Navigator.pop(context),
     );
   }

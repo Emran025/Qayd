@@ -9,7 +9,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_edit_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -223,14 +223,14 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     if (!_isChild && _useCustomRootClassification) {
       if (_customClassController.text.trim().isEmpty) {
         messenger.showSnackBar(SnackBar(
-          content: Text(AppStringsAr.customClassificationNameRequired),
+          content: Text(AppStrings.customClassificationNameRequired),
         ));
         return;
       }
     }
     if (_isChild && _parentId == null) {
       messenger.showSnackBar(SnackBar(
-        content: Text(AppStringsAr.pickAccountTitle),
+        content: Text(AppStrings.pickAccountTitle),
         behavior: SnackBarBehavior.floating,
       ));
       return;
@@ -281,7 +281,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
         listener: (ctx, state) {
           if (state is AccountEditSuccess) {
             ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-              content: Text(AppStringsAr.accountUpdatedSuccess),
+              content: Text(AppStrings.accountUpdatedSuccess),
               behavior: SnackBarBehavior.floating,
             ));
             Navigator.of(ctx).pop(true);
@@ -303,7 +303,7 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
 // ...
         if (state is AccountCreateSuccess) {
           ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-            content: Text(AppStringsAr.accountCreatedSuccess),
+            content: Text(AppStrings.accountCreatedSuccess),
             behavior: SnackBarBehavior.floating,
           ));
           Navigator.of(ctx).pop(true);
@@ -324,10 +324,10 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
     final title = widget.isEditMode
-        ? AppStringsAr.editAccountTitle
+        ? AppStrings.editAccountTitle
         : _isChild
-            ? AppStringsAr.newChildAccountTitle
-            : AppStringsAr.newRootAccountTitle;
+            ? AppStrings.newChildAccountTitle
+            : AppStrings.newRootAccountTitle;
 
     return Scaffold(
       appBar: QaydAppBar(
@@ -335,8 +335,8 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
         actions: [
           if (_showPartyDetails && !widget.isEditMode)
             IconButton(
-              tooltip: AppStringsAr.identityQrScanTitle,
-              icon: const Icon(Icons.qr_code_scanner_rounded),
+              tooltip: AppStrings.identityQrScanTitle,
+              icon: Icon(Icons.qr_code_scanner_rounded),
               onPressed: _scanCounterparty,
             ),
         ],
@@ -362,29 +362,29 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                     _parentStandardKind = kind;
                   }),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
               ] else ...[
                 QaydText(
-                  AppStringsAr.classificationSectionTitle,
+                  AppStrings.classificationSectionTitle,
                   slot: QaydTextStyleSlot.titleMedium,
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 SegmentedButton<bool>(
-                  segments: const [
+                  segments:  [
                     ButtonSegment<bool>(
                       value: false,
-                      label: Text(AppStringsAr.standardClassificationTab),
+                      label: Text(AppStrings.standardClassificationTab),
                     ),
                     ButtonSegment<bool>(
                       value: true,
-                      label: Text(AppStringsAr.customClassificationTab),
+                      label: Text(AppStrings.customClassificationTab),
                     ),
                   ],
                   selected: {_useCustomRootClassification},
                   onSelectionChanged: (s) =>
                       setState(() => _useCustomRootClassification = s.first),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
                 if (!_useCustomRootClassification)
                   _StandardKindSelector(
                     selected: _standardKind,
@@ -394,30 +394,30 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                 else ...[
                   QaydTextField(
                     controller: _customClassController,
-                    label: AppStringsAr.customClassificationNameLabel,
+                    label: AppStrings.customClassificationNameLabel,
                     validator: (v) {
                       if (!_useCustomRootClassification) return null;
                       if (v == null || v.trim().isEmpty) {
-                        return AppStringsAr.customClassificationNameRequired;
+                        return AppStrings.customClassificationNameRequired;
                       }
                       return null;
                     },
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   QaydText(
-                    AppStringsAr.customNatureLabel,
+                    AppStrings.customNatureLabel,
                     slot: QaydTextStyleSlot.bodyMedium,
                   ),
-                  const SizedBox(height: SpacingTokens.xs),
+                  SizedBox(height: SpacingTokens.xs),
                   SegmentedButton<AccountNature>(
                     segments: [
                       ButtonSegment<AccountNature>(
                         value: AccountNature.debit,
-                        label: Text(AppStringsAr.natureDebitShort),
+                        label: Text(AppStrings.natureDebitShort),
                       ),
                       ButtonSegment<AccountNature>(
                         value: AccountNature.credit,
-                        label: Text(AppStringsAr.natureCreditShort),
+                        label: Text(AppStrings.natureCreditShort),
                       ),
                     ],
                     selected: {_customNature},
@@ -428,15 +428,15 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
               ],
 
               if (widget.isEditMode) ...[
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 Row(
                   children: [
                     Icon(Icons.info_outline_rounded,
                         size: 14, color: Colors.orange.shade800),
-                    const SizedBox(width: SpacingTokens.xs),
+                    SizedBox(width: SpacingTokens.xs),
                     Expanded(
                       child: QaydText(
-                        AppStringsAr.modifyingTheClassificationOr,
+                        AppStrings.modifyingTheClassificationOr,
                         slot: QaydTextStyleSlot.labelSmall,
                         color: Colors.orange.shade800,
                       ),
@@ -444,69 +444,69 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                   ],
                 ),
               ],
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
 
               // ── Account name ───────────────────────────────────────────────
               QaydTextField(
                 controller: _nameController,
-                label: AppStringsAr.accountNameLabel,
+                label: AppStrings.accountNameLabel,
                 textInputAction: _showPartyDetails
                     ? TextInputAction.next
                     : TextInputAction.done,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
-                    return AppStringsAr.accountNameRequired;
+                    return AppStrings.accountNameRequired;
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.xl),
 
               // ── Party details ──────────────────────────────────────────────
               if (_showPartyDetails) ...[
                 QaydText(
-                  AppStringsAr.partyDetailsSection,
+                  AppStrings.partyDetailsSection,
                   slot: QaydTextStyleSlot.titleMedium,
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
                 PhoneZoneForm(
                   zoneController: _phoneZoneController,
                   phoneController: _phoneController,
-                  label: AppStringsAr.partyPhoneLabel,
+                  label: AppStrings.partyPhoneLabel,
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 PhoneZoneForm(
                   zoneController: _whatsappZoneController,
                   phoneController: _whatsappController,
-                  label: AppStringsAr.partyWhatsappLabel,
+                  label: AppStrings.partyWhatsappLabel,
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 QaydNumericField(
                   controller: _bankInfoController,
-                  label: AppStringsAr.partyBankInfoLabel,
+                  label: AppStrings.partyBankInfoLabel,
                   textInputAction: TextInputAction.next,
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 QaydTextField(
                   controller: _partyTypeController,
-                  label: AppStringsAr.partyTypeLabel,
+                  label: AppStrings.partyTypeLabel,
                   textInputAction: TextInputAction.done,
                 ),
-                const SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.xl),
               ],
 
               // ── Default cost centres ───────────────────────────────────────
               QaydText(
-                AppStringsAr.virtualCostCenters,
+                AppStrings.virtualCostCenters,
                 slot: QaydTextStyleSlot.titleSmall,
               ),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
               CostCenterTagSelector(
                 initialTags: _costCenterTags,
                 onChanged: (tags) => setState(() => _costCenterTags = tags),
-                label: AppStringsAr.addADefaultCost,
+                label: AppStrings.addADefaultCost,
               ),
-              const SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.xl),
 
               // ── Save button ────────────────────────────────────────────────
               FilledButton(
@@ -516,15 +516,15 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
                   foregroundColor: Theme.of(context).colorScheme.onSurface,
                 ),
                 child: submitting
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 22,
                         width: 22,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
                         widget.isEditMode
-                            ? AppStringsAr.saveAccountChanges
-                            : AppStringsAr.saveAccount,
+                            ? AppStrings.saveAccountChanges
+                            : AppStrings.saveAccount,
                       ),
               ),
             ],
@@ -608,22 +608,22 @@ class _ParentAccountPicker extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     QaydText(
-                      parentName ?? AppStringsAr.pickAccountTitle,
+                      parentName ?? AppStrings.pickAccountTitle,
                       slot: QaydTextStyleSlot.titleMedium,
                       color: parentId != null
                           ? gold
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(height: SpacingTokens.xs),
+                    SizedBox(height: SpacingTokens.xs),
                     QaydText(
-                      AppStringsAr.parentAccountLabel,
+                      AppStrings.parentAccountLabel,
                       slot: QaydTextStyleSlot.bodySmall,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_drop_down_rounded),
+              Icon(Icons.arrow_drop_down_rounded),
             ],
           ),
         ),
@@ -668,7 +668,7 @@ class _StandardKindSelector extends StatelessWidget {
         for (final k in kinds)
           FilterChip(
             selected: selected == k,
-            label: Text(AppStringsAr.standardClassificationLabel(k.name)),
+            label: Text(AppStrings.standardClassificationLabel(k.name)),
             onSelected: (_) => onChanged(k),
           ),
       ],

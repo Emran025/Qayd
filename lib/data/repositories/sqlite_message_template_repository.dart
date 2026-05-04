@@ -6,7 +6,7 @@ import 'package:qayd/domain/entities/message_template.dart';
 import 'package:qayd/domain/repositories/message_template_repository.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteMessageTemplateRepository
@@ -31,8 +31,8 @@ final class SqliteMessageTemplateRepository
             .toList(growable: false),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadMessage),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadMessage),
       );
     }
   }
@@ -55,8 +55,8 @@ final class SqliteMessageTemplateRepository
             .toList(growable: false),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadTemplates),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadTemplates),
       );
     }
   }
@@ -71,9 +71,9 @@ final class SqliteMessageTemplateRepository
         limit: 1,
       );
       if (rows.isEmpty) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.templateNotFound,
+            messageAr: AppStrings.templateNotFound,
             code: 'template_not_found',
           ),
         );
@@ -83,8 +83,8 @@ final class SqliteMessageTemplateRepository
             MessageTemplateModel.fromMap(rows.first)),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theTemplateCouldNot2),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theTemplateCouldNot2),
       );
     }
   }
@@ -98,10 +98,10 @@ final class SqliteMessageTemplateRepository
         map,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theTemplateCouldNot1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theTemplateCouldNot1),
       );
     }
   }
@@ -117,26 +117,26 @@ final class SqliteMessageTemplateRepository
         limit: 1,
       );
       if (rows.isEmpty) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.templateNotFound,
+            messageAr: AppStrings.templateNotFound,
             code: 'template_not_found',
           ),
         );
       }
       if ((rows.first['is_system'] as int) != 0) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theDefaultTemplateCannot,
+            messageAr: AppStrings.theDefaultTemplateCannot,
             code: 'template_system_delete',
           ),
         );
       }
       await _db.delete(_table, where: 'id = ?', whereArgs: [id]);
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theTemplateCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theTemplateCouldNot),
       );
     }
   }

@@ -14,7 +14,7 @@ class CurrencyCode {
   /// ISO 4217 code or user-defined identifier (e.g., 'SAR', 'BTC', 'PTS').
   final String code;
 
-  /// Arabic display name (e.g., AppStringsAr.saudiRiyals).
+  /// Arabic display name (e.g., AppStrings.saudiRiyals).
   final String nameAr;
 
   /// Currency symbol (e.g., '﷼', '$', '€').

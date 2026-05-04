@@ -1,7 +1,7 @@
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'dart:math';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Schema v20: Cost and Profit Centers module.
@@ -132,7 +132,7 @@ CREATE TABLE voucher_dimension_tags (
     // Personal Expenses Root Account (مصروفات شخصية)
     await db.insert('accounts', {
       'id': uuid(),
-      'name': AppStringsAr.personalExpenses,
+      'name': AppStrings.personalExpenses,
       'nature': 'debit',
       'parent_id': null,
       'is_default': 1,
@@ -146,7 +146,7 @@ CREATE TABLE voucher_dimension_tags (
     // Personal Revenues Root Account (إيرادات شخصية)
     await db.insert('accounts', {
       'id': uuid(),
-      'name': AppStringsAr.personalRevenue,
+      'name': AppStrings.personalRevenue,
       'nature': 'credit',
       'parent_id': null,
       'is_default': 1,

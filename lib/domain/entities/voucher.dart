@@ -12,7 +12,7 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_lifecycle.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Receipt or payment document with strict draft → confirmed → settled lifecycle.
@@ -251,14 +251,14 @@ class Voucher {
     VoucherId? originVoucherId,
   }) {
     if (counterpartyId == affectedAccountId) {
-      throw const SelfCancelingEntryException(
-        messageAr: AppStringsAr.theAffectedPartyAnd,
+      throw  SelfCancelingEntryException(
+        messageAr: AppStrings.theAffectedPartyAnd,
         code: 'voucher_self_counterparty',
       );
     }
     if (amount.isZero) {
-      throw const InvalidAmountException(
-        messageAr: AppStringsAr.theBondAmountMust,
+      throw  InvalidAmountException(
+        messageAr: AppStrings.theBondAmountMust,
         code: 'voucher_amount_zero',
       );
     }
@@ -305,7 +305,7 @@ class Voucher {
   Voucher confirm(DateTime confirmedAt) {
     if (!state.isDraft) {
       throw InvalidVoucherTransitionException(
-        messageAr: AppStringsAr.theBondCanOnly,
+        messageAr: AppStrings.theBondCanOnly,
         from: state,
         to: VoucherState.confirmed,
       );
@@ -319,7 +319,7 @@ class Voucher {
   Voucher settle(DateTime settledAt) {
     if (!state.isConfirmed) {
       throw InvalidVoucherTransitionException(
-        messageAr: AppStringsAr.theBondCanBe,
+        messageAr: AppStrings.theBondCanBe,
         from: state,
         to: VoucherState.settled,
       );
@@ -336,7 +336,7 @@ class Voucher {
   Voucher withdraw(DateTime withdrawnAt) {
     if (!canWithdraw) {
       throw InvalidVoucherTransitionException(
-        messageAr: AppStringsAr.theBondCannotBe1,
+        messageAr: AppStrings.theBondCannotBe1,
         from: state,
         to: VoucherState.withdrawn,
       );
@@ -401,9 +401,9 @@ class Voucher {
   }) {
     final canEdit = canWithdraw || state.isWithdrawn;
     if (!canEdit) {
-      throw const ImmutableEntityException(
+      throw  ImmutableEntityException(
         messageAr:
-            AppStringsAr.theInstrumentCannotBe,
+            AppStrings.theInstrumentCannotBe,
         code: 'voucher_not_editable',
       );
     }
@@ -419,14 +419,14 @@ class Voucher {
     final nextCounterparty = counterpartyId ?? this.counterpartyId;
     final nextAffected = affectedAccountId ?? this.affectedAccountId;
     if (nextCounterparty == nextAffected) {
-      throw const SelfCancelingEntryException(
-        messageAr: AppStringsAr.theAffectedPartyAnd,
+      throw  SelfCancelingEntryException(
+        messageAr: AppStrings.theAffectedPartyAnd,
         code: 'voucher_self_counterparty',
       );
     }
     if (nextAmount.isZero) {
-      throw const InvalidAmountException(
-        messageAr: AppStringsAr.theBondAmountMust,
+      throw  InvalidAmountException(
+        messageAr: AppStrings.theBondAmountMust,
         code: 'voucher_amount_zero',
       );
     }
@@ -464,8 +464,8 @@ class Voucher {
 
   void assertDraftDeletionAllowed() {
     if (!state.isDraft) {
-      throw const ImmutableEntityException(
-        messageAr: AppStringsAr.bondsCanBeDeleted,
+      throw  ImmutableEntityException(
+        messageAr: AppStrings.bondsCanBeDeleted,
         code: 'voucher_delete_not_draft',
       );
     }
@@ -473,8 +473,8 @@ class Voucher {
 
   void assertMutableForAccountingSideEffects() {
     if (state.isSettled) {
-      throw const ImmutableEntityException(
-        messageAr: AppStringsAr.aSettledBondIs,
+      throw  ImmutableEntityException(
+        messageAr: AppStrings.aSettledBondIs,
         code: 'voucher_settled_immutable',
       );
     }

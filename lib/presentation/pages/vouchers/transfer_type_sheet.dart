@@ -5,7 +5,7 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/settings/groups/currency_settings_page.dart';
 import 'package:qayd/core/result/result.dart';
@@ -49,22 +49,22 @@ class _TransferTypeBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           QaydText(
-            AppStringsAr.chooseTheConversionType,
+            AppStrings.chooseTheConversionType,
             slot: QaydTextStyleSlot.titleLarge,
           ),
-          const SizedBox(height: SpacingTokens.xs),
+          SizedBox(height: SpacingTokens.xs),
           QaydText(
-            AppStringsAr.selectTheAppropriateTransfer,
+            AppStrings.selectTheAppropriateTransfer,
             slot: QaydTextStyleSlot.bodySmall,
             color: scheme.onSurfaceVariant,
           ),
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
           _TransferTypeTile(
             icon: Icons.account_tree_rounded,
             color: ColorTokens.emerald500,
-            title: AppStringsAr.intermediateConversionTriple,
+            title: AppStrings.intermediateConversionTriple,
             subtitle:
-                AppStringsAr.aBridgeBetweenSender,
+                AppStrings.aBridgeBetweenSender,
             onTap: () async {
               final activeFee =
                   await InjectionContainer.getActiveTransactionFeeUseCase();
@@ -78,10 +78,10 @@ class _TransferTypeBody extends StatelessWidget {
                     context: context,
                     icon: Icons.settings_suggest_outlined,
                     iconColor: ColorTokens.goldAccent,
-                    title: AppStringsAr.tripartiteDisabledDialogTitle,
-                    content: AppStringsAr.tripartiteDisabledDialogContent,
-                    secondaryActionLabel: AppStringsAr.actionCancel,
-                    primaryActionLabel: AppStringsAr.tripartiteGoToSettings,
+                    title: AppStrings.tripartiteDisabledDialogTitle,
+                    content: AppStrings.tripartiteDisabledDialogContent,
+                    secondaryActionLabel: AppStrings.actionCancel,
+                    primaryActionLabel: AppStrings.tripartiteGoToSettings,
                     onPrimaryAction: () {
                       Navigator.pop(context); // Close dialog
                       Navigator.of(context).push(
@@ -95,13 +95,13 @@ class _TransferTypeBody extends StatelessWidget {
               }
             },
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           _TransferTypeTile(
             icon: Icons.swap_horiz_rounded,
             color: ColorTokens.debitBlue,
-            title: AppStringsAr.doubleConversionWithBox,
+            title: AppStrings.doubleConversionWithBox,
             subtitle:
-                AppStringsAr.twoOrdinaryBondsAffect,
+                AppStrings.twoOrdinaryBondsAffect,
             onTap: () => Navigator.pop(context, TransferType.dualWithFund),
           ),
         ],
@@ -149,7 +149,7 @@ class _TransferTypeTile extends StatelessWidget {
               ),
               child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: SpacingTokens.md),
+            SizedBox(width: SpacingTokens.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +159,7 @@ class _TransferTypeTile extends StatelessWidget {
                     slot: QaydTextStyleSlot.titleSmall,
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(

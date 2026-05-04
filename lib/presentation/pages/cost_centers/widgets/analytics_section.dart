@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/application/cost_centers/dtos/cost_center_details_dto.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_dashboard_widgets.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -41,7 +41,7 @@ class AnalyticsSection extends StatelessWidget {
       children: [
         // ── Trend Chart ──────────────────────────────────────────
         _buildTrendCard(context, scheme, tt, custom),
-        const SizedBox(height: SpacingTokens.md + 4),
+        SizedBox(height: SpacingTokens.md + 4),
 
         // ── Analytics row: Donut + Budget Gauge ──────────────────
         if (hasDonut || hasBudget) ...[
@@ -70,18 +70,18 @@ class AnalyticsSection extends StatelessWidget {
           color: scheme.onSurface.withValues(alpha: 0.05),
         ),
       ),
-      padding: const EdgeInsets.all(SpacingTokens.md),
+      padding:  EdgeInsets.all(SpacingTokens.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SubtleLabel(text: AppStringsAr.costCenterTrendSection),
-          const SizedBox(height: SpacingTokens.sm + 4),
+          _SubtleLabel(text: AppStrings.costCenterTrendSection),
+          SizedBox(height: SpacingTokens.sm + 4),
           if (!hasData)
             SizedBox(
               height: 100,
               child: Center(
                 child: Text(
-                  AppStringsAr.costCenterNoTrendData,
+                  AppStrings.costCenterNoTrendData,
                   style: tt.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant.withValues(alpha: 0.35),
                   ),
@@ -129,9 +129,9 @@ class AnalyticsSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _SubtleLabel(
-                    text: AppStringsAr.costCenterDimensionBreakdownTitle,
+                    text: AppStrings.costCenterDimensionBreakdownTitle,
                   ),
-                  const SizedBox(height: SpacingTokens.xs),
+                  SizedBox(height: SpacingTokens.xs),
                   SizedBox(
                     height: 180,
                     child: DonutChart(
@@ -144,7 +144,7 @@ class AnalyticsSection extends StatelessWidget {
               ),
             ),
           ),
-        if (hasDonut && hasBudget) const SizedBox(width: SpacingTokens.sm),
+        if (hasDonut && hasBudget) SizedBox(width: SpacingTokens.sm),
         if (hasBudget)
           Expanded(
             flex: 2,
@@ -161,9 +161,9 @@ class AnalyticsSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _SubtleLabel(
-                    text: AppStringsAr.costCenterBudgetGaugeTitle,
+                    text: AppStrings.costCenterBudgetGaugeTitle,
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   BudgetGauge(
                     utilization: dto.budgetUtilization,
                     primaryCurrency: dto.center.currencyCode,

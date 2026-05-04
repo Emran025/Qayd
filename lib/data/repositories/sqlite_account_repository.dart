@@ -10,7 +10,7 @@ import 'package:qayd/domain/entities/party_details.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteAccountRepository implements AccountRepository {
@@ -34,9 +34,9 @@ final class SqliteAccountRepository implements AccountRepository {
         [id.value],
       );
       if (rows.isEmpty) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theAccountDoesNot,
+            messageAr: AppStrings.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
@@ -56,8 +56,8 @@ final class SqliteAccountRepository implements AccountRepository {
 
       return Success(entity);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theAccountCouldNot1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theAccountCouldNot1),
       );
     }
   }
@@ -103,8 +103,8 @@ final class SqliteAccountRepository implements AccountRepository {
         }).toList(growable: false),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadThe),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadThe),
       );
     }
   }
@@ -124,8 +124,8 @@ final class SqliteAccountRepository implements AccountRepository {
             .toList(growable: false),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadSubaccounts),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadSubaccounts),
       );
     }
   }
@@ -153,8 +153,8 @@ ORDER BY a.name COLLATE NOCASE
             .toList(growable: false),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadDependent),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadDependent),
       );
     }
   }
@@ -176,10 +176,10 @@ ORDER BY a.name COLLATE NOCASE
         await _db.insert(_table, map);
       }
 
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToSaveAccount),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToSaveAccount),
       );
     }
   }
@@ -197,10 +197,10 @@ ORDER BY a.name COLLATE NOCASE
           );
         }
       });
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.accountsCouldNotBe),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.accountsCouldNotBe),
       );
     }
   }
@@ -214,23 +214,23 @@ ORDER BY a.name COLLATE NOCASE
         whereArgs: [id.value],
       );
       if (n == 0) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theAccountDoesNot,
+            messageAr: AppStrings.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
       }
-      return const Success(null);
+      return  Success(null);
     } on DatabaseException {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.unableToDeleteAccount,
+          messageAr: AppStrings.unableToDeleteAccount,
         ),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToDeleteAccount1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToDeleteAccount1),
       );
     }
   }
@@ -244,8 +244,8 @@ ORDER BY a.name COLLATE NOCASE
       );
       return Success(rows.isNotEmpty);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToVerifyAccount),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToVerifyAccount),
       );
     }
   }
@@ -275,10 +275,10 @@ ORDER BY a.name COLLATE NOCASE
       if (rowsAffected == 0) {
         await _db.insert('party_details', map);
       }
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.thePartyDataCould),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.thePartyDataCould),
       );
     }
   }
@@ -310,8 +310,8 @@ ORDER BY a.name COLLATE NOCASE
         serverAccountId: row['server_account_id'] as int?,
       ));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.thePartyDataCould1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.thePartyDataCould1),
       );
     }
   }
@@ -326,12 +326,12 @@ ORDER BY a.name COLLATE NOCASE
         limit: 1,
       );
       if (rows.isEmpty) {
-        return const Success(null);
+        return  Success(null);
       }
       return Success(AccountId(rows.first['account_id'] as String));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBy),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToSearchBy),
       );
     }
   }
@@ -346,12 +346,12 @@ ORDER BY a.name COLLATE NOCASE
         limit: 1,
       );
       if (rows.isEmpty) {
-        return const Success(null);
+        return  Success(null);
       }
       return Success(AccountId(rows.first['account_id'] as String));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBy1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToSearchBy1),
       );
     }
   }
@@ -366,12 +366,12 @@ ORDER BY a.name COLLATE NOCASE
         limit: 1,
       );
       if (rows.isEmpty) {
-        return const Success(null);
+        return  Success(null);
       }
       return Success(AccountId(rows.first['account_id'] as String));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBy2),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToSearchBy2),
       );
     }
   }
@@ -398,17 +398,17 @@ ORDER BY a.name COLLATE NOCASE
         whereArgs: [id.value],
       );
       if (n == 0) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theAccountDoesNot,
+            messageAr: AppStrings.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
       }
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theAccountCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theAccountCouldNot),
       );
     }
   }
@@ -423,17 +423,17 @@ ORDER BY a.name COLLATE NOCASE
         whereArgs: [id.value],
       );
       if (n == 0) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theAccountDoesNot,
+            messageAr: AppStrings.theAccountDoesNot,
             code: 'account_not_found',
           ),
         );
       }
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToRestoreAccount),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToRestoreAccount),
       );
     }
   }
@@ -452,8 +452,8 @@ ORDER BY a.name COLLATE NOCASE
             .toList(growable: false),
       );
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadArchived),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadArchived),
       );
     }
   }
@@ -480,9 +480,9 @@ ORDER BY a.created_at
       );
       return Success(rows.map(_adccFromRow).toList(growable: false));
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.theDefaultCostCenters,
+          messageAr: AppStrings.theDefaultCostCenters,
         ),
       );
     }
@@ -522,9 +522,9 @@ ORDER BY a.created_at
       }
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.theDefaultCostCenter,
+          messageAr: AppStrings.theDefaultCostCenter,
         ),
       );
     }
@@ -543,9 +543,9 @@ ORDER BY a.created_at
       );
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.theDefaultCostCenter2,
+          messageAr: AppStrings.theDefaultCostCenter2,
         ),
       );
     }

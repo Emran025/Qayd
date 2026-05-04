@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -94,17 +94,17 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
       runSpacing: SpacingTokens.sm,
       children: [
         FilterChip(
-          label: Text(AppStringsAr.voucherFilterTypeAny),
+          label: Text(AppStrings.voucherFilterTypeAny),
           selected: _type == null,
           onSelected: (_) => setState(() => _type = null),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherTypeReceipt),
+          label: Text(AppStrings.voucherTypeReceipt),
           selected: _type == VoucherType.receipt,
           onSelected: (_) => setState(() => _type = VoucherType.receipt),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherTypePayment),
+          label: Text(AppStrings.voucherTypePayment),
           selected: _type == VoucherType.payment,
           onSelected: (_) => setState(() => _type = VoucherType.payment),
         ),
@@ -119,14 +119,14 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
       runSpacing: SpacingTokens.sm,
       children: [
         ActionChip(
-          label: Text(AppStringsAr.statementDateThisMonth),
+          label: Text(AppStrings.statementDateThisMonth),
           onPressed: () => setState(() {
             _from = DateTime(now.year, now.month, 1);
             _to = now;
           }),
         ),
         ActionChip(
-          label: Text(AppStringsAr.statementDateLastQuarter),
+          label: Text(AppStrings.statementDateLastQuarter),
           onPressed: () {
             final qStart =
                 DateTime(now.year, ((now.month - 1) ~/ 3) * 3 + 1 - 3, 1);
@@ -138,7 +138,7 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
           },
         ),
         ActionChip(
-          label: Text(AppStringsAr.statementDateThisYear),
+          label: Text(AppStrings.statementDateThisYear),
           onPressed: () => setState(() {
             _from = DateTime(now.year, 1, 1);
             _to = now;
@@ -168,56 +168,56 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
             Padding(
               padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
               child: QaydText(
-                AppStringsAr.filterTheFinancialRecord,
+                AppStrings.filterTheFinancialRecord,
                 slot: QaydTextStyleSlot.titleLarge,
               ),
             ),
 
             // ── Type ──
-            _sectionTitle(AppStringsAr.typeOfFinancialTransaction),
+            _sectionTitle(AppStrings.typeOfFinancialTransaction),
             _typeChips(),
 
             // ── Date Range ──
-            _sectionTitle(AppStringsAr.voucherFilterDateSection),
+            _sectionTitle(AppStrings.voucherFilterDateSection),
             _quickDateButtons(),
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             Row(
               children: [
                 Expanded(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      AppStringsAr.voucherFilterDateFrom,
+                      AppStrings.voucherFilterDateFrom,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
                       _from != null
                           ? df.format(_from!)
-                          : AppStringsAr.voucherFilterDateNotSet,
+                          : AppStrings.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.calendar_month_rounded,
                       size: 20,
                     ),
                     onTap: () => _pickDate(isFrom: true),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 Expanded(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      AppStringsAr.voucherFilterDateTo,
+                      AppStrings.voucherFilterDateTo,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
                       _to != null
                           ? df.format(_to!)
-                          : AppStringsAr.voucherFilterDateNotSet,
+                          : AppStrings.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.calendar_month_rounded,
                       size: 20,
                     ),
@@ -228,7 +228,7 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
             ),
 
             // ── Actions ──
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             Row(
               children: [
                 Expanded(
@@ -239,10 +239,10 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
                       _to = null;
                       _includePrevBalance = true;
                     }),
-                    child: Text(AppStringsAr.voucherFilterClearFields),
+                    child: Text(AppStrings.voucherFilterClearFields),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 Expanded(
                   child: FilledButton(
                     style: FilledButton.styleFrom(
@@ -250,7 +250,7 @@ class _LedgerFilterBodyState extends State<_LedgerFilterBody> {
                       foregroundColor: ColorTokens.navy950,
                     ),
                     onPressed: () => Navigator.of(context).pop(_buildResult()),
-                    child: Text(AppStringsAr.voucherFilterApply),
+                    child: Text(AppStrings.voucherFilterApply),
                   ),
                 ),
               ],

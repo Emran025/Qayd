@@ -13,7 +13,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -139,21 +139,21 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
           .call(const ListAccountsInput());
       if (accountsRes.isSuccess) {
         final accounts = accountsRes.valueOrNull?.accounts ?? [];
-        if (accounts.where((a) => a.name == AppStringsAr.clearingAccountName).firstOrNull ==
+        if (accounts.where((a) => a.name == AppStrings.clearingAccountName).firstOrNull ==
             null) {
           messenger.showSnackBar(
-            const SnackBar(content: Text(AppStringsAr.tripartiteNoClearingAccount)),
+            SnackBar(content: Text(AppStrings.tripartiteNoClearingAccount)),
           );
           return;
         }
         _affected =
-            accounts.where((a) => a.name == AppStringsAr.clearingAccountName).firstOrNull;
+            accounts.where((a) => a.name == AppStrings.clearingAccountName).firstOrNull;
       }
     }
 
     if (_source == null || _affected == null || _dest == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.tripartiteSelectAccounts)),
+        SnackBar(content: Text(AppStrings.tripartiteSelectAccounts)),
       );
       return;
     }
@@ -161,7 +161,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     final minor = parsePositiveMinorUnits(_amountController.text);
     if (minor == null || minor <= 0) {
       messenger.showSnackBar(
-        SnackBar(content: Text(AppStringsAr.voucherAmountRequired)),
+        SnackBar(content: Text(AppStrings.voucherAmountRequired)),
       );
       return;
     }
@@ -192,13 +192,13 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
         }
         if (state is VoucherCreateSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(AppStringsAr.tripartiteDraftSaved)),
+            SnackBar(content: Text(AppStrings.tripartiteDraftSaved)),
           );
           Navigator.of(context).pop();
         }
         if (state is VoucherCreateTripartiteSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(AppStringsAr.tripartiteCreatedSuccess)),
+            SnackBar(content: Text(AppStrings.tripartiteCreatedSuccess)),
           );
           Navigator.of(context).pop();
         }
@@ -208,7 +208,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
 
         return Scaffold(
           appBar: QaydAppBar(
-            title: AppStringsAr.tripartiteNewTitle,
+            title: AppStrings.tripartiteNewTitle,
           ),
           body: AbsorbPointer(
             absorbing: submitting,
@@ -222,30 +222,30 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
                   _buildCurrencyTile(gold),
                   const Divider(),
                   _buildAccountPicker(
-                    label: AppStringsAr.tripartiteSourceLabel,
+                    label: AppStrings.tripartiteSourceLabel,
                     account: _source,
                     onTap: () => _pickAccount(0),
                     gold: gold,
                   ),
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
                   _buildAccountPicker(
-                    label: AppStringsAr.tripartiteDestinationLabel,
+                    label: AppStrings.tripartiteDestinationLabel,
                     account: _dest,
                     onTap: () => _pickAccount(2),
                     gold: gold,
                   ),
-                  const SizedBox(height: SpacingTokens.lg),
+                  SizedBox(height: SpacingTokens.lg),
                   QaydAmountField(
                     controller: _amountController,
-                    label: AppStringsAr.voucherAmountLabel,
+                    label: AppStrings.voucherAmountLabel,
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   QaydTextField(
                     controller: _descriptionController,
-                    label: AppStringsAr.voucherDescriptionLabel,
+                    label: AppStrings.voucherDescriptionLabel,
                     maxLines: 2,
                   ),
-                  const SizedBox(height: SpacingTokens.xl),
+                  SizedBox(height: SpacingTokens.xl),
                   FilledButton(
                     onPressed: submitting ? null : _submit,
                     style: FilledButton.styleFrom(
@@ -255,7 +255,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
                     ),
                     child: submitting
                         ? const CircularProgressIndicator()
-                        : Text(AppStringsAr.voucherSaveDraft),
+                        : Text(AppStrings.voucherSaveDraft),
                   ),
                 ],
               ),
@@ -269,7 +269,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
   Widget _buildDateTile(Color gold) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: QaydText(
-          AppStringsAr.voucherDateLabel,
+          AppStrings.voucherDateLabel,
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
@@ -283,7 +283,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
   Widget _buildCurrencyTile(Color gold) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: QaydText(
-          AppStringsAr.voucherCurrencyLabel,
+          AppStrings.voucherCurrencyLabel,
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
@@ -307,7 +307,7 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
-          account?.name ?? AppStringsAr.tripartiteSelectAccountHint,
+          account?.name ?? AppStrings.tripartiteSelectAccountHint,
           slot: QaydTextStyleSlot.bodyLarge,
           color: account == null
               ? Theme.of(context).colorScheme.onSurfaceVariant

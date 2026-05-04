@@ -3,7 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 class CounterpartyQrScannerPage extends StatefulWidget {
   const CounterpartyQrScannerPage({super.key});
@@ -44,14 +44,14 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
     QaydDialog.show(
       context: context,
       icon: Icons.shield_rounded,
-      title: AppStringsAr.permissionCameraMissingTitle,
-      content: AppStringsAr.permissionCameraMissingBodyQr,
-      secondaryActionLabel: AppStringsAr.actionCancel,
+      title: AppStrings.permissionCameraMissingTitle,
+      content: AppStrings.permissionCameraMissingBodyQr,
+      secondaryActionLabel: AppStrings.actionCancel,
       onSecondaryAction: () {
         Navigator.pop(context); // Close dialog
         Navigator.pop(context); // Go back
       },
-      primaryActionLabel: AppStringsAr.actionOpenSettings,
+      primaryActionLabel: AppStrings.actionOpenSettings,
       onPrimaryAction: () {
         Navigator.pop(context); // Close dialog
         openAppSettings();
@@ -72,7 +72,7 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
-          AppStringsAr.identityQrScanTitle,
+          AppStrings.identityQrScanTitle,
           style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.transparent,
@@ -108,7 +108,7 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
+                padding:  EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,
                 ),
@@ -117,7 +117,7 @@ class _CounterpartyQrScannerPageState extends State<CounterpartyQrScannerPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(
-                  AppStringsAr.identityQrScanHint,
+                  AppStrings.identityQrScanHint,
                   style: const TextStyle(color: Colors.white),
                   textAlign: TextAlign.center,
                 ),

@@ -3,7 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/app_document.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -15,7 +15,7 @@ class SupportSettingsPage extends StatefulWidget {
 }
 
 class _SupportSettingsPageState extends State<SupportSettingsPage> {
-  String _versionInfo = AppStringsAr.loading;
+  String _versionInfo = AppStrings.loading;
 
   @override
   void initState() {
@@ -33,7 +33,7 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
       });
     } catch (_) {
       setState(() {
-        _versionInfo = AppStringsAr.unavailable;
+        _versionInfo = AppStrings.unavailable;
       });
     }
   }
@@ -58,7 +58,7 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.settingsGroupSupport),
+      appBar: QaydAppBar(title: AppStrings.settingsGroupSupport),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
@@ -67,32 +67,32 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
               Icons.help_outline,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: Text(AppStringsAr.settingsFaqs),
-            onTap: () => _showDocument(AppStringsAr.settingsFaqs, 'faq'),
+            title: Text(AppStrings.settingsFaqs),
+            onTap: () => _showDocument(AppStrings.settingsFaqs, 'faq'),
           ),
           ListTile(
             leading: Icon(
               Icons.headset_mic_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: Text(AppStringsAr.settingsContactSupport),
-            onTap: () => _showSubmitTicket(AppStringsAr.contactTechnicalSupport, 'other'),
+            title: Text(AppStrings.settingsContactSupport),
+            onTap: () => _showSubmitTicket(AppStrings.contactTechnicalSupport, 'other'),
           ),
           ListTile(
             leading: Icon(
               Icons.bug_report_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: Text(AppStringsAr.settingsReportIssue),
-            onTap: () => _showSubmitTicket(AppStringsAr.reportAProblem, 'bug'),
+            title: Text(AppStrings.settingsReportIssue),
+            onTap: () => _showSubmitTicket(AppStrings.reportAProblem, 'bug'),
           ),
           ListTile(
             leading: Icon(
               Icons.new_releases_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: const Text(AppStringsAr.requestANewFeature),
-            onTap: () => _showSubmitTicket(AppStringsAr.requestANewFeature, 'feature_request'),
+            title: Text(AppStrings.requestANewFeature),
+            onTap: () => _showSubmitTicket(AppStrings.requestANewFeature, 'feature_request'),
           ),
           const Divider(),
           ListTile(
@@ -100,9 +100,9 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
               Icons.privacy_tip_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: Text(AppStringsAr.settingsPrivacyPolicy),
+            title: Text(AppStrings.settingsPrivacyPolicy),
             onTap: () => _showDocument(
-              AppStringsAr.settingsPrivacyPolicy,
+              AppStrings.settingsPrivacyPolicy,
               'privacy_policy',
             ),
           ),
@@ -111,14 +111,14 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
               Icons.description_outlined,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: Text(AppStringsAr.settingsTermsOfUse),
+            title: Text(AppStrings.settingsTermsOfUse),
             onTap: () =>
-                _showDocument(AppStringsAr.settingsTermsOfUse, 'terms_of_use'),
+                _showDocument(AppStrings.settingsTermsOfUse, 'terms_of_use'),
           ),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: Text(AppStringsAr.settingsVersionInfo),
+            leading: Icon(Icons.info_outline),
+            title: Text(AppStrings.settingsVersionInfo),
             subtitle: Text(_versionInfo),
             onTap: () {},
           ),
@@ -156,7 +156,7 @@ class _DocumentViewerState extends State<_DocumentViewer> {
         if (mounted) {
           setState(() {
             _loading = false;
-            _fallbackContent = AppStringsAr.unableToLoadContent;
+            _fallbackContent = AppStrings.unableToLoadContent;
           });
         }
       },
@@ -171,10 +171,10 @@ class _DocumentViewerState extends State<_DocumentViewer> {
               } else {
                 _fallbackContent = doc.content.isNotEmpty
                     ? doc.content
-                    : AppStringsAr.thereIsNoContent;
+                    : AppStrings.thereIsNoContent;
               }
             } else {
-              _fallbackContent = AppStringsAr.thereIsNoContent;
+              _fallbackContent = AppStrings.thereIsNoContent;
             }
           });
         }
@@ -198,7 +198,7 @@ class _DocumentViewerState extends State<_DocumentViewer> {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Container(
             width: 48,
             height: 4,
@@ -237,7 +237,7 @@ class _DocumentViewerState extends State<_DocumentViewer> {
                         padding: const EdgeInsets.all(SpacingTokens.lg),
                         itemCount: _clauses.length,
                         separatorBuilder: (context, index) =>
-                            const SizedBox(height: SpacingTokens.lg),
+                            SizedBox(height: SpacingTokens.lg),
                         itemBuilder: (context, index) {
                           final clause = _clauses[index];
                           return Container(
@@ -260,7 +260,7 @@ class _DocumentViewerState extends State<_DocumentViewer> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: SpacingTokens.sm),
+                                SizedBox(height: SpacingTokens.sm),
                                 ...clause.details.map(
                                   (detail) => Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
@@ -276,7 +276,7 @@ class _DocumentViewerState extends State<_DocumentViewer> {
                                             height: 1.2,
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             detail,
@@ -351,8 +351,8 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStringsAr.theRequestHasBeen),
+         SnackBar(
+          content: Text(AppStrings.theRequestHasBeen),
           backgroundColor: Colors.green,
         ),
       );
@@ -371,7 +371,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
           controller: _msgCtrl,
           maxLines: 5,
           decoration: InputDecoration(
-            hintText: AppStringsAr.writeMessageDetailsHere,
+            hintText: AppStrings.writeMessageDetailsHere,
             border: const OutlineInputBorder(),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(
@@ -384,7 +384,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(AppStringsAr.cancellation),
+          child:  Text(AppStrings.cancellation),
         ),
         ElevatedButton(
           onPressed: _loading ? null : _submit,
@@ -393,7 +393,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
             foregroundColor: Theme.of(context).colorScheme.onPrimary,
           ),
           child: _loading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
@@ -401,7 +401,7 @@ class _TicketSubmissionDialogState extends State<_TicketSubmissionDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text(AppStringsAr.send),
+              :  Text(AppStrings.send),
         ),
       ],
     );

@@ -9,7 +9,7 @@ import 'package:qayd/domain/value_objects/digital_signature.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Matches an incoming signed QR payload to a local draft voucher.
@@ -86,7 +86,7 @@ class MatchSignatureToVoucherUseCase {
 
       if (draftsResult.isFailure) {
         return FailureResult(
-            DatabaseFailure(messageAr: AppStringsAr.unableToSearchFor));
+            DatabaseFailure(messageAr: AppStrings.unableToSearchFor));
       }
 
       final drafts = draftsResult.valueOrNull!;
@@ -97,9 +97,9 @@ class MatchSignatureToVoucherUseCase {
           .toList();
 
       if (matchingDrafts.isEmpty) {
-        return const FailureResult(ValidationFailure(
+        return  FailureResult(ValidationFailure(
           messageAr:
-              AppStringsAr.noDraftReceiptMatching,
+              AppStrings.noDraftReceiptMatching,
           code: 'no_match',
         ));
       }
@@ -118,13 +118,13 @@ class MatchSignatureToVoucherUseCase {
       final saveResult = await _voucherRepository.save(updatedVoucher);
       if (saveResult.isFailure) {
         return FailureResult(
-            DatabaseFailure(messageAr: AppStringsAr.unableToSaveThe));
+            DatabaseFailure(messageAr: AppStrings.unableToSaveThe));
       }
 
       return Success(updatedVoucher);
     } catch (e, _) {
       return FailureResult(ValidationFailure(
-        messageAr: AppStringsAr.anUnexpectedErrorOccurred,
+        messageAr: AppStrings.anUnexpectedErrorOccurred,
         code: 'match_exception',
       ));
     }

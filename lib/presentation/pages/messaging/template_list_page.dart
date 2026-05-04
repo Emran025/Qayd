@@ -6,7 +6,7 @@ import 'package:qayd/domain/entities/message_template.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/template_list_state.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -39,14 +39,14 @@ class _TemplateListScaffold extends StatelessWidget {
     final nameCtrl = TextEditingController();
     final bodyCtrl = TemplateTextController(
         initialDbText:
-            AppStringsAr.dearCustomernweWouldLike2);
+            AppStrings.dearCustomernweWouldLike2);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) {
           return AlertDialog(
             title: QaydText(
-              AppStringsAr.templateAddTitle,
+              AppStrings.templateAddTitle,
               slot: QaydTextStyleSlot.titleLarge,
             ),
             content: SingleChildScrollView(
@@ -55,23 +55,23 @@ class _TemplateListScaffold extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   DropdownButtonFormField<MessageTemplateKind>(
-                    value: kind,
+                    initialValue: kind,
                     decoration: InputDecoration(
-                      labelText: AppStringsAr.templateKindPickerLabel,
+                      labelText: AppStrings.templateKindPickerLabel,
                       border: const OutlineInputBorder(),
                     ),
                     items: [
                       DropdownMenuItem(
                         value: MessageTemplateKind.receipt,
-                        child: Text(AppStringsAr.templateKindReceipt),
+                        child: Text(AppStrings.templateKindReceipt),
                       ),
                       DropdownMenuItem(
                         value: MessageTemplateKind.payment,
-                        child: Text(AppStringsAr.templateKindPayment),
+                        child: Text(AppStrings.templateKindPayment),
                       ),
                       DropdownMenuItem(
                         value: MessageTemplateKind.accountBalance,
-                        child: Text(AppStringsAr.templateKindAccount),
+                        child: Text(AppStrings.templateKindAccount),
                       ),
                     ],
                     onChanged: (v) {
@@ -80,20 +80,20 @@ class _TemplateListScaffold extends StatelessWidget {
                       }
                     },
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   QaydTextField(
                     controller: nameCtrl,
-                    label: AppStringsAr.templateNameLabel,
+                    label: AppStrings.templateNameLabel,
                     textInputAction: TextInputAction.next,
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   QaydTextField(
                     controller: bodyCtrl,
-                    label: AppStringsAr.templateBodyLabel,
+                    label: AppStrings.templateBodyLabel,
                     maxLines: 6,
                     textInputAction: TextInputAction.done,
                   ),
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
                   _buildVariableChipsRow(kind, bodyCtrl),
                 ],
               ),
@@ -104,14 +104,14 @@ class _TemplateListScaffold extends StatelessWidget {
                   FocusScope.of(ctx).unfocus();
                   Navigator.of(ctx).pop(false);
                 },
-                child: Text(AppStringsAr.templateEditCancel),
+                child: Text(AppStrings.templateEditCancel),
               ),
               FilledButton(
                 onPressed: () {
                   FocusScope.of(ctx).unfocus();
                   Navigator.of(ctx).pop(true);
                 },
-                child: Text(AppStringsAr.templateEditSave),
+                child: Text(AppStrings.templateEditSave),
               ),
             ],
           );
@@ -150,9 +150,9 @@ class _TemplateListScaffold extends StatelessWidget {
 
   String _kindLabel(MessageTemplateKind k) {
     return switch (k) {
-      MessageTemplateKind.receipt => AppStringsAr.templateKindReceipt,
-      MessageTemplateKind.payment => AppStringsAr.templateKindPayment,
-      MessageTemplateKind.accountBalance => AppStringsAr.templateKindAccount,
+      MessageTemplateKind.receipt => AppStrings.templateKindReceipt,
+      MessageTemplateKind.payment => AppStrings.templateKindPayment,
+      MessageTemplateKind.accountBalance => AppStrings.templateKindAccount,
     };
   }
 
@@ -163,7 +163,7 @@ class _TemplateListScaffold extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: QaydText(
-          AppStringsAr.templateEditTitle,
+          AppStrings.templateEditTitle,
           slot: QaydTextStyleSlot.titleLarge,
         ),
         content: SingleChildScrollView(
@@ -173,17 +173,17 @@ class _TemplateListScaffold extends StatelessWidget {
             children: [
               QaydTextField(
                 controller: nameCtrl,
-                label: AppStringsAr.templateNameLabel,
+                label: AppStrings.templateNameLabel,
                 textInputAction: TextInputAction.next,
               ),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
               QaydTextField(
                 controller: bodyCtrl,
-                label: AppStringsAr.templateBodyLabel,
+                label: AppStrings.templateBodyLabel,
                 maxLines: 8,
                 textInputAction: TextInputAction.done,
               ),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
               _buildVariableChipsRow(t.kind, bodyCtrl),
             ],
           ),
@@ -194,14 +194,14 @@ class _TemplateListScaffold extends StatelessWidget {
               FocusScope.of(ctx).unfocus();
               Navigator.of(ctx).pop(false);
             },
-            child: Text(AppStringsAr.templateEditCancel),
+            child: Text(AppStrings.templateEditCancel),
           ),
           FilledButton(
             onPressed: () {
               FocusScope.of(ctx).unfocus();
               Navigator.of(ctx).pop(true);
             },
-            child: Text(AppStringsAr.templateEditSave),
+            child: Text(AppStrings.templateEditSave),
           ),
         ],
       ),
@@ -243,21 +243,21 @@ class _TemplateListScaffold extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: QaydText(
-          AppStringsAr.templateDeleteTitle,
+          AppStrings.templateDeleteTitle,
           slot: QaydTextStyleSlot.titleLarge,
         ),
         content: QaydText(
-          AppStringsAr.templateDeleteMessage,
+          AppStrings.templateDeleteMessage,
           slot: QaydTextStyleSlot.bodyLarge,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(AppStringsAr.templateEditCancel),
+            child: Text(AppStrings.templateEditCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(AppStringsAr.templateDeleteConfirm),
+            child: Text(AppStrings.templateDeleteConfirm),
           ),
         ],
       ),
@@ -282,19 +282,19 @@ class _TemplateListScaffold extends StatelessWidget {
 
     return Scaffold(
       appBar: QaydAppBar(
-        title: AppStringsAr.notificationTemplatesTitle,
+        title: AppStrings.notificationTemplatesTitle,
         actions: [
           IconButton(
-            tooltip: AppStringsAr.retryAction,
+            tooltip: AppStrings.retryAction,
             onPressed: () => context.read<TemplateListCubit>().load(),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded),
           ),
         ],
       ),
       body: BlocBuilder<TemplateListCubit, TemplateListState>(
         builder: (context, state) {
           return switch (state) {
-            TemplateListLoading() => const Center(
+            TemplateListLoading() => Center(
                 child: CircularProgressIndicator(),
               ),
             TemplateListFailure(:final failure) => Center(
@@ -308,11 +308,11 @@ class _TemplateListScaffold extends StatelessWidget {
                         slot: QaydTextStyleSlot.bodyLarge,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       FilledButton.tonal(
                         onPressed: () =>
                             context.read<TemplateListCubit>().load(),
-                        child: Text(AppStringsAr.retryAction),
+                        child: Text(AppStrings.retryAction),
                       ),
                     ],
                   ),
@@ -321,7 +321,7 @@ class _TemplateListScaffold extends StatelessWidget {
             TemplateListReady(:final templates) => templates.isEmpty
                 ? Center(
                     child: QaydText(
-                      AppStringsAr.notificationNoTemplates,
+                      AppStrings.notificationNoTemplates,
                       slot: QaydTextStyleSlot.bodyLarge,
                     ),
                   )
@@ -362,14 +362,14 @@ class _TemplateListScaffold extends StatelessWidget {
                               children: [
                                 if (!t.isSystem)
                                   IconButton(
-                                    tooltip: AppStringsAr.templateDeleteTitle,
-                                    icon: const Icon(
+                                    tooltip: AppStrings.templateDeleteTitle,
+                                    icon: Icon(
                                       Icons.delete_outline_rounded,
                                     ),
                                     onPressed: () => _confirmDelete(context, t),
                                   ),
                                 IconButton(
-                                  tooltip: AppStringsAr.templateEditTitle,
+                                  tooltip: AppStrings.templateEditTitle,
                                   icon: Icon(Icons.edit_rounded, color: gold),
                                   onPressed: () => _edit(context, t),
                                 ),
@@ -389,8 +389,8 @@ class _TemplateListScaffold extends StatelessWidget {
         onPressed: () => _openCreate(context),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
-        icon: const Icon(Icons.add_rounded),
-        label: Text(AppStringsAr.templateAddFab),
+        icon: Icon(Icons.add_rounded),
+        label: Text(AppStrings.templateAddFab),
       ),
     );
   }
@@ -409,7 +409,7 @@ class _TemplateListScaffold extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(left: SpacingTokens.xs),
             child: ActionChip(
-              label: Text(v.label, style: const TextStyle(fontSize: 12)),
+              label: Text(v.label, style:  TextStyle(fontSize: 12)),
               backgroundColor: Colors.amber.withOpacity(0.1),
               side: BorderSide(color: Colors.amber.shade300),
               labelStyle: TextStyle(color: Colors.amber.shade900),

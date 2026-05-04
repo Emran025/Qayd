@@ -9,7 +9,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 /// Wizard for creating a new Expense Category.
 /// Extremely simple, since expense categories just act as buckets.
@@ -42,7 +42,7 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (widget.personalExpensesRootId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.expenseWizardRootError)),
+        SnackBar(content: Text(AppStrings.expenseWizardRootError)),
       );
       return;
     }
@@ -70,7 +70,7 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
       },
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStringsAr.expenseWizardSuccess)),
+          SnackBar(content: Text(AppStrings.expenseWizardSuccess)),
         );
         Navigator.pop(context, true);
       },
@@ -84,7 +84,7 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
     final scheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: const QaydAppBar(title: AppStringsAr.expenseWizardTitle),
+      appBar:  QaydAppBar(title: AppStrings.expenseWizardTitle),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -102,20 +102,20 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.receipt_long_rounded,
+                  Icon(Icons.receipt_long_rounded,
                       size: 36, color: ColorTokens.errorSoft),
-                  const SizedBox(width: SpacingTokens.md),
+                  SizedBox(width: SpacingTokens.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         QaydText(
-                          AppStringsAr.expenseWizardHeaderTitle,
+                          AppStrings.expenseWizardHeaderTitle,
                           slot: QaydTextStyleSlot.titleMedium,
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
-                          AppStringsAr.expenseWizardHeaderDesc,
+                          AppStrings.expenseWizardHeaderDesc,
                           style: TextStyle(
                             fontSize: 11,
                             color: scheme.onSurfaceVariant,
@@ -128,18 +128,18 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
               ),
             ),
 
-            const SizedBox(height: SpacingTokens.xl),
+            SizedBox(height: SpacingTokens.xl),
 
             QaydTextField(
               controller: _nameController,
-              label: AppStringsAr.expenseWizardNameLabel,
-              hint: AppStringsAr.expenseWizardNameHint,
+              label: AppStrings.expenseWizardNameLabel,
+              hint: AppStrings.expenseWizardNameHint,
               validator: (v) => (v == null || v.trim().isEmpty)
-                  ? AppStringsAr.expenseWizardNameRequired
+                  ? AppStrings.expenseWizardNameRequired
                   : null,
             ),
 
-            const SizedBox(height: SpacingTokens.xxl),
+            SizedBox(height: SpacingTokens.xxl),
 
             FilledButton(
               onPressed: _isSubmitting ? null : _submit,
@@ -154,8 +154,8 @@ class _ExpenseCreationWizardPageState extends State<ExpenseCreationWizardPage> {
               child: _isSubmitting
                   ? const CircularProgressIndicator(
                       color: Colors.black, strokeWidth: 2)
-                  : const Text(
-                      AppStringsAr.expenseWizardSubmit,
+                  : Text(
+                      AppStrings.expenseWizardSubmit,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,

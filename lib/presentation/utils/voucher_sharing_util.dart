@@ -9,7 +9,7 @@ import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/core/utils/currency_util.dart';
 
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 import 'package:qayd/presentation/pages/vouchers/widgets/voucher_share_review_sheet.dart';
@@ -23,8 +23,8 @@ Future<void> shareVoucherAsText(
     BuildContext context, GetVoucherDetailsOutput data) async {
   final isReceipt = data.typeCode == 'receipt';
   final type = isReceipt
-      ? AppStringsAr.voucherTypeReceipt
-      : AppStringsAr.voucherTypePayment;
+      ? AppStrings.voucherTypeReceipt
+      : AppStrings.voucherTypePayment;
   final dateFmt = DateFormat('dd/MM/yyyy', 'en');
   final date = dateFmt.format(DateTime.parse(data.dateIso));
   final amount = MoneyFormatter.formatWithSymbol(
@@ -50,12 +50,12 @@ Future<void> shareVoucherAsText(
       final absValue = value.abs();
       final label = data.counterpartyNature == 'debit'
           ? value > 0
-              ? AppStringsAr.onYou
-              : AppStringsAr.your
+              ? AppStrings.onYou
+              : AppStrings.your
           : value < 0
-              ? AppStringsAr.onYou
-              : AppStringsAr.your;
-      return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
+              ? AppStrings.onYou
+              : AppStrings.your;
+      return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getLocalizedName(e.key)} $label'
           .trim();
     }).toList();
     if (balanceParts.isNotEmpty) {
@@ -68,7 +68,7 @@ Future<void> shareVoucherAsText(
       buffer.writeln('البيان: ${data.description}');
     }
     buffer.writeln('\n--');
-    buffer.writeln(AppStringsAr.automaticallyExportedAndDigitally);
+    buffer.writeln(AppStrings.automaticallyExportedAndDigitally);
     if (data.senderSignatureHex != null) {
       buffer.write('\n- توقيع المرسل: ${data.senderSignatureHex}');
     }
@@ -118,7 +118,7 @@ Future<void> shareTripartiteAsText(
   final date = dateFmt.format(DateTime.parse(data.dateIso));
   final amount = MoneyFormatter.formatWithSymbol(
     data.amountMinorUnits / (data.currencyDigits == 0 ? 1 : 100),
-    CurrencyUtil.getArabicName(data.currencyCode),
+    CurrencyUtil.getLocalizedName(data.currencyCode),
     fractionalDigits: data.currencyDigits,
   );
 
@@ -127,7 +127,7 @@ Future<void> shareTripartiteAsText(
   // Fallback if no template is found
   if (shareText == null || shareText.isEmpty) {
     final buffer = StringBuffer();
-    buffer.writeln(AppStringsAr.brokerTransferNotice);
+    buffer.writeln(AppStrings.brokerTransferNotice);
     buffer.writeln('التاريخ: $date');
     buffer.writeln('المبلغ: $amount');
     buffer.writeln('المرسل: ${data.sourceName}');
@@ -137,7 +137,7 @@ Future<void> shareTripartiteAsText(
       buffer.writeln('البيان: ${data.description}');
     }
     buffer.writeln('\n--');
-    buffer.writeln(AppStringsAr.automaticallyExportedAndDigitally);
+    buffer.writeln(AppStrings.automaticallyExportedAndDigitally);
     if (data.senderSignatureHex != null) {
       buffer.write('\n- توقيع المرسل: ${data.senderSignatureHex}');
     }

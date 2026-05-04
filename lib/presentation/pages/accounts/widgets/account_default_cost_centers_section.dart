@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/application/accounts/dtos/account_default_cost_center_dto.dart';
 import 'package:qayd/application/accounts/dtos/get_account_details_output.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -48,7 +48,7 @@ class _AccountDefaultCostCentersSectionState
     if (available.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStringsAr.costCenterAllAddedAllAvailable)),
+          SnackBar(content: Text(AppStrings.costCenterAllAddedAllAvailable)),
         );
       }
       return;
@@ -83,7 +83,7 @@ class _AccountDefaultCostCentersSectionState
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStringsAr.costCenterSaveError)),
+        SnackBar(content: Text(AppStrings.costCenterSaveError)),
       );
     }
   }
@@ -92,13 +92,13 @@ class _AccountDefaultCostCentersSectionState
     final ok = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.delete_outline_rounded,
-      title: AppStringsAr.confirmDeletionTitle,
-      content: AppStringsAr.costCenterRemoveConfirmBody(
+      title: AppStrings.confirmDeletionTitle,
+      content: AppStrings.costCenterRemoveConfirmBody(
         item.costCenterName ?? item.costCenterId,
       ),
-      secondaryActionLabel: AppStringsAr.actionCancel,
+      secondaryActionLabel: AppStrings.actionCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.actionDelete,
+      primaryActionLabel: AppStrings.actionDelete,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (ok != true || !mounted) return;
@@ -115,7 +115,7 @@ class _AccountDefaultCostCentersSectionState
           ));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStringsAr.costCenterRemoveError)),
+        SnackBar(content: Text(AppStrings.costCenterRemoveError)),
       );
     }
   }
@@ -137,13 +137,13 @@ class _AccountDefaultCostCentersSectionState
             children: [
               Icon(Icons.pie_chart_outline_rounded,
                   color: ColorTokens.emerald600, size: 20),
-              const SizedBox(width: SpacingTokens.sm),
-              QaydText(AppStringsAr.defaultCostCentersTitle,
+              SizedBox(width: SpacingTokens.sm),
+              QaydText(AppStrings.defaultCostCentersTitle,
                   slot: QaydTextStyleSlot.titleMedium),
             ],
           ),
         ),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
           decoration: BoxDecoration(
@@ -160,14 +160,14 @@ class _AccountDefaultCostCentersSectionState
               children: [
                 // Description
                 Text(
-                  AppStringsAr.defaultCostCentersDesc,
+                  AppStrings.defaultCostCentersDesc,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 if (_loading)
-                  const Center(
+                  Center(
                     child: SizedBox(
                       width: 20,
                       height: 20,
@@ -176,7 +176,7 @@ class _AccountDefaultCostCentersSectionState
                   )
                 else if (_defaults.isEmpty)
                   Text(
-                    AppStringsAr.defaultCostCentersEmpty,
+                    AppStrings.defaultCostCentersEmpty,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
@@ -198,7 +198,7 @@ class _AccountDefaultCostCentersSectionState
                           dimCount > 0 ? '$name ($dimCount)' : name,
                           style: theme.textTheme.labelSmall,
                         ),
-                        deleteIcon: const Icon(Icons.close_rounded, size: 14),
+                        deleteIcon: Icon(Icons.close_rounded, size: 14),
                         onDeleted: () => _remove(d),
                         backgroundColor: scheme.surfaceContainerHigh,
                         shape: RoundedRectangleBorder(
@@ -210,14 +210,14 @@ class _AccountDefaultCostCentersSectionState
                       );
                     }).toList(),
                   ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
                   child: TextButton.icon(
                     onPressed: _loading ? null : _add,
                     icon: Icon(Icons.add_circle_outline_rounded,
                         size: 18, color: gold),
-                    label: Text(AppStringsAr.costCenterAddCenter, style: TextStyle(color: gold)),
+                    label: Text(AppStrings.costCenterAddCenter, style: TextStyle(color: gold)),
                   ),
                 ),
               ],

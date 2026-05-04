@@ -3,7 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 class VoucherQrScannerPage extends StatefulWidget {
   const VoucherQrScannerPage({super.key});
@@ -43,14 +43,14 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
     QaydDialog.show(
       context: context,
       icon: Icons.shield_rounded,
-      title: AppStringsAr.permissionCameraMissingTitle,
-      content: AppStringsAr.permissionCameraMissingBodyQr,
-      secondaryActionLabel: AppStringsAr.actionCancel,
+      title: AppStrings.permissionCameraMissingTitle,
+      content: AppStrings.permissionCameraMissingBodyQr,
+      secondaryActionLabel: AppStrings.actionCancel,
       onSecondaryAction: () {
         Navigator.pop(context); // Close dialog
         Navigator.pop(context); // Go back
       },
-      primaryActionLabel: AppStringsAr.actionOpenSettings,
+      primaryActionLabel: AppStrings.actionOpenSettings,
       onPrimaryAction: () {
         Navigator.pop(context); // Close dialog
         openAppSettings();
@@ -71,7 +71,7 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
-          AppStringsAr.qrScannerTitle,
+          AppStrings.qrScannerTitle,
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.transparent,
@@ -116,7 +116,7 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
+                padding:  EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,
                 ),
@@ -125,7 +125,7 @@ class _VoucherQrScannerPageState extends State<VoucherQrScannerPage> {
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(
-                  AppStringsAr.qrScannerHint,
+                  AppStrings.qrScannerHint,
                   style: const TextStyle(color: Colors.white),
                 ),
               ),

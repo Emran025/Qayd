@@ -17,7 +17,7 @@ import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_state.dart';
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
@@ -129,7 +129,7 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
       body = await resolveVoucherShareTextWithFallback(voucher);
     } else if (account != null) {
       body =
-          'تحية طيبة، رصيد الحساب ${account.name} حالياً هو: ${bindings['balanceAppStringsAr.nnautomaticallyExportedViaThe']}';
+          'تحية طيبة، رصيد الحساب ${account.name} حالياً هو: ${bindings['balanceAppStrings.nnautomaticallyExportedViaThe']}';
     } else {
       body = '';
     }
@@ -202,8 +202,8 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
       phoneNumber: phoneNumber,
     );
     if (!ok) {
-      return const FailureResult(
-        UnexpectedFailure(messageAr: AppStringsAr.couldNotOpenThe),
+      return FailureResult(
+        UnexpectedFailure(messageAr: AppStrings.couldNotOpenThe),
       );
     }
     return _logIntent(
@@ -229,8 +229,8 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
       phoneNumber: targetNumber,
     );
     if (!ok) {
-      return const FailureResult(
-        UnexpectedFailure(messageAr: AppStringsAr.unableToOpenWhatsapp),
+      return FailureResult(
+        UnexpectedFailure(messageAr: AppStrings.unableToOpenWhatsapp),
       );
     }
     return _logIntent(

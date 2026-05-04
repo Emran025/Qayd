@@ -10,7 +10,7 @@ import 'package:qayd/data/backup/qayd_database_validator.dart';
 import 'package:qayd/data/database/database_encryption_key_provider.dart';
 import 'package:qayd/data/database/database_provider.dart';
 import 'package:qayd/data/backup/unified_backup_manager.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
@@ -76,8 +76,8 @@ class BackupService {
       );
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
-        FileSystemFailure(messageAr: AppStringsAr.unableToCreateOr),
+      return FailureResult(
+        FileSystemFailure(messageAr: AppStrings.unableToCreateOr),
       );
     }
   }
@@ -91,8 +91,8 @@ class BackupService {
       final unpacked = await _unifiedManager.unpack(backupPath);
       try {
         if (unpacked.databasePath == null) {
-          return const FailureResult(ValidationFailure(
-              messageAr: AppStringsAr.theFileDoesNot1));
+          return FailureResult(
+              ValidationFailure(messageAr: AppStrings.theFileDoesNot1));
         }
         return await QaydDatabaseValidator.validateFile(
           path: unpacked.databasePath!,
@@ -150,9 +150,8 @@ class BackupService {
       await archive.copy(destinationPath);
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
-        FileSystemFailure(
-            messageAr: AppStringsAr.theConsolidatedBackupCould),
+      return FailureResult(
+        FileSystemFailure(messageAr: AppStrings.theConsolidatedBackupCould),
       );
     }
   }
@@ -171,8 +170,8 @@ class BackupService {
       unpacked = await _unifiedManager.unpack(backupPath);
       if (unpacked.databasePath == null) {
         await unpacked.dispose();
-        return const FailureResult(
-            ValidationFailure(messageAr: AppStringsAr.theFileDoesNot));
+        return FailureResult(
+            ValidationFailure(messageAr: AppStrings.theFileDoesNot));
       }
       finalDbPath = unpacked.databasePath!;
       finalIdPath = unpacked.identityPath;
@@ -230,8 +229,8 @@ class BackupService {
 
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
-        FileSystemFailure(messageAr: AppStringsAr.theDatabaseFileCould),
+      return FailureResult(
+        FileSystemFailure(messageAr: AppStrings.theDatabaseFileCould),
       );
     } finally {
       if (unpacked != null) await unpacked.dispose();

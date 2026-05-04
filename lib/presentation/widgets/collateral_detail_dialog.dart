@@ -7,7 +7,7 @@ import 'package:qayd/domain/entities/collateral_revaluation.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/attachment_gallery_dialog.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Dialog showing collateral details, photos, valuation history, and
@@ -33,7 +33,7 @@ class CollateralDetailDialog extends StatelessWidget {
   /// Callback for the "Re-evaluate" action.
   final VoidCallback? onRevaluate;
 
-  /// Callback for the AppStringsAr.liquidateOfferForSale action.
+  /// Callback for the AppStrings.liquidateOfferForSale action.
   final VoidCallback? onLiquidate;
 
   static Future<void> show(
@@ -80,10 +80,10 @@ class CollateralDetailDialog extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.shield_rounded, color: gold, size: 28),
-                  const SizedBox(width: SpacingTokens.sm),
+                  SizedBox(width: SpacingTokens.sm),
                   Expanded(
                     child: Text(
-                      AppStringsAr.mortgageDetails,
+                      AppStrings.mortgageDetails,
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
@@ -93,29 +93,29 @@ class CollateralDetailDialog extends StatelessWidget {
                   _StatusBadge(status: collateral.status.name),
                 ],
               ),
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
 
               // ── Description ──────────────────────────────────────
               _InfoRow(
                 icon: Icons.description_rounded,
-                label: AppStringsAr.description,
+                label: AppStrings.description,
                 value: collateral.description,
               ),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
 
               // ── Value ────────────────────────────────────────────
               _InfoRow(
                 icon: Icons.attach_money_rounded,
-                label: AppStringsAr.estimatedValue,
+                label: AppStrings.estimatedValue,
                 value: '$valueStr ${collateral.currency.code}',
               ),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
 
               // ── Expiry ───────────────────────────────────────────
               if (collateral.expiryDate != null) ...[
                 _InfoRow(
                   icon: Icons.event_rounded,
-                  label: AppStringsAr.dueDate,
+                  label: AppStrings.dueDate,
                   value: DateFormat.yMMMd('en').format(collateral.expiryDate!),
                   valueColor:
                       collateral.isExpired ? theme.colorScheme.error : null,
@@ -138,9 +138,9 @@ class CollateralDetailDialog extends StatelessWidget {
                           Icon(Icons.warning_rounded,
                               size: 16,
                               color: theme.colorScheme.onErrorContainer),
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           Text(
-                            AppStringsAr.expired,
+                            AppStrings.expired,
                             style: TextStyle(
                               color: theme.colorScheme.onErrorContainer,
                               fontSize: 12,
@@ -151,24 +151,24 @@ class CollateralDetailDialog extends StatelessWidget {
                       ),
                     ),
                   ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
               ],
 
               // ── Collateral images ────────────────────────────────
               if (decryptedImages.isNotEmpty) ...[
                 Text(
-                  AppStringsAr.mortgagePictures,
+                  AppStrings.mortgagePictures,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 SizedBox(
                   height: 72,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: decryptedImages.length,
                     separatorBuilder: (_, __) =>
-                        const SizedBox(width: SpacingTokens.sm),
+                        SizedBox(width: SpacingTokens.sm),
                     itemBuilder: (context, i) {
                       return GestureDetector(
                         onTap: () => AttachmentGalleryDialog.show(
@@ -190,25 +190,25 @@ class CollateralDetailDialog extends StatelessWidget {
                     },
                   ),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
               ],
 
               // ── Revaluation history ──────────────────────────────
               if (revaluations.isNotEmpty) ...[
                 Text(
-                  AppStringsAr.reassessmentLog,
+                  AppStrings.reassessmentLog,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 ...revaluations.map((r) => _RevaluationTile(reval: r)),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
               ],
 
               // ── Actions ──────────────────────────────────────────
               if (!collateral.isTerminal) ...[
                 Divider(color: theme.colorScheme.outlineVariant),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 Row(
                   children: [
                     Expanded(
@@ -219,13 +219,13 @@ class CollateralDetailDialog extends StatelessWidget {
                         ),
                         icon: Icon(Icons.edit_rounded, size: 18, color: gold),
                         label: Text(
-                          AppStringsAr.reevaluate,
+                          AppStrings.reevaluate,
                           style: TextStyle(color: gold),
                         ),
                       ),
                     ),
                     if (collateral.canLiquidate) ...[
-                      const SizedBox(width: SpacingTokens.md),
+                      SizedBox(width: SpacingTokens.md),
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: onLiquidate,
@@ -233,8 +233,8 @@ class CollateralDetailDialog extends StatelessWidget {
                             backgroundColor: theme.colorScheme.error,
                             foregroundColor: theme.colorScheme.onError,
                           ),
-                          icon: const Icon(Icons.gavel_rounded, size: 18),
-                          label: const Text(AppStringsAr.offerForSale),
+                          icon: Icon(Icons.gavel_rounded, size: 18),
+                          label: Text(AppStrings.offerForSale),
                         ),
                       ),
                     ],
@@ -271,7 +271,7 @@ class _InfoRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 18, color: scheme.outline),
-        const SizedBox(width: SpacingTokens.sm),
+        SizedBox(width: SpacingTokens.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,7 +283,7 @@ class _InfoRow extends StatelessWidget {
                     .bodySmall
                     ?.copyWith(color: scheme.outline),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2),
               Text(
                 value,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -306,10 +306,10 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final (color, label) = switch (status) {
-      'active' => (Colors.green, AppStringsAr.active),
-      'expired' => (Colors.orange, AppStringsAr.finished),
-      'liquidated' => (scheme.error, AppStringsAr.filtered),
-      'released' => (Colors.blue, AppStringsAr.editor),
+      'active' => (Colors.green, AppStrings.active),
+      'expired' => (Colors.orange, AppStrings.finished),
+      'liquidated' => (scheme.error, AppStrings.filtered),
+      'released' => (Colors.blue, AppStrings.editor),
       _ => (scheme.outline, status),
     };
 
@@ -356,7 +356,7 @@ class _RevaluationTile extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.trending_flat_rounded, size: 16, color: deltaColor),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           Expanded(
             child: Text(
               '$oldVal → $newVal ($deltaStr)',

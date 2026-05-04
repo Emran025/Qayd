@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/qayd_numeric_field.dart';
@@ -47,7 +47,7 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
     final ok = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.lock_outline_rounded,
-      title: AppStringsAr.securityPinDialogTitle,
+      title: AppStrings.securityPinDialogTitle,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -55,20 +55,20 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
             controller: pin1,
             obscureText: true,
             maxLength: 8,
-            label: AppStringsAr.securityPinField,
+            label: AppStrings.securityPinField,
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           QaydNumericField(
             controller: pin2,
             obscureText: true,
             maxLength: 8,
-            label: AppStringsAr.securityPinRepeat,
+            label: AppStrings.securityPinRepeat,
           ),
         ],
       ),
-      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      secondaryActionLabel: AppStrings.templateEditCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.settingsProceed,
+      primaryActionLabel: AppStrings.settingsProceed,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     
@@ -80,8 +80,8 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
         SnackBar(
           content: Text(
             a != b
-                ? AppStringsAr.securityPinMismatch
-                : AppStringsAr.securityPinLength,
+                ? AppStrings.securityPinMismatch
+                : AppStrings.securityPinLength,
           ),
         ),
       );
@@ -91,7 +91,7 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
     await _reload();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.securityPinSaved)),
+        SnackBar(content: Text(AppStrings.securityPinSaved)),
       );
     }
   }
@@ -99,7 +99,7 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(SpacingTokens.md),
         child: Center(child: CircularProgressIndicator()),
       );
@@ -108,15 +108,15 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ListTile(
-          leading: const Icon(Icons.password_rounded),
-          title: Text(AppStringsAr.securitySetPinTitle),
-          subtitle: Text(AppStringsAr.securitySetPinSubtitle),
+          leading: Icon(Icons.password_rounded),
+          title: Text(AppStrings.securitySetPinTitle),
+          subtitle: Text(AppStrings.securitySetPinSubtitle),
           onTap: _openPinDialog,
         ),
         SwitchListTile(
-          secondary: const Icon(Icons.lock_clock_outlined),
-          title: Text(AppStringsAr.securityLockTitle),
-          subtitle: Text(AppStringsAr.securityLockSubtitle),
+          secondary: Icon(Icons.lock_clock_outlined),
+          title: Text(AppStrings.securityLockTitle),
+          subtitle: Text(AppStrings.securityLockSubtitle),
           value: _lock && _hasPin,
           onChanged: !_hasPin
               ? null
@@ -129,13 +129,13 @@ class _SettingsSecuritySectionState extends State<SettingsSecuritySection> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
             child: Text(
-              AppStringsAr.securityNeedPinFirst,
+              AppStrings.securityNeedPinFirst,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
         SwitchListTile(
-          secondary: const Icon(Icons.fingerprint_rounded),
-          title: Text(AppStringsAr.securityBiometricTitle),
+          secondary: Icon(Icons.fingerprint_rounded),
+          title: Text(AppStrings.securityBiometricTitle),
           value: _bio && _hasPin,
           onChanged: !_hasPin
               ? null

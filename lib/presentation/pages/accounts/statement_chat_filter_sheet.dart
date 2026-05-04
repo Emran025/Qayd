@@ -6,7 +6,7 @@ import 'package:qayd/domain/entities/cost_center.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -118,12 +118,12 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
       runSpacing: SpacingTokens.sm,
       children: [
         FilterChip(
-          label: Text(AppStringsAr.voucherFilterStateAny),
+          label: Text(AppStrings.voucherFilterStateAny),
           selected: _agreement == null,
           onSelected: (_) => setState(() => _agreement = null),
         ),
         FilterChip(
-          label: Text(AppStringsAr.statementStatusConfirmed),
+          label: Text(AppStrings.statementStatusConfirmed),
           selected: _agreement == AgreementStatus.accepted,
           onSelected: (_) => setState(
             () => _agreement = AgreementStatus.accepted,
@@ -132,7 +132,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
           checkmarkColor: custom.confirmedState,
         ),
         FilterChip(
-          label: Text(AppStringsAr.statementStatusPending),
+          label: Text(AppStrings.statementStatusPending),
           selected: _agreement == AgreementStatus.underRequest,
           onSelected: (_) => setState(
             () => _agreement = AgreementStatus.underRequest,
@@ -141,7 +141,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
           checkmarkColor: custom.draftState,
         ),
         FilterChip(
-          label: Text(AppStringsAr.statementStatusRejected),
+          label: Text(AppStrings.statementStatusRejected),
           selected: _agreement == AgreementStatus.rejected,
           onSelected: (_) => setState(
             () => _agreement = AgreementStatus.rejected,
@@ -159,17 +159,17 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
       runSpacing: SpacingTokens.sm,
       children: [
         FilterChip(
-          label: Text(AppStringsAr.voucherFilterTypeAny),
+          label: Text(AppStrings.voucherFilterTypeAny),
           selected: _type == null,
           onSelected: (_) => setState(() => _type = null),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherTypeReceipt),
+          label: Text(AppStrings.voucherTypeReceipt),
           selected: _type == VoucherType.receipt,
           onSelected: (_) => setState(() => _type = VoucherType.receipt),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherTypePayment),
+          label: Text(AppStrings.voucherTypePayment),
           selected: _type == VoucherType.payment,
           onSelected: (_) => setState(() => _type = VoucherType.payment),
         ),
@@ -184,14 +184,14 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
       runSpacing: SpacingTokens.sm,
       children: [
         ActionChip(
-          label: Text(AppStringsAr.statementDateThisMonth),
+          label: Text(AppStrings.statementDateThisMonth),
           onPressed: () => setState(() {
             _from = DateTime(now.year, now.month, 1);
             _to = now;
           }),
         ),
         ActionChip(
-          label: Text(AppStringsAr.statementDateLastQuarter),
+          label: Text(AppStrings.statementDateLastQuarter),
           onPressed: () {
             final qStart =
                 DateTime(now.year, ((now.month - 1) ~/ 3) * 3 + 1 - 3, 1);
@@ -203,7 +203,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
           },
         ),
         ActionChip(
-          label: Text(AppStringsAr.statementDateThisYear),
+          label: Text(AppStrings.statementDateThisYear),
           onPressed: () => setState(() {
             _from = DateTime(now.year, 1, 1);
             _to = now;
@@ -233,60 +233,60 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
             Padding(
               padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
               child: QaydText(
-                AppStringsAr.statementFilterTitle,
+                AppStrings.statementFilterTitle,
                 slot: QaydTextStyleSlot.titleLarge,
               ),
             ),
 
             // ── Agreement Status (Color) ──
-            _sectionTitle(AppStringsAr.statementFilterStatusSection),
+            _sectionTitle(AppStrings.statementFilterStatusSection),
             _agreementChips(),
 
             // ── Type ──
-            _sectionTitle(AppStringsAr.voucherFilterTypeSection),
+            _sectionTitle(AppStrings.voucherFilterTypeSection),
             _typeChips(),
 
             // ── Date Range ──
-            _sectionTitle(AppStringsAr.voucherFilterDateSection),
+            _sectionTitle(AppStrings.voucherFilterDateSection),
             _quickDateButtons(),
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             Row(
               children: [
                 Expanded(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      AppStringsAr.voucherFilterDateFrom,
+                      AppStrings.voucherFilterDateFrom,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
                       _from != null
                           ? df.format(_from!)
-                          : AppStringsAr.voucherFilterDateNotSet,
+                          : AppStrings.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.calendar_month_rounded,
                       size: 20,
                     ),
                     onTap: () => _pickDate(isFrom: true),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 Expanded(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      AppStringsAr.voucherFilterDateTo,
+                      AppStrings.voucherFilterDateTo,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
                       _to != null
                           ? df.format(_to!)
-                          : AppStringsAr.voucherFilterDateNotSet,
+                          : AppStrings.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
-                    trailing: const Icon(
+                    trailing: Icon(
                       Icons.calendar_month_rounded,
                       size: 20,
                     ),
@@ -298,15 +298,15 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
 
             // ── Brought Forward Balance Toggle ──
             if (_from != null) ...[
-              const SizedBox(height: SpacingTokens.xs),
+              SizedBox(height: SpacingTokens.xs),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: QaydText(
-                  AppStringsAr.statementIncludePreviousBalance,
+                  AppStrings.statementIncludePreviousBalance,
                   slot: QaydTextStyleSlot.bodyMedium,
                 ),
                 subtitle: QaydText(
-                  AppStringsAr.statementIncludePreviousBalanceHint,
+                  AppStrings.statementIncludePreviousBalanceHint,
                   slot: QaydTextStyleSlot.bodySmall,
                 ),
                 value: _includePrevBalance,
@@ -315,15 +315,15 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
             ],
 
             // ── Cost Center ──
-            _sectionTitle(AppStringsAr.costCenter),
+            _sectionTitle(AppStrings.costCenter),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const QaydText(
-                AppStringsAr.filterByCostCenter,
+              title: QaydText(
+                AppStrings.filterByCostCenter,
                 slot: QaydTextStyleSlot.bodyMedium,
               ),
               subtitle: QaydText(
-                _ccName ?? AppStringsAr.voucherFilterNotSelected,
+                _ccName ?? AppStrings.voucherFilterNotSelected,
                 slot: QaydTextStyleSlot.bodySmall,
               ),
               trailing: Icon(
@@ -346,16 +346,16 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const QaydText(AppStringsAr.selectCostCenter,
+                            QaydText(AppStrings.selectCostCenter,
                                 slot: QaydTextStyleSlot.titleMedium),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             ...centers.map((c) => ListTile(
                                   title: Text(c.name),
-                                  leading: const Icon(
+                                  leading: Icon(
                                       Icons.pie_chart_outline_rounded),
                                   onTap: () => Navigator.pop(ctx, c),
                                 )),
-                            const SizedBox(height: SpacingTokens.xl),
+                            SizedBox(height: SpacingTokens.xl),
                           ],
                         ),
                       ),
@@ -372,7 +372,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
             ),
 
             // ── Actions ──
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             Row(
               children: [
                 Expanded(
@@ -386,10 +386,10 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
                       _ccName = null;
                       _includePrevBalance = false;
                     }),
-                    child: Text(AppStringsAr.voucherFilterClearFields),
+                    child: Text(AppStrings.voucherFilterClearFields),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 Expanded(
                   child: FilledButton(
                     style: FilledButton.styleFrom(
@@ -397,7 +397,7 @@ class _StatementFilterBodyState extends State<_StatementFilterBody> {
                       foregroundColor: ColorTokens.navy950,
                     ),
                     onPressed: () => Navigator.of(context).pop(_buildResult()),
-                    child: Text(AppStringsAr.voucherFilterApply),
+                    child: Text(AppStrings.voucherFilterApply),
                   ),
                 ),
               ],

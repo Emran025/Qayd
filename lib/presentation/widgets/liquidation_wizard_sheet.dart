@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Multi-step bottom sheet for the collateral liquidation / sale workflow.
@@ -90,7 +90,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
   void _nextStep() {
     if (_step == 1 && _saleValueMinor <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.pleaseEnterTheSale)),
+        SnackBar(content: Text(AppStrings.pleaseEnterTheSale)),
       );
       return;
     }
@@ -145,9 +145,9 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
               Row(
                 children: [
                   Icon(Icons.gavel_rounded, color: scheme.error, size: 24),
-                  const SizedBox(width: SpacingTokens.sm),
+                  SizedBox(width: SpacingTokens.sm),
                   Text(
-                    AppStringsAr.liquidationOfMortgage1,
+                    AppStrings.liquidationOfMortgage1,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w600,
@@ -176,7 +176,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                 ),
               ),
 
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
 
               // Step content
               AnimatedSwitcher(
@@ -188,7 +188,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                 },
               ),
 
-              const SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.xl),
 
               // Navigation
               Row(
@@ -196,7 +196,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                   if (_step > 0)
                     TextButton(
                       onPressed: _prevStep,
-                      child: Text(AppStringsAr.back,
+                      child: Text(AppStrings.back,
                           style: TextStyle(color: scheme.onSurfaceVariant)),
                     ),
                   const Spacer(),
@@ -205,7 +205,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                       onPressed: _nextStep,
                       style: FilledButton.styleFrom(backgroundColor: gold),
                       child: Text(
-                        AppStringsAr.theNext,
+                        AppStrings.theNext,
                         style: TextStyle(color: scheme.surface),
                       ),
                     ),
@@ -217,7 +217,7 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                         foregroundColor: scheme.onError,
                       ),
                       icon: _confirming
-                          ? const SizedBox(
+                          ? SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(
@@ -225,13 +225,13 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(Icons.check_rounded, size: 18),
-                      label: Text(_confirming ? AppStringsAr.implementationInProgress : AppStringsAr.confirmFiltering),
+                          : Icon(Icons.check_rounded, size: 18),
+                      label: Text(_confirming ? AppStrings.implementationInProgress : AppStrings.confirmFiltering),
                     ),
                 ],
               ),
 
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
             ],
           ),
         ),
@@ -246,24 +246,24 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          AppStringsAr.settlementType,
+          AppStrings.settlementType,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         _SettlementOption(
-          title: AppStringsAr.bondSettlementOnly,
-          subtitle:
-              'تغطية مبلغ السند المرتبط (${_formatMinor(widget.voucherAmountMinor)} ${widget.currencyCode})',
+          title: AppStrings.bondSettlementOnly,
+          subtitle: AppStrings.liquidationCoverVoucherAmount(
+              _formatMinor(widget.voucherAmountMinor), widget.currencyCode),
           isSelected: _settlementType == 'voucher',
           onTap: () => setState(() => _settlementType = 'voucher'),
         ),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
         _SettlementOption(
-          title: AppStringsAr.fullDebtSettlement,
-          subtitle:
-              'تغطية إجمالي الرصيد المستحق (${_formatMinor(widget.totalDebtMinor)} ${widget.currencyCode})',
+          title: AppStrings.fullDebtSettlement,
+          subtitle: AppStrings.liquidationCoverTotalDebt(
+              _formatMinor(widget.totalDebtMinor), widget.currencyCode),
           isSelected: _settlementType == 'full_debt',
           onTap: () => setState(() => _settlementType = 'full_debt'),
         ),
@@ -278,22 +278,22 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          AppStringsAr.actualSellingValue,
+          AppStrings.actualSellingValue,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
         ),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
         Text(
-          'أدخل المبلغ الذي تم بيع الرهن "${widget.collateralDescription}" به',
+          AppStrings.liquidationSaleValuePrompt(widget.collateralDescription),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: scheme.outline,
               ),
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         QaydAmountField(
           controller: _saleValueController,
-          label: 'قيمة البيع (${widget.currencyCode})',
+          label: AppStrings.liquidationSaleValueLabel(widget.currencyCode),
         ),
       ],
     );
@@ -309,32 +309,32 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          AppStringsAr.reviewAccountingEntries,
+          AppStrings.reviewAccountingEntries,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
 
         // Entry 1: Settlement
         _EntryPreview(
-          label: AppStringsAr.debtSettlement,
-          debit: 'النقدية: ${_formatMinor(_saleValueMinor)}',
-          credit: 'الطرف: ${_formatMinor(settledAmount)}',
+          label: AppStrings.debtSettlement,
+          debit: AppStrings.liquidationEntryCash(_formatMinor(_saleValueMinor)),
+          credit: AppStrings.liquidationEntryCounterparty(_formatMinor(settledAmount)),
         ),
 
         // Entry 2: Surplus (if any)
         if (_surplusMinor > 0) ...[
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           _EntryPreview(
-            label: AppStringsAr.retainedSurplusForThe,
+            label: AppStrings.retainedSurplusForThe,
             debit: '—',
-            credit: 'محتجز: ${_formatMinor(_surplusMinor)}',
+            credit: AppStrings.liquidationEntrySurplus(_formatMinor(_surplusMinor)),
             isSurplus: true,
           ),
         ],
 
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         Container(
           padding: const EdgeInsets.all(SpacingTokens.sm),
           decoration: BoxDecoration(
@@ -346,10 +346,10 @@ class _LiquidationWizardSheetState extends State<LiquidationWizardSheet> {
             children: [
               Icon(Icons.warning_amber_rounded,
                   size: 18, color: scheme.onTertiaryContainer),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  AppStringsAr.thisActionCannotBe,
+                  AppStrings.thisActionCannotBe,
                   style: TextStyle(
                     color: scheme.onTertiaryContainer,
                     fontSize: 12,
@@ -409,7 +409,7 @@ class _SettlementOption extends StatelessWidget {
                 color: isSelected ? gold : scheme.outline,
                 size: 20,
               ),
-              const SizedBox(width: SpacingTokens.sm),
+              SizedBox(width: SpacingTokens.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,7 +421,7 @@ class _SettlementOption extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: TextStyle(
@@ -482,19 +482,19 @@ class _EntryPreview extends StatelessWidget {
               fontSize: 13,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Row(
             children: [
               Expanded(
                 child: Text(
-                  'مدين: $debit',
+                  AppStrings.liquidationEntryDebit(debit),
                   style:
                       TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                 ),
               ),
               Expanded(
                 child: Text(
-                  'دائن: $credit',
+                  AppStrings.liquidationEntryCredit(credit),
                   style:
                       TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                 ),

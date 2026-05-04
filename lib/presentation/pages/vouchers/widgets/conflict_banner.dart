@@ -3,7 +3,7 @@ import 'package:qayd/domain/entities/notification_message.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/pages/vouchers/conflict_resolution_page.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class ConflictBanner extends StatelessWidget {
@@ -12,7 +12,7 @@ class ConflictBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (proposals.isEmpty) return const SizedBox.shrink();
+    if (proposals.isEmpty) return  SizedBox.shrink();
 
     final theme = Theme.of(context);
     return Container(
@@ -35,7 +35,7 @@ class ConflictBanner extends StatelessWidget {
             color: theme.colorScheme.error,
             size: 20,
           ),
-          const SizedBox(width: SpacingTokens.sm),
+          SizedBox(width: SpacingTokens.sm),
           Expanded(
             child: QaydText(
               'لديك ${proposals.length} سندات متعارضة (مطابقة لبورصة خارجية).',
@@ -45,7 +45,7 @@ class ConflictBanner extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => _openConflictResolution(context),
-            child: const Text(AppStringsAr.toTreat),
+            child: Text(AppStrings.toTreat),
           ),
         ],
       ),

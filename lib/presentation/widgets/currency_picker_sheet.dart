@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class CurrencyPickerSheet extends StatefulWidget {
@@ -46,7 +46,7 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
           topRight: Radius.circular(32),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding:  EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       height: MediaQuery.of(context).size.height * 0.7,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,9 +61,9 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           Text(
-            AppStringsAr.selectCurrency,
+            AppStrings.selectCurrency,
             textAlign: TextAlign.right,
             style: TextStyle(
               fontSize: 16,
@@ -71,13 +71,13 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
               color: scheme.onSurface,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           Expanded(
             child: FutureBuilder<Result<List<CurrencyCode>>>(
               future: _currenciesFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 }
                 final res = snapshot.data!;
                 if (res.isFailure) {
@@ -101,12 +101,12 @@ class _CurrencyPickerSheetState extends State<CurrencyPickerSheet> {
                             : null,
                       ),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
+                        contentPadding:  EdgeInsets.symmetric(
                           horizontal: 12,
                           // vertical: 6,
                         ),
                         leading: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          padding:  EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? scheme.primary.withOpacity(0.1)

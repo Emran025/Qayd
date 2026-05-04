@@ -1,7 +1,7 @@
 import 'package:qayd/domain/exceptions/currency_mismatch_exception.dart';
 import 'package:qayd/domain/exceptions/invalid_amount_exception.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Monetary amount stored in minor units (e.g. halalas) with fixed scale [fractionalDigits].
@@ -26,8 +26,8 @@ final class Money implements Comparable<Money> {
   /// Strictly positive amount (voucher totals, ledger line amounts).
   factory Money.positiveAmount(int minorUnits, CurrencyCode currency) {
     if (minorUnits <= 0) {
-      throw const InvalidAmountException(
-        messageAr: AppStringsAr.theAmountMustBe,
+      throw  InvalidAmountException(
+        messageAr: AppStrings.theAmountMustBe,
         code: 'money_not_positive',
       );
     }
@@ -37,8 +37,8 @@ final class Money implements Comparable<Money> {
   /// Non-negative amount (e.g. computed balances).
   factory Money.nonNegative(int minorUnits, CurrencyCode currency) {
     if (minorUnits < 0) {
-      throw const InvalidAmountException(
-        messageAr: AppStringsAr.theAmountCannotBe,
+      throw  InvalidAmountException(
+        messageAr: AppStrings.theAmountCannotBe,
         code: 'money_negative',
       );
     }
@@ -56,7 +56,7 @@ final class Money implements Comparable<Money> {
   void _assertSameCurrency(Money other) {
     if (currency != other.currency) {
       throw CurrencyMismatchException(
-        messageAr: AppStringsAr.itIsNotPossible,
+        messageAr: AppStrings.itIsNotPossible,
         code: 'cross_currency_arithmetic',
         currencyA: currency.code,
         currencyB: other.currency.code,

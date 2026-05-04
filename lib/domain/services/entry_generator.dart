@@ -5,7 +5,7 @@ import 'package:qayd/domain/value_objects/entry_id.dart';
 import 'package:qayd/domain/value_objects/entry_side.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Builds the two ledger lines for a confirmed receipt or payment voucher (shared [TransactionId]).
@@ -24,8 +24,8 @@ class EntryGenerator {
     required DateTime ledgerCreatedAt,
   }) {
     if (!voucher.state.isConfirmed) {
-      throw const InvalidStateTransitionException(
-        messageAr: AppStringsAr.restrictionsCannotBeCreated,
+      throw  InvalidStateTransitionException(
+        messageAr: AppStrings.restrictionsCannotBeCreated,
         code: 'entries_require_confirmed_voucher',
       );
     }

@@ -7,7 +7,7 @@ import 'package:qayd/application/vouchers/dtos/create_tripartite_transfer_input.
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 sealed class VoucherCreateState {
@@ -96,8 +96,8 @@ class VoucherCreateCubit extends Cubit<VoucherCreateState> {
 
   Future<void> submitDualTransfer(CreateDualTransferInput input) async {
     if (_createDual == null) {
-      emit(const VoucherCreateFailure(
-        UnexpectedFailure(messageAr: AppStringsAr.theDoubleConversionFeature),
+      emit( VoucherCreateFailure(
+        UnexpectedFailure(messageAr: AppStrings.theDoubleConversionFeature),
       ));
       return;
     }

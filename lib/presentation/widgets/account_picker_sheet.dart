@@ -4,7 +4,7 @@ import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/accounts/list_accounts_use_case.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/domain/repositories/identity_repository.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -298,7 +298,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
     if (phone == null || phone.isEmpty) return;
 
     final message =
-        'مرحباً ${account.name}، أدعوك لاستخدام تطبيق AppStringsAr.restriction للمحاسبة والمزامنة السحابية.';
+        'مرحباً ${account.name}، أدعوك لاستخدام تطبيق AppStrings.restriction للمحاسبة والمزامنة السحابية.';
     final uri = Uri.parse(
         'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
     launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -312,7 +312,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
 
   String _getAccountSubtitle(AccountSummaryDto a) {
     if (a.isRoot) {
-      return AppStringsAr.accountTypeRoot;
+      return AppStrings.accountTypeRoot;
     }
 
     // Attempt to find the direct parent's name
@@ -326,7 +326,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
     // Fallback to standard classification
     if (a.standardClassificationKind != null) {
       final label =
-          AppStringsAr.standardClassificationLabel(a.standardClassificationKind!);
+          AppStrings.standardClassificationLabel(a.standardClassificationKind!);
       final phone = a.metadata?['phone'] ?? a.metadata?['whatsapp'];
       if (phone != null) {
         return '$label • $phone';
@@ -369,7 +369,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
                 vertical: SpacingTokens.sm,
               ),
               child: QaydText(
-                AppStringsAr.pickAccountTitle,
+                AppStrings.pickAccountTitle,
                 slot: QaydTextStyleSlot.titleMedium,
               ),
             ),
@@ -383,11 +383,11 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: AppStringsAr.searchAccountsHint,
-                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  hintText: AppStrings.searchAccountsHint,
+                  prefixIcon: Icon(Icons.search_rounded, size: 20),
                   suffixIcon: _query.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, size: 20),
+                          icon: Icon(Icons.clear_rounded, size: 20),
                           onPressed: () {
                             setState(() {
                               _searchController.clear();
@@ -424,8 +424,8 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
                         .toList();
                     widget.onMultiSelected?.call(selected);
                   },
-                  icon: const Icon(Icons.check_circle_outline, size: 20),
-                  label: const Text(AppStringsAr.confirmSelection),
+                  icon: Icon(Icons.check_circle_outline, size: 20),
+                  label: Text(AppStrings.confirmSelection),
                 ),
               ),
             SizedBox(
@@ -509,7 +509,7 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
                           ),
                           if (widget.showIdentityStatus &&
                               _identityMap.containsKey(a.id)) ...[
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             _buildIdentityStatus(
                                 context, _identityMap[a.id]!, a),
                           ],
@@ -572,18 +572,18 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
-              AppStringsAr.notRegistered,
+              AppStrings.notRegistered,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: 9,
                 color: scheme.onSurfaceVariant,
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           GestureDetector(
             onTap: () => _inviteAccount(account),
             child: Text(
-              AppStringsAr.callNow,
+              AppStrings.callNow,
               style: theme.textTheme.labelSmall?.copyWith(
                 fontSize: 10,
                 color: scheme.primary,
@@ -601,9 +601,9 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.lock_person_outlined, size: 12, color: scheme.secondary),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Text(
-            AppStringsAr.privacyProtected,
+            AppStrings.privacyProtected,
             style: theme.textTheme.labelSmall?.copyWith(
               fontSize: 9,
               color: scheme.secondary,
@@ -618,9 +618,9 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.verified_user_rounded, size: 12, color: scheme.primary),
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
         Text(
-          AppStringsAr.readyToSync,
+          AppStrings.readyToSync,
           style: theme.textTheme.labelSmall?.copyWith(
             fontSize: 9,
             color: scheme.primary,

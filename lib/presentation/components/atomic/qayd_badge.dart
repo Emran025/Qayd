@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -83,19 +83,19 @@ class QaydBadge extends StatelessWidget {
 
   static String _stateLabel(VoucherState state) {
     return switch (state) {
-      VoucherState.draft => AppStringsAr.voucherStateDraft,
-      VoucherState.confirmed => AppStringsAr.voucherStateConfirmed,
-      VoucherState.settled => AppStringsAr.voucherStateSettled,
-      VoucherState.withdrawn => AppStringsAr.voucherStateWithdrawn,
+      VoucherState.draft => AppStrings.voucherStateDraft,
+      VoucherState.confirmed => AppStrings.voucherStateConfirmed,
+      VoucherState.settled => AppStrings.voucherStateSettled,
+      VoucherState.withdrawn => AppStrings.voucherStateWithdrawn,
     };
   }
 
   static String _agreementLabel(AgreementStatus status) {
     return switch (status) {
-      AgreementStatus.underRequest => AppStringsAr.agreementUnderRequest,
-      AgreementStatus.accepted => AppStringsAr.agreementAccepted,
-      AgreementStatus.rejected => AppStringsAr.agreementRejected,
-      AgreementStatus.unverified => AppStringsAr.agreementUnverified,
+      AgreementStatus.underRequest => AppStrings.agreementUnderRequest,
+      AgreementStatus.accepted => AppStrings.agreementAccepted,
+      AgreementStatus.rejected => AppStrings.agreementRejected,
+      AgreementStatus.unverified => AppStrings.agreementUnverified,
     };
   }
 

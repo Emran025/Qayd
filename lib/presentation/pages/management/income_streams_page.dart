@@ -6,7 +6,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/income_source_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/management/asset_creation_wizard_page.dart';
 import 'package:qayd/presentation/pages/management/expense_creation_wizard_page.dart';
@@ -146,12 +146,12 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
       length: 3,
       child: QaydScaffold(
         appBar: QaydAppBar(
-          title: AppStringsAr.incomeStreamsTitle,
-          bottom: const TabBar(
+          title: AppStrings.incomeStreamsTitle,
+          bottom:  TabBar(
             tabs: [
-              Tab(text: AppStringsAr.incomeStreamsTabIncome),
-              Tab(text: AppStringsAr.incomeStreamsTabPossessions),
-              Tab(text: AppStringsAr.incomeStreamsTabExpenses),
+              Tab(text: AppStrings.incomeStreamsTabIncome),
+              Tab(text: AppStrings.incomeStreamsTabPossessions),
+              Tab(text: AppStrings.incomeStreamsTabExpenses),
             ],
           ),
         ),
@@ -163,12 +163,12 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
                 'fixedProfitableAssets',
                 'personalRevenues',
               ],
-              incomeSourceFilter: const [
+              incomeSourceFilter:  [
                 'investment_asset',
                 'profession',
                 'other',
               ],
-              emptyText: AppStringsAr.incomeStreamsEmpty,
+              emptyText: AppStrings.incomeStreamsEmpty,
               emptyIcon: Icons.trending_up_rounded,
               refreshCount: _refreshCount,
               key: const PageStorageKey('income_streams'),
@@ -178,7 +178,7 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
             _IncomeStreamsList(
               kinds: const ['fixedDepreciableAssets'],
               incomeSourceFilter: const ['possession'],
-              emptyText: AppStringsAr.possessionsEmpty,
+              emptyText: AppStrings.possessionsEmpty,
               emptyIcon: Icons.inventory_2_outlined,
               refreshCount: _refreshCount,
               key: const PageStorageKey('possessions'),
@@ -186,9 +186,9 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
 
             // Tab 3: Expense Categories
             _IncomeStreamsList(
-              kinds: const ['personalExpenses'],
+              kinds:  ['personalExpenses'],
               incomeSourceFilter: null,
-              emptyText: AppStringsAr.expenseCategoriesEmpty,
+              emptyText: AppStrings.expenseCategoriesEmpty,
               emptyIcon: Icons.receipt_long_outlined,
               refreshCount: _refreshCount,
               key: const PageStorageKey('expense_categories'),
@@ -213,10 +213,10 @@ class _IncomeStreamsPageState extends State<IncomeStreamsPage> {
                   heroTag: 'fab_income_streams',
                   onPressed:
                       isExpenseTab ? _openAddExpenseAccount : _openAddWizard,
-                  icon: const Icon(Icons.add_rounded),
+                  icon: Icon(Icons.add_rounded),
                   label: Text(isExpenseTab
-                      ? AppStringsAr.incomeStreamsAddExpense
-                      : AppStringsAr.incomeStreamsAddSource),
+                      ? AppStrings.incomeStreamsAddExpense
+                      : AppStrings.incomeStreamsAddSource),
                   backgroundColor: gold,
                   foregroundColor: Colors.black,
                 );
@@ -313,7 +313,7 @@ class _IncomeStreamsListState extends State<_IncomeStreamsList> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading) return Center(child: CircularProgressIndicator());
 
     if (_accounts.isEmpty) {
       return Center(
@@ -322,18 +322,18 @@ class _IncomeStreamsListState extends State<_IncomeStreamsList> {
           children: [
             Icon(widget.emptyIcon,
                 size: 48, color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             QaydText(
               widget.emptyText,
               color: Theme.of(context).colorScheme.outline,
               textAlign: TextAlign.center,
             ),
             if (widget.onSeed != null) ...[
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
               FilledButton.tonalIcon(
                 onPressed: widget.onSeed,
-                icon: const Icon(Icons.auto_awesome_outlined),
-                label: const Text(AppStringsAr.automaticClassificationGeneration),
+                icon: Icon(Icons.auto_awesome_outlined),
+                label: Text(AppStrings.automaticClassificationGeneration),
               ),
             ],
           ],

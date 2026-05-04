@@ -8,7 +8,7 @@ import 'package:qayd/core/constants/countries_names.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class CountryPickerDialog extends StatefulWidget {
@@ -72,7 +72,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
     return StatefulBuilder(
       builder: (context, setState) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: Directionality.of(context),
           child: Dialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(RadiusTokens.lg),
@@ -105,9 +105,9 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                     Row(
                       children: [
                         Icon(Icons.public, color: accentColor),
-                        const SizedBox(width: SpacingTokens.sm),
+                        SizedBox(width: SpacingTokens.sm),
                         Text(
-                          AppStringsAr.selectTheCountry,
+                          AppStrings.selectTheCountry,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.onSurface,
@@ -115,14 +115,14 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
                     TextField(
                       controller: _searchCtrl,
                       focusNode: _focusNode,
                       style: theme.textTheme.bodyLarge,
                       onChanged: _onSearchChanged,
                       decoration: InputDecoration(
-                        hintText: AppStringsAr.searchForTheCountry,
+                        hintText: AppStrings.searchForTheCountry,
                         prefixIcon: Icon(Icons.search,
                             color: theme.colorScheme.onSurfaceVariant),
                         filled: true,
@@ -136,7 +136,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(RadiusTokens.md),
@@ -150,6 +150,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                           itemBuilder: (_, i) {
                             final country = _filtered[i];
                             final isSelected = _tempSelected?.id == country.id;
+                            final isArabic = Localizations.localeOf(context).languageCode == 'ar';
                             return RadioListTile<CountryModel>(
                               value: country,
                               groupValue: _tempSelected,
@@ -157,7 +158,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                               contentPadding:
                                   const EdgeInsets.symmetric(horizontal: 8),
                               title: Text(
-                                country.arabicName,
+                                isArabic ? country.arabicName : country.name,
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   fontWeight: isSelected
                                       ? FontWeight.bold
@@ -168,7 +169,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                                 ),
                               ),
                               subtitle: Text(
-                                country.name,
+                                isArabic ? country.name : country.arabicName,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -191,7 +192,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                                             : FontWeight.normal,
                                       ),
                                     ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Flag.fromString(
                                     country.status,
                                     height: 20,
@@ -209,16 +210,16 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text(AppStringsAr.cancellation),
+                            child: Text(AppStrings.cancellation),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: FilledButton(
                             style: FilledButton.styleFrom(
@@ -231,7 +232,7 @@ class _CountryPickerDialogState extends State<CountryPickerDialog> {
                                     widget.onCountrySelected(_tempSelected!);
                                     Navigator.pop(context);
                                   },
-                            child: const Text(AppStringsAr.toBeSure),
+                            child: Text(AppStrings.toBeSure),
                           ),
                         ),
                       ],

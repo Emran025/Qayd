@@ -2,7 +2,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/notification_log_repository.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteNotificationLogRepository
@@ -26,10 +26,10 @@ final class SqliteNotificationLogRepository
         'status': entry.status,
         'created_at': entry.createdAtIso,
       });
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theSendingAttemptCould),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theSendingAttemptCould),
       );
     }
   }

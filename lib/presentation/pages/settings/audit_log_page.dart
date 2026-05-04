@@ -8,25 +8,25 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 import 'package:intl/intl.dart' as intl;
 
 class AuditLogPage extends StatelessWidget {
-  const AuditLogPage({super.key});
+   AuditLogPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return QaydScaffold(
-      appBar: const QaydAppBar(
-        title: AppStringsAr.digitalAuditLog,
+      appBar:  QaydAppBar(
+        title: AppStrings.digitalAuditLog,
       ),
       body: BlocBuilder<AuditLogCubit, AuditLogState>(
         builder: (context, state) {
           if (state.isLoading && state.entries.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
 
           if (state.entries.isEmpty) {
@@ -59,14 +59,14 @@ class AuditLogPage extends StatelessWidget {
             size: 64,
             color: theme.colorScheme.primary.withValues(alpha: 0.2),
           ),
-          const SizedBox(height: SpacingTokens.md),
-          const QaydText(
-            AppStringsAr.thereAreNoTransactions,
+          SizedBox(height: SpacingTokens.md),
+          QaydText(
+            AppStrings.thereAreNoTransactions,
             slot: QaydTextStyleSlot.titleMedium,
           ),
-          const SizedBox(height: SpacingTokens.xs),
+          SizedBox(height: SpacingTokens.xs),
           QaydText(
-            AppStringsAr.theHistoryOfAll,
+            AppStrings.theHistoryOfAll,
             slot: QaydTextStyleSlot.bodySmall,
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -103,7 +103,7 @@ class _AuditEntryCard extends StatelessWidget {
         title: Row(
           children: [
             _buildTypeBadge(theme),
-            const SizedBox(width: SpacingTokens.sm),
+            SizedBox(width: SpacingTokens.sm),
             Expanded(
               child: QaydText(
                 '${_getActionName(entry.action)} ${_getEntityName(entry.entityType)}',
@@ -119,7 +119,7 @@ class _AuditEntryCard extends StatelessWidget {
             children: [
               Icon(Icons.access_time_rounded,
                   size: 12, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(width: 4),
+              SizedBox(width: 4),
               QaydText(
                 dateFormat.format(entry.createdAt),
                 slot: QaydTextStyleSlot.labelSmall,
@@ -182,12 +182,12 @@ class _AuditEntryCard extends StatelessWidget {
         children: [
           _buildIdRow(theme),
           if (entry.oldData != null) ...[
-            const SizedBox(height: SpacingTokens.sm),
-            _buildDataPoint(theme, AppStringsAr.previousCase, entry.oldData!),
+            SizedBox(height: SpacingTokens.sm),
+            _buildDataPoint(theme, AppStrings.previousCase, entry.oldData!),
           ],
           if (entry.newData != null) ...[
-            const SizedBox(height: SpacingTokens.sm),
-            _buildDataPoint(theme, AppStringsAr.newStatus, entry.newData!,
+            SizedBox(height: SpacingTokens.sm),
+            _buildDataPoint(theme, AppStrings.newStatus, entry.newData!,
                 isNew: true),
           ],
         ],
@@ -198,10 +198,10 @@ class _AuditEntryCard extends StatelessWidget {
   Widget _buildIdRow(ThemeData theme) {
     return Row(
       children: [
-        QaydText(AppStringsAr.referenceId,
+        QaydText(AppStrings.referenceId,
             slot: QaydTextStyleSlot.labelSmall,
             color: theme.colorScheme.onSurfaceVariant),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Flexible(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -227,7 +227,7 @@ class _AuditEntryCard extends StatelessWidget {
         QaydText(label,
             slot: QaydTextStyleSlot.labelSmall,
             color: theme.colorScheme.onSurfaceVariant),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(8),
@@ -282,8 +282,8 @@ class _AuditEntryCard extends StatelessWidget {
         children: [
           TextButton.icon(
             onPressed: () => _showRollbackDialog(context),
-            icon: const Icon(Icons.history_rounded, size: 16),
-            label: const Text(AppStringsAr.backToThisPoint),
+            icon: Icon(Icons.history_rounded, size: 16),
+            label: Text(AppStrings.backToThisPoint),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -313,31 +313,31 @@ class _AuditEntryCard extends StatelessWidget {
 
   String _getEntityName(String type) {
     return switch (type) {
-      'account' => AppStringsAr.account,
-      'voucher' => AppStringsAr.financialBond,
+      'account' => AppStrings.account,
+      'voucher' => AppStrings.financialBond,
       _ => type,
     };
   }
 
   String _getActionName(AuditAction action) {
     return switch (action) {
-      AuditAction.create => AppStringsAr.addition,
-      AuditAction.update => AppStringsAr.amendment,
-      AuditAction.delete => AppStringsAr.withdrawdelete,
-      AuditAction.revert => AppStringsAr.restoration,
+      AuditAction.create => AppStrings.addition,
+      AuditAction.update => AppStrings.amendment,
+      AuditAction.delete => AppStrings.withdrawdelete,
+      AuditAction.revert => AppStrings.restoration,
     };
   }
 
   String _translateKey(String key) {
     return switch (key) {
-      'name' => AppStringsAr.theName,
-      'type' => AppStringsAr.type,
-      'amount' => AppStringsAr.amount,
-      'currency' => AppStringsAr.currency,
-      'state' => AppStringsAr.theCondition,
-      'is_active' => AppStringsAr.active,
-      'confirmed_at' => AppStringsAr.confirmationDate,
-      'classification' => AppStringsAr.classification,
+      'name' => AppStrings.theName,
+      'type' => AppStrings.type,
+      'amount' => AppStrings.amount,
+      'currency' => AppStrings.currency,
+      'state' => AppStrings.theCondition,
+      'is_active' => AppStrings.active,
+      'confirmed_at' => AppStrings.confirmationDate,
+      'classification' => AppStrings.classification,
       _ => key,
     };
   }
@@ -347,15 +347,15 @@ class _AuditEntryCard extends StatelessWidget {
       context: context,
       icon: Icons.warning_rounded,
       iconColor: Theme.of(context).colorScheme.error,
-      title: AppStringsAr.confirmSystematicReversal,
+      title: AppStrings.confirmSystematicReversal,
       content:
-          AppStringsAr.theSystemWillCancel,
-      primaryActionLabel: AppStringsAr.confirmRollback,
+          AppStrings.theSystemWillCancel,
+      primaryActionLabel: AppStrings.confirmRollback,
       onPrimaryAction: () {
         Navigator.pop(context);
         context.read<AuditLogCubit>().rollbackTo(entry.id);
       },
-      secondaryActionLabel: AppStringsAr.cancellation,
+      secondaryActionLabel: AppStrings.cancellation,
     );
   }
 }

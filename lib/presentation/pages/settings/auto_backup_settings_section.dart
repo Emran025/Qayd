@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 /// Toggle, status, and manual-trigger UI for the automatic daily backup.
@@ -64,7 +64,7 @@ class _AutoBackupSettingsSectionState extends State<AutoBackupSettingsSection> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.autoBackupRunNowSuccess)),
+        SnackBar(content: Text(AppStrings.autoBackupRunNowSuccess)),
       );
     }
   }
@@ -82,7 +82,7 @@ class _AutoBackupSettingsSectionState extends State<AutoBackupSettingsSection> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppStringsAr.autoBackupSavedExternal),
+          content: Text(AppStrings.autoBackupSavedExternal),
         ),
       );
     }
@@ -91,7 +91,7 @@ class _AutoBackupSettingsSectionState extends State<AutoBackupSettingsSection> {
   Future<void> _saveToPath() async {
     final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     final path = await FilePicker.platform.saveFile(
-      dialogTitle: AppStringsAr.settingsBackupSaveTitle,
+      dialogTitle: AppStrings.settingsBackupSaveTitle,
       fileName: 'qayd_backup_$stamp.db',
     );
     if (path == null || !mounted) return;
@@ -105,20 +105,20 @@ class _AutoBackupSettingsSectionState extends State<AutoBackupSettingsSection> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.settingsBackupSaved)),
+        SnackBar(content: Text(AppStrings.settingsBackupSaved)),
       );
     }
   }
 
   String get _lastBackupLabel {
-    if (_lastBackup == null) return AppStringsAr.autoBackupNever;
+    if (_lastBackup == null) return AppStrings.autoBackupNever;
     return DateFormat('yyyy/MM/dd – HH:mm').format(_lastBackup!);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(SpacingTokens.md),
         child: Center(child: CircularProgressIndicator()),
       );
@@ -127,15 +127,15 @@ class _AutoBackupSettingsSectionState extends State<AutoBackupSettingsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SwitchListTile(
-          secondary: const Icon(Icons.backup_outlined),
-          title: Text(AppStringsAr.autoBackupToggleTitle),
-          subtitle: Text(AppStringsAr.autoBackupToggleSubtitle),
+          secondary: Icon(Icons.backup_outlined),
+          title: Text(AppStrings.autoBackupToggleTitle),
+          subtitle: Text(AppStrings.autoBackupToggleSubtitle),
           value: _enabled,
           onChanged: _working ? null : _toggleEnabled,
         ),
         ListTile(
-          leading: const Icon(Icons.history_outlined),
-          title: Text(AppStringsAr.autoBackupLastBackupLabel),
+          leading: Icon(Icons.history_outlined),
+          title: Text(AppStrings.autoBackupLastBackupLabel),
           subtitle: Text(_lastBackupLabel),
           dense: true,
         ),
@@ -151,23 +151,23 @@ class _AutoBackupSettingsSectionState extends State<AutoBackupSettingsSection> {
               FilledButton.tonal(
                 onPressed: _working ? null : _runNow,
                 child: _working
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(AppStringsAr.autoBackupRunNow),
+                    : Text(AppStrings.autoBackupRunNow),
               ),
               OutlinedButton.icon(
                 onPressed: _working ? null : _saveToDevice,
-                icon: const Icon(Icons.phone_android_outlined, size: 18),
-                label: Text(AppStringsAr.autoBackupSaveToDevice),
+                icon: Icon(Icons.phone_android_outlined, size: 18),
+                label: Text(AppStrings.autoBackupSaveToDevice),
               ),
               if (!Platform.isAndroid && !Platform.isIOS)
                 OutlinedButton.icon(
                   onPressed: _working ? null : _saveToPath,
-                  icon: const Icon(Icons.folder_open_outlined, size: 18),
-                  label: Text(AppStringsAr.settingsBackupSaveTitle),
+                  icon: Icon(Icons.folder_open_outlined, size: 18),
+                  label: Text(AppStrings.settingsBackupSaveTitle),
                 ),
             ],
           ),

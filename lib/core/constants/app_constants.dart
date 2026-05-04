@@ -1,6 +1,6 @@
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 abstract final class AppConstants {
-  static const String appName = AppStringsAr.restriction;
+  static  String appName = AppStrings.restriction;
 
   static const String defaultLanguageCode = 'ar';
 }

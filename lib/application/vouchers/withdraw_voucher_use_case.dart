@@ -7,7 +7,7 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Withdraws (سحب) a voucher — non-destructive retraction.
@@ -42,9 +42,9 @@ final class WithdrawVoucherUseCase {
       final v = loaded.valueOrNull!;
 
       if (!v.canWithdraw) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.aBondThatHas,
+            messageAr: AppStrings.aBondThatHas,
             code: 'voucher_withdraw_not_allowed',
           ),
         );

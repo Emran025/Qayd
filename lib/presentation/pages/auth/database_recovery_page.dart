@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 
 /// Recovery screen shown when the SQLCipher database key doesn't match
@@ -51,21 +51,21 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.lock_outline,
                     size: 72,
                     color: ColorTokens.goldAccent,
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Text(
-                    AppStringsAr.dbKeyMismatchTitle,
+                    AppStrings.dbKeyMismatchTitle,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Text(
                     widget.errorMessage,
                     textAlign: TextAlign.center,
@@ -75,7 +75,7 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
 
                   // ── Option 1: Enter primary key (mnemonic) ────────────────
                   SizedBox(
@@ -88,25 +88,25 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                       onPressed: _processing
                           ? null
                           : () => setState(() => _showMnemonicInput = true),
-                      icon: const Icon(Icons.key, color: Colors.white),
+                      icon: Icon(Icons.key, color: Colors.white),
                       label: Text(
-                        AppStringsAr.dbEnterPrimaryKeyAction,
-                        style: const TextStyle(color: Colors.white),
+                        AppStrings.dbEnterPrimaryKeyAction,
+                        style:  TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
 
                   if (_showMnemonicInput) ...[
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     TextField(
                       controller: _mnemonicCtrl,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        hintText: AppStringsAr.dbMnemonicHint,
+                        hintText: AppStrings.dbMnemonicHint,
                         border: const OutlineInputBorder(),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -120,11 +120,12 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                                 setState(() => _processing = true);
                                 await widget.onRetryWithMnemonic(
                                     _mnemonicCtrl.text.trim());
-                                if (mounted)
+                                if (mounted) {
                                   setState(() => _processing = false);
+                                }
                               },
                         child: _processing
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
@@ -133,26 +134,26 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                                 ),
                               )
                             : Text(
-                                AppStringsAr.dbUnlockAction,
+                                AppStrings.dbUnlockAction,
                                 style: const TextStyle(color: Colors.white),
                               ),
                       ),
                     ),
                   ],
 
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
                   // ── Option 2: Retry with current key ──────────────────────
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: _processing ? null : widget.onRetry,
-                      icon: const Icon(Icons.refresh),
-                      label: Text(AppStringsAr.dbRetryAction),
+                      icon: Icon(Icons.refresh),
+                      label: Text(AppStrings.dbRetryAction),
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
 
                   // ── Option 3: Start fresh ─────────────────────────────────
                   SizedBox(
@@ -161,10 +162,10 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                       onPressed: _processing
                           ? null
                           : () => _confirmStartFresh(context),
-                      icon: const Icon(Icons.delete_forever,
+                      icon: Icon(Icons.delete_forever,
                           color: Colors.redAccent),
                       label: Text(
-                        AppStringsAr.dbStartFreshAction,
+                        AppStrings.dbStartFreshAction,
                         style: const TextStyle(color: Colors.redAccent),
                       ),
                     ),
@@ -182,12 +183,12 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
     showDialog(
       context: ctx,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(AppStringsAr.dbStartFreshConfirmTitle),
-        content: Text(AppStringsAr.dbStartFreshConfirmBody),
+        title: Text(AppStrings.dbStartFreshConfirmTitle),
+        content: Text(AppStrings.dbStartFreshConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(AppStringsAr.actionCancel),
+            child: Text(AppStrings.actionCancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -196,7 +197,7 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
               widget.onStartFresh();
             },
             child: Text(
-              AppStringsAr.dbStartFreshConfirmAction,
+              AppStrings.dbStartFreshConfirmAction,
               style: const TextStyle(color: Colors.white),
             ),
           ),

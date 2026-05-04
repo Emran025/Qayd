@@ -4,7 +4,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class GetAutoSuggestionsUseCase {
@@ -52,7 +52,7 @@ final class GetAutoSuggestionsUseCase {
         list.add(
           ScoredSuggestionDto(
             messageId: 'freq_$amount',
-            rawBody: AppStringsAr.recurringAmount,
+            rawBody: AppStrings.recurringAmount,
             createdAt: DateTime.now(),
             score: 0.0,
             amountMinorUnits: amount,

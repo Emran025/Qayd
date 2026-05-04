@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/accounts/archived_accounts_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -11,16 +11,16 @@ import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/account_archive_helper.dart';
 
 class ArchivedAccountsPage extends StatelessWidget {
-  const ArchivedAccountsPage({super.key});
+   ArchivedAccountsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const QaydAppBar(title: AppStringsAr.archivedAccountsTitle),
+      appBar:  QaydAppBar(title: AppStrings.archivedAccountsTitle),
       body: BlocBuilder<ArchivedAccountsCubit, ArchivedAccountsState>(
         builder: (context, state) {
           if (state is ArchivedAccountsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
           if (state is ArchivedAccountsFailure) {
             return Center(child: Text(state.failure.messageAr));
@@ -28,8 +28,8 @@ class ArchivedAccountsPage extends StatelessWidget {
           if (state is ArchivedAccountsReady) {
             final accounts = state.data.accounts;
             if (accounts.isEmpty) {
-              return const Center(
-                child: QaydText(AppStringsAr.archivedAccountsEmpty,
+              return Center(
+                child: QaydText(AppStrings.archivedAccountsEmpty,
                     slot: QaydTextStyleSlot.bodyLarge),
               );
             }
@@ -69,8 +69,8 @@ class _ArchivedAccountCard extends StatelessWidget {
 
   String _getClassificationLabel(AccountSummaryDto dto) {
     final nature = dto.natureCode == 'debit'
-        ? AppStringsAr.natureDebitShort
-        : AppStringsAr.natureCreditShort;
+        ? AppStrings.natureDebitShort
+        : AppStrings.natureCreditShort;
 
     if (dto.customClassificationName != null) {
       return '${dto.customClassificationName} • $nature';
@@ -168,7 +168,7 @@ class _ArchivedAccountCard extends StatelessWidget {
                           color: natureColor.withValues(alpha: 0.9),
                         ),
                       ),
-                      const SizedBox(width: SpacingTokens.md),
+                      SizedBox(width: SpacingTokens.md),
                       // Text Segment without strikethrough
                       Expanded(
                         child: Column(
@@ -184,7 +184,7 @@ class _ArchivedAccountCard extends StatelessWidget {
                                 height: 1.2,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             QaydText(
                               _getClassificationLabel(account),
                               slot: QaydTextStyleSlot.labelSmall,
@@ -193,7 +193,7 @@ class _ArchivedAccountCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: SpacingTokens.sm),
+                      SizedBox(width: SpacingTokens.sm),
                       // Restore action (matching detail navigation button)
                       Material(
                         color: Colors.transparent,
@@ -202,7 +202,7 @@ class _ArchivedAccountCard extends StatelessWidget {
                               context, account.id, account.name),
                           borderRadius: BorderRadius.circular(RadiusTokens.sm),
                           child: Tooltip(
-                            message: AppStringsAr.restoreAccountAction,
+                            message: AppStrings.restoreAccountAction,
                             child: Container(
                               width: 36,
                               height: 36,

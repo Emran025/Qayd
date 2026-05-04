@@ -14,7 +14,7 @@ import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// SQLite-backed implementation of [CollateralRepository].
@@ -39,7 +39,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return Success(_fromRow(rows.first));
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToDownloadMortgage),
+        DatabaseFailure(messageAr: AppStrings.failedToDownloadMortgage),
       );
     }
   }
@@ -55,13 +55,13 @@ final class SqliteCollateralRepository implements CollateralRepository {
       );
       if (rows.isEmpty) {
         return FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.theMortgageDoesNot),
+          DatabaseFailure(messageAr: AppStrings.theMortgageDoesNot),
         );
       }
       return Success(_fromRow(rows.first));
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToChargeMortgage),
+        DatabaseFailure(messageAr: AppStrings.failedToChargeMortgage),
       );
     }
   }
@@ -77,7 +77,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failureToSaveThe),
+        DatabaseFailure(messageAr: AppStrings.failureToSaveThe),
       );
     }
   }
@@ -94,7 +94,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToUpdateMortgage),
+        DatabaseFailure(messageAr: AppStrings.failedToUpdateMortgage),
       );
     }
   }
@@ -116,7 +116,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return Success(rows.map(_fromRow).toList());
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToInquireAbout),
+        DatabaseFailure(messageAr: AppStrings.failedToInquireAbout),
       );
     }
   }
@@ -135,7 +135,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return Success(rows.map(_fromRow).toList());
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToLoadMortgages),
+        DatabaseFailure(messageAr: AppStrings.failedToLoadMortgages),
       );
     }
   }
@@ -149,7 +149,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToSaveRevaluation),
+        DatabaseFailure(messageAr: AppStrings.failedToSaveRevaluation),
       );
     }
   }
@@ -168,7 +168,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return Success(rows.map(_revalFromRow).toList());
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToLoadRevaluation),
+        DatabaseFailure(messageAr: AppStrings.failedToLoadRevaluation),
       );
     }
   }
@@ -188,7 +188,7 @@ final class SqliteCollateralRepository implements CollateralRepository {
       return Success(rows.map((r) => r['voucher_id'] as String).toSet());
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failureToInspectMortgages),
+        DatabaseFailure(messageAr: AppStrings.failureToInspectMortgages),
       );
     }
   }

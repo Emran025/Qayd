@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
@@ -58,8 +58,8 @@ class _TransferFeesSettingsSectionState
       if (minor < 0 || _currencyCode == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(AppStringsAr.transferFeeErrorInvalidAmount),
+            SnackBar(
+              content: Text(AppStrings.transferFeeErrorInvalidAmount),
               backgroundColor: Colors.red,
             ),
           );
@@ -85,7 +85,7 @@ class _TransferFeesSettingsSectionState
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.transferFeeSaveSuccess)),
+        SnackBar(content: Text(AppStrings.transferFeeSaveSuccess)),
       );
     }
   }
@@ -103,7 +103,7 @@ class _TransferFeesSettingsSectionState
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const SizedBox(
+      return SizedBox(
           height: 200, child: Center(child: CircularProgressIndicator()));
     }
 
@@ -111,8 +111,8 @@ class _TransferFeesSettingsSectionState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SwitchListTile(
-          title: const Text(AppStringsAr.transferFeeToggleTitle),
-          subtitle: const Text(AppStringsAr.transferFeeToggleSubtitle),
+          title: Text(AppStrings.transferFeeToggleTitle),
+          subtitle: Text(AppStrings.transferFeeToggleSubtitle),
           value: _enabled,
           onChanged: (val) {
             setState(() {
@@ -136,11 +136,11 @@ class _TransferFeesSettingsSectionState
                 Expanded(
                   child: QaydAmountField(
                     controller: _amountController,
-                    label: AppStringsAr.transferFeeAmountLabel,
+                    label: AppStrings.transferFeeAmountLabel,
                     enabled: _isEditing,
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 InkWell(
                   onTap: _isEditing ? _pickCurrency : null,
                   child: Opacity(
@@ -155,7 +155,7 @@ class _TransferFeesSettingsSectionState
                             Border.all(color: Theme.of(context).dividerColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(_currencyCode ?? AppStringsAr.currencyLabel),
+                      child: Text(_currencyCode ?? AppStrings.currencyLabel),
                     ),
                   ),
                 ),
@@ -173,22 +173,22 @@ class _TransferFeesSettingsSectionState
                             setState(() => _isEditing = false);
                             _load();
                           },
-                          child: Text(AppStringsAr.actionCancel),
+                          child: Text(AppStrings.actionCancel),
                         ),
                       ),
-                      const SizedBox(width: SpacingTokens.md),
+                      SizedBox(width: SpacingTokens.md),
                       Expanded(
                         child: FilledButton(
                           onPressed: _save,
-                          child: const Text(AppStringsAr.transferFeeActionSave),
+                          child: Text(AppStrings.transferFeeActionSave),
                         ),
                       ),
                     ],
                   )
                 : OutlinedButton.icon(
                     onPressed: () => setState(() => _isEditing = true),
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text(AppStringsAr.transferFeeActionEdit),
+                    icon: Icon(Icons.edit_outlined, size: 18),
+                    label: Text(AppStrings.transferFeeActionEdit),
                   ),
           ),
         ],

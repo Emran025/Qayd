@@ -9,7 +9,7 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Creates a reversal (مرتجع) voucher linked to the original via [originVoucherId].
@@ -61,9 +61,9 @@ final class CreateReversalVoucherUseCase {
       if (!original.state.isConfirmed && !asSettlement) {
         // Reversals also work on draft in some correction scenarios
         if (!original.state.isDraft) {
-          return const FailureResult(
+          return  FailureResult(
             ValidationFailure(
-              messageAr: AppStringsAr.aReturnCannotBe,
+              messageAr: AppStrings.aReturnCannotBe,
               code: 'reversal_source_not_confirmed',
             ),
           );

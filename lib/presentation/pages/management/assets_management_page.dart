@@ -3,7 +3,7 @@ import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/management/asset_creation_wizard_page.dart';
 import 'package:qayd/presentation/pages/management/widgets/personal_accounts_list_view.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -69,26 +69,26 @@ class _AssetsManagementPageState extends State<AssetsManagementPage> {
 
     return QaydScaffold(
       appBar: QaydAppBar(
-        title: AppStringsAr.managementTabAssets,
+        title: AppStrings.managementTabAssets,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded),
             onPressed: () => setState(() {}),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openWizard,
-        icon: const Icon(Icons.add_business_rounded),
-        label: const Text(AppStringsAr.managementAddAssetFab),
+        icon: Icon(Icons.add_business_rounded),
+        label: Text(AppStrings.managementAddAssetFab),
         backgroundColor: gold,
         foregroundColor: Colors.black,
       ),
       body: _isLoadingRoots
-          ? const Center(child: CircularProgressIndicator())
-          : const PersonalAccountsListView(
+          ? Center(child: CircularProgressIndicator())
+          :  PersonalAccountsListView(
               kinds: ['fixedDepreciableAssets', 'fixedProfitableAssets'],
-              emptyText: AppStringsAr.managementAssetsEmpty,
+              emptyText: AppStrings.managementAssetsEmpty,
               showAssetDetails: true,
             ),
     );

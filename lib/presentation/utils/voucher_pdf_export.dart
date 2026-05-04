@@ -7,7 +7,7 @@ import 'package:qayd/core/utils/money_formatter.dart';
 import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/dtos/voucher_report_dto.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -29,7 +29,7 @@ Future<void> shareVoucherAsPdf(
   showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => const Center(
+    builder: (ctx) => Center(
       child: Card(
         child: Padding(
           padding: EdgeInsets.all(24),
@@ -120,9 +120,9 @@ Future<void> shareVoucherAsPdf(
             data.tripartiteRole == 'intermediary_receipt';
         final sender = isReceiptLeg
             ? data.counterpartyName
-            : (data.linkedPartyName ?? AppStringsAr.sender);
+            : (data.linkedPartyName ?? AppStrings.sender);
         final receiver = isReceiptLeg
-            ? (data.linkedPartyName ?? AppStringsAr.recipient)
+            ? (data.linkedPartyName ?? AppStrings.recipient)
             : data.counterpartyName;
 
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
@@ -130,11 +130,11 @@ Future<void> shareVoucherAsPdf(
             'مرفق لكم إشعار تحويل مالي من حساب $sender إلى حساب $receiver.\n'
             'المبلغ: $amountTextFormatter\n'
             'المرجع: ${data.referenceNumber ?? shortId}\n';
-        AppStringsAr.nautomaticallyExportedAndDigitally;
+        AppStrings.nautomaticallyExportedAndDigitally;
       } else {
         final voucherType = data.typeCode == 'receipt'
-            ? AppStringsAr.receiptNotice
-            : AppStringsAr.disbursementNotice;
+            ? AppStrings.receiptNotice
+            : AppStrings.disbursementNotice;
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
         shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
             'المبلغ: $amountTextFormatter\n';
@@ -147,12 +147,12 @@ Future<void> shareVoucherAsPdf(
           final absValue = value.abs();
           final label = data.counterpartyNature == 'debit'
               ? value > 0
-                  ? AppStringsAr.onYou
-                  : AppStringsAr.your
+                  ? AppStrings.onYou
+                  : AppStrings.your
               : value < 0
-                  ? AppStringsAr.onYou
-                  : AppStringsAr.your;
-          return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getArabicName(e.key)} $label'
+                  ? AppStrings.onYou
+                  : AppStrings.your;
+          return '${MoneyFormatter.formatDecimal(absValue, minimumFractionDigits: digits, maximumFractionDigits: digits)} ${CurrencyUtil.getLocalizedName(e.key)} $label'
               .trim();
         }).toList();
         if (balanceParts.isNotEmpty) {
@@ -161,7 +161,7 @@ Future<void> shareVoucherAsPdf(
 
         shareText += 'الحساب: ${data.affectedName}\n'
             'المرجع: ${data.referenceNumber ?? shortId}\n';
-        AppStringsAr.nautomaticallyExportedAndDigitally;
+        AppStrings.nautomaticallyExportedAndDigitally;
       }
       if (data.senderSignatureHex != null ||
           data.receiverSignatureHex != null) {
@@ -215,7 +215,7 @@ Future<void> shareVoucherAsPdf(
     }
   } catch (_) {
     messenger.showSnackBar(
-      SnackBar(content: Text(AppStringsAr.exportPdfShareError)),
+      SnackBar(content: Text(AppStrings.exportPdfShareError)),
     );
   }
 }

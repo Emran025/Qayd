@@ -10,7 +10,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_create_page.dart';
@@ -124,7 +124,7 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: Text(AppStringsAr.errorTitle)),
+      appBar: AppBar(title: Text(AppStrings.errorTitle)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(SpacingTokens.xl),
@@ -132,17 +132,17 @@ class _ErrorView extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.error_outline_rounded, size: 44, color: scheme.error),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
               Text(
                 failure.messageAr,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
               FilledButton.icon(
                 onPressed: () => context.read<_Cubit>().load(),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: Text(AppStringsAr.retryAction),
+                icon: Icon(Icons.refresh_rounded, size: 18),
+                label: Text(AppStrings.retryAction),
               ),
             ],
           ),
@@ -259,7 +259,7 @@ class _DashboardViewState extends State<_DashboardView>
                       typeColor: _typeColor,
                       isProfit: _isProfit,
                     ),
-                    const SizedBox(height: SpacingTokens.md + 4),
+                    SizedBox(height: SpacingTokens.md + 4),
 
                     // ── Analytics (trend + donut + gauge) ──────────
                     AnalyticsSection(
@@ -310,21 +310,40 @@ class _DashboardViewState extends State<_DashboardView>
       setState(() => _activeDimId = _activeDimId == id ? null : id);
 
   Color _getCategoryColor(CostCenterDimensionCategory category) {
-    return switch (category) {
-      CostCenterDimensionCategory.incomeAndWork => ColorTokens.emerald600,
-      CostCenterDimensionCategory.housingAndLiving => ColorTokens.debitBlue,
-      CostCenterDimensionCategory.nutritionAndConsumption => Colors.orange,
-      CostCenterDimensionCategory.transportation => Colors.blueGrey,
-      CostCenterDimensionCategory.healthAndPersonalCare => Colors.redAccent,
-      CostCenterDimensionCategory.educationAndDevelopment => Colors.indigo,
-      CostCenterDimensionCategory.familyAndDependents => Colors.teal,
-      CostCenterDimensionCategory.obligationsAndDebts => Colors.deepOrange,
-      CostCenterDimensionCategory.investmentsAndProjects =>
-        ColorTokens.warningAmber,
-      CostCenterDimensionCategory.savingsAndReserves => Colors.purple,
-      CostCenterDimensionCategory.entertainmentAndLifestyle => Colors.pink,
-      _ => _typeColor,
-    };
+    if (category == CostCenterDimensionCategory.incomeAndWork) {
+      return ColorTokens.emerald600;
+    }
+    if (category == CostCenterDimensionCategory.housingAndLiving) {
+      return ColorTokens.debitBlue;
+    }
+    if (category == CostCenterDimensionCategory.nutritionAndConsumption) {
+      return Colors.orange;
+    }
+    if (category == CostCenterDimensionCategory.transportation) {
+      return Colors.blueGrey;
+    }
+    if (category == CostCenterDimensionCategory.healthAndPersonalCare) {
+      return Colors.redAccent;
+    }
+    if (category == CostCenterDimensionCategory.educationAndDevelopment) {
+      return Colors.indigo;
+    }
+    if (category == CostCenterDimensionCategory.familyAndDependents) {
+      return Colors.teal;
+    }
+    if (category == CostCenterDimensionCategory.obligationsAndDebts) {
+      return Colors.deepOrange;
+    }
+    if (category == CostCenterDimensionCategory.investmentsAndProjects) {
+      return ColorTokens.warningAmber;
+    }
+    if (category == CostCenterDimensionCategory.savingsAndReserves) {
+      return Colors.purple;
+    }
+    if (category == CostCenterDimensionCategory.entertainmentAndLifestyle) {
+      return Colors.pink;
+    }
+    return _typeColor;
   }
 
   // ── FAB ────────────────────────────────────────────────────────────────────
@@ -347,8 +366,8 @@ class _DashboardViewState extends State<_DashboardView>
       ),
       label: Text(
         _isProfit
-            ? AppStringsAr.costCenterQuickReceiveAction
-            : AppStringsAr.costCenterQuickPayAction,
+            ? AppStrings.costCenterQuickReceiveAction
+            : AppStrings.costCenterQuickPayAction,
       ),
     );
   }
@@ -373,8 +392,8 @@ class _DashboardViewState extends State<_DashboardView>
         PopupMenuItem(
           value: 'edit',
           child: ListTile(
-            leading: const Icon(Icons.edit_outlined),
-            title: const Text(AppStringsAr.costCenterEditAction),
+            leading: Icon(Icons.edit_outlined),
+            title: Text(AppStrings.costCenterEditAction),
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
           ),
@@ -386,8 +405,8 @@ class _DashboardViewState extends State<_DashboardView>
                 ? Icons.pause_circle_outline_rounded
                 : Icons.play_circle_outline_rounded),
             title: Text(dto.center.isActive
-                ? AppStringsAr.costCenterSuspendAction
-                : AppStringsAr.costCenterActivateAction),
+                ? AppStrings.costCenterSuspendAction
+                : AppStrings.costCenterActivateAction),
             contentPadding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
           ),
@@ -457,14 +476,14 @@ class _ActivitySection extends StatelessWidget {
       children: [
         // ── Section label ─────────────────────────────────────────
         Text(
-          AppStringsAr.costCenterActivitySection,
+          AppStrings.costCenterActivitySection,
           style: tt.labelSmall?.copyWith(
             color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
             fontWeight: FontWeight.w700,
             letterSpacing: 0.3,
           ),
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
 
         // ── Timeline ──────────────────────────────────────────────
         if (filtered.isEmpty)
@@ -472,13 +491,13 @@ class _ActivitySection extends StatelessWidget {
         else
           TransactionHistoryList(vouchers: filtered),
 
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
 
         // ── View More ─────────────────────────────────────────────
         OutlinedButton.icon(
           onPressed: onViewMore,
-          icon: const Icon(Icons.forum_outlined, size: 16),
-          label: Text(AppStringsAr.costCenterViewMoreVouchers),
+          icon: Icon(Icons.forum_outlined, size: 16),
+          label: Text(AppStrings.costCenterViewMoreVouchers),
           style: OutlinedButton.styleFrom(
             foregroundColor: typeColor,
             side: BorderSide(color: typeColor.withValues(alpha: 0.3)),
@@ -506,9 +525,9 @@ class _EmptyState extends StatelessWidget {
             size: 32,
             color: scheme.onSurfaceVariant.withValues(alpha: 0.15),
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           Text(
-            AppStringsAr.costCenterNoRecentVouchers,
+            AppStrings.costCenterNoRecentVouchers,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant.withValues(alpha: 0.35),
                 ),
@@ -547,14 +566,14 @@ class _DimensionsList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppStringsAr.costCenterDimensionsTitle(centerName),
+            AppStrings.costCenterDimensionsTitle(centerName),
             style: tt.labelSmall?.copyWith(
               color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
               fontWeight: FontWeight.w700,
               letterSpacing: 0.3,
             ),
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           Wrap(
             spacing: SpacingTokens.xs,
             runSpacing: SpacingTokens.xs,
@@ -576,7 +595,7 @@ class _DimensionsList extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(d.category.icon, size: 12, color: color),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       d.name,
                       style: tt.labelSmall?.copyWith(

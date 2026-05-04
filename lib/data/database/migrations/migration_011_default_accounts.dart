@@ -1,7 +1,7 @@
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'dart:math';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Schema v11: Seed default root accounts (Cash, Accounts Payable, Accounts Receivable)
@@ -26,7 +26,7 @@ final class Migration011DefaultAccounts implements SchemaMigration {
     // Cash account (cannot be deleted, is_default = 1)
     await db.insert('accounts', {
       'id': uuid(),
-      'name': AppStringsAr.theBox, // Cash account
+      'name': AppStrings.theBox, // Cash account
       'nature': 'debit',
       'parent_id': null,
       'is_default': 1,
@@ -40,7 +40,7 @@ final class Migration011DefaultAccounts implements SchemaMigration {
     // Accounts Payable (can be deleted, is_default = 0)
     await db.insert('accounts', {
       'id': uuid(),
-      'name': AppStringsAr.accountsPayableYouOwe, // Accounts payable
+      'name': AppStrings.accountsPayableYouOwe, // Accounts payable
       'nature': 'credit',
       'parent_id': null,
       'is_default': 0,
@@ -54,7 +54,7 @@ final class Migration011DefaultAccounts implements SchemaMigration {
     // Accounts Receivable (can be deleted, is_default = 0)
     await db.insert('accounts', {
       'id': uuid(),
-      'name': AppStringsAr.accountsReceivableYours, // Accounts receivable
+      'name': AppStrings.accountsReceivableYours, // Accounts receivable
       'nature': 'debit',
       'parent_id': null,
       'is_default': 0,

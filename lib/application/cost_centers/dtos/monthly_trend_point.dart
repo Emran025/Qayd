@@ -1,4 +1,5 @@
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
+
 /// A single monthly data point for the cost center trend chart.
 final class MonthlyTrendPoint {
   const MonthlyTrendPoint({
@@ -17,19 +18,19 @@ final class MonthlyTrendPoint {
     final parts = monthKey.split('-');
     if (parts.length < 2) return monthKey;
     final month = int.tryParse(parts[1]) ?? 0;
-    const names = [
-      AppStringsAr.january,
-      AppStringsAr.february,
-      AppStringsAr.march,
-      AppStringsAr.april,
-      AppStringsAr.may,
-      AppStringsAr.june,
-      AppStringsAr.july,
-      AppStringsAr.august,
-      AppStringsAr.september,
-      AppStringsAr.october,
-      AppStringsAr.november,
-      AppStringsAr.december,
+    final names = [
+      AppStrings.january,
+      AppStrings.february,
+      AppStrings.march,
+      AppStrings.april,
+      AppStrings.may,
+      AppStrings.june,
+      AppStrings.july,
+      AppStrings.august,
+      AppStrings.september,
+      AppStrings.october,
+      AppStrings.november,
+      AppStrings.december,
     ];
     if (month < 1 || month > 12) return monthKey;
     return names[month - 1];

@@ -14,7 +14,7 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
@@ -72,11 +72,11 @@ class AccountDetailPage extends StatelessWidget {
           appBar: QaydAppBar(
             title: state is AccountDetailReady
                 ? state.data.name
-                : AppStringsAr.accountDetailTitle,
+                : AppStrings.accountDetailTitle,
             actions: [
               if (state is AccountDetailReady) ...[
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert_rounded),
+                  icon: Icon(Icons.more_vert_rounded),
                   color: scheme.surface,
                   surfaceTintColor: Colors.transparent,
                   elevation: 8,
@@ -144,38 +144,38 @@ class AccountDetailPage extends StatelessWidget {
                       _buildMenuItem(
                         value: 'edit',
                         icon: Icons.edit_outlined,
-                        label: AppStringsAr.editAccountTooltip,
+                        label: AppStrings.editAccountTooltip,
                         iconColor: scheme.primary,
                       ),
                       _buildMenuItem(
                         value: 'message',
                         icon: Icons.chat_bubble_outline_rounded,
-                        label: AppStringsAr.accountSendMessageTooltip,
+                        label: AppStrings.accountSendMessageTooltip,
                         iconColor: Colors.blueAccent,
                       ),
                       _buildMenuItem(
                         value: 'chat',
                         icon: Icons.forum_outlined,
-                        label: AppStringsAr.accountStatementConversation,
+                        label: AppStrings.accountStatementConversation,
                         iconColor: Colors.teal,
                       ),
                       _buildMenuItem(
                         value: 'export_pdf',
                         icon: Icons.picture_as_pdf_outlined,
-                        label: AppStringsAr.accountStatementExportPdfTooltip,
+                        label: AppStrings.accountStatementExportPdfTooltip,
                         iconColor: Colors.redAccent,
                       ),
                       const PopupMenuDivider(),
                       _buildMenuItem(
                         value: 'refresh',
                         icon: Icons.refresh_rounded,
-                        label: AppStringsAr.refreshBalanceTooltip,
+                        label: AppStrings.refreshBalanceTooltip,
                         iconColor: scheme.onSurfaceVariant,
                       ),
                       _buildMenuItem(
                         value: 'archive',
                         icon: Icons.archive_outlined,
-                        label: AppStringsAr.archiveAccountAction,
+                        label: AppStrings.archiveAccountAction,
                         iconColor: scheme.error,
                       ),
                     ];
@@ -185,7 +185,7 @@ class AccountDetailPage extends StatelessWidget {
             ],
           ),
           body: switch (state) {
-            AccountDetailInitial() || AccountDetailLoading() => const Center(
+            AccountDetailInitial() || AccountDetailLoading() => Center(
                 child: CircularProgressIndicator(),
               ),
             AccountDetailFailure(:final failure) => Center(
@@ -216,7 +216,7 @@ class AccountDetailPage extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 20, color: iconColor),
-          const SizedBox(width: SpacingTokens.md),
+          SizedBox(width: SpacingTokens.md),
           QaydText(label, slot: QaydTextStyleSlot.bodyMedium),
         ],
       ),
@@ -238,15 +238,15 @@ class _DetailBody extends StatelessWidget {
         intl.DateFormat.yMMMd('ar').format(DateTime.parse(data.createdAtIso));
 
     final classificationText = data.standardClassificationKind != null
-        ? AppStringsAr.standardClassificationLabel(
+        ? AppStrings.standardClassificationLabel(
             data.standardClassificationKind!)
-        : data.customClassificationName ?? AppStringsAr.classificationOther;
+        : data.customClassificationName ?? AppStrings.classificationOther;
 
     final natureDebit = data.natureCode == 'debit';
     final natureColor = natureDebit ? custom.debit : custom.credit;
     final natureLabel = natureDebit
-        ? AppStringsAr.natureDebitShort
-        : AppStringsAr.natureCreditShort;
+        ? AppStrings.natureDebitShort
+        : AppStrings.natureCreditShort;
 
     final iconData = _getAccountIcon(data.standardClassificationKind);
 
@@ -288,7 +288,7 @@ class _DetailBody extends StatelessWidget {
                       fontWeight: FontWeight.w900, letterSpacing: 0.5),
                 ),
               ),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
               if (data.balancesMinorUnits.isEmpty)
                 QaydMoneyDisplay(
                   money: Money.zero(PredefinedCurrencies.sar),
@@ -309,9 +309,9 @@ class _DetailBody extends StatelessWidget {
                     size: QaydMoneyDisplaySize.large,
                   );
                 }),
-              const SizedBox(height: SpacingTokens.xs),
+              SizedBox(height: SpacingTokens.xs),
               QaydText(
-                AppStringsAr.accountBalanceLabel,
+                AppStrings.accountBalanceLabel,
                 slot: QaydTextStyleSlot.labelSmall,
                 color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
@@ -321,24 +321,24 @@ class _DetailBody extends StatelessWidget {
 
         // ── 2. Information Cards ──
         _SectionHeader(
-            title: AppStringsAr.accountId1,
+            title: AppStrings.accountId1,
             icon: Icons.fingerprint_rounded,
             color: ColorTokens.emerald600),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
         _CardWrapper(
           child: Column(
             children: [
               _RichRow(
                 icon: iconData,
                 iconColor: ColorTokens.navy700,
-                label: AppStringsAr.classificationLabel,
+                label: AppStrings.classificationLabel,
                 value: classificationText,
               ),
               const _LineDivider(),
               _RichRow(
                 icon: Icons.track_changes_rounded,
                 iconColor: natureColor,
-                label: AppStringsAr.natureLabel,
+                label: AppStrings.natureLabel,
                 value: natureLabel,
                 valueColor: natureColor,
               ),
@@ -346,38 +346,38 @@ class _DetailBody extends StatelessWidget {
               _RichRow(
                 icon: Icons.verified_user_outlined,
                 iconColor: data.isActive ? Colors.green : Colors.grey,
-                label: AppStringsAr.statusLabel,
+                label: AppStrings.statusLabel,
                 value: data.isActive
-                    ? AppStringsAr.statusActive
-                    : AppStringsAr.statusInactive,
+                    ? AppStrings.statusActive
+                    : AppStrings.statusInactive,
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: SpacingTokens.lg),
+        SizedBox(height: SpacingTokens.lg),
         _SectionHeader(
-            title: AppStringsAr.chronologyAndDependency,
+            title: AppStrings.chronologyAndDependency,
             icon: Icons.account_tree_outlined,
             color: ColorTokens.navy700),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
         _CardWrapper(
           child: Column(
             children: [
               _RichRow(
                 icon: Icons.layers_outlined,
                 iconColor: scheme.primary,
-                label: AppStringsAr.accountTypeLabel,
+                label: AppStrings.accountTypeLabel,
                 value: data.isRoot
-                    ? AppStringsAr.accountTypeRoot
-                    : AppStringsAr.accountTypeChild,
+                    ? AppStrings.accountTypeRoot
+                    : AppStrings.accountTypeChild,
               ),
               if (data.parentId != null) ...[
                 const _LineDivider(),
                 _RichRow(
                   icon: Icons.subdirectory_arrow_left_rounded,
                   iconColor: Colors.deepPurple,
-                  label: AppStringsAr.parentAccountLabel,
+                  label: AppStrings.parentAccountLabel,
                   value: data.parentName ?? data.parentId!,
                 ),
               ],
@@ -385,7 +385,7 @@ class _DetailBody extends StatelessWidget {
               _RichRow(
                 icon: Icons.calendar_today_rounded,
                 iconColor: Colors.blueGrey,
-                label: AppStringsAr.createdAtLabel,
+                label: AppStrings.createdAtLabel,
                 value: created,
               ),
             ],
@@ -394,12 +394,12 @@ class _DetailBody extends StatelessWidget {
 
         // ── 3. Party Details Section ──
         if (data.phoneNumber != null || data.whatsappNumber != null) ...[
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
           _SectionHeader(
-              title: AppStringsAr.partyDetailsSection,
+              title: AppStrings.partyDetailsSection,
               icon: Icons.contact_mail_outlined,
               color: ColorTokens.goldAccent),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           _CardWrapper(
             child: Column(
               children: [
@@ -408,14 +408,14 @@ class _DetailBody extends StatelessWidget {
                   _RichRow(
                     icon: Icons.people_outline_rounded,
                     iconColor: Colors.indigo,
-                    label: AppStringsAr.partyTypeLabel,
+                    label: AppStrings.partyTypeLabel,
                     value: data.partyType!,
                   ),
                 if (data.phoneNumber?.isNotEmpty == true)
                   _ActionRow(
                     icon: Icons.phone_android_rounded,
                     label: "+${data.phoneNumber!}",
-                    actionLabel: AppStringsAr.actionCall,
+                    actionLabel: AppStrings.actionCall,
                     color: Colors.blue.shade700,
                     onTap: () =>
                         launchUrl(Uri.parse('tel:+${data.phoneNumber}')),
@@ -424,7 +424,7 @@ class _DetailBody extends StatelessWidget {
                   _ActionRow(
                     icon: Icons.chat_rounded,
                     label: "+${data.whatsappNumber!}",
-                    actionLabel: AppStringsAr.actionWhatsApp,
+                    actionLabel: AppStrings.actionWhatsApp,
                     color: const Color(0xFF25D366),
                     onTap: () => launchUrl(
                         Uri.parse('https://wa.me/${data.whatsappNumber}')),
@@ -434,14 +434,14 @@ class _DetailBody extends StatelessWidget {
                   _ActionRow(
                     icon: Icons.credit_card_rounded,
                     label: data.bankAccountInfo!,
-                    actionLabel: AppStringsAr.actionCopyBank,
+                    actionLabel: AppStrings.actionCopyBank,
                     color: ColorTokens.navy900,
                     onTap: () {
                       Clipboard.setData(
                           ClipboardData(text: data.bankAccountInfo!));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(AppStringsAr.bankInfoCopied)),
+                        SnackBar(
+                            content: Text(AppStrings.bankInfoCopied)),
                       );
                     },
                   ),
@@ -449,10 +449,10 @@ class _DetailBody extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: SpacingTokens.xl),
+        SizedBox(height: SpacingTokens.xl),
         // ── 4. Default Cost Centers Section ──
         AccountDefaultCostCentersSection(data: data),
-        const SizedBox(height: SpacingTokens.xl),
+        SizedBox(height: SpacingTokens.xl),
       ],
     );
   }
@@ -486,7 +486,7 @@ class _SectionHeader extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 16, color: color),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           QaydText(
             title,
             slot: QaydTextStyleSlot.labelLarge,
@@ -563,7 +563,7 @@ class _RichRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 20, color: iconColor ?? scheme.onSurfaceVariant),
-          const SizedBox(width: SpacingTokens.md),
+          SizedBox(width: SpacingTokens.md),
           Expanded(
             child: QaydText(
               label,
@@ -611,7 +611,7 @@ class _ActionRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, size: 20, color: color ?? scheme.primary),
-            const SizedBox(width: SpacingTokens.md),
+            SizedBox(width: SpacingTokens.md),
             Expanded(
               child: QaydText(
                 label,

@@ -11,7 +11,7 @@ import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/services/trial_balance_generator.dart';
 import 'package:qayd/domain/value_objects/date_range.dart';
 import 'package:qayd/domain/value_objects/trial_balance_report.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class GenerateTrialBalanceUseCase {
@@ -45,8 +45,8 @@ class GenerateTrialBalanceUseCase {
           _buildReport,
           _TrialBalanceParams(
             generator: _trialBalanceGenerator,
-            title: input.title ?? AppStringsAr.trialBalance,
-            companyName: input.companyName ?? AppStringsAr.accountingRecordingSystem,
+            title: input.title ?? AppStrings.trialBalance,
+            companyName: input.companyName ?? AppStrings.accountingRecordingSystem,
             dateRange: DateRange(start: start, end: end),
             accounts: accounts,
             entries: entries,

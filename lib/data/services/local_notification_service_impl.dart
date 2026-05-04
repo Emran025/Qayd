@@ -5,7 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 /// Concrete implementation for Android/iOS local notifications.
 class LocalNotificationServiceImpl implements NativeNotificationService {
@@ -73,8 +73,8 @@ class LocalNotificationServiceImpl implements NativeNotificationService {
 
     final androidDetails = AndroidNotificationDetails(
       'qayd_important_channel',
-      AppStringsAr.channelImportantTitle,
-      channelDescription: AppStringsAr.channelImportantDesc,
+      AppStrings.channelImportantTitle,
+      channelDescription: AppStrings.channelImportantDesc,
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
@@ -82,7 +82,7 @@ class LocalNotificationServiceImpl implements NativeNotificationService {
       styleInformation: BigTextStyleInformation(
         body,
         contentTitle: title,
-        summaryText: AppStringsAr.channelImportantSummary,
+        summaryText: AppStrings.channelImportantSummary,
       ),
       playSound: sound,
       enableVibration: vibration,
@@ -123,8 +123,8 @@ class LocalNotificationServiceImpl implements NativeNotificationService {
 
     final androidDetails = AndroidNotificationDetails(
       'qayd_default_channel',
-      AppStringsAr.channelDefaultTitle,
-      channelDescription: AppStringsAr.channelDefaultDesc,
+      AppStrings.channelDefaultTitle,
+      channelDescription: AppStrings.channelDefaultDesc,
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
       color: const Color(0xFF1E293B), // Dark Slate

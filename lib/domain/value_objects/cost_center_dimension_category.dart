@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// An analytical classification/category for dimensions (e.g. "Spatial", "Individual").
@@ -20,96 +20,105 @@ class CostCenterDimensionCategory extends Equatable {
   // Preserve the static constants for known default categories to maintain
   // compatibility with parts of the code that expect specific 'spatial' or 'individual' logic.
 
-  static const incomeAndWork = CostCenterDimensionCategory(
-    id: 'income_work',
-    name: AppStringsAr.incomeAndWork,
-    iconName: 'payments',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get incomeAndWork => CostCenterDimensionCategory(
+        id: 'income_work',
+        name: AppStrings.incomeAndWork,
+        iconName: 'payments',
+        isDefault: true,
+      );
 
-  static const housingAndLiving = CostCenterDimensionCategory(
-    id: 'housing_living',
-    name: AppStringsAr.housingAndLiving,
-    iconName: 'home',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get housingAndLiving => CostCenterDimensionCategory(
+        id: 'housing_living',
+        name: AppStrings.housingAndLiving,
+        iconName: 'home',
+        isDefault: true,
+      );
 
-  static const nutritionAndConsumption = CostCenterDimensionCategory(
-    id: 'nutrition_consumption',
-    name: AppStringsAr.nutritionAndDailyConsumption,
-    iconName: 'restaurant',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get nutritionAndConsumption =>
+      CostCenterDimensionCategory(
+        id: 'nutrition_consumption',
+        name: AppStrings.nutritionAndDailyConsumption,
+        iconName: 'restaurant',
+        isDefault: true,
+      );
 
-  static const transportation = CostCenterDimensionCategory(
-    id: 'transportation',
-    name: AppStringsAr.transportationAndMobility,
-    iconName: 'directions_car',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get transportation =>
+      CostCenterDimensionCategory(
+        id: 'transportation',
+        name: AppStrings.transportationAndMobility,
+        iconName: 'directions_car',
+        isDefault: true,
+      );
 
-  static const healthAndPersonalCare = CostCenterDimensionCategory(
-    id: 'health_care',
-    name: AppStringsAr.healthAndPersonalCare,
-    iconName: 'medical_services',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get healthAndPersonalCare =>
+      CostCenterDimensionCategory(
+        id: 'health_care',
+        name: AppStrings.healthAndPersonalCare,
+        iconName: 'medical_services',
+        isDefault: true,
+      );
 
-  static const educationAndDevelopment = CostCenterDimensionCategory(
-    id: 'education_development',
-    name: AppStringsAr.autostring2,
-    iconName: 'school',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get educationAndDevelopment =>
+      CostCenterDimensionCategory(
+        id: 'education_development',
+        name: AppStrings.autostring2,
+        iconName: 'school',
+        isDefault: true,
+      );
 
-  static const familyAndDependents = CostCenterDimensionCategory(
-    id: 'family_dependents',
-    name: AppStringsAr.familyAndDependents,
-    iconName: 'family_restroom',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get familyAndDependents =>
+      CostCenterDimensionCategory(
+        id: 'family_dependents',
+        name: AppStrings.familyAndDependents,
+        iconName: 'family_restroom',
+        isDefault: true,
+      );
 
-  static const obligationsAndDebts = CostCenterDimensionCategory(
-    id: 'obligations_debts',
-    name: AppStringsAr.obligationsAndDebts1,
-    iconName: 'account_balance',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get obligationsAndDebts =>
+      CostCenterDimensionCategory(
+        id: 'obligations_debts',
+        name: AppStrings.obligationsAndDebts1,
+        iconName: 'account_balance',
+        isDefault: true,
+      );
 
-  static const investmentsAndProjects = CostCenterDimensionCategory(
-    id: 'investments_projects',
-    name: AppStringsAr.investmentsAndProjects,
-    iconName: 'trending_up',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get investmentsAndProjects =>
+      CostCenterDimensionCategory(
+        id: 'investments_projects',
+        name: AppStrings.investmentsAndProjects,
+        iconName: 'trending_up',
+        isDefault: true,
+      );
 
-  static const savingsAndReserves = CostCenterDimensionCategory(
-    id: 'savings_reserves',
-    name: AppStringsAr.savingAndBuildingReserves,
-    iconName: 'savings',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get savingsAndReserves =>
+      CostCenterDimensionCategory(
+        id: 'savings_reserves',
+        name: AppStrings.savingAndBuildingReserves,
+        iconName: 'savings',
+        isDefault: true,
+      );
 
-  static const entertainmentAndLifestyle = CostCenterDimensionCategory(
-    id: 'entertainment_lifestyle',
-    name: AppStringsAr.entertainmentAndLifestyle,
-    iconName: 'sports_esports',
-    isDefault: true,
-  );
+  static CostCenterDimensionCategory get entertainmentAndLifestyle =>
+      CostCenterDimensionCategory(
+        id: 'entertainment_lifestyle',
+        name: AppStrings.entertainmentAndLifestyle,
+        iconName: 'sports_esports',
+        isDefault: true,
+      );
 
-  static const List<CostCenterDimensionCategory> values = [
-    incomeAndWork,
-    housingAndLiving,
-    nutritionAndConsumption,
-    transportation,
-    healthAndPersonalCare,
-    educationAndDevelopment,
-    familyAndDependents,
-    obligationsAndDebts,
-    investmentsAndProjects,
-    savingsAndReserves,
-    entertainmentAndLifestyle,
-  ];
+  static List<CostCenterDimensionCategory> get values => [
+        incomeAndWork,
+        housingAndLiving,
+        nutritionAndConsumption,
+        transportation,
+        healthAndPersonalCare,
+        educationAndDevelopment,
+        familyAndDependents,
+        obligationsAndDebts,
+        investmentsAndProjects,
+        savingsAndReserves,
+        entertainmentAndLifestyle,
+      ];
 
   @override
   List<Object?> get props => [id, name, iconName, isDefault];

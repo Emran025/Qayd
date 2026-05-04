@@ -10,7 +10,7 @@ import 'package:qayd/presentation/components/auth/auth_error_banner.dart';
 import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -138,7 +138,7 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
     } on AuthException catch (e) {
       setState(() => _errorAr = e.messageAr);
     } catch (_) {
-      setState(() => _errorAr = AppStringsAr.otpSendError);
+      setState(() => _errorAr = AppStrings.otpSendError);
     } finally {
       setState(() => _resending = false);
     }
@@ -147,7 +147,7 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
   Future<void> _verify() async {
     final code = _controllers.map((c) => c.text).join();
     if (code.length < 6) {
-      setState(() => _errorAr = AppStringsAr.pleaseEnterTheFull);
+      setState(() => _errorAr = AppStrings.pleaseEnterTheFull);
       return;
     }
 
@@ -166,7 +166,7 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
     } on AuthException catch (e) {
       setState(() => _errorAr = e.messageAr);
     } catch (_) {
-      setState(() => _errorAr = AppStringsAr.otpVerifyError);
+      setState(() => _errorAr = AppStrings.otpVerifyError);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -196,7 +196,7 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_rounded,
+                icon: Icon(Icons.arrow_back_ios_rounded,
                     color: ColorTokens.slate400, size: 20),
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
@@ -211,13 +211,13 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
                       iconData: Icons.mark_email_read_rounded,
                       iconColor: ColorTokens.emerald500,
                     ),
-                    const SizedBox(height: SpacingTokens.lg),
+                    SizedBox(height: SpacingTokens.lg),
                     AuthTitleBlock(
-                      title: AppStringsAr.verificationTitle,
+                      title: AppStrings.verificationTitle,
                       subtitle:
-                          '${AppStringsAr.verificationSubtitle}\n${widget.email}',
+                          '${AppStrings.verificationSubtitle}\n${widget.email}',
                     ),
-                    const SizedBox(height: SpacingTokens.xl),
+                    SizedBox(height: SpacingTokens.xl),
 
                     // OTP Input Fields
                     Directionality(
@@ -230,32 +230,32 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
                     ),
 
                     if (_errorAr != null) ...[
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       AuthErrorBanner(message: _errorAr!),
                     ],
 
-                    const SizedBox(height: SpacingTokens.xl),
+                    SizedBox(height: SpacingTokens.xl),
 
                     AuthSubmitButton(
-                      label: AppStringsAr.verifyAction,
+                      label: AppStrings.verifyAction,
                       loading: _loading,
                       onPressed: _verify,
                     ),
 
-                    const SizedBox(height: SpacingTokens.lg),
+                    SizedBox(height: SpacingTokens.lg),
 
                     // Resend Timer
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          AppStringsAr.resendPrompt,
+                          AppStrings.resendPrompt,
                           style: const TextStyle(
                               color: ColorTokens.slate400, fontSize: 14),
                         ),
                         _resendTimer > 0
                             ? Text(
-                                '${AppStringsAr.resendTimerPrefix}$_resendTimer${AppStringsAr.resendTimerSuffix}',
+                                '${AppStrings.resendTimerPrefix}$_resendTimer${AppStrings.resendTimerSuffix}',
                                 style: const TextStyle(
                                     color: ColorTokens.emerald500,
                                     fontWeight: FontWeight.bold,
@@ -265,8 +265,8 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
                                 onPressed: _resending ? null : _resend,
                                 child: Text(
                                   _resending
-                                      ? AppStringsAr.resending
-                                      : AppStringsAr.resendAction,
+                                      ? AppStrings.resending
+                                      : AppStrings.resendAction,
                                   style: const TextStyle(
                                       color: ColorTokens.emerald400,
                                       fontWeight: FontWeight.bold),
@@ -274,13 +274,13 @@ class _EmailVerificationOtpPageState extends State<EmailVerificationOtpPage> {
                               ),
                       ],
                     ),
-                    const SizedBox(height: SpacingTokens.xxl),
+                    SizedBox(height: SpacingTokens.xxl),
 
                     // Option to return to login or change email
                     TextButton.icon(
                       onPressed: () => Navigator.of(context).maybePop(),
-                      icon: const Icon(Icons.logout_rounded, size: 18),
-                      label: const Text(AppStringsAr.returnToLogin),
+                      icon: Icon(Icons.logout_rounded, size: 18),
+                      label: Text(AppStrings.returnToLogin),
                       style: TextButton.styleFrom(
                           foregroundColor: ColorTokens.slate400),
                     ),

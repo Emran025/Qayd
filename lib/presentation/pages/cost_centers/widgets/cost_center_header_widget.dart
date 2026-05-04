@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/application/cost_centers/dtos/cost_center_details_dto.dart';
 import 'package:qayd/domain/entities/cost_center.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_extensions.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -125,16 +125,16 @@ class _CostCenterHeaderWidgetState extends State<CostCenterHeaderWidget>
                             isProfit: widget.isProfit,
                           ),
                           if (!center.isActive) ...[
-                            const SizedBox(width: SpacingTokens.xs),
+                            SizedBox(width: SpacingTokens.xs),
                             _Pill(
                               icon: Icons.pause_rounded,
-                              label: AppStringsAr.costCenterSuspendedBadge,
+                              label: AppStrings.costCenterSuspendedBadge,
                               isWarning: true,
                             ),
                           ],
                         ],
                       ),
-                      const SizedBox(height: SpacingTokens.sm + 2),
+                      SizedBox(height: SpacingTokens.sm + 2),
 
                       // ── Center Name ─────────────────────────────
                       Text(
@@ -148,7 +148,7 @@ class _CostCenterHeaderWidgetState extends State<CostCenterHeaderWidget>
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (center.description?.isNotEmpty == true) ...[
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
                           center.description!,
                           style: tt.bodySmall?.copyWith(
@@ -160,7 +160,7 @@ class _CostCenterHeaderWidgetState extends State<CostCenterHeaderWidget>
                         ),
                       ],
 
-                      const SizedBox(height: SpacingTokens.lg),
+                      SizedBox(height: SpacingTokens.lg),
 
                       // ── Focal Balances ───────────────────────────
                       if (dto.totalsByCurrency.isEmpty)
@@ -194,19 +194,19 @@ class _CostCenterHeaderWidgetState extends State<CostCenterHeaderWidget>
                                 ),
                               ),
                             )),
-                      const SizedBox(height: SpacingTokens.xs),
+                      SizedBox(height: SpacingTokens.xs),
 
                       // ── Growth indicator ────────────────────────
                       Row(
                         children: [
                           Text(
-                            AppStringsAr.costCenterTotalLabel,
+                            AppStrings.costCenterTotalLabel,
                             style: tt.labelSmall?.copyWith(
                               color: Colors.white54,
                             ),
                           ),
                           if (growthPct != null) ...[
-                            const SizedBox(width: SpacingTokens.sm),
+                            SizedBox(width: SpacingTokens.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
@@ -228,7 +228,7 @@ class _CostCenterHeaderWidgetState extends State<CostCenterHeaderWidget>
                                     size: 13,
                                     color: Colors.white70,
                                   ),
-                                  const SizedBox(width: 3),
+                                  SizedBox(width: 3),
                                   Text(
                                     '${growthPct >= 0 ? '+' : ''}${growthPct.toStringAsFixed(1)}%',
                                     style: tt.labelSmall?.copyWith(
@@ -306,7 +306,7 @@ class _Pill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: fg),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(

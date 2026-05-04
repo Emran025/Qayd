@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/identity/seed_setup_page.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
@@ -51,11 +51,11 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
     final go = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.warning_amber_rounded,
-      title: AppStringsAr.identityViewSeedWarningTitle,
-      content: AppStringsAr.identityViewSeedWarningBody,
-      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      title: AppStrings.identityViewSeedWarningTitle,
+      content: AppStrings.identityViewSeedWarningBody,
+      secondaryActionLabel: AppStrings.templateEditCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.settingsProceed,
+      primaryActionLabel: AppStrings.settingsProceed,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !mounted) return;
@@ -68,7 +68,7 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
     if (!mounted) return;
     if (mnemonic == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.identityNotSetup)),
+        SnackBar(content: Text(AppStrings.identityNotSetup)),
       );
       return;
     }
@@ -85,7 +85,7 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
     await Clipboard.setData(ClipboardData(text: _publicKeyHex!));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text(AppStringsAr.identityPublicKeyCopied)),
+      SnackBar(content: Text(AppStrings.identityPublicKeyCopied)),
     );
   }
 
@@ -94,7 +94,7 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(SpacingTokens.md),
         child: Center(child: CircularProgressIndicator()),
       );
@@ -105,20 +105,20 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
         child: Column(
           children: [
             Text(
-              AppStringsAr.identityNotSetup,
+              AppStrings.identityNotSetup,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             FilledButton.icon(
               onPressed: () => Navigator.of(context).push(
                 QaydPageRoute.slideFromStart(
                     builder: (_) => const SeedSetupPage()),
               ),
-              icon: const Icon(Icons.vpn_key_outlined),
-              label: Text(AppStringsAr.identitySetupAction),
+              icon: Icon(Icons.vpn_key_outlined),
+              label: Text(AppStrings.identitySetupAction),
             ),
           ],
         ),
@@ -128,15 +128,15 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ListTile(
-          leading: const Icon(Icons.key_outlined),
-          title: Text(AppStringsAr.identityViewSeed),
-          subtitle: Text(AppStringsAr.identityViewSeedSubtitle),
-          trailing: const Icon(Icons.chevron_right),
+          leading: Icon(Icons.key_outlined),
+          title: Text(AppStrings.identityViewSeed),
+          subtitle: Text(AppStrings.identityViewSeedSubtitle),
+          trailing: Icon(Icons.chevron_right),
           onTap: _showMnemonicWarning,
         ),
         ListTile(
-          leading: const Icon(Icons.fingerprint_rounded),
-          title: Text(AppStringsAr.identityPublicKeyLabel),
+          leading: Icon(Icons.fingerprint_rounded),
+          title: Text(AppStrings.identityPublicKeyLabel),
           subtitle: _publicKeyHex != null
               ? Text(
                   '${_publicKeyHex!.substring(0, 16)}…',
@@ -147,8 +147,8 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
                 )
               : null,
           trailing: IconButton(
-            tooltip: AppStringsAr.identityPublicKeyCopy,
-            icon: const Icon(Icons.copy_outlined),
+            tooltip: AppStrings.identityPublicKeyCopy,
+            icon: Icon(Icons.copy_outlined),
             onPressed: _publicKeyHex != null ? _copyPublicKey : null,
           ),
         ),
@@ -158,17 +158,17 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
             vertical: SpacingTokens.xs,
           ),
           child: Text(
-            '${AppStringsAr.identityKeyGenerationLabel}: $_keyGeneration',
+            '${AppStrings.identityKeyGenerationLabel}: $_keyGeneration',
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
         const Divider(indent: 16, endIndent: 16),
         ListTile(
-          leading: const Icon(Icons.sync_rounded),
-          title: const Text(AppStringsAr.p2pSyncCodeSnapsync),
+          leading: Icon(Icons.sync_rounded),
+          title: Text(AppStrings.p2pSyncCodeSnapsync),
           subtitle:
-              const Text(AppStringsAr.toConnectTwoDevices),
-          trailing: const Icon(Icons.qr_code_2_rounded),
+              Text(AppStrings.toConnectTwoDevices),
+          trailing: Icon(Icons.qr_code_2_rounded),
           onTap: _showP2PCode,
         ),
       ],
@@ -179,23 +179,23 @@ class _IdentitySettingsSectionState extends State<IdentitySettingsSection> {
     QaydDialog.show<void>(
       context: context,
       icon: Icons.qr_code_2_rounded,
-      title: AppStringsAr.snapsync,
+      title: AppStrings.snapsync,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            AppStringsAr.scanThisCodeFrom,
+          Text(
+            AppStrings.scanThisCodeFrom,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
-            AppStringsAr.ipDiscoveringNetwork,
+            AppStrings.ipDiscoveringNetwork,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
-      primaryActionLabel: AppStringsAr.closing1,
+      primaryActionLabel: AppStrings.closing1,
       onPrimaryAction: () => Navigator.pop(context),
     );
   }
@@ -214,14 +214,14 @@ class _MnemonicDialog extends StatelessWidget {
     await Clipboard.setData(ClipboardData(text: mnemonic.phrase));
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text(AppStringsAr.identitySeedCopied)),
+      SnackBar(content: Text(AppStrings.identitySeedCopied)),
     );
   }
 
   Future<void> _share() async {
     await Share.share(
       mnemonic.phrase,
-      subject: AppStringsAr.identityShareSeedSubject,
+      subject: AppStrings.identityShareSeedSubject,
     );
   }
 
@@ -230,7 +230,7 @@ class _MnemonicDialog extends StatelessWidget {
     final words = _words;
     return QaydDialog(
       icon: Icons.vpn_key_outlined,
-      title: AppStringsAr.identityViewSeed,
+      title: AppStrings.identityViewSeed,
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -238,11 +238,11 @@ class _MnemonicDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              AppStringsAr.identitySeedDialogBody,
+              AppStrings.identitySeedDialogBody,
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             Flexible(
               child: SingleChildScrollView(
                 child: Wrap(
@@ -256,7 +256,7 @@ class _MnemonicDialog extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             Container(
               padding: const EdgeInsets.all(SpacingTokens.sm),
               decoration: BoxDecoration(
@@ -271,10 +271,10 @@ class _MnemonicDialog extends StatelessWidget {
                     size: 18,
                     color: Theme.of(context).colorScheme.onErrorContainer,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      AppStringsAr.identitySeedWarning,
+                      AppStrings.identitySeedWarning,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onErrorContainer,
@@ -287,11 +287,11 @@ class _MnemonicDialog extends StatelessWidget {
           ],
         ),
       ),
-      secondaryActionLabel: AppStringsAr.identitySeedShare,
+      secondaryActionLabel: AppStrings.identitySeedShare,
       onSecondaryAction: () => _share(),
-      tertiaryActionLabel: AppStringsAr.identitySeedCopy,
+      tertiaryActionLabel: AppStrings.identitySeedCopy,
       onTertiaryAction: () => _copy(context),
-      primaryActionLabel: AppStringsAr.settingsUnderstood,
+      primaryActionLabel: AppStrings.settingsUnderstood,
       onPrimaryAction: () => Navigator.pop(context),
     );
   }
@@ -321,7 +321,7 @@ class _WordChip extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Text(
             word,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(

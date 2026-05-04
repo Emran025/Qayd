@@ -7,7 +7,7 @@ import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/components/auth/password_toggle_icon.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/auth/email_verification_otp_page.dart';
 import 'package:qayd/presentation/pages/auth/password_reset_page.dart';
 import 'package:qayd/presentation/pages/auth/register_page.dart';
@@ -124,34 +124,34 @@ class _LoginPageState extends State<LoginPage> {
                     iconData: Icons.shield_rounded,
                     iconColor: ColorTokens.emerald500,
                   ),
-                  const SizedBox(height: SpacingTokens.lg),
+                  SizedBox(height: SpacingTokens.lg),
 
                   // Title
                   AuthTitleBlock(
-                    title: AppStringsAr.loginTitle,
-                    subtitle: AppStringsAr.loginSubtitle,
+                    title: AppStrings.loginTitle,
+                    subtitle: AppStrings.loginSubtitle,
                   ),
-                  const SizedBox(height: SpacingTokens.xl),
+                  SizedBox(height: SpacingTokens.xl),
 
                   // Email
                   AuthField(
                     controller: _emailCtrl,
-                    hint: AppStringsAr.vaultEmailHint,
+                    hint: AppStrings.vaultEmailHint,
                     keyboardType: TextInputType.emailAddress,
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
-                        return AppStringsAr.activationFieldRequired;
+                        return AppStrings.activationFieldRequired;
                       }
-                      if (!v.contains('@')) return AppStringsAr.invalidEmail;
+                      if (!v.contains('@')) return AppStrings.invalidEmail;
                       return null;
                     },
                   ),
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
 
                   // Password
                   AuthField(
                     controller: _passwordCtrl,
-                    hint: AppStringsAr.vaultPasswordHint,
+                    hint: AppStrings.vaultPasswordHint,
                     obscureText: _obscurePassword,
                     suffixIcon: PasswordToggleIcon(
                       obscure: _obscurePassword,
@@ -159,24 +159,24 @@ class _LoginPageState extends State<LoginPage> {
                           setState(() => _obscurePassword = !_obscurePassword),
                     ),
                     validator: (v) => (v == null || v.isEmpty)
-                        ? AppStringsAr.activationFieldRequired
+                        ? AppStrings.activationFieldRequired
                         : null,
                   ),
 
                   // Error
                   if (_errorAr != null) ...[
-                    const SizedBox(height: SpacingTokens.sm),
+                    SizedBox(height: SpacingTokens.sm),
                     AuthErrorBanner(message: _errorAr!),
                   ],
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
 
                   // Submit
                   AuthSubmitButton(
-                    label: AppStringsAr.loginAction,
+                    label: AppStrings.loginAction,
                     loading: _loading,
                     onPressed: _submit,
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
 
                   // Forgot password
                   TextButton(
@@ -186,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
                           builder: (_) => const PasswordResetPage()),
                     ),
                     child: Text(
-                      AppStringsAr.forgotPassword,
+                      AppStrings.forgotPassword,
                       style: const TextStyle(
                           color: ColorTokens.emerald400, fontSize: 13),
                     ),
@@ -197,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        AppStringsAr.noAccount,
+                        AppStrings.noAccount,
                         style: const TextStyle(
                             color: ColorTokens.slate400, fontSize: 13),
                       ),
@@ -213,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
                               builder: (_) => const RegisterPage()),
                         ),
                         child: Text(
-                          AppStringsAr.createAccount,
+                          AppStrings.createAccount,
                           style: const TextStyle(
                             color: ColorTokens.emerald400,
                             fontSize: 13,

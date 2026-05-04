@@ -3,7 +3,7 @@ import 'package:qayd/application/accounts/dtos/get_account_statement_input.dart'
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/dtos/account_statement_report_dto.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
 import 'package:qayd/core/utils/text_sanitizer.dart';
 
@@ -16,7 +16,7 @@ Future<void> shareAccountStatementAsPdf(
   showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => const Center(
+    builder: (ctx) => Center(
       child: Card(
         child: Padding(
           padding: EdgeInsets.all(24),
@@ -49,7 +49,7 @@ Future<void> shareAccountStatementAsPdf(
   final prefs = InjectionContainer.sharedPreferences;
   final issuerName = prefs.getString('company_name') ??
       prefs.getString('pdf_mediator_name') ??
-      AppStringsAr.entryPersonalAccounting;
+      AppStrings.entryPersonalAccounting;
 
   final dto = AccountStatementReportDto(
     accountId: stmt.accountId,
@@ -94,7 +94,7 @@ Future<void> shareAccountStatementAsPdf(
     await sharePdfBytes(pdfR.valueOrNull!, safeName);
   } catch (_) {
     messenger.showSnackBar(
-      SnackBar(content: Text(AppStringsAr.exportPdfShareError)),
+      SnackBar(content: Text(AppStrings.exportPdfShareError)),
     );
   }
 }

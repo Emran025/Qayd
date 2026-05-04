@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
 import 'package:qayd/domain/value_objects/income_source_type.dart';
@@ -75,24 +75,24 @@ class _IncomeStreamDetailBody extends StatelessWidget {
 
     Color primaryColor = scheme.primary;
     IconData headerIcon = Icons.account_balance_wallet_outlined;
-    String typeLabel = AppStringsAr.incomeStreamTracker;
+    String typeLabel = AppStrings.incomeStreamTracker;
 
     if (isExpense) {
       primaryColor = ColorTokens.warningAmber;
       headerIcon = Icons.receipt_long_rounded;
-      typeLabel = AppStringsAr.incomeStreamExpense;
+      typeLabel = AppStrings.incomeStreamExpense;
     } else if (sourceType == IncomeSourceType.investmentAsset) {
       primaryColor = ColorTokens.emerald400;
       headerIcon = Icons.trending_up_rounded;
-      typeLabel = AppStringsAr.incomeStreamAsset;
+      typeLabel = AppStrings.incomeStreamAsset;
     } else if (sourceType == IncomeSourceType.possession) {
       primaryColor = Colors.blueAccent;
       headerIcon = Icons.inventory_2_outlined;
-      typeLabel = AppStringsAr.incomeStreamPossession;
+      typeLabel = AppStrings.incomeStreamPossession;
     } else if (sourceType == IncomeSourceType.profession) {
       primaryColor = ColorTokens.debitBlue;
       headerIcon = Icons.work_outline_rounded;
-      typeLabel = AppStringsAr.incomeStreamProfession;
+      typeLabel = AppStrings.incomeStreamProfession;
     }
 
     return Scaffold(
@@ -101,7 +101,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
         title: summary.name,
         actions: [
           PopupMenuButton<_IncomeMenuAction>(
-            icon: const Icon(Icons.more_vert_rounded),
+            icon: Icon(Icons.more_vert_rounded),
             onSelected: (action) async {
               final chatState = context.read<StatementChatCubit>().state;
               switch (action) {
@@ -145,10 +145,10 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                 value: _IncomeMenuAction.exportPdf,
                 child: Row(
                   children: [
-                    const Icon(Icons.picture_as_pdf_outlined,
+                    Icon(Icons.picture_as_pdf_outlined,
                         color: Colors.red, size: 20),
-                    const SizedBox(width: SpacingTokens.sm),
-                    const Text(AppStringsAr.exportPdfStatement),
+                    SizedBox(width: SpacingTokens.sm),
+                    Text(AppStrings.exportPdfStatement),
                   ],
                 ),
               ),
@@ -156,10 +156,10 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                 value: _IncomeMenuAction.exportExcel,
                 child: Row(
                   children: [
-                    const Icon(Icons.table_view_rounded,
+                    Icon(Icons.table_view_rounded,
                         color: Colors.green, size: 20),
-                    const SizedBox(width: SpacingTokens.sm),
-                    const Text(AppStringsAr.exportExcelStatement),
+                    SizedBox(width: SpacingTokens.sm),
+                    Text(AppStrings.exportExcelStatement),
                   ],
                 ),
               ),
@@ -168,10 +168,10 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                 value: _IncomeMenuAction.archive,
                 child: Row(
                   children: [
-                    const Icon(Icons.archive_outlined,
+                    Icon(Icons.archive_outlined,
                         size: 20, color: ColorTokens.errorSoft),
-                    const SizedBox(width: SpacingTokens.sm),
-                    const Text(AppStringsAr.archiveAccountAction,
+                    SizedBox(width: SpacingTokens.sm),
+                    Text(AppStrings.archiveAccountAction,
                         style: TextStyle(color: ColorTokens.errorSoft)),
                   ],
                 ),
@@ -213,7 +213,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                           ),
                         );
                       }
-                      return const SizedBox();
+                      return SizedBox();
                     },
                   ),
                 ),
@@ -240,16 +240,16 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                   )
                 else if (chatState is StatementChatReady)
                   if (chatState.messages.isEmpty)
-                    const SliverFillRemaining(
+                    SliverFillRemaining(
                       child:
-                          Center(child: Text(AppStringsAr.incomeStreamNoData)),
+                          Center(child: Text(AppStrings.incomeStreamNoData)),
                     )
                   else
                     _buildLedgerList(context, chatState, primaryColor)
                 else if (chatState is StatementChatFailure)
                   SliverFillRemaining(
                     child:
-                        Center(child: Text(AppStringsAr.incomeStreamLoadError)),
+                        Center(child: Text(AppStrings.incomeStreamLoadError)),
                   ),
 
                 const SliverToBoxAdapter(
@@ -297,7 +297,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
             ),
             child: Icon(headerIcon, color: primaryColor, size: 28),
           ),
-          const SizedBox(width: SpacingTokens.lg),
+          SizedBox(width: SpacingTokens.lg),
           // Balance and Label
           Expanded(
             child: Column(
@@ -319,7 +319,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 BlocBuilder<AccountDetailCubit, AccountDetailState>(
                   builder: (context, state) {
                     if (state is AccountDetailReady) {
@@ -368,7 +368,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
             _MetaRibbonItem(
               icon: Icons.monetization_on_outlined,
               label:
-                  '${AppStringsAr.incomeStreamPurchasePrice}${metadata['purchase_price']} ${metadata['purchase_currency'] ?? ''}',
+                  '${AppStrings.incomeStreamPurchasePrice}${metadata['purchase_price']} ${metadata['purchase_currency'] ?? ''}',
             ),
           if (metadata['profession_name'] != null)
             _MetaRibbonItem(
@@ -377,12 +377,12 @@ class _IncomeStreamDetailBody extends StatelessWidget {
             _MetaRibbonItem(
                 icon: Icons.timer_outlined,
                 label:
-                    '${metadata['hourly_rate']} ${AppStringsAr.incomeStreamPerHour}'),
+                    '${metadata['hourly_rate']} ${AppStrings.incomeStreamPerHour}'),
           if (metadata['purchase_date'] != null)
             _MetaRibbonItem(
               icon: Icons.calendar_today_rounded,
               label:
-                  '${AppStringsAr.incomeStreamDatePrefix}${(metadata['purchase_date'] as String).split('T').first}',
+                  '${AppStrings.incomeStreamDatePrefix}${(metadata['purchase_date'] as String).split('T').first}',
             ),
         ],
       ),
@@ -396,7 +396,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          QaydText(AppStringsAr.ledgerMovement,
+          QaydText(AppStrings.ledgerMovement,
               slot: QaydTextStyleSlot.labelMedium),
           FilledButton.tonalIcon(
             onPressed: () async {
@@ -405,10 +405,10 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                   await showLedgerFilterSheet(context, initial: state.filter);
               if (result != null) cubit.setFilter(result);
             },
-            icon: const Icon(Icons.filter_list_rounded, size: 18),
+            icon: Icon(Icons.filter_list_rounded, size: 18),
             label: Text(state.hasActiveFilters
-                ? AppStringsAr.filterApplied
-                : AppStringsAr.filterLedger),
+                ? AppStrings.filterApplied
+                : AppStrings.filterLedger),
             style: FilledButton.styleFrom(
               visualDensity: VisualDensity.compact,
               backgroundColor: state.hasActiveFilters
@@ -462,7 +462,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
       index++;
     }
 
-    if (spots.isEmpty) return const SizedBox();
+    if (spots.isEmpty) return SizedBox();
 
     return Container(
       margin: const EdgeInsets.fromLTRB(
@@ -487,12 +487,12 @@ class _IncomeStreamDetailBody extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.show_chart_rounded, size: 18, color: primaryColor),
-              const SizedBox(width: SpacingTokens.sm),
-              QaydText(AppStringsAr.financialBalancePerformance,
+              SizedBox(width: SpacingTokens.sm),
+              QaydText(AppStrings.financialBalancePerformance,
                   slot: QaydTextStyleSlot.titleSmall, color: scheme.onSurface),
             ],
           ),
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
           Expanded(
             child: LineChart(
               LineChartData(
@@ -542,7 +542,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                       reservedSize: 45,
                       getTitlesWidget: (value, meta) {
                         if (value == meta.max || value == meta.min) {
-                          return const SizedBox();
+                          return SizedBox();
                         }
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
@@ -565,7 +565,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                           : 1,
                       getTitlesWidget: (value, meta) {
                         final lbl = xLabels[value.toInt()];
-                        if (lbl == null) return const SizedBox();
+                        if (lbl == null) return SizedBox();
                         return Padding(
                           padding: const EdgeInsets.only(top: 10.0),
                           child: Text(lbl,
@@ -745,7 +745,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Row(
                                 children: [
                                   Icon(
@@ -756,7 +756,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                                       color: msg.direction == 'incoming'
                                           ? debitColor
                                           : creditColor),
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: 4),
                                   Text(
                                     msg.otherPartyName,
                                     style: TextStyle(
@@ -766,7 +766,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                                             .onSurfaceVariant),
                                   ),
                                   if (row['isRejected']) ...[
-                                    const SizedBox(width: SpacingTokens.sm),
+                                    SizedBox(width: SpacingTokens.sm),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 4, vertical: 2),
@@ -775,7 +775,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                                               .withValues(alpha: 0.1),
                                           borderRadius:
                                               BorderRadius.circular(2)),
-                                      child: Text(AppStringsAr.statusRejected,
+                                      child: Text(AppStrings.statusRejected,
                                           style: TextStyle(
                                               fontSize: 9,
                                               color: ColorTokens.errorSoft)),
@@ -812,7 +812,7 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13),
                               ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
                               df.format(row['balanceMinor'] / 100.0),
                               style: TextStyle(
@@ -852,7 +852,7 @@ class _MetaRibbonItem extends StatelessWidget {
         children: [
           Icon(icon,
               size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(

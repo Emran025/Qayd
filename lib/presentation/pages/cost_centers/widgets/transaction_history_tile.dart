@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:qayd/application/cost_centers/dtos/center_voucher_summary.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -74,7 +74,7 @@ class TransactionHistoryTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: SpacingTokens.sm + 2),
+              SizedBox(width: SpacingTokens.sm + 2),
 
               // ── Content ─────────────────────────────────────
               Expanded(
@@ -98,7 +98,7 @@ class TransactionHistoryTile extends StatelessWidget {
                           children: [
                             Text(
                               summary.counterpartyName ??
-                                  AppStringsAr.voucherStateConfirmed,
+                                  AppStrings.voucherStateConfirmed,
                               style: tt.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
@@ -107,7 +107,7 @@ class TransactionHistoryTile extends StatelessWidget {
                             ),
                             if (summary.description?.isNotEmpty ==
                                 true) ...[
-                              const SizedBox(height: 2),
+                              SizedBox(height: 2),
                               Text(
                                 summary.description!,
                                 style: tt.bodySmall?.copyWith(
@@ -118,7 +118,7 @@ class TransactionHistoryTile extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
-                            const SizedBox(height: 3),
+                            SizedBox(height: 3),
                             Text(
                               DateFormat('yyyy/MM/dd').format(summary.date),
                               style: tt.labelSmall?.copyWith(
@@ -130,7 +130,7 @@ class TransactionHistoryTile extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: SpacingTokens.sm),
+                      SizedBox(width: SpacingTokens.sm),
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text.rich(

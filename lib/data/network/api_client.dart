@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/core/error/exceptions.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Dio-based HTTP client for all qaydAPI v1 requests.
@@ -195,30 +195,30 @@ final class _ErrorInterceptor extends Interceptor {
     if (err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.sendTimeout ||
         err.type == DioExceptionType.receiveTimeout) {
-      return AppStringsAr.theConnectionTimedOut;
+      return AppStrings.theConnectionTimedOut;
     }
 
     if (err.type == DioExceptionType.connectionError) {
-      return AppStringsAr.unableToConnectTo;
+      return AppStrings.unableToConnectTo;
     }
 
     final statusCode = err.response?.statusCode;
     if (statusCode != null) {
       switch (statusCode) {
         case 401:
-          return AppStringsAr.loginDataIsIncorrect;
+          return AppStrings.loginDataIsIncorrect;
         case 403:
-          return AppStringsAr.theAccountHasBeen1;
+          return AppStrings.theAccountHasBeen1;
         case 409:
-          return AppStringsAr.emailIsAlreadyRegistered;
+          return AppStrings.emailIsAlreadyRegistered;
         case 422:
-          return AppStringsAr.invalidDataCheckThe;
+          return AppStrings.invalidDataCheckThe;
         case >= 500:
-          return AppStringsAr.serverErrorPleaseTry;
+          return AppStrings.serverErrorPleaseTry;
       }
     }
 
-    return serverMessage ?? AppStringsAr.unexpectedErrorTryAgain;
+    return serverMessage ?? AppStrings.unexpectedErrorTryAgain;
   }
 }
 
@@ -228,6 +228,6 @@ extension DioExceptionX on DioException {
   AuthException toAuthException() {
     final err = error;
     if (err is AuthException) return err;
-    return AuthException(message ?? AppStringsAr.unexpectedErrorTryAgain);
+    return AuthException(message ?? AppStrings.unexpectedErrorTryAgain);
   }
 }

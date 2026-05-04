@@ -5,7 +5,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/import/import_wizard_page.dart';
 import 'package:qayd/presentation/pages/settings/auto_backup_settings_section.dart';
@@ -19,46 +19,46 @@ class BackupSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.settingsGroupBackup),
+      appBar: QaydAppBar(title: AppStrings.settingsGroupBackup),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: [
           // Auto backup
-          _SectionTitle(AppStringsAr.settingsSectionAutoBackup),
+          _SectionTitle(AppStrings.settingsSectionAutoBackup),
           const AutoBackupSettingsSection(),
           const Divider(),
 
           // Manual backup / restore
-          _SectionTitle(AppStringsAr.settingsSectionBackup),
+          _SectionTitle(AppStrings.settingsSectionBackup),
           ListTile(
-            leading: const Icon(Icons.cloud_upload_outlined),
-            title: Text(AppStringsAr.settingsBackupShareTitle),
-            subtitle: Text(AppStringsAr.settingsBackupShareSubtitle),
+            leading: Icon(Icons.cloud_upload_outlined),
+            title: Text(AppStrings.settingsBackupShareTitle),
+            subtitle: Text(AppStrings.settingsBackupShareSubtitle),
             onTap: () => _confirmBackupShare(context),
           ),
           ListTile(
-            leading: const Icon(Icons.save_alt_outlined),
-            title: Text(AppStringsAr.settingsBackupSaveTitle),
-            subtitle: Text(AppStringsAr.settingsBackupSaveSubtitle),
+            leading: Icon(Icons.save_alt_outlined),
+            title: Text(AppStrings.settingsBackupSaveTitle),
+            subtitle: Text(AppStrings.settingsBackupSaveSubtitle),
             onTap: () => _backupSaveToPath(context),
           ),
           ListTile(
-            leading: const Icon(Icons.restore_outlined),
-            title: Text(AppStringsAr.settingsRestoreTitle),
-            subtitle: Text(AppStringsAr.settingsRestoreSubtitle),
+            leading: Icon(Icons.restore_outlined),
+            title: Text(AppStrings.settingsRestoreTitle),
+            subtitle: Text(AppStrings.settingsRestoreSubtitle),
             onTap: () => _restore(context),
           ),
           const Divider(),
 
           // Google Drive backup
-          _SectionTitle(AppStringsAr.settingsSectionDriveBackup),
+          _SectionTitle(AppStrings.settingsSectionDriveBackup),
           const DriveBackupSection(),
-          const Divider(),
-          const _SectionTitle(AppStringsAr.importAndImmigration),
+           Divider(),
+           _SectionTitle(AppStrings.importAndImmigration),
           ListTile(
-            leading: const Icon(Icons.move_to_inbox_rounded),
-            title: Text(AppStringsAr.importAndFormat),
-            subtitle: Text(AppStringsAr.importDataFromAn),
+            leading: Icon(Icons.move_to_inbox_rounded),
+            title: Text(AppStrings.importAndFormat),
+            subtitle: Text(AppStrings.importDataFromAn),
             onTap: () => Navigator.of(context).push(
               QaydPageRoute.slideFromStart(
                   builder: (_) => const ImportWizardPage()),
@@ -73,11 +73,11 @@ class BackupSettingsPage extends StatelessWidget {
     final go = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.cloud_upload_outlined,
-      title: AppStringsAr.settingsBackupConfirmTitle,
-      content: AppStringsAr.settingsBackupConfirmBody,
-      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      title: AppStrings.settingsBackupConfirmTitle,
+      content: AppStrings.settingsBackupConfirmBody,
+      secondaryActionLabel: AppStrings.templateEditCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.settingsProceed,
+      primaryActionLabel: AppStrings.settingsProceed,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !context.mounted) return;
@@ -94,11 +94,11 @@ class BackupSettingsPage extends StatelessWidget {
     final go = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.save_alt_outlined,
-      title: AppStringsAr.settingsBackupConfirmTitle,
-      content: AppStringsAr.settingsBackupConfirmBody,
-      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      title: AppStrings.settingsBackupConfirmTitle,
+      content: AppStrings.settingsBackupConfirmBody,
+      secondaryActionLabel: AppStrings.templateEditCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.settingsProceed,
+      primaryActionLabel: AppStrings.settingsProceed,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !context.mounted) return;
@@ -117,7 +117,7 @@ class BackupSettingsPage extends StatelessWidget {
     final backupFile = result.valueOrNull!;
 
     final path = await FilePicker.platform.saveFile(
-      dialogTitle: AppStringsAr.settingsBackupSaveTitle,
+      dialogTitle: AppStrings.settingsBackupSaveTitle,
       fileName: 'qayd_backup_$stamp.qback',
       bytes: await backupFile.readAsBytes(),
     );
@@ -125,7 +125,7 @@ class BackupSettingsPage extends StatelessWidget {
     if (path == null || !context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text(AppStringsAr.settingsBackupSaved)),
+       SnackBar(content: Text(AppStrings.settingsBackupSaved)),
     );
   }
 
@@ -147,11 +147,11 @@ class BackupSettingsPage extends StatelessWidget {
       context: context,
       icon: Icons.warning_amber_rounded,
       iconColor: Theme.of(context).colorScheme.error,
-      title: AppStringsAr.settingsRestoreWarningTitle,
-      content: AppStringsAr.settingsRestoreWarningBody,
-      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      title: AppStrings.settingsRestoreWarningTitle,
+      content: AppStrings.settingsRestoreWarningBody,
+      secondaryActionLabel: AppStrings.templateEditCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.settingsRestoreConfirm,
+      primaryActionLabel: AppStrings.settingsRestoreConfirm,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (go != true || !context.mounted) return;
@@ -159,7 +159,7 @@ class BackupSettingsPage extends StatelessWidget {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
+      builder: (_) => Center(
         child: Card(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -177,7 +177,7 @@ class BackupSettingsPage extends StatelessWidget {
       );
     } catch (e) {
       r = FailureResult(
-        FileSystemFailure(messageAr: '${AppStringsAr.settingsRestoreError}$e'),
+        FileSystemFailure(messageAr: '${AppStrings.settingsRestoreError}$e'),
       );
     } finally {
       await InjectionContainer.reopenDatabaseAfterRestore();
@@ -192,7 +192,7 @@ class BackupSettingsPage extends StatelessWidget {
         ).showSnackBar(SnackBar(content: Text(r.failureOrNull!.messageAr)));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStringsAr.settingsRestoreDone)),
+           SnackBar(content: Text(AppStrings.settingsRestoreDone)),
         );
       }
     }

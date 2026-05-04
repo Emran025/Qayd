@@ -10,7 +10,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -120,23 +120,23 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
     if (_sender == null || _receiver == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.pleaseSelectASender)),
+        SnackBar(content: Text(AppStrings.pleaseSelectASender)),
       );
       return;
     }
 
     if (_fund == null) {
       messenger.showSnackBar(
-        const SnackBar(
-            content: Text(AppStringsAr.theFundAccountWas)),
+        SnackBar(
+            content: Text(AppStrings.theFundAccountWas)),
       );
       return;
     }
 
     if (_sender!.id == _receiver!.id) {
       messenger.showSnackBar(
-        const SnackBar(
-            content: Text(AppStringsAr.theSenderAndRecipient1)),
+        SnackBar(
+            content: Text(AppStrings.theSenderAndRecipient1)),
       );
       return;
     }
@@ -144,7 +144,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
     final minor = parsePositiveMinorUnits(_amountController.text);
     if (minor == null || minor <= 0) {
       messenger.showSnackBar(
-        SnackBar(content: Text(AppStringsAr.voucherAmountRequired)),
+        SnackBar(content: Text(AppStrings.voucherAmountRequired)),
       );
       return;
     }
@@ -179,7 +179,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
         }
         if (state is VoucherCreateDualSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(AppStringsAr.theDoubleConversionWas)),
+            SnackBar(content: Text(AppStrings.theDoubleConversionWas)),
           );
           Navigator.of(context).pop();
         }
@@ -189,7 +189,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
         return Scaffold(
           appBar: QaydAppBar(
-            title: AppStringsAr.doubleConversionWithBox,
+            title: AppStrings.doubleConversionWithBox,
           ),
           body: AbsorbPointer(
             absorbing: submitting,
@@ -214,10 +214,10 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
                       children: [
                         Icon(Icons.info_outline_rounded,
                             size: 20, color: ColorTokens.debitBlue),
-                        const SizedBox(width: SpacingTokens.sm),
+                        SizedBox(width: SpacingTokens.sm),
                         Expanded(
                           child: QaydText(
-                            AppStringsAr.twoVouchersWillBe,
+                            AppStrings.twoVouchersWillBe,
                             slot: QaydTextStyleSlot.bodySmall,
                             color: ColorTokens.debitBlue,
                           ),
@@ -235,11 +235,11 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      AppStringsAr.fundBroker,
+                      AppStrings.fundBroker,
                       slot: QaydTextStyleSlot.labelLarge,
                     ),
                     subtitle: QaydText(
-                      _fund?.name ?? AppStringsAr.automaticallyDetecting,
+                      _fund?.name ?? AppStrings.automaticallyDetecting,
                       slot: QaydTextStyleSlot.bodyLarge,
                       color: _fund == null ? scheme.onSurfaceVariant : null,
                     ),
@@ -253,41 +253,41 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
                   // ── Sender ──────────────────────────────────────
                   _buildAccountPicker(
-                    label: AppStringsAr.senderDeductedFromHis,
+                    label: AppStrings.senderDeductedFromHis,
                     account: _sender,
                     onTap: () => _pickAccount(0),
                     gold: gold,
                     icon: Icons.south_west_rounded,
                   ),
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
 
                   // ── Receiver ────────────────────────────────────
                   _buildAccountPicker(
-                    label: AppStringsAr.recipientCreditedToHis,
+                    label: AppStrings.recipientCreditedToHis,
                     account: _receiver,
                     onTap: () => _pickAccount(1),
                     gold: gold,
                     icon: Icons.north_east_rounded,
                   ),
-                  const SizedBox(height: SpacingTokens.lg),
+                  SizedBox(height: SpacingTokens.lg),
 
                   QaydAmountField(
                     controller: _amountController,
-                    label: AppStringsAr.voucherAmountLabel,
+                    label: AppStrings.voucherAmountLabel,
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   QaydTextField(
                     controller: _descriptionController,
-                    label: AppStringsAr.voucherDescriptionLabel,
+                    label: AppStrings.voucherDescriptionLabel,
                     maxLines: 2,
                   ),
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   QaydTextField(
                     controller: _notesController,
-                    label: AppStringsAr.voucherNotesLabel,
+                    label: AppStrings.voucherNotesLabel,
                     maxLines: 2,
                   ),
-                  const SizedBox(height: SpacingTokens.xl),
+                  SizedBox(height: SpacingTokens.xl),
 
                   FilledButton(
                     onPressed: submitting ? null : _submit,
@@ -298,7 +298,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
                     ),
                     child: submitting
                         ? const CircularProgressIndicator()
-                        : const Text(AppStringsAr.saveTheDoubleConversion),
+                        : Text(AppStrings.saveTheDoubleConversion),
                   ),
                 ],
               ),
@@ -312,7 +312,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
   Widget _buildDateTile(Color gold) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: QaydText(
-          AppStringsAr.voucherDateLabel,
+          AppStrings.voucherDateLabel,
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
@@ -326,7 +326,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
   Widget _buildCurrencyTile(Color gold) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: QaydText(
-          AppStringsAr.voucherCurrencyLabel,
+          AppStrings.voucherCurrencyLabel,
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
@@ -352,7 +352,7 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
-          account?.name ?? AppStringsAr.chooseAccount,
+          account?.name ?? AppStrings.chooseAccount,
           slot: QaydTextStyleSlot.bodyLarge,
           color: account == null
               ? Theme.of(context).colorScheme.onSurfaceVariant

@@ -6,7 +6,7 @@ import 'package:qayd/domain/value_objects/attachment_id.dart';
 import 'package:qayd/domain/value_objects/attachment_source_type.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// SQLite-backed implementation of [AttachmentRepository].
@@ -32,7 +32,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return Success(attachments);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToDownloadAttachments),
+        DatabaseFailure(messageAr: AppStrings.failedToDownloadAttachments),
       );
     }
   }
@@ -48,7 +48,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToSaveThe),
+        DatabaseFailure(messageAr: AppStrings.failedToSaveThe),
       );
     }
   }
@@ -85,7 +85,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       }
       if (anyFailed) {
         return FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.failedToSaveSome),
+          DatabaseFailure(messageAr: AppStrings.failedToSaveSome),
         );
       }
       return const Success(null);
@@ -99,7 +99,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToDeleteThe),
+        DatabaseFailure(messageAr: AppStrings.failedToDeleteThe),
       );
     }
   }
@@ -115,7 +115,7 @@ final class SqliteAttachmentRepository implements AttachmentRepository {
       return const Success(null);
     } catch (e) {
       return FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.failedToDeleteBond),
+        DatabaseFailure(messageAr: AppStrings.failedToDeleteBond),
       );
     }
   }

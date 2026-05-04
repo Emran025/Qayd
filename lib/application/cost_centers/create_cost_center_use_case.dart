@@ -6,7 +6,7 @@ import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class CreateCostCenterUseCase {
@@ -25,9 +25,9 @@ final class CreateCostCenterUseCase {
   }) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
-      return const FailureResult(
+      return  FailureResult(
         ValidationFailure(
-          messageAr: AppStringsAr.pleaseEnterTheName,
+          messageAr: AppStrings.pleaseEnterTheName,
           code: 'cost_center_name_required',
         ),
       );

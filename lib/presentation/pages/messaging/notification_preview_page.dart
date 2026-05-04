@@ -5,7 +5,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_cubit.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_mode.dart';
 import 'package:qayd/presentation/pages/messaging/notification_preview_state.dart';
@@ -63,7 +63,7 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
 
     return Scaffold(
       appBar: QaydAppBar(
-        title: AppStringsAr.notificationPreviewTitle,
+        title: AppStrings.notificationPreviewTitle,
       ),
       body: BlocConsumer<NotificationPreviewCubit, NotificationPreviewState>(
         listenWhen: (p, c) {
@@ -85,7 +85,7 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
         },
         builder: (context, state) {
           return switch (state) {
-            NotificationPreviewLoading() => const Center(
+            NotificationPreviewLoading() => Center(
                 child: CircularProgressIndicator(),
               ),
             NotificationPreviewFailure(:final failure) => Center(
@@ -107,13 +107,13 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                 children: [
                   if (templates.isNotEmpty) ...[
                     QaydText(
-                      AppStringsAr.notificationSelectTemplate,
+                      AppStrings.notificationSelectTemplate,
                       slot: QaydTextStyleSlot.labelLarge,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(height: SpacingTokens.sm),
+                    SizedBox(height: SpacingTokens.sm),
                     DropdownButtonFormField<String>(
-                      value: selectedTemplateId,
+                      initialValue: selectedTemplateId,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -136,17 +136,17 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                         }
                       },
                     ),
-                    const SizedBox(height: SpacingTokens.lg),
+                    SizedBox(height: SpacingTokens.lg),
                   ],
                   QaydText(
-                    AppStringsAr.notificationMessageBody,
+                    AppStrings.notificationMessageBody,
                     slot: QaydTextStyleSlot.labelLarge,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                        const SizedBox(height: SpacingTokens.sm),
+                        SizedBox(height: SpacingTokens.sm),
                         QaydTextField(
                           controller: _bodyController,
-                          label: AppStringsAr.notificationMessageBody,
+                          label: AppStrings.notificationMessageBody,
                           maxLines: 12,
                           minLines: 8,
                           textInputAction: TextInputAction.done,
@@ -154,7 +154,7 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                               .read<NotificationPreviewCubit>()
                               .setBodyText(t),
                         ),
-                        const SizedBox(height: SpacingTokens.xl),
+                        SizedBox(height: SpacingTokens.xl),
                         Row(
                           children: [
                             Expanded(
@@ -177,17 +177,17 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          AppStringsAr.notificationIntentSms,
+                                          AppStrings.notificationIntentSms,
                                         ),
                                       ),
                                     );
                                   }
                                 },
-                                icon: const Icon(Icons.sms_outlined),
-                                label: Text(AppStringsAr.notificationSendSms),
+                                icon: Icon(Icons.sms_outlined),
+                                label: Text(AppStrings.notificationSendSms),
                               ),
                             ),
-                            const SizedBox(width: SpacingTokens.md),
+                            SizedBox(width: SpacingTokens.md),
                             Expanded(
                               child: FilledButton.icon(
                                 style: FilledButton.styleFrom(
@@ -216,15 +216,15 @@ class _NotificationPreviewViewState extends State<_NotificationPreviewView> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          AppStringsAr.notificationIntentWa,
+                                          AppStrings.notificationIntentWa,
                                         ),
                                       ),
                                     );
                                   }
                                 },
-                                icon: const Icon(Icons.chat_rounded),
+                                icon: Icon(Icons.chat_rounded),
                                 label:
-                                    Text(AppStringsAr.notificationSendWhatsApp),
+                                    Text(AppStrings.notificationSendWhatsApp),
                               ),
                             ),
                           ],

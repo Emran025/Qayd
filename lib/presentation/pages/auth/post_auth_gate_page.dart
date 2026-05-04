@@ -7,7 +7,7 @@ import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
 import 'package:qayd/presentation/pages/identity/seed_recovery_page.dart';
 import 'package:qayd/presentation/pages/identity/seed_setup_page.dart';
@@ -196,8 +196,8 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       await _checkBackups();
       if (!_hasDriveBackup && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(AppStringsAr.noBackupFoundIn),
+          SnackBar(
+            content: Text(AppStrings.noBackupFoundIn),
             backgroundColor: ColorTokens.warningAmber,
           ),
         );
@@ -210,7 +210,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(failure?.messageAr ?? AppStringsAr.googleLoginFailed),
+            content: Text(failure?.messageAr ?? AppStrings.googleLoginFailed),
             backgroundColor: isWarning
                 ? ColorTokens.warningAmber
                 : Theme.of(context).colorScheme.error,
@@ -323,48 +323,54 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       builder: (dCtx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: const Color(0xFF0F172A),
-          title: const Text(
-            AppStringsAr.securityPinDialogTitle,
+          title: Text(
+            AppStrings.securityPinDialogTitle,
             style: TextStyle(color: Colors.white),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: pinCtrl,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                maxLength: 8,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: ColorTokens.emerald500,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: const Color(0xFF1E293B),
-                  hintText: AppStringsAr.securityPinField,
-                  hintStyle: const TextStyle(color: ColorTokens.slate400),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: TextField(
+                  controller: pinCtrl,
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  maxLength: 8,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: ColorTokens.emerald500,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFF1E293B),
+                    hintText: AppStrings.securityPinField,
+                    hintStyle: const TextStyle(color: ColorTokens.slate400),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: SpacingTokens.sm),
-              TextField(
-                controller: confirmCtrl,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                maxLength: 8,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: ColorTokens.emerald500,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: const Color(0xFF1E293B),
-                  hintText: AppStringsAr.securityPinRepeat,
-                  hintStyle: const TextStyle(color: ColorTokens.slate400),
-                  errorText: error,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
+              SizedBox(height: SpacingTokens.sm),
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: TextField(
+                  controller: confirmCtrl,
+                  obscureText: true,
+                  keyboardType: TextInputType.number,
+                  maxLength: 8,
+                  style: const TextStyle(color: Colors.white),
+                  cursorColor: ColorTokens.emerald500,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFF1E293B),
+                    hintText: AppStrings.securityPinRepeat,
+                    hintStyle: const TextStyle(color: ColorTokens.slate400),
+                    errorText: error,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
@@ -374,7 +380,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
             TextButton(
               onPressed: () => Navigator.pop(dCtx, false),
               child: Text(
-                AppStringsAr.actionCancel,
+                AppStrings.actionCancel,
                 style: TextStyle(color: ColorTokens.slate400),
               ),
             ),
@@ -387,19 +393,19 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
                 final confirm = confirmCtrl.text.trim();
 
                 if (pin.length < 4 || pin.length > 8) {
-                  setDialogState(() => error = AppStringsAr.securityPinLength);
+                  setDialogState(() => error = AppStrings.securityPinLength);
                   return;
                 }
                 if (pin != confirm) {
                   setDialogState(
-                      () => error = AppStringsAr.securityPinMismatch);
+                      () => error = AppStrings.securityPinMismatch);
                   return;
                 }
 
                 await InjectionContainer.securityCubit.saveNewPin(pin);
                 if (dCtx.mounted) Navigator.pop(dCtx, true);
               },
-              child: const Text(AppStringsAr.saveAccount),
+              child: Text(AppStrings.saveAccount),
             ),
           ],
         ),
@@ -457,11 +463,11 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
             iconData: Icons.shield_rounded,
             iconColor: ColorTokens.emerald500,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
           const CircularProgressIndicator(color: ColorTokens.emerald500),
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
           Text(
-            AppStringsAr.gateCheckingStatus,
+            AppStrings.gateCheckingStatus,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -475,48 +481,48 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          const AuthAnimatedIcon(
+           AuthAnimatedIcon(
             iconData: Icons.cloud_download_rounded,
             iconColor: ColorTokens.emerald500,
           ),
-          const SizedBox(height: SpacingTokens.lg),
-          const AuthTitleBlock(
-            title: AppStringsAr.gateRestoreTitle,
-            subtitle: AppStringsAr.gateRestoreSubtitle,
+          SizedBox(height: SpacingTokens.lg),
+           AuthTitleBlock(
+            title: AppStrings.gateRestoreTitle,
+            subtitle: AppStrings.gateRestoreSubtitle,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
           if (_hasLocalBackup)
             _buildOptionCard(
               icon: Icons.phone_android_rounded,
-              title: AppStringsAr.gateRestoreLocalOption,
-              subtitle: AppStringsAr.gateRestoreAndKeepIdentity,
+              title: AppStrings.gateRestoreLocalOption,
+              subtitle: AppStrings.gateRestoreAndKeepIdentity,
               color: ColorTokens.emerald500,
               onTap: _navigateToRestoreDiscovery,
             ),
           if (_hasDriveBackup) ...[
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             _buildOptionCard(
               icon: Icons.cloud_rounded,
-              title: AppStringsAr.gateRestoreDriveOption,
-              subtitle: AppStringsAr.gateRestoreAndKeepIdentity,
+              title: AppStrings.gateRestoreDriveOption,
+              subtitle: AppStrings.gateRestoreAndKeepIdentity,
               color: const Color(0xFF4285F4), // Google Blue
               onTap: _navigateToRestoreDiscovery,
             ),
           ] else if (!InjectionContainer.driveBackupService.isSignedIn) ...[
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             _buildOptionCard(
               icon: Icons.cloud_sync_rounded,
-              title: AppStringsAr.searchInGoogleDrive,
-              subtitle: AppStringsAr.signInWithYour,
+              title: AppStrings.searchInGoogleDrive,
+              subtitle: AppStrings.signInWithYour,
               color: const Color(0xFF4285F4), // Google Blue
               onTap: _signInAndCheckDrive,
             ),
           ],
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
           TextButton(
             onPressed: _skipRestoreAndContinue,
             child: Text(
-              AppStringsAr.gateSkipRestore,
+              AppStrings.gateSkipRestore,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -531,32 +537,32 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          const AuthAnimatedIcon(
+           AuthAnimatedIcon(
             iconData: Icons.vpn_key_rounded,
             iconColor: ColorTokens.emerald500,
           ),
-          const SizedBox(height: SpacingTokens.lg),
-          const AuthTitleBlock(
-            title: AppStringsAr.identityRecoveryRequiredTitle,
-            subtitle: AppStringsAr.identityRecoveryRequiredBody,
+          SizedBox(height: SpacingTokens.lg),
+           AuthTitleBlock(
+            title: AppStrings.identityRecoveryRequiredTitle,
+            subtitle: AppStrings.identityRecoveryRequiredBody,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
 
           // Option 1: Enter primary key (recommended)
           _buildOptionCard(
             icon: Icons.key_rounded,
-            title: AppStringsAr.identityRecoveryEnterKeyAction,
-            subtitle: AppStringsAr.identityRecoveryHint,
+            title: AppStrings.identityRecoveryEnterKeyAction,
+            subtitle: AppStrings.identityRecoveryHint,
             color: ColorTokens.emerald500,
             onTap: _navigateToSeedRecovery,
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
 
           // Option 2: Bypass with new identity (not recommended)
           _buildOptionCard(
             icon: Icons.add_circle_outline_rounded,
-            title: AppStringsAr.gateBypassIdentity,
-            subtitle: AppStringsAr.identityRecoveryBypassWarning,
+            title: AppStrings.gateBypassIdentity,
+            subtitle: AppStrings.identityRecoveryBypassWarning,
             color: ColorTokens.warningAmber,
             onTap: _bypassIdentityAndContinue,
           ),
@@ -569,41 +575,41 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          const AuthAnimatedIcon(
+           AuthAnimatedIcon(
             iconData: Icons.fingerprint_rounded,
             iconColor: ColorTokens.emerald500,
           ),
-          const SizedBox(height: SpacingTokens.lg),
-          const AuthTitleBlock(
-            title: AppStringsAr.gateDeviceLockTitle,
-            subtitle: AppStringsAr.gateDeviceLockSubtitle,
+          SizedBox(height: SpacingTokens.lg),
+           AuthTitleBlock(
+            title: AppStrings.gateDeviceLockTitle,
+            subtitle: AppStrings.gateDeviceLockSubtitle,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
 
           // Biometric option
           _buildOptionCard(
             icon: Icons.face_rounded,
-            title: AppStringsAr.gateSetupBiometric,
-            subtitle: AppStringsAr.securityBiometricReason,
+            title: AppStrings.gateSetupBiometric,
+            subtitle: AppStrings.securityBiometricReason,
             color: ColorTokens.emerald500,
             onTap: _setupBiometric,
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
 
           // PIN option
           _buildOptionCard(
             icon: Icons.pin_rounded,
-            title: AppStringsAr.gateSetupPin,
-            subtitle: AppStringsAr.securitySetPinSubtitle,
+            title: AppStrings.gateSetupPin,
+            subtitle: AppStrings.securitySetPinSubtitle,
             color: ColorTokens.goldAccent,
             onTap: _setupPin,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
 
           TextButton(
             onPressed: _skipDeviceLock,
             child: Text(
-              AppStringsAr.gateSkipDeviceLock,
+              AppStrings.gateSkipDeviceLock,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -619,18 +625,18 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const AuthAnimatedIcon(
+           AuthAnimatedIcon(
             iconData: Icons.check_circle_rounded,
             iconColor: ColorTokens.emerald500,
           ),
-          const SizedBox(height: SpacingTokens.lg),
-          const AuthTitleBlock(
-            title: AppStringsAr.gateSetupComplete,
-            subtitle: AppStringsAr.gateSetupCompleteBody,
+          SizedBox(height: SpacingTokens.lg),
+           AuthTitleBlock(
+            title: AppStrings.gateSetupComplete,
+            subtitle: AppStrings.gateSetupCompleteBody,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
           AuthSubmitButton(
-            label: AppStringsAr.gateContinueToApp,
+            label: AppStrings.gateContinueToApp,
             loading: false,
             onPressed: widget.onSetupComplete,
           ),
@@ -643,42 +649,42 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          const AuthAnimatedIcon(
+           AuthAnimatedIcon(
             iconData: Icons.wifi_off_rounded,
             iconColor: ColorTokens.warningAmber,
           ),
-          const SizedBox(height: SpacingTokens.lg),
-          const AuthTitleBlock(
-            title: AppStringsAr.gateNetworkErrorTitle,
-            subtitle: AppStringsAr.gateNetworkErrorSubtitle,
+          SizedBox(height: SpacingTokens.lg),
+           AuthTitleBlock(
+            title: AppStrings.gateNetworkErrorTitle,
+            subtitle: AppStrings.gateNetworkErrorSubtitle,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
 
           // Option 1: Retry
           _buildOptionCard(
             icon: Icons.refresh_rounded,
-            title: AppStringsAr.gateNetworkRetry,
-            subtitle: AppStringsAr.gateNetworkRetryHint,
+            title: AppStrings.gateNetworkRetry,
+            subtitle: AppStrings.gateNetworkRetryHint,
             color: ColorTokens.emerald500,
             onTap: _evaluateState,
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
 
           // Option 2: Enter recovery phrase manually
           _buildOptionCard(
             icon: Icons.key_rounded,
-            title: AppStringsAr.gateEnterPrimaryKey,
-            subtitle: AppStringsAr.identityRecoveryHint,
+            title: AppStrings.gateEnterPrimaryKey,
+            subtitle: AppStrings.identityRecoveryHint,
             color: ColorTokens.emerald500,
             onTap: _navigateToSeedRecovery,
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
 
           // Option 3: Create new (with explicit warning)
           _buildOptionCard(
             icon: Icons.add_circle_outline_rounded,
-            title: AppStringsAr.gateNetworkCreateNew,
-            subtitle: AppStringsAr.gateNetworkCreateNewWarning,
+            title: AppStrings.gateNetworkCreateNew,
+            subtitle: AppStrings.gateNetworkCreateNewWarning,
             color: ColorTokens.warningAmber,
             onTap: _bypassIdentityAndContinue,
           ),

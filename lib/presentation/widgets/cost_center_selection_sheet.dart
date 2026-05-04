@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/cost_center.dart';
 import 'package:qayd/domain/entities/cost_center_dimension.dart';
@@ -100,11 +100,11 @@ class _CostCenterSelectionContentState
     if (_selectedCenter == null) {
       content = _buildCentersList();
     } else if (_loadingDims) {
-      content = const Center(child: CircularProgressIndicator());
+      content = Center(child: CircularProgressIndicator());
     } else if (_dimensions != null) {
       content = _buildDimensionsList();
     } else {
-      content = const SizedBox(); // Fallback conceptually unreachable
+      content = SizedBox(); // Fallback conceptually unreachable
     }
 
     return SafeArea(
@@ -120,12 +120,12 @@ class _CostCenterSelectionContentState
                 padding: const EdgeInsets.symmetric(horizontal: SpacingTokens.md),
                 child: QaydText(
                   _selectedCenter == null
-                      ? AppStringsAr.costCenterSelectionTitle
-                      : AppStringsAr.costCenterDimensionsTitle(_selectedCenter!.name),
+                      ? AppStrings.costCenterSelectionTitle
+                      : AppStrings.costCenterDimensionsTitle(_selectedCenter!.name),
                   slot: QaydTextStyleSlot.titleMedium,
                 ),
               ),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
               Expanded(child: content),
             ],
           ),
@@ -155,7 +155,7 @@ class _CostCenterSelectionContentState
             leading: CircleAvatar(
               backgroundColor: ColorTokens.goldAccent.withValues(alpha: 0.1),
               foregroundColor: ColorTokens.goldAccent,
-              child: const Icon(Icons.pie_chart_rounded, size: 20),
+              child: Icon(Icons.pie_chart_rounded, size: 20),
             ),
             title: QaydText(c.name, slot: QaydTextStyleSlot.bodyLarge),
             trailing: IconButton(
@@ -163,7 +163,7 @@ class _CostCenterSelectionContentState
                 Icons.tune_rounded,
                 color: theme.colorScheme.primary,
               ),
-              tooltip: AppStringsAr.costCenterCustomizeDimensions,
+              tooltip: AppStrings.costCenterCustomizeDimensions,
               onPressed: () => _onCenterPicked(c, customize: true),
             ),
             shape: RoundedRectangleBorder(
@@ -235,7 +235,7 @@ class _CostCenterSelectionContentState
           padding: const EdgeInsets.all(SpacingTokens.md),
           child: FilledButton(
             onPressed: _onDimensionsSubmitted,
-            child: Text(AppStringsAr.costCenterApplyDimensions),
+            child: Text(AppStrings.costCenterApplyDimensions),
           ),
         ),
       ],

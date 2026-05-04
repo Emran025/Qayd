@@ -11,7 +11,7 @@ import 'package:qayd/domain/value_objects/date_range.dart';
 import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteLedgerRepository implements LedgerRepository {
@@ -51,10 +51,10 @@ final class SqliteLedgerRepository implements LedgerRepository {
           );
         }
       });
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.ledgerEntriesCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.ledgerEntriesCouldNot),
       );
     }
   }
@@ -82,8 +82,8 @@ final class SqliteLedgerRepository implements LedgerRepository {
       final rows = await _db.rawQuery(query.toString(), args);
       return Success(await _mapEntryRows(rows));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.accountTransactionsCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.accountTransactionsCouldNot),
       );
     }
   }
@@ -101,8 +101,8 @@ final class SqliteLedgerRepository implements LedgerRepository {
       );
       return Success(await _mapEntryRows(rows));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadDouble),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadDouble),
       );
     }
   }
@@ -119,8 +119,8 @@ final class SqliteLedgerRepository implements LedgerRepository {
       );
       return Success(await _mapEntryRows(rows));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theBondEntriesCould),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theBondEntriesCould),
       );
     }
   }
@@ -146,8 +146,8 @@ final class SqliteLedgerRepository implements LedgerRepository {
       final rows = await _db.rawQuery(query.toString(), args);
       return Success(await _mapEntryRows(rows));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theLedgerCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theLedgerCouldNot),
       );
     }
   }

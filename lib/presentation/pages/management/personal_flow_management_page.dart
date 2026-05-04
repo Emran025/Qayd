@@ -3,7 +3,7 @@ import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/management/asset_creation_wizard_page.dart';
 import 'package:qayd/presentation/pages/management/widgets/personal_accounts_list_view.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -74,22 +74,22 @@ class _PersonalFlowManagementPageState
       length: 2,
       child: QaydScaffold(
         appBar: QaydAppBar(
-          title: AppStringsAr.managementTabPersonalFlowAccounts,
-          bottom: const TabBar(
+          title: AppStrings.managementTabPersonalFlowAccounts,
+          bottom:  TabBar(
             tabs: [
-              Tab(text: AppStringsAr.managementTabAssets),
-              Tab(text: AppStringsAr.managementTabOutflowSources),
+              Tab(text: AppStrings.managementTabAssets),
+              Tab(text: AppStrings.managementTabOutflowSources),
             ],
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh_rounded),
+              icon: Icon(Icons.refresh_rounded),
               onPressed: () => setState(() {}),
             ),
           ],
         ),
         body: _isLoadingRoots
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator())
             : TabBarView(
                 children: [
                   // Tab 1: Assets (Copy from AssetsManagementPage)
@@ -98,7 +98,7 @@ class _PersonalFlowManagementPageState
                       'fixedDepreciableAssets',
                       'fixedProfitableAssets'
                     ],
-                    emptyText: AppStringsAr.managementAssetsEmpty,
+                    emptyText: AppStrings.managementAssetsEmpty,
                     showAssetDetails: true,
                     key: const PageStorageKey('assets_list'),
                   ),
@@ -106,7 +106,7 @@ class _PersonalFlowManagementPageState
                   // Tab 2: Outflow Sources (Expenses)
                   PersonalAccountsListView(
                     kinds: const ['personalExpenses'],
-                    emptyText: AppStringsAr.managementExpensesEmpty,
+                    emptyText: AppStrings.managementExpensesEmpty,
                     showAssetDetails: false,
                     key: const PageStorageKey('expenses_list'),
                   ),
@@ -126,8 +126,8 @@ class _PersonalFlowManagementPageState
                 if (tabController.index == 0) {
                   return FloatingActionButton.extended(
                     onPressed: _openAssetWizard,
-                    icon: const Icon(Icons.add_business_rounded),
-                    label: const Text(AppStringsAr.managementAddAssetFab),
+                    icon: Icon(Icons.add_business_rounded),
+                    label: Text(AppStrings.managementAddAssetFab),
                     backgroundColor: gold,
                     foregroundColor: Colors.black,
                   );

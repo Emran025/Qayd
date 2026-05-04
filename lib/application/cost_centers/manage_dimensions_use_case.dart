@@ -4,7 +4,7 @@ import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class ManageDimensionsUseCase {
@@ -20,9 +20,9 @@ final class ManageDimensionsUseCase {
   }) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
-      return const FailureResult(
+      return  FailureResult(
         ValidationFailure(
-          messageAr: AppStringsAr.pleaseEnterADimension,
+          messageAr: AppStrings.pleaseEnterADimension,
           code: 'dimension_name_required',
         ),
       );
@@ -64,9 +64,9 @@ final class ManageDimensionsUseCase {
   }) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
-      return const FailureResult(
+      return  FailureResult(
         ValidationFailure(
-          messageAr: AppStringsAr.pleaseEnterTheCategory,
+          messageAr: AppStrings.pleaseEnterTheCategory,
           code: 'category_name_required',
         ),
       );

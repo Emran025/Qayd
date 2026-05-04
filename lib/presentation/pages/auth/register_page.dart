@@ -11,7 +11,7 @@ import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/components/auth/password_toggle_icon.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/phone_zone.dart';
@@ -57,7 +57,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_loading) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreedToTerms) {
-      setState(() => _errorAr = AppStringsAr.agreeToTermsRequired);
+      setState(() => _errorAr = AppStrings.agreeToTermsRequired);
       return;
     }
     setState(() {
@@ -121,9 +121,9 @@ class _RegisterPageState extends State<RegisterPage> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_rounded,
+                icon: Icon(Icons.arrow_back_ios_rounded,
                     color: ColorTokens.slate400, size: 20),
-                tooltip: AppStringsAr.backToLogin,
+                tooltip: AppStrings.backToLogin,
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
             ),
@@ -143,51 +143,51 @@ class _RegisterPageState extends State<RegisterPage> {
                         iconColor: ColorTokens.goldAccent,
                         pulseDuration: Duration(milliseconds: 2200),
                       ),
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       AuthTitleBlock(
-                        title: AppStringsAr.registerTitle,
+                        title: AppStrings.registerTitle,
                         subtitle: '',
                       ),
-                      const SizedBox(height: SpacingTokens.sm),
-                      AuthAdminBadge(label: AppStringsAr.registerSubtitle),
-                      const SizedBox(height: SpacingTokens.lg),
+                      SizedBox(height: SpacingTokens.sm),
+                      AuthAdminBadge(label: AppStrings.registerSubtitle),
+                      SizedBox(height: SpacingTokens.lg),
 
                       // Fields
                       AuthField(
                         controller: _nameCtrl,
-                        hint: AppStringsAr.nameHint,
+                        hint: AppStrings.nameHint,
                         keyboardType: TextInputType.name,
                         accentColor: ColorTokens.goldAccent,
                         validator: (v) => (v == null || v.trim().isEmpty)
-                            ? AppStringsAr.activationFieldRequired
+                            ? AppStrings.activationFieldRequired
                             : null,
                       ),
-                      const SizedBox(height: SpacingTokens.sm),
+                      SizedBox(height: SpacingTokens.sm),
                       AuthField(
                         controller: _emailCtrl,
-                        hint: AppStringsAr.vaultEmailHint,
+                        hint: AppStrings.vaultEmailHint,
                         keyboardType: TextInputType.emailAddress,
                         accentColor: ColorTokens.goldAccent,
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return AppStringsAr.activationFieldRequired;
+                            return AppStrings.activationFieldRequired;
                           }
                           if (!v.contains('@')) {
-                            return AppStringsAr.invalidEmail;
+                            return AppStrings.invalidEmail;
                           }
                           return null;
                         },
                       ),
-                      const SizedBox(height: SpacingTokens.sm),
+                      SizedBox(height: SpacingTokens.sm),
                       PhoneZoneForm(
                         zoneController: _zoneCtrl,
                         phoneController: _phoneCtrl,
-                        label: AppStringsAr.partyPhoneLabel,
+                        label: AppStrings.partyPhoneLabel,
                       ),
-                      const SizedBox(height: SpacingTokens.sm),
+                      SizedBox(height: SpacingTokens.sm),
                       AuthField(
                         controller: _passwordCtrl,
-                        hint: AppStringsAr.vaultPasswordHint,
+                        hint: AppStrings.vaultPasswordHint,
                         obscureText: _obscurePassword,
                         accentColor: ColorTokens.goldAccent,
                         suffixIcon: PasswordToggleIcon(
@@ -197,18 +197,18 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         validator: (v) {
                           if (v == null || v.isEmpty) {
-                            return AppStringsAr.activationFieldRequired;
+                            return AppStrings.activationFieldRequired;
                           }
                           if (v.length < 8) {
-                            return AppStringsAr.passwordTooShort;
+                            return AppStrings.passwordTooShort;
                           }
                           return null;
                         },
                       ),
-                      const SizedBox(height: SpacingTokens.sm),
+                      SizedBox(height: SpacingTokens.sm),
                       AuthField(
                         controller: _confirmCtrl,
-                        hint: AppStringsAr.confirmPasswordHint,
+                        hint: AppStrings.confirmPasswordHint,
                         obscureText: _obscureConfirm,
                         accentColor: ColorTokens.goldAccent,
                         suffixIcon: PasswordToggleIcon(
@@ -217,12 +217,12 @@ class _RegisterPageState extends State<RegisterPage> {
                               () => _obscureConfirm = !_obscureConfirm),
                         ),
                         validator: (v) => (v != _passwordCtrl.text)
-                            ? AppStringsAr.passwordMismatch
+                            ? AppStrings.passwordMismatch
                             : null,
                       ),
 
                       // Terms and Privacy Checkbox
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       Row(
                         children: [
                           Checkbox(
@@ -241,25 +241,25 @@ class _RegisterPageState extends State<RegisterPage> {
                               child: Text.rich(
                                 TextSpan(
                                   children: [
-                                    const TextSpan(
-                                        text: AppStringsAr.iAgreeTo,
+                                     TextSpan(
+                                        text: AppStrings.iAgreeTo,
                                         style: TextStyle(
                                             color: ColorTokens.slate400,
                                             fontSize: 13)),
                                     TextSpan(
-                                        text: AppStringsAr.termsOfUseLabel,
-                                        style: const TextStyle(
+                                        text: AppStrings.termsOfUseLabel,
+                                        style:  TextStyle(
                                             color: ColorTokens.goldAccent,
                                             fontSize: 13,
                                             decoration:
                                                 TextDecoration.underline)),
-                                    const TextSpan(
-                                        text: AppStringsAr.andLabel,
+                                     TextSpan(
+                                        text: AppStrings.andLabel,
                                         style: TextStyle(
                                             color: ColorTokens.slate400,
                                             fontSize: 13)),
                                     TextSpan(
-                                        text: AppStringsAr.privacyPolicyLabel,
+                                        text: AppStrings.privacyPolicyLabel,
                                         style: const TextStyle(
                                             color: ColorTokens.goldAccent,
                                             fontSize: 13,
@@ -275,19 +275,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       // Error
                       if (_errorAr != null) ...[
-                        const SizedBox(height: SpacingTokens.sm),
+                        SizedBox(height: SpacingTokens.sm),
                         AuthErrorBanner(message: _errorAr!),
                       ],
-                      const SizedBox(height: SpacingTokens.lg),
+                      SizedBox(height: SpacingTokens.lg),
 
                       // Submit
                       AuthSubmitButton(
-                        label: AppStringsAr.registerAction,
+                        label: AppStrings.registerAction,
                         color: ColorTokens.goldAccent,
                         loading: _loading,
                         onPressed: _submit,
                       ),
-                      const SizedBox(height: SpacingTokens.xl),
+                      SizedBox(height: SpacingTokens.xl),
                     ],
                   ),
                 ),
@@ -320,8 +320,8 @@ class _DocumentBottomSheetDialogState
   bool _loading = true;
   List<DocumentClause> _termsClauses = [];
   List<DocumentClause> _privacyClauses = [];
-  String _termsFallback = AppStringsAr.loadingLabel;
-  String _privacyFallback = AppStringsAr.loadingLabel;
+  String _termsFallback = AppStrings.loadingLabel;
+  String _privacyFallback = AppStrings.loadingLabel;
 
   @override
   void initState() {
@@ -336,8 +336,8 @@ class _DocumentBottomSheetDialogState
         if (mounted) {
           setState(() {
             _loading = false;
-            _termsFallback = AppStringsAr.termsLoadingError;
-            _privacyFallback = AppStringsAr.privacyLoadingError;
+            _termsFallback = AppStrings.termsLoadingError;
+            _privacyFallback = AppStrings.privacyLoadingError;
           });
         }
       },
@@ -352,18 +352,18 @@ class _DocumentBottomSheetDialogState
               _termsClauses = tDoc.clauses;
               _termsFallback = tDoc.content.isNotEmpty
                   ? tDoc.content
-                  : AppStringsAr.noTermsFound;
+                  : AppStrings.noTermsFound;
             } else {
-              _termsFallback = AppStringsAr.noTermsFound;
+              _termsFallback = AppStrings.noTermsFound;
             }
 
             if (pDoc != null) {
               _privacyClauses = pDoc.clauses;
               _privacyFallback = pDoc.content.isNotEmpty
                   ? pDoc.content
-                  : AppStringsAr.noPrivacyFound;
+                  : AppStrings.noPrivacyFound;
             } else {
-              _privacyFallback = AppStringsAr.noPrivacyFound;
+              _privacyFallback = AppStrings.noPrivacyFound;
             }
           });
         }
@@ -386,7 +386,7 @@ class _DocumentBottomSheetDialogState
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         if (clauses.isNotEmpty)
           ...clauses.map((clause) => Container(
                 margin: const EdgeInsets.only(bottom: SpacingTokens.md),
@@ -406,20 +406,20 @@ class _DocumentBottomSheetDialogState
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: SpacingTokens.sm),
+                    SizedBox(height: SpacingTokens.sm),
                     ...clause.details.map((detail) => Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 '•',
                                 style: TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 16,
                                     height: 1.2),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   detail,
@@ -459,7 +459,7 @@ class _DocumentBottomSheetDialogState
       ),
       child: Column(
         children: [
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Container(
             width: 48,
             height: 4,
@@ -473,8 +473,8 @@ class _DocumentBottomSheetDialogState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  AppStringsAr.privacyTermsHeader,
+                Text(
+                  AppStrings.privacyTermsHeader,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -482,7 +482,7 @@ class _DocumentBottomSheetDialogState
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: ColorTokens.slate400),
+                  icon: Icon(Icons.close, color: ColorTokens.slate400),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -491,19 +491,19 @@ class _DocumentBottomSheetDialogState
           const Divider(height: 1, color: ColorTokens.slate800),
           Expanded(
             child: _loading
-                ? const Center(
+                ? Center(
                     child: CircularProgressIndicator(
                         color: ColorTokens.goldAccent),
                   )
                 : ListView(
                     padding: const EdgeInsets.all(SpacingTokens.lg),
                     children: [
-                      _buildClausesSection(AppStringsAr.termsOfUseLabel,
+                      _buildClausesSection(AppStrings.termsOfUseLabel,
                           _termsClauses, _termsFallback),
-                      const SizedBox(height: SpacingTokens.xl),
-                      _buildClausesSection(AppStringsAr.privacyPolicyLabel,
+                      SizedBox(height: SpacingTokens.xl),
+                      _buildClausesSection(AppStrings.privacyPolicyLabel,
                           _privacyClauses, _privacyFallback),
-                      const SizedBox(height: SpacingTokens.xxl),
+                      SizedBox(height: SpacingTokens.xxl),
                     ],
                   ),
           ),

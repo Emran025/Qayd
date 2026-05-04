@@ -8,7 +8,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/database/database_provider.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams, XFile;
 
@@ -86,8 +86,8 @@ class AutoBackupService {
       await _runBackup();
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
-        FileSystemFailure(messageAr: AppStringsAr.theAutomaticBackupCould),
+      return FailureResult(
+        FileSystemFailure(messageAr: AppStrings.theAutomaticBackupCould),
       );
     }
   }
@@ -289,9 +289,9 @@ class AutoBackupService {
 
       return Success(destPath);
     } catch (_) {
-      return const FailureResult(
+      return FailureResult(
         FileSystemFailure(
-          messageAr: AppStringsAr.theBackupCouldNot,
+          messageAr: AppStrings.theBackupCouldNot,
         ),
       );
     }
@@ -302,8 +302,8 @@ class AutoBackupService {
     try {
       final srcPath = await DatabaseProvider.databaseFilePath();
       if (!File(srcPath).existsSync()) {
-        return const FailureResult(
-            FileSystemFailure(messageAr: AppStringsAr.theDatabaseDoesNot));
+        return FailureResult(
+            FileSystemFailure(messageAr: AppStrings.theDatabaseDoesNot));
       }
       final tmpDir = await getTemporaryDirectory();
       final stamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -316,8 +316,8 @@ class AutoBackupService {
       );
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
-        FileSystemFailure(messageAr: AppStringsAr.theBackupCouldNot1),
+      return FailureResult(
+        FileSystemFailure(messageAr: AppStrings.theBackupCouldNot1),
       );
     }
   }

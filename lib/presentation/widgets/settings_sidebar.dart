@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/settings/groups/currency_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/profile_settings_page.dart';
@@ -54,14 +54,14 @@ class SettingsSidebar extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.settings_suggest_rounded,
                         color: Colors.white,
                         size: 40,
                       ),
-                      const SizedBox(height: SpacingTokens.sm),
+                      SizedBox(height: SpacingTokens.sm),
                       Text(
-                        AppStringsAr.settingsTitle,
+                        AppStrings.settingsTitle,
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -82,12 +82,12 @@ class SettingsSidebar extends StatelessWidget {
               children: [
                 _DrawerTile(
                   icon: Icons.person_outline_rounded,
-                  title: AppStringsAr.settingsGroupProfile,
+                  title: AppStrings.settingsGroupProfile,
                   onTap: () => _navTo(context, const ProfileSettingsPage()),
                 ),
                 _DrawerTile(
                   icon: Icons.qr_code_scanner_rounded,
-                  title: AppStringsAr.identityQrShowTitle,
+                  title: AppStrings.identityQrShowTitle,
                   onTap: () {
                     Navigator.pop(context);
                     IdentityQrDialog.show(context);
@@ -101,40 +101,40 @@ class SettingsSidebar extends StatelessWidget {
                 ),
                 _DrawerTile(
                   icon: Icons.account_tree_outlined,
-                  title: AppStringsAr.chartOfAccountsTitle,
+                  title: AppStrings.chartOfAccountsTitle,
                   onTap: () =>
                       _navTo(context, const AccountListPage(isRootMode: true)),
                 ),
                 _DrawerTile(
                   icon: Icons.pie_chart_outline_rounded,
-                  title: AppStringsAr.costCentersTitle,
+                  title: AppStrings.costCentersTitle,
                   onTap: () => _navTo(context, const CostCenterListPage()),
                 ),
                 _DrawerTile(
                   icon: Icons.currency_exchange_rounded,
-                  title: AppStringsAr.settingsGroupCurrency,
+                  title: AppStrings.settingsGroupCurrency,
                   onTap: () => _navTo(context, const CurrencySettingsPage()),
                 ),
                 _DrawerTile(
                   icon: Icons.event_repeat_rounded,
-                  title: AppStringsAr.accrualsAndLiabilitiesTitle,
+                  title: AppStrings.accrualsAndLiabilitiesTitle,
                   onTap: () => _navTo(context, const AccrualListPage()),
                 ),
                 _DrawerTile(
                   icon: Icons.account_balance_wallet_outlined,
-                  title: AppStringsAr.incomeStreamsTitle,
+                  title: AppStrings.incomeStreamsTitle,
                   onTap: () => _navTo(context, const IncomeStreamsPage()),
                 ),
                 _DrawerTile(
                   icon: Icons.history_rounded,
-                  title: AppStringsAr.auditLogTitle,
+                  title: AppStrings.auditLogTitle,
                   onTap: () => _navTo(
                     context,
                     BlocProvider(
                       create: (_) =>
                           AuditLogCubit(InjectionContainer.auditLogService)
                             ..load(),
-                      child: const AuditLogPage(),
+                      child: AuditLogPage(),
                     ),
                   ),
                 ),
@@ -146,8 +146,8 @@ class SettingsSidebar extends StatelessWidget {
                 ),
                 _DrawerTile(
                   icon: Icons.tune_rounded,
-                  title: AppStringsAr.settingsSystemTitle,
-                  onTap: () => _navTo(context, const SystemSettingsPage()),
+                  title: AppStrings.settingsSystemTitle,
+                  onTap: () => _navTo(context, SystemSettingsPage()),
                 ),
                 const Divider(
                   indent: 20,
@@ -214,7 +214,7 @@ class _DrawerTile extends StatelessWidget {
                   ),
                   child: Icon(icon, color: theme.colorScheme.primary, size: 22),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Text(
                     title,

@@ -7,7 +7,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/phone_zone.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -129,7 +129,7 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
         if (result.isSuccess) {
           _isEditing = false;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(AppStringsAr.profileUpdateSuccess)),
+            SnackBar(content: Text(AppStrings.profileUpdateSuccess)),
           );
           _avatarPath = null;
           _logoPath = null;
@@ -138,7 +138,7 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content:
-                    Text(result.failureOrNull?.messageAr ?? AppStringsAr.updateError)),
+                    Text(result.failureOrNull?.messageAr ?? AppStrings.updateError)),
           );
         }
       });
@@ -179,25 +179,25 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             QaydText(
-              AppStringsAr.profileDetailsSection,
+              AppStrings.profileDetailsSection,
               slot: QaydTextStyleSlot.titleMedium,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             IconButton(
               onPressed: () => setState(() => _isEditing = true),
               icon: Icon(Icons.edit_note_rounded, color: gold),
-              tooltip: AppStringsAr.voucherEditAction,
+              tooltip: AppStrings.voucherEditAction,
             ),
           ],
         ),
-        const SizedBox(height: SpacingTokens.lg),
+        SizedBox(height: SpacingTokens.lg),
 
         // ── Avatar & Logo Row ───────────────────────────────────────────
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _ImagePickerSlot(
-              label: AppStringsAr.profileImageUpload,
+              label: AppStrings.profileImageUpload,
               localPath: _avatarPath,
               remoteUrl: _avatarUrl,
               onPick: () {},
@@ -205,7 +205,7 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
               isEditing: false,
             ),
             _ImagePickerSlot(
-              label: AppStringsAr.profileLogoUpload,
+              label: AppStrings.profileLogoUpload,
               localPath: _logoPath,
               remoteUrl: _logoUrl,
               onPick: () {},
@@ -214,29 +214,29 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
             ),
           ],
         ),
-        const SizedBox(height: SpacingTokens.xl),
+        SizedBox(height: SpacingTokens.xl),
 
         _DetailItem(
           icon: Icons.person_outline_rounded,
-          label: AppStringsAr.profileNameLabel,
+          label: AppStrings.profileNameLabel,
           value: _nameController.text,
           gold: gold,
         ),
         _DetailItem(
           icon: Icons.phone_outlined,
-          label: AppStringsAr.profilePhoneLabel,
+          label: AppStrings.profilePhoneLabel,
           value: _phoneController.text,
           gold: gold,
         ),
         _DetailItem(
           icon: Icons.chat_bubble_outline_rounded,
-          label: AppStringsAr.profileWhatsAppLabel,
+          label: AppStrings.profileWhatsAppLabel,
           value: _whatsappController.text,
           gold: gold,
         ),
         _DetailItem(
           icon: Icons.email_outlined,
-          label: AppStringsAr.profileEmailLabel,
+          label: AppStrings.profileEmailLabel,
           value: _emailController.text,
           gold: gold,
         ),
@@ -250,18 +250,18 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         QaydText(
-          AppStringsAr.profileDetailsSection,
+          AppStrings.profileDetailsSection,
           slot: QaydTextStyleSlot.titleMedium,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
 
         // ── Avatar & Logo Row ───────────────────────────────────────────
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _ImagePickerSlot(
-              label: AppStringsAr.profileImageUpload,
+              label: AppStrings.profileImageUpload,
               localPath: _avatarPath,
               remoteUrl: _avatarUrl,
               onPick: () => _pickImage(true),
@@ -269,7 +269,7 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
               isEditing: true,
             ),
             _ImagePickerSlot(
-              label: AppStringsAr.profileLogoUpload,
+              label: AppStrings.profileLogoUpload,
               localPath: _logoPath,
               remoteUrl: _logoUrl,
               onPick: () => _pickImage(false),
@@ -278,55 +278,55 @@ class _ProfileDetailsSectionState extends State<ProfileDetailsSection> {
             ),
           ],
         ),
-        const SizedBox(height: SpacingTokens.lg),
+        SizedBox(height: SpacingTokens.lg),
 
         QaydTextField(
           controller: _nameController,
-          label: AppStringsAr.profileNameLabel,
+          label: AppStrings.profileNameLabel,
           prefixIcon: Icon(Icons.person_outline, color: gold),
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         PhoneZoneForm(
           zoneController: _phoneZoneController,
           phoneController: _phoneNumController,
-          label: AppStringsAr.profilePhoneLabel,
+          label: AppStrings.profilePhoneLabel,
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         PhoneZoneForm(
           zoneController: _whatsappZoneController,
           phoneController: _whatsappNumController,
-          label: AppStringsAr.profileWhatsAppLabel,
+          label: AppStrings.profileWhatsAppLabel,
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         QaydTextField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          label: AppStringsAr.profileEmailLabel,
+          label: AppStrings.profileEmailLabel,
           prefixIcon: Icon(Icons.email_outlined, color: gold),
         ),
-        const SizedBox(height: SpacingTokens.xl),
+        SizedBox(height: SpacingTokens.xl),
 
         Row(
           children: [
             Expanded(
               child: OutlinedButton(
                 onPressed: _loading ? null : _cancel,
-                child: Text(AppStringsAr.actionCancel),
+                child: Text(AppStrings.actionCancel),
               ),
             ),
-            const SizedBox(width: SpacingTokens.md),
+            SizedBox(width: SpacingTokens.md),
             Expanded(
               child: FilledButton.icon(
                 onPressed: _loading ? null : _save,
                 icon: _loading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white),
                       )
-                    : const Icon(Icons.check_circle_outline_rounded),
-                label: Text(AppStringsAr.profileUpdateAction),
+                    : Icon(Icons.check_circle_outline_rounded),
+                label: Text(AppStrings.profileUpdateAction),
               ),
             ),
           ],
@@ -363,7 +363,7 @@ class _DetailItem extends StatelessWidget {
             ),
             child: Icon(icon, color: gold, size: 20),
           ),
-          const SizedBox(width: SpacingTokens.md),
+          SizedBox(width: SpacingTokens.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,14 +463,14 @@ class _ImagePickerSlot extends StatelessWidget {
                           .goldAccent,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.camera_alt,
+                    child: Icon(Icons.camera_alt,
                         size: 16, color: Colors.black),
                   ),
                 ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         QaydText(
           label,
           slot: QaydTextStyleSlot.labelSmall,

@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Schema v22: Personal Economy upgrade.
@@ -70,51 +70,51 @@ CREATE TABLE accrual_components (
 
     // 3. Seed new Life Dimensions Categories
     final categories = [
-      {'id': 'income_work', 'name': AppStringsAr.incomeAndWork, 'icon': 'payments'},
-      {'id': 'housing_living', 'name': AppStringsAr.housingAndLiving, 'icon': 'home'},
+      {'id': 'income_work', 'name': AppStrings.incomeAndWork, 'icon': 'payments'},
+      {'id': 'housing_living', 'name': AppStrings.housingAndLiving, 'icon': 'home'},
       {
         'id': 'nutrition_consumption',
-        'name': AppStringsAr.nutritionAndDailyConsumption,
+        'name': AppStrings.nutritionAndDailyConsumption,
         'icon': 'restaurant'
       },
       {
         'id': 'transportation',
-        'name': AppStringsAr.transportationAndMobility,
+        'name': AppStrings.transportationAndMobility,
         'icon': 'directions_car'
       },
       {
         'id': 'health_care',
-        'name': AppStringsAr.healthAndPersonalCare,
+        'name': AppStrings.healthAndPersonalCare,
         'icon': 'medical_services'
       },
       {
         'id': 'education_development',
-        'name': AppStringsAr.autostring2,
+        'name': AppStrings.autostring2,
         'icon': 'school'
       },
       {
         'id': 'family_dependents',
-        'name': AppStringsAr.familyAndDependents,
+        'name': AppStrings.familyAndDependents,
         'icon': 'family_restroom'
       },
       {
         'id': 'obligations_debts',
-        'name': AppStringsAr.obligationsAndDebts1,
+        'name': AppStrings.obligationsAndDebts1,
         'icon': 'account_balance'
       },
       {
         'id': 'investments_projects',
-        'name': AppStringsAr.investmentsAndProjects,
+        'name': AppStrings.investmentsAndProjects,
         'icon': 'trending_up'
       },
       {
         'id': 'savings_reserves',
-        'name': AppStringsAr.savingAndBuildingReserves,
+        'name': AppStrings.savingAndBuildingReserves,
         'icon': 'savings'
       },
       {
         'id': 'entertainment_lifestyle',
-        'name': AppStringsAr.entertainmentAndLifestyle,
+        'name': AppStrings.entertainmentAndLifestyle,
         'icon': 'sports_esports'
       },
     ];
@@ -140,7 +140,7 @@ CREATE TABLE accrual_components (
     // 4. Seed new Root Accounts for Fixed Assets
     await db.insert('accounts', {
       'id': uuid(),
-      'name': AppStringsAr.fixedAssetsDepreciated,
+      'name': AppStrings.fixedAssetsDepreciated,
       'nature': 'debit',
       'parent_id': null,
       'is_default': 1,
@@ -153,7 +153,7 @@ CREATE TABLE accrual_components (
 
     await db.insert('accounts', {
       'id': uuid(),
-      'name': AppStringsAr.fixedAssetsProfitable,
+      'name': AppStrings.fixedAssetsProfitable,
       'nature': 'debit',
       'parent_id': null,
       'is_default': 1,

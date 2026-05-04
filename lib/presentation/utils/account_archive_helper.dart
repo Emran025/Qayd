@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/pages/accounts/archived_accounts_cubit.dart';
@@ -28,16 +28,16 @@ Future<void> confirmAndArchiveAccount(
           child: Icon(Icons.archive_outlined, size: 32, color: scheme.error),
         ),
         title: QaydText(
-          AppStringsAr.archiveAccountAction,
+          AppStrings.archiveAccountAction,
           slot: QaydTextStyleSlot.titleLarge,
           textAlign: TextAlign.center,
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             QaydText(
-              AppStringsAr.archiveAccountWarningText,
+              AppStrings.archiveAccountWarningText,
               slot: QaydTextStyleSlot.bodyMedium,
               color: scheme.onSurfaceVariant,
               textAlign: TextAlign.center,
@@ -62,10 +62,10 @@ Future<void> confirmAndArchiveAccount(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(RadiusTokens.md)),
                   ),
-                  child: Text(AppStringsAr.actionCancel),
+                  child: Text(AppStrings.actionCancel),
                 ),
               ),
-              const SizedBox(width: SpacingTokens.md),
+              SizedBox(width: SpacingTokens.md),
               Expanded(
                 child: FilledButton(
                   onPressed: () => Navigator.pop(ctx, true),
@@ -77,7 +77,7 @@ Future<void> confirmAndArchiveAccount(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(RadiusTokens.md)),
                   ),
-                  child: const Text(AppStringsAr.archiveAccountConfirm),
+                  child: Text(AppStrings.archiveAccountConfirm),
                 ),
               ),
             ],
@@ -94,7 +94,7 @@ Future<void> confirmAndArchiveAccount(
 
   if (result.isSuccess) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text(AppStringsAr.archiveAccountSuccess)),
+      SnackBar(content: Text(AppStrings.archiveAccountSuccess)),
     );
     Navigator.pop(context); // Go back to the previous List page
   } else {
@@ -125,16 +125,16 @@ Future<void> confirmAndRestoreAccount(
               Icon(Icons.unarchive_outlined, size: 32, color: scheme.primary),
         ),
         title: QaydText(
-          AppStringsAr.restoreAccountTitle,
+          AppStrings.restoreAccountTitle,
           slot: QaydTextStyleSlot.titleLarge,
           textAlign: TextAlign.center,
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             QaydText(
-              AppStringsAr.restoreAccountWarning(accountName),
+              AppStrings.restoreAccountWarning(accountName),
               slot: QaydTextStyleSlot.bodyMedium,
               color: scheme.onSurfaceVariant,
               textAlign: TextAlign.center,
@@ -159,10 +159,10 @@ Future<void> confirmAndRestoreAccount(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(RadiusTokens.md)),
                   ),
-                  child: Text(AppStringsAr.actionCancel),
+                  child: Text(AppStrings.actionCancel),
                 ),
               ),
-              const SizedBox(width: SpacingTokens.md),
+              SizedBox(width: SpacingTokens.md),
               Expanded(
                 child: FilledButton(
                   onPressed: () {
@@ -172,9 +172,9 @@ Future<void> confirmAndRestoreAccount(
                           (error) => ScaffoldMessenger.of(context)
                               .showSnackBar(SnackBar(content: Text(error))),
                           () => ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                   content: Text(
-                                      AppStringsAr.restoreAccountSuccess))),
+                                      AppStrings.restoreAccountSuccess))),
                         );
                   },
                   style: FilledButton.styleFrom(
@@ -185,7 +185,7 @@ Future<void> confirmAndRestoreAccount(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(RadiusTokens.md)),
                   ),
-                  child: const Text(AppStringsAr.restoreAccountConfirm),
+                  child: Text(AppStrings.restoreAccountConfirm),
                 ),
               ),
             ],

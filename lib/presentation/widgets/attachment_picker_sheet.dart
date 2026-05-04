@@ -4,7 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Bottom sheet for picking attachment images from camera or gallery.
@@ -48,35 +48,35 @@ class AttachmentPickerSheet extends StatelessWidget {
               ),
             ),
             Text(
-              AppStringsAr.attachPhotos,
+              AppStrings.attachPhotos,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: scheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
             ),
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             Row(
               children: [
                 Expanded(
                   child: _PickerOption(
                     icon: Icons.camera_alt_rounded,
-                    label: AppStringsAr.camera,
+                    label: AppStrings.camera,
                     color: gold,
                     onTap: () => _pickFromCamera(context),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 Expanded(
                   child: _PickerOption(
                     icon: Icons.photo_library_rounded,
-                    label: AppStringsAr.exhibition,
+                    label: AppStrings.exhibition,
                     color: gold,
                     onTap: () => _pickFromGallery(context),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
           ],
         ),
       ),
@@ -88,7 +88,7 @@ class AttachmentPickerSheet extends StatelessWidget {
 
     if (status.isPermanentlyDenied || status.isDenied) {
       if (context.mounted) {
-        _showSettingsDialog(context, AppStringsAr.cameraOrPhotos);
+        _showSettingsDialog(context, AppStrings.cameraOrPhotos);
       }
       return;
     }
@@ -104,7 +104,7 @@ class AttachmentPickerSheet extends StatelessWidget {
     } catch (e) {
       debugPrint('Camera Error (Permission Denied or native error): $e');
       if (context.mounted) {
-        _showSettingsDialog(context, AppStringsAr.camera);
+        _showSettingsDialog(context, AppStrings.camera);
       }
     }
   }
@@ -119,7 +119,7 @@ class AttachmentPickerSheet extends StatelessWidget {
     } catch (e) {
       debugPrint('Gallery Picker Error: $e');
       if (context.mounted) {
-        _showSettingsDialog(context, AppStringsAr.thePictures);
+        _showSettingsDialog(context, AppStrings.thePictures);
       }
     }
   }
@@ -128,12 +128,12 @@ class AttachmentPickerSheet extends StatelessWidget {
     QaydDialog.show(
       context: context,
       icon: Icons.shield_rounded,
-      title: AppStringsAr.missingValidity,
+      title: AppStrings.missingValidity,
       content:
           'يبدو أنك قمت برفض السماح بالوصول لـ $serviceName مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.',
-      secondaryActionLabel: AppStringsAr.cancellation,
+      secondaryActionLabel: AppStrings.cancellation,
       onSecondaryAction: () => Navigator.pop(context),
-      primaryActionLabel: AppStringsAr.openSettings,
+      primaryActionLabel: AppStrings.openSettings,
       onPrimaryAction: () {
         Navigator.pop(context);
         openAppSettings(); // يفتح إعدادات التطبيق في الهاتف مباشرة
@@ -172,7 +172,7 @@ class _PickerOption extends StatelessWidget {
           child: Column(
             children: [
               Icon(icon, size: 36, color: color),
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(

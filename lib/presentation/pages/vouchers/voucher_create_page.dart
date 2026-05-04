@@ -20,7 +20,7 @@ import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -307,7 +307,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     final minor = parsePositiveMinorUnits(_amountController.text);
     if (minor == null || !isReasonableMinorAmount(minor)) {
       messenger.showSnackBar(
-        SnackBar(content: Text(AppStringsAr.voucherAmountRequired)),
+        SnackBar(content: Text(AppStrings.voucherAmountRequired)),
       );
       return;
     }
@@ -323,7 +323,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     final minor = parsePositiveMinorUnits(_amountController.text);
     if (minor == null || !isReasonableMinorAmount(minor)) {
       messenger.showSnackBar(
-        SnackBar(content: Text(AppStringsAr.voucherAmountRequired)),
+        SnackBar(content: Text(AppStrings.voucherAmountRequired)),
       );
       return;
     }
@@ -338,13 +338,13 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }) async {
     if (_affected == null || _counterparty == null) {
       messenger.showSnackBar(
-        SnackBar(content: Text(AppStringsAr.voucherSelectBothAccounts)),
+        SnackBar(content: Text(AppStrings.voucherSelectBothAccounts)),
       );
       return;
     }
     if (_affected!.id == _counterparty!.id) {
       messenger.showSnackBar(
-        SnackBar(content: Text(AppStringsAr.voucherDifferentAccounts)),
+        SnackBar(content: Text(AppStrings.voucherDifferentAccounts)),
       );
       return;
     }
@@ -363,11 +363,11 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
         final proceed = await QaydDialog.show<bool>(
           context: context,
           icon: Icons.warning_amber_rounded,
-          title: AppStringsAr.warningImportant,
-          content: AppStringsAr.voucherEditDateOrPartyWarning,
-          secondaryActionLabel: AppStringsAr.templateEditCancel,
+          title: AppStrings.warningImportant,
+          content: AppStrings.voucherEditDateOrPartyWarning,
+          secondaryActionLabel: AppStrings.templateEditCancel,
           onSecondaryAction: () => Navigator.pop(context, false),
-          primaryActionLabel: AppStringsAr.actionProceedAndConfirm,
+          primaryActionLabel: AppStrings.actionProceedAndConfirm,
           onPrimaryAction: () => Navigator.pop(context, true),
         );
         
@@ -408,8 +408,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 
   String _typeLabel(VoucherType t) => t == VoucherType.receipt
-      ? AppStringsAr.voucherTypeReceipt
-      : AppStringsAr.voucherTypePayment;
+      ? AppStrings.voucherTypeReceipt
+      : AppStrings.voucherTypePayment;
 
   @override
   Widget build(BuildContext context) {
@@ -449,8 +449,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
           }
           if (state is VoucherCreateSuccess) {
             final msg = state.stateCode == 'draft'
-                ? AppStringsAr.voucherCreatedDraft
-                : AppStringsAr.voucherConfirmedAndSentSuccess;
+                ? AppStrings.voucherCreatedDraft
+                : AppStrings.voucherConfirmedAndSentSuccess;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(msg),
@@ -464,25 +464,25 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
           final submitting = state is VoucherCreateSubmitting;
 
           return Scaffold(
-            appBar: QaydAppBar(title: AppStringsAr.voucherNewTitle),
+            appBar: QaydAppBar(title: AppStrings.voucherNewTitle),
             body: AbsorbPointer(
               absorbing: submitting,
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  padding: const EdgeInsets.all(SpacingTokens.lg),
+                  padding:  EdgeInsets.all(SpacingTokens.lg),
                   children: [
                     // ── Standard mode ─────────────────────────────────
                     SegmentedButton<VoucherType>(
-                      segments: const [
+                      segments:  [
                         ButtonSegment<VoucherType>(
                           value: VoucherType.receipt,
-                          label: Text(AppStringsAr.voucherTypeReceipt),
+                          label: Text(AppStrings.voucherTypeReceipt),
                           icon: Icon(Icons.south_west_rounded, size: 18),
                         ),
                         ButtonSegment<VoucherType>(
                           value: VoucherType.payment,
-                          label: Text(AppStringsAr.voucherTypePayment),
+                          label: Text(AppStrings.voucherTypePayment),
                           icon: Icon(Icons.north_east_rounded, size: 18),
                         ),
                       ],
@@ -491,7 +491,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                         setState(() => _type = s.first);
                       },
                     ),
-                    const SizedBox(height: SpacingTokens.lg),
+                    SizedBox(height: SpacingTokens.lg),
                     _buildDateTile(gold),
                     const Divider(),
                     _buildCurrencyTile(gold),
@@ -500,13 +500,13 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       contentPadding: EdgeInsets.zero,
                       title: QaydText(
                         _type == VoucherType.payment
-                            ? AppStringsAr.voucherCounterpartyLabel
-                            : AppStringsAr.voucherAffectedAccountParty,
+                            ? AppStrings.voucherCounterpartyLabel
+                            : AppStrings.voucherAffectedAccountParty,
                         slot: QaydTextStyleSlot.labelLarge,
                       ),
                       subtitle: QaydText(
                         _counterparty?.name ??
-                            AppStringsAr.voucherPickCounterpartyHint2,
+                            AppStrings.voucherPickCounterpartyHint2,
                         slot: QaydTextStyleSlot.bodyLarge,
                         color: _counterparty == null
                             ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -520,13 +520,13 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       contentPadding: EdgeInsets.zero,
                       title: QaydText(
                         _type == VoucherType.payment
-                            ? AppStringsAr.voucherAffectedAccountPaymentTitle
-                            : AppStringsAr.voucherAffectedAccountReceiptTitle,
+                            ? AppStrings.voucherAffectedAccountPaymentTitle
+                            : AppStrings.voucherAffectedAccountReceiptTitle,
                         slot: QaydTextStyleSlot.labelLarge,
                       ),
                       subtitle: QaydText(
                         _affected?.name ??
-                            AppStringsAr.voucherAffectedAccountHint,
+                            AppStrings.voucherAffectedAccountHint,
                         slot: QaydTextStyleSlot.bodyLarge,
                         color: _affected == null
                             ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -536,7 +536,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       onTap: _pickAffectedAccount,
                     ),
                     if (_counterparty != null) _buildSuggestionsStrip(context),
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
                     SlideTransition(
                       position: _slideOffset,
                       child: Column(
@@ -544,17 +544,17 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                         children: [
                           QaydAmountField(
                             controller: _amountController,
-                            label: AppStringsAr.voucherAmountLabel,
+                            label: AppStrings.voucherAmountLabel,
                             textInputAction: TextInputAction.next,
                           ),
-                          const SizedBox(height: SpacingTokens.md),
+                          SizedBox(height: SpacingTokens.md),
                           QaydTextField(
                             controller: _descriptionController,
-                            label: AppStringsAr.voucherDescriptionLabel,
+                            label: AppStrings.voucherDescriptionLabel,
                             maxLines: 2,
                             textInputAction: TextInputAction.done,
                           ),
-                          const SizedBox(height: SpacingTokens.md),
+                          SizedBox(height: SpacingTokens.md),
 
                           CostCenterTagSelector(
                             initialTags: _costCenterTags,
@@ -562,7 +562,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                 setState(() => _costCenterTags = tags),
                           ),
 
-                          const SizedBox(height: SpacingTokens.md),
+                          SizedBox(height: SpacingTokens.md),
 
                           // ── Attachment & Collateral Actions ──────
                           Row(
@@ -573,7 +573,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                   icon: Icon(Icons.attach_file_rounded,
                                       size: 18, color: gold),
                                   label: Text(
-                                    AppStringsAr.voucherAttachImages,
+                                    AppStrings.voucherAttachImages,
                                     style: TextStyle(color: gold),
                                   ),
                                   style: OutlinedButton.styleFrom(
@@ -582,14 +582,14 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: SpacingTokens.sm),
+                              SizedBox(width: SpacingTokens.sm),
                               Expanded(
                                 child: OutlinedButton.icon(
                                   onPressed: _addCollateral,
                                   icon: Icon(Icons.shield_rounded,
                                       size: 18, color: gold),
                                   label: Text(
-                                    AppStringsAr.voucherAddCollateral,
+                                    AppStrings.voucherAddCollateral,
                                     style: TextStyle(color: gold),
                                   ),
                                   style: OutlinedButton.styleFrom(
@@ -603,14 +603,14 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
 
                           // ── Image thumbnails ────────────────────
                           if (_pickedImages.isNotEmpty) ...[
-                            const SizedBox(height: SpacingTokens.sm),
+                            SizedBox(height: SpacingTokens.sm),
                             SizedBox(
                               height: 72,
                               child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: _pickedImages.length,
                                 separatorBuilder: (_, __) =>
-                                    const SizedBox(width: SpacingTokens.xs),
+                                    SizedBox(width: SpacingTokens.xs),
                                 itemBuilder: (context, i) {
                                   return Stack(
                                     children: [
@@ -636,7 +636,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                               color: Colors.black54,
                                               shape: BoxShape.circle,
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.close,
                                               size: 14,
                                               color: Colors.white,
@@ -653,7 +653,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
 
                           // ── Collateral summary ──────────────────
                           if (_collateralInput != null) ...[
-                            const SizedBox(height: SpacingTokens.sm),
+                            SizedBox(height: SpacingTokens.sm),
                             Container(
                               padding: const EdgeInsets.all(SpacingTokens.sm),
                               decoration: BoxDecoration(
@@ -666,7 +666,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                 children: [
                                   Icon(Icons.shield_rounded,
                                       size: 18, color: gold),
-                                  const SizedBox(width: SpacingTokens.sm),
+                                  SizedBox(width: SpacingTokens.sm),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -686,7 +686,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                               ),
                                         ),
                                         Text(
-                                          '${AppStringsAr.voucherCollateralValuePrefix}${(_collateralInput!.estimatedValueMinor / 100).toStringAsFixed(2)} $_currencyCode',
+                                          '${AppStrings.voucherCollateralValuePrefix}${(_collateralInput!.estimatedValueMinor / 100).toStringAsFixed(2)} $_currencyCode',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall
@@ -714,7 +714,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                             ),
                           ],
 
-                          const SizedBox(height: SpacingTokens.xl),
+                          SizedBox(height: SpacingTokens.xl),
                           Row(
                             children: [
                               Expanded(
@@ -724,10 +724,10 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                     foregroundColor: gold,
                                     side: BorderSide(color: gold),
                                   ),
-                                  child: Text(AppStringsAr.voucherSaveDraft),
+                                  child: Text(AppStrings.voucherSaveDraft),
                                 ),
                               ),
-                              const SizedBox(width: SpacingTokens.md),
+                              SizedBox(width: SpacingTokens.md),
                               Expanded(
                                 child: FilledButton(
                                   onPressed: submitting ? null : _submitConfirm,
@@ -736,7 +736,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                     foregroundColor: Colors.black,
                                   ),
                                   child: submitting
-                                      ? const SizedBox(
+                                      ? SizedBox(
                                           width: 20,
                                           height: 20,
                                           child: CircularProgressIndicator(
@@ -744,8 +744,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                             color: Colors.black,
                                           ),
                                         )
-                                      : const Text(
-                                          AppStringsAr.voucherConfirmAndSend),
+                                      : Text(
+                                          AppStrings.voucherConfirmAndSend),
                                 ),
                               ),
                             ],
@@ -766,7 +766,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   Widget _buildDateTile(Color gold) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: QaydText(
-          AppStringsAr.voucherDateLabel,
+          AppStrings.voucherDateLabel,
           slot: QaydTextStyleSlot.bodyMedium,
         ),
         subtitle: QaydText(
@@ -780,7 +780,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   Widget _buildCurrencyTile(Color gold) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: QaydText(
-          AppStringsAr.voucherCurrencyLabel,
+          AppStrings.voucherCurrencyLabel,
           slot: QaydTextStyleSlot.bodyMedium,
         ),
         subtitle: QaydText(
@@ -800,7 +800,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
             child: AnimatedOpacity(
               opacity: 0.45,
               duration: const Duration(milliseconds: 280),
-              child: const Center(
+              child: Center(
                 child: SizedBox(
                   width: 22,
                   height: 22,
@@ -823,17 +823,17 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 QaydText(
-                  AppStringsAr.smartSuggestionsTitle,
+                  AppStrings.smartSuggestionsTitle,
                   slot: QaydTextStyleSlot.titleSmall,
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 SizedBox(
                   height: 140,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: sug.suggestions.length,
                     separatorBuilder: (_, __) =>
-                        const SizedBox(width: SpacingTokens.sm),
+                        SizedBox(width: SpacingTokens.sm),
                     itemBuilder: (context, i) {
                       final s = sug.suggestions[i];
                       return _SuggestionCard(
@@ -891,19 +891,19 @@ class _SuggestionCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${AppStringsAr.smartSuggestionAmount}: $amt',
+                '${AppStrings.smartSuggestionAmount}: $amt',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall,
               ),
               Text(
-                '${AppStringsAr.smartSuggestionDate}: $dateStr',
+                '${AppStrings.smartSuggestionDate}: $dateStr',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall,
               ),
               Text(
-                '${AppStringsAr.smartSuggestionType}: $typeStr',
+                '${AppStrings.smartSuggestionType}: $typeStr',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall,
@@ -912,7 +912,7 @@ class _SuggestionCard extends StatelessWidget {
                 alignment: AlignmentDirectional.centerEnd,
                 child: FilledButton.tonal(
                   onPressed: onAccept,
-                  child: Text(AppStringsAr.smartSuggestionAccept),
+                  child: Text(AppStrings.smartSuggestionAccept),
                 ),
               ),
             ],

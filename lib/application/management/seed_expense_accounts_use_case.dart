@@ -9,7 +9,7 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// One-time or on-demand service to create aggregate expense accounts
@@ -33,7 +33,7 @@ class SeedExpenseAccountsUseCase {
     this._manageDimensionsUseCase,
   );
 
-  static const String personalCenterName = AppStringsAr.personalLiving;
+  static  String personalCenterName = AppStrings.personalLiving;
 
   Future<Result<void>> call() async {
     // 1. Ensure 'Personal Life' Cost Center exists
@@ -50,7 +50,7 @@ class SeedExpenseAccountsUseCase {
         type: CostCenterType.cost,
         currencyCode:
             'SAR', // Fallback, will be updated to base currency in UI if possible
-        description: AppStringsAr.aCollectionCenterFor,
+        description: AppStrings.aCollectionCenterFor,
       );
       if (createRes.isFailure) return createRes;
       personalCenter = createRes.valueOrNull!;
@@ -70,8 +70,8 @@ class SeedExpenseAccountsUseCase {
         .firstOrNull;
 
     if (root == null) {
-      return const FailureResult(ValidationFailure(
-        messageAr: AppStringsAr.theRootAccountFor,
+      return  FailureResult(ValidationFailure(
+        messageAr: AppStrings.theRootAccountFor,
       ));
     }
 

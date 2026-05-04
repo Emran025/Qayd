@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/domain/value_objects/income_source_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -35,53 +35,53 @@ class _IncomeSourceTypeBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           QaydText(
-            AppStringsAr.incomeSourceTypeSheetTitle,
+            AppStrings.incomeSourceTypeSheetTitle,
             slot: QaydTextStyleSlot.titleLarge,
           ),
-          const SizedBox(height: SpacingTokens.xs),
+          SizedBox(height: SpacingTokens.xs),
           QaydText(
-            AppStringsAr.incomeSourceTypeSheetSubtitle,
+            AppStrings.incomeSourceTypeSheetSubtitle,
             slot: QaydTextStyleSlot.bodySmall,
             color: scheme.onSurfaceVariant,
           ),
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
 
           _SourceTypeTile(
             icon: Icons.account_balance_rounded,
             color: ColorTokens.emerald500,
-            title: AppStringsAr.incomeSourceInvestmentAsset,
-            subtitle: AppStringsAr.incomeSourceInvestmentAssetDesc,
+            title: AppStrings.incomeSourceInvestmentAsset,
+            subtitle: AppStrings.incomeSourceInvestmentAssetDesc,
             onTap: () =>
                 Navigator.pop(context, IncomeSourceType.investmentAsset),
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
 
           _SourceTypeTile(
             icon: Icons.work_outline_rounded,
             color: ColorTokens.debitBlue,
-            title: AppStringsAr.incomeSourceProfession,
-            subtitle: AppStringsAr.incomeSourceProfessionDesc,
+            title: AppStrings.incomeSourceProfession,
+            subtitle: AppStrings.incomeSourceProfessionDesc,
             onTap: () => Navigator.pop(context, IncomeSourceType.profession),
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
 
           _SourceTypeTile(
             icon: Icons.monetization_on_outlined,
             color: ColorTokens.warningAmber,
-            title: AppStringsAr.incomeSourceOther,
-            subtitle: AppStringsAr.incomeSourceOtherDesc,
+            title: AppStrings.incomeSourceOther,
+            subtitle: AppStrings.incomeSourceOtherDesc,
             onTap: () => Navigator.pop(context, IncomeSourceType.other),
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
 
-          const Divider(height: 1),
-          const SizedBox(height: SpacingTokens.sm),
+           Divider(height: 1),
+          SizedBox(height: SpacingTokens.sm),
 
           _SourceTypeTile(
             icon: Icons.inventory_2_outlined,
             color: ColorTokens.slate400,
-            title: AppStringsAr.incomeSourcePossession,
-            subtitle: AppStringsAr.incomeSourcePossessionDesc,
+            title: AppStrings.incomeSourcePossession,
+            subtitle: AppStrings.incomeSourcePossessionDesc,
             onTap: () => Navigator.pop(context, IncomeSourceType.possession),
           ),
         ],
@@ -129,7 +129,7 @@ class _SourceTypeTile extends StatelessWidget {
               ),
               child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: SpacingTokens.md),
+            SizedBox(width: SpacingTokens.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +139,7 @@ class _SourceTypeTile extends StatelessWidget {
                     slot: QaydTextStyleSlot.titleSmall,
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(

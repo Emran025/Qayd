@@ -15,7 +15,7 @@ import 'package:qayd/domain/value_objects/date_range.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteVoucherRepository implements VoucherRepository {
@@ -170,9 +170,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
         limit: 1,
       );
       if (rows.isEmpty) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theBondDoesNot,
+            messageAr: AppStrings.theBondDoesNot,
             code: 'voucher_not_found',
           ),
         );
@@ -188,8 +188,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
           CurrencyMapper.toEntity(CurrencyModel.fromMap(currencyMaps.first));
       return Success(VoucherMapper.toEntity(model, currency));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theDocumentCouldNot),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theDocumentCouldNot),
       );
     }
   }
@@ -220,8 +220,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       final rows = await _db.rawQuery(sql, args);
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.bondCouldNotBe),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.bondCouldNotBe),
       );
     }
   }
@@ -251,8 +251,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       );
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToReadParty),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToReadParty),
       );
     }
   }
@@ -271,10 +271,10 @@ final class SqliteVoucherRepository implements VoucherRepository {
       if (updated == 0) {
         await _db.insert(_vouchers, map);
       }
-      return const Success(null);
+      return  Success(null);
     } catch (e) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theBondCouldNot1),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theBondCouldNot1),
       );
     }
   }
@@ -288,17 +288,17 @@ final class SqliteVoucherRepository implements VoucherRepository {
         whereArgs: [id.value, 'draft'],
       );
       if (n == 0) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.theDocumentCannotBe,
+            messageAr: AppStrings.theDocumentCannotBe,
             code: 'voucher_delete_invalid',
           ),
         );
       }
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.theBondCouldNot2),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.theBondCouldNot2),
       );
     }
   }
@@ -352,8 +352,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       );
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToSearchBonds),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToSearchBonds),
       );
     }
   }
@@ -373,8 +373,8 @@ final class SqliteVoucherRepository implements VoucherRepository {
       final c = raw is int ? raw : (raw as num).toInt();
       return Success(c);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.bondsCouldNotBe),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.bondsCouldNotBe),
       );
     }
   }
@@ -389,9 +389,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
     }
     for (final e in ledgerEntries) {
       if (e.voucherId.value != voucher.id.value) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.bondEntriesDoNot,
+            messageAr: AppStrings.bondEntriesDoNot,
             code: 'ledger_voucher_mismatch',
           ),
         );
@@ -429,9 +429,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
       });
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.itWasNotPossible,
+          messageAr: AppStrings.itWasNotPossible,
         ),
       );
     }
@@ -449,9 +449,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
       });
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.theTripleTransferVouchers,
+          messageAr: AppStrings.theTripleTransferVouchers,
         ),
       );
     }
@@ -496,9 +496,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
       });
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.unableToSaveAnd,
+          messageAr: AppStrings.unableToSaveAnd,
         ),
       );
     }
@@ -531,9 +531,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
       );
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.unableToReadConversion,
+          messageAr: AppStrings.unableToReadConversion,
         ),
       );
     }
@@ -552,9 +552,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
       );
       return Success(await _mapVoucherRows(rows));
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.unableToReadReturns,
+          messageAr: AppStrings.unableToReadReturns,
         ),
       );
     }
@@ -600,9 +600,9 @@ final class SqliteVoucherRepository implements VoucherRepository {
       final vouchers = await _mapVoucherRows(rows);
       return Success(vouchers.first);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.itWasNotPossible1,
+          messageAr: AppStrings.itWasNotPossible1,
         ),
       );
     }

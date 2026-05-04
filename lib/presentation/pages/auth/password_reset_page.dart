@@ -9,7 +9,7 @@ import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/components/auth/password_toggle_icon.dart';
 import 'package:qayd/presentation/components/auth/step_progress_dot.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -64,7 +64,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
       if (mounted) {
-        setState(() => _errorAr = AppStringsAr.passwordResetError);
+        setState(() => _errorAr = AppStrings.passwordResetError);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -87,7 +87,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppStringsAr.passwordResetSuccess),
+          content: Text(AppStrings.passwordResetSuccess),
           backgroundColor: ColorTokens.emerald700,
           behavior: SnackBarBehavior.floating,
         ),
@@ -97,7 +97,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
       if (mounted) setState(() => _errorAr = e.messageAr);
     } catch (_) {
       if (mounted) {
-        setState(() => _errorAr = AppStringsAr.passwordChangeError);
+        setState(() => _errorAr = AppStrings.passwordChangeError);
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -117,15 +117,15 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_rounded,
+                    icon: Icon(Icons.arrow_back_ios_rounded,
                         color: ColorTokens.slate400, size: 20),
-                    tooltip: AppStringsAr.backToLogin,
+                    tooltip: AppStrings.backToLogin,
                     onPressed: () => Navigator.of(context).maybePop(),
                   ),
                   const Spacer(),
                   Row(children: [
                     StepProgressDot(active: _step == 0),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     StepProgressDot(active: _step == 1),
                   ]),
                 ],
@@ -139,7 +139,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                     const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
                 child: Column(
                   children: [
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
 
                     // Icon — animates between states
                     AnimatedSwitcher(
@@ -157,22 +157,22 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                               pulseDuration: Duration(milliseconds: 2200),
                             ),
                     ),
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
 
                     // Title + subtitle
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: AuthTitleBlock(
                         key: ValueKey<int>(_step),
-                        title: AppStringsAr.passwordResetTitle,
+                        title: AppStrings.passwordResetTitle,
                         subtitle: _step == 0
-                            ? AppStringsAr.passwordResetSubtitle
-                            : AppStringsAr.passwordResetEmailSent,
+                            ? AppStrings.passwordResetSubtitle
+                            : AppStrings.passwordResetEmailSent,
                         subtitleColor:
                             _step == 1 ? ColorTokens.emerald400 : null,
                       ),
                     ),
-                    const SizedBox(height: SpacingTokens.lg),
+                    SizedBox(height: SpacingTokens.lg),
 
                     // Step forms
                     AnimatedSwitcher(
@@ -205,7 +205,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
                               onSubmit: _confirmReset,
                             ),
                     ),
-                    const SizedBox(height: SpacingTokens.xl),
+                    SizedBox(height: SpacingTokens.xl),
                   ],
                 ),
               ),
@@ -242,7 +242,7 @@ class _Step0Form extends StatelessWidget {
       child: Column(children: [
         // Method Selector Unit
         Container(
-          padding: const EdgeInsets.all(SpacingTokens.sm),
+          padding:  EdgeInsets.all(SpacingTokens.sm),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(20),
@@ -252,19 +252,19 @@ class _Step0Form extends StatelessWidget {
             children: [
               _buildMethodOption(
                 icon: Icons.alternate_email_rounded,
-                title: AppStringsAr.verificationMethodEmailTitle,
-                subtitle: AppStringsAr.verificationMethodEmailSubtitle,
+                title: AppStrings.verificationMethodEmailTitle,
+                subtitle: AppStrings.verificationMethodEmailSubtitle,
                 selected: true,
                 onTap: () {},
               ),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Divider(color: Colors.white10, height: 1),
               ),
               _buildMethodOption(
                 icon: Icons.sms_rounded,
-                title: AppStringsAr.verificationMethodPhoneTitle,
-                subtitle: AppStringsAr.verificationMethodPhoneSubtitle,
+                title: AppStrings.verificationMethodPhoneTitle,
+                subtitle: AppStrings.verificationMethodPhoneSubtitle,
                 selected: false,
                 enabled: false,
                 onTap: () {},
@@ -272,27 +272,27 @@ class _Step0Form extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: SpacingTokens.lg),
+        SizedBox(height: SpacingTokens.lg),
 
         AuthField(
           controller: emailCtrl,
-          hint: AppStringsAr.vaultEmailHint,
+          hint: AppStrings.vaultEmailHint,
           keyboardType: TextInputType.emailAddress,
           validator: (v) {
             if (v == null || v.trim().isEmpty) {
-              return AppStringsAr.activationFieldRequired;
+              return AppStrings.activationFieldRequired;
             }
-            if (!v.contains('@')) return AppStringsAr.invalidEmail;
+            if (!v.contains('@')) return AppStrings.invalidEmail;
             return null;
           },
         ),
         if (errorAr != null) ...[
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           AuthErrorBanner(message: errorAr!),
         ],
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         AuthSubmitButton(
-          label: AppStringsAr.passwordResetAction,
+          label: AppStrings.passwordResetAction,
           loading: loading,
           onPressed: onSubmit,
         ),
@@ -316,7 +316,7 @@ class _Step0Form extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding:  EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: selected
                     ? ColorTokens.emerald500.withOpacity(0.15)
@@ -328,7 +328,7 @@ class _Step0Form extends StatelessWidget {
                       selected ? ColorTokens.emerald500 : ColorTokens.slate400,
                   size: 22),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +341,7 @@ class _Step0Form extends StatelessWidget {
                       fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(
@@ -353,7 +353,7 @@ class _Step0Form extends StatelessWidget {
               ),
             ),
             if (selected)
-              const Icon(Icons.check_circle_rounded,
+              Icon(Icons.check_circle_rounded,
                   color: ColorTokens.emerald500, size: 24),
             if (!enabled)
               Container(
@@ -362,7 +362,7 @@ class _Step0Form extends StatelessWidget {
                   color: Colors.white10,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(AppStringsAr.comingSoonBadge,
+                child: Text(AppStrings.comingSoonBadge,
                     style:
                         TextStyle(color: ColorTokens.slate400, fontSize: 10)),
               ),
@@ -410,46 +410,46 @@ class _Step1Form extends StatelessWidget {
       child: Column(children: [
         AuthField(
           controller: tokenCtrl,
-          hint: AppStringsAr.passwordResetTokenHint,
+          hint: AppStrings.passwordResetTokenHint,
           keyboardType: TextInputType.number,
           validator: (v) => (v == null || v.trim().isEmpty)
-              ? AppStringsAr.activationFieldRequired
+              ? AppStrings.activationFieldRequired
               : null,
         ),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
         AuthField(
           controller: passwordCtrl,
-          hint: AppStringsAr.passwordResetNewPassword,
+          hint: AppStrings.passwordResetNewPassword,
           obscureText: obscurePassword,
           suffixIcon: PasswordToggleIcon(
               obscure: obscurePassword, onToggle: onTogglePassword),
           validator: (v) {
             if (v == null || v.isEmpty) {
-              return AppStringsAr.activationFieldRequired;
+              return AppStrings.activationFieldRequired;
             }
             if (v.length < 8) {
-              return AppStringsAr.passwordTooShort;
+              return AppStrings.passwordTooShort;
             }
             return null;
           },
         ),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
         AuthField(
           controller: confirmCtrl,
-          hint: AppStringsAr.confirmPasswordHint,
+          hint: AppStrings.confirmPasswordHint,
           obscureText: obscureConfirm,
           suffixIcon: PasswordToggleIcon(
               obscure: obscureConfirm, onToggle: onToggleConfirm),
           validator: (v) =>
-              (v != passwordCtrl.text) ? AppStringsAr.passwordMismatch : null,
+              (v != passwordCtrl.text) ? AppStrings.passwordMismatch : null,
         ),
         if (errorAr != null) ...[
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           AuthErrorBanner(message: errorAr!),
         ],
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         AuthSubmitButton(
-          label: AppStringsAr.passwordResetConfirmAction,
+          label: AppStrings.passwordResetConfirmAction,
           color: ColorTokens.goldAccent,
           loading: loading,
           onPressed: onSubmit,

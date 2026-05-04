@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -28,7 +28,7 @@ class IdentityQrDialog extends StatelessWidget {
         future: _generateQrData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SizedBox(
+            return SizedBox(
               height: 300,
               width: 320,
               child: Center(child: CircularProgressIndicator()),
@@ -39,7 +39,7 @@ class IdentityQrDialog extends StatelessWidget {
           if (qrData == null) {
             return Padding(
               padding: const EdgeInsets.all(SpacingTokens.lg),
-              child: Text(AppStringsAr.identityNotSetup),
+              child: Text(AppStrings.identityNotSetup),
             );
           }
 
@@ -60,7 +60,7 @@ class IdentityQrDialog extends StatelessWidget {
                     SpacingTokens.sm,
                   ),
                   child: Text(
-                    AppStringsAr.identityQrShowTitle,
+                    AppStrings.identityQrShowTitle,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: gold,
@@ -72,17 +72,17 @@ class IdentityQrDialog extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: SpacingTokens.lg),
                   child: Text(
-                    AppStringsAr.identityQrShowSubtitle,
+                    AppStrings.identityQrShowSubtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
                 Center(
                   child: Container(
-                    padding: const EdgeInsets.all(SpacingTokens.md),
+                    padding:  EdgeInsets.all(SpacingTokens.md),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -109,7 +109,7 @@ class IdentityQrDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: SpacingTokens.lg),
+                SizedBox(height: SpacingTokens.lg),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     SpacingTokens.md,
@@ -120,7 +120,7 @@ class IdentityQrDialog extends StatelessWidget {
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      AppStringsAr.qrCloseAction,
+                      AppStrings.qrCloseAction,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

@@ -16,7 +16,7 @@ import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/data/services/phone_normalization_service.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 
@@ -56,8 +56,8 @@ class CreateAccountUseCase {
         final existingByPhone =
             await _accountRepository.findAccountByPhone(normalizedPhone);
         if (existingByPhone.valueOrNull != null) {
-          return const FailureResult(ValidationFailure(
-            messageAr: AppStringsAr.thereIsAlreadyAn,
+          return  FailureResult(ValidationFailure(
+            messageAr: AppStrings.thereIsAlreadyAn,
           ));
         }
       }
@@ -74,8 +74,8 @@ class CreateAccountUseCase {
         final existingByEmail =
             await _accountRepository.findAccountByEmail(input.email!);
         if (existingByEmail.valueOrNull != null) {
-          return const FailureResult(ValidationFailure(
-            messageAr: AppStringsAr.thereIsAnAccount,
+          return  FailureResult(ValidationFailure(
+            messageAr: AppStrings.thereIsAnAccount,
           ));
         }
       }
@@ -180,11 +180,11 @@ class CreateAccountUseCase {
         input.customClassificationNature != null;
     if (hasStd == hasCustom) {
       throw ArgumentError(
-        AppStringsAr.youMustChooseA,
+        AppStrings.youMustChooseA,
       );
     }
     if (hasCustom && input.customClassificationName!.trim().isEmpty) {
-      throw ArgumentError(AppStringsAr.customTaxonomyNameIs);
+      throw ArgumentError(AppStrings.customTaxonomyNameIs);
     }
   }
 

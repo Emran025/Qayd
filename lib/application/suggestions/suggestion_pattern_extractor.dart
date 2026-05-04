@@ -1,5 +1,5 @@
 import 'package:qayd/domain/value_objects/voucher_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Offline regex extraction from SMS / notification bodies (Arabic + English).
@@ -37,11 +37,11 @@ abstract final class SuggestionPatternExtractor {
     r'\d{1,3}(?:[,\u066C\s]\d{3})*(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?',
   );
   static final RegExp _hexSignature = RegExp(
-    AppStringsAr.fingerprintsignaturesigsignaturessafaf0932128,
+    AppStrings.fingerprintsignaturesigsignaturessafaf0932128,
     caseSensitive: false,
   );
   static final RegExp _hexPublicKey = RegExp(
-    AppStringsAr.keypkpublickeyssafaf0932128,
+    AppStrings.keypkpublickeyssafaf0932128,
     caseSensitive: false,
   );
 
@@ -66,7 +66,7 @@ abstract final class SuggestionPatternExtractor {
   }
 
   static String _normalizeDigits(String s) {
-    const ar = AppStringsAr.s0123456789;
+    final ar = AppStrings.s0123456789;
     const en = '0123456789';
     var o = s;
     for (var i = 0; i < ar.length; i++) {
@@ -138,24 +138,24 @@ abstract final class SuggestionPatternExtractor {
     var receiptScore = 0;
     var paymentScore = 0;
 
-    const receiptAr = [
-      AppStringsAr.iReceived,
-      AppStringsAr.deposited,
-      AppStringsAr.iDeposited,
-      AppStringsAr.incomingTransfer1,
-      AppStringsAr.incomingTransfer,
-      AppStringsAr.incoming,
-      AppStringsAr.deposit,
-      AppStringsAr.deposit1,
+    final receiptAr = [
+      AppStrings.iReceived,
+      AppStrings.deposited,
+      AppStrings.iDeposited,
+      AppStrings.incomingTransfer1,
+      AppStrings.incomingTransfer,
+      AppStrings.incoming,
+      AppStrings.deposit,
+      AppStrings.deposit1,
     ];
-    const paymentAr = [
-      AppStringsAr.sent1,
-      AppStringsAr.sent,
-      AppStringsAr.toWithdraw,
-      AppStringsAr.outgoingTransfer2,
-      AppStringsAr.outgoingTransfer,
-      AppStringsAr.issued,
-      AppStringsAr.outgoingTransfer1,
+    final paymentAr = [
+      AppStrings.sent1,
+      AppStrings.sent,
+      AppStrings.toWithdraw,
+      AppStrings.outgoingTransfer2,
+      AppStrings.outgoingTransfer,
+      AppStrings.issued,
+      AppStrings.outgoingTransfer1,
     ];
     const receiptEn = ['received', 'incoming', 'credit', 'deposit'];
     const paymentEn = ['sent', 'withdraw', 'outgoing', 'debit', 'transfer out'];

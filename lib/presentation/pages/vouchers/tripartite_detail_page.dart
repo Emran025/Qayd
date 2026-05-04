@@ -12,7 +12,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_badge.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_detail_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
@@ -66,7 +66,7 @@ class TripartiteDetailPage extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: QaydAppBar(
-            title: AppStringsAr.brokerageTransferDetails,
+            title: AppStrings.brokerageTransferDetails,
             actions: [
               if (state is TripartiteDetailReady) _ShareMenu(data: state.data),
             ],
@@ -74,7 +74,7 @@ class TripartiteDetailPage extends StatelessWidget {
           body: switch (state) {
             TripartiteDetailInitial() ||
             TripartiteDetailLoading() =>
-              const Center(child: CircularProgressIndicator()),
+              Center(child: CircularProgressIndicator()),
             TripartiteDetailFailure(:final failure) => Center(
                 child: Padding(
                   padding: const EdgeInsets.all(SpacingTokens.lg),
@@ -113,8 +113,8 @@ class _ShareMenu extends StatelessWidget {
     if (shareData == null) return const SizedBox.shrink();
 
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert_rounded),
-      tooltip: AppStringsAr.sharingOptions,
+      icon: Icon(Icons.more_vert_rounded),
+      tooltip: AppStrings.sharingOptions,
       color: scheme.surface,
       elevation: 8,
       shape: RoundedRectangleBorder(
@@ -151,8 +151,8 @@ class _ShareMenu extends StatelessWidget {
         PopupMenuItem(
           value: 'share_text',
           child: ListTile(
-            leading: const Icon(Icons.text_snippet_outlined),
-            title: Text(AppStringsAr.shareAsTextTooltip),
+            leading: Icon(Icons.text_snippet_outlined),
+            title: Text(AppStrings.shareAsTextTooltip),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
@@ -160,8 +160,8 @@ class _ShareMenu extends StatelessWidget {
         PopupMenuItem(
           value: 'share_image',
           child: ListTile(
-            leading: const Icon(Icons.image_outlined),
-            title: Text(AppStringsAr.shareAsImageTooltip),
+            leading: Icon(Icons.image_outlined),
+            title: Text(AppStrings.shareAsImageTooltip),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
@@ -169,8 +169,8 @@ class _ShareMenu extends StatelessWidget {
         PopupMenuItem(
           value: 'share_pdf',
           child: ListTile(
-            leading: const Icon(Icons.picture_as_pdf_outlined),
-            title: Text(AppStringsAr.exportSharePdfTooltip),
+            leading: Icon(Icons.picture_as_pdf_outlined),
+            title: Text(AppStrings.exportSharePdfTooltip),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
@@ -180,8 +180,8 @@ class _ShareMenu extends StatelessWidget {
           PopupMenuItem(
             value: 'view_receipt',
             child: ListTile(
-              leading: const Icon(Icons.south_west_rounded),
-              title: const Text(AppStringsAr.showTheReceiptDocument),
+              leading: Icon(Icons.south_west_rounded),
+              title: Text(AppStrings.showTheReceiptDocument),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
@@ -190,8 +190,8 @@ class _ShareMenu extends StatelessWidget {
           PopupMenuItem(
             value: 'view_payment',
             child: ListTile(
-              leading: const Icon(Icons.north_east_rounded),
-              title: const Text(AppStringsAr.displayTheBillOf),
+              leading: Icon(Icons.north_east_rounded),
+              title: Text(AppStrings.displayTheBillOf),
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
@@ -225,12 +225,12 @@ class _TripartiteDetailBody extends StatelessWidget {
         Row(
           children: [
             Icon(Icons.swap_horiz_rounded, color: gold, size: 28),
-            const SizedBox(width: SpacingTokens.sm),
+            SizedBox(width: SpacingTokens.sm),
             QaydText(
-              AppStringsAr.brokerConversion,
+              AppStrings.brokerConversion,
               slot: QaydTextStyleSlot.headlineSmall,
             ),
-            const SizedBox(width: SpacingTokens.sm),
+            SizedBox(width: SpacingTokens.sm),
             if (data.isFullyAccepted)
               QaydBadge.agreement(
                 status: AgreementStatus.accepted,
@@ -243,7 +243,7 @@ class _TripartiteDetailBody extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: SpacingTokens.sm),
+        SizedBox(height: SpacingTokens.sm),
 
         // ── Agreement badges for external parties ────────────────────
         Wrap(
@@ -253,16 +253,16 @@ class _TripartiteDetailBody extends StatelessWidget {
             QaydBadge.agreement(
               status: AgreementStatus.values.byName(data.senderStatusCode),
               context: context,
-              label: AppStringsAr.sender,
+              label: AppStrings.sender,
             ),
             QaydBadge.agreement(
               status: AgreementStatus.values.byName(data.receiverStatusCode),
               context: context,
-              label: AppStringsAr.recipient,
+              label: AppStrings.recipient,
             ),
           ],
         ),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
 
         // ── Amount card ──────────────────────────────────────────────
         Container(
@@ -309,7 +309,7 @@ class _TripartiteDetailBody extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         QaydText(
-                          AppStringsAr.transferAmount,
+                          AppStrings.transferAmount,
                           slot: QaydTextStyleSlot.labelLarge,
                           color: scheme.onSurfaceVariant,
                         ),
@@ -320,7 +320,7 @@ class _TripartiteDetailBody extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
@@ -338,7 +338,7 @@ class _TripartiteDetailBody extends StatelessWidget {
                           size: QaydMoneyDisplaySize.large,
                           fontWeight: FontWeight.w800,
                         ),
-                        const SizedBox(width: SpacingTokens.xs),
+                        SizedBox(width: SpacingTokens.xs),
                         QaydText(
                           data.currencySymbol,
                           slot: QaydTextStyleSlot.titleLarge,
@@ -348,12 +348,12 @@ class _TripartiteDetailBody extends StatelessWidget {
                     ),
                     if (data.feeAmountMinorUnits != null &&
                         data.feeAmountMinorUnits! > 0) ...[
-                      const SizedBox(height: SpacingTokens.sm),
+                      SizedBox(height: SpacingTokens.sm),
                       Row(
                         children: [
                           Icon(Icons.receipt_long_rounded,
                               size: 14, color: scheme.onSurfaceVariant),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           QaydText(
                             'رسوم التحويل: ${MoneyFormatter.formatWithSymbol(
                               data.feeAmountMinorUnits! / 100,
@@ -372,33 +372,33 @@ class _TripartiteDetailBody extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: SpacingTokens.xl),
+        SizedBox(height: SpacingTokens.xl),
 
         // ── Flow Diagram ─────────────────────────────────────────────
         _TripartiteFlowCard(data: data),
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
 
         // ── Core details ─────────────────────────────────────────────
-        _DetailRow(label: AppStringsAr.theDate, value: dateStr),
-        _DetailRow(label: AppStringsAr.sender, value: data.sourceName),
-        _DetailRow(label: AppStringsAr.theMediator, value: data.mediatorName),
-        _DetailRow(label: AppStringsAr.recipient, value: data.destinationName),
+        _DetailRow(label: AppStrings.theDate, value: dateStr),
+        _DetailRow(label: AppStrings.sender, value: data.sourceName),
+        _DetailRow(label: AppStrings.theMediator, value: data.mediatorName),
+        _DetailRow(label: AppStrings.recipient, value: data.destinationName),
 
         if (data.description != null && data.description!.isNotEmpty)
-          _DetailRow(label: AppStringsAr.statement1, value: data.description!),
+          _DetailRow(label: AppStrings.statement1, value: data.description!),
 
         // ── Timestamps ───────────────────────────────────────────────
-        const SizedBox(height: SpacingTokens.sm),
-        _DetailRow(label: AppStringsAr.creationDate, value: createdStr),
+        SizedBox(height: SpacingTokens.sm),
+        _DetailRow(label: AppStrings.creationDate, value: createdStr),
 
         // ── Leg cards (clickable links to individual vouchers) ────────
         if (!data.isTrueTripartite) ...[
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           _LegLinksSection(data: data),
         ],
 
         // ── Transfer Group ID ────────────────────────────────────────
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         Container(
           padding: const EdgeInsets.all(SpacingTokens.sm),
           decoration: BoxDecoration(
@@ -412,7 +412,7 @@ class _TripartiteDetailBody extends StatelessWidget {
             children: [
               Icon(Icons.fingerprint_rounded,
                   size: 16, color: scheme.onSurfaceVariant),
-              const SizedBox(width: SpacingTokens.sm),
+              SizedBox(width: SpacingTokens.sm),
               Expanded(
                 child: QaydText(
                   'معرف المجموعة: ${data.transferGroupId.substring(0, 8)}…',
@@ -426,11 +426,11 @@ class _TripartiteDetailBody extends StatelessWidget {
 
         // ── Preview section (uses receipt voucher data) ──────────────
         if (data.receiptVoucher != null) ...[
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           _TripartitePreviewSection(data: data),
         ],
 
-        const SizedBox(height: SpacingTokens.xxl),
+        SizedBox(height: SpacingTokens.xxl),
       ],
     );
   }
@@ -465,20 +465,20 @@ class _TripartiteFlowCard extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.account_tree_outlined, size: 18, color: gold),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 QaydText(
-                  AppStringsAr.tripartiteFlowTitle,
+                  AppStrings.tripartiteFlowTitle,
                   slot: QaydTextStyleSlot.labelLarge,
                   color: gold,
                 ),
               ],
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             Row(
               children: [
                 Expanded(
                   child: _FlowNode(
-                    label: AppStringsAr.tripartiteFlowSource,
+                    label: AppStrings.tripartiteFlowSource,
                     name: data.sourceName,
                     isActive: true,
                   ),
@@ -487,11 +487,11 @@ class _TripartiteFlowCard extends StatelessWidget {
                     size: 16, color: scheme.onSurfaceVariant),
                 Expanded(
                   child: _FlowNode(
-                    label: AppStringsAr.tripartiteFlowMediator,
+                    label: AppStrings.tripartiteFlowMediator,
                     name: data.isTrueTripartite
                         ? (InjectionContainer.sharedPreferences
                                 .getString('company_name') ??
-                            AppStringsAr.myAccountBroker)
+                            AppStrings.myAccountBroker)
                         : data.mediatorName,
                     isActive: true,
                     isGold: true,
@@ -501,7 +501,7 @@ class _TripartiteFlowCard extends StatelessWidget {
                     size: 16, color: scheme.onSurfaceVariant),
                 Expanded(
                   child: _FlowNode(
-                    label: AppStringsAr.tripartiteFlowDestination,
+                    label: AppStrings.tripartiteFlowDestination,
                     name: data.destinationName,
                     isActive: true,
                   ),
@@ -542,7 +542,7 @@ class _FlowNode extends StatelessWidget {
               ? (isGold ? gold : scheme.primary)
               : scheme.onSurfaceVariant,
         ),
-        const SizedBox(height: SpacingTokens.xs),
+        SizedBox(height: SpacingTokens.xs),
         QaydText(
           name,
           slot: QaydTextStyleSlot.bodySmall,
@@ -585,21 +585,21 @@ class _LegLinksSection extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.receipt_long_rounded, size: 18, color: gold),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 QaydText(
-                  AppStringsAr.linkedBonds,
+                  AppStrings.linkedBonds,
                   slot: QaydTextStyleSlot.labelLarge,
                   color: gold,
                 ),
               ],
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             // Receipt leg
             if (data.receiptVoucher != null)
               _LegCard(
                 icon: Icons.south_west_rounded,
-                label: AppStringsAr.arrestDocument,
+                label: AppStrings.arrestDocument,
                 subtitle: '${data.sourceName} ← ${data.mediatorName}',
                 statusCode: data.receiptVoucher!.receiverStatusCode,
                 stateCode: data.receiptVoucher!.stateCode,
@@ -610,13 +610,13 @@ class _LegLinksSection extends StatelessWidget {
               ),
 
             if (data.receiptVoucher != null && data.paymentVoucher != null)
-              const SizedBox(height: SpacingTokens.sm),
+              SizedBox(height: SpacingTokens.sm),
 
             // Payment leg
             if (data.paymentVoucher != null)
               _LegCard(
                 icon: Icons.north_east_rounded,
-                label: AppStringsAr.billOfExchange1,
+                label: AppStrings.billOfExchange1,
                 subtitle: '${data.mediatorName} → ${data.destinationName}',
                 statusCode: data.paymentVoucher!.receiverStatusCode,
                 stateCode: data.paymentVoucher!.stateCode,
@@ -677,7 +677,7 @@ class _LegCard extends StatelessWidget {
               ),
               child: Icon(icon, size: 18, color: gold),
             ),
-            const SizedBox(width: SpacingTokens.md),
+            SizedBox(width: SpacingTokens.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -686,7 +686,7 @@ class _LegCard extends StatelessWidget {
                     label,
                     slot: QaydTextStyleSlot.labelMedium,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   QaydText(
                     subtitle,
                     slot: QaydTextStyleSlot.bodySmall,
@@ -697,12 +697,12 @@ class _LegCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: SpacingTokens.sm),
+            SizedBox(width: SpacingTokens.sm),
             QaydBadge.agreement(
               status: AgreementStatus.values.byName(statusCode),
               context: context,
             ),
-            const SizedBox(width: SpacingTokens.xs),
+            SizedBox(width: SpacingTokens.xs),
             Icon(Icons.chevron_left_rounded,
                 size: 20, color: scheme.onSurfaceVariant),
           ],
@@ -752,9 +752,9 @@ class _TripartitePreviewSection extends StatelessWidget {
             child: Row(
               children: [
                 Icon(Icons.preview_rounded, size: 18, color: gold),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 QaydText(
-                  AppStringsAr.previewTheReceipt,
+                  AppStrings.previewTheReceipt,
                   slot: QaydTextStyleSlot.labelLarge,
                   color: gold,
                 ),

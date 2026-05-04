@@ -18,7 +18,7 @@ import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/entry_id.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:uuid/uuid.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Executed when the user taps "Accept" on an incoming pending claim.
@@ -55,14 +55,14 @@ class AcceptVoucherUseCase {
     try {
       final loaded = await voucherRepository.getById(VoucherId(voucherId));
       if (loaded.isFailure || loaded.valueOrNull == null) {
-        return const FailureResult(
-            ValidationFailure(messageAr: AppStringsAr.theBondDoesNot));
+        return  FailureResult(
+            ValidationFailure(messageAr: AppStrings.theBondDoesNot));
       }
       final draft = loaded.valueOrNull!;
 
       if (draft.receiverStatus == AgreementStatus.accepted) {
-        return const FailureResult(
-            ValidationFailure(messageAr: AppStringsAr.theBondIsPreaccepted));
+        return  FailureResult(
+            ValidationFailure(messageAr: AppStrings.theBondIsPreaccepted));
       }
 
       // Resolve current user's phone from license data.

@@ -15,7 +15,7 @@ import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/atomic/qayd_snackbar.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_detail_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
@@ -98,7 +98,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       if (mounted) {
         QaydSnackBar.show(
           context,
-          AppStringsAr.voucherAcceptedSuccess,
+          AppStrings.voucherAcceptedSuccess,
           type: QaydSnackBarType.success,
         );
         context.read<StatementChatCubit>().reload();
@@ -126,7 +126,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       if (mounted) {
         QaydSnackBar.show(
           context,
-          AppStringsAr.voucherRejectedSuccess,
+          AppStrings.voucherRejectedSuccess,
           type: QaydSnackBarType.success,
         );
         context.read<StatementChatCubit>().reload();
@@ -192,13 +192,13 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       context: context,
       icon: Icons.warning_amber_rounded,
       iconColor: Theme.of(context).colorScheme.error,
-      title: AppStringsAr.voucherWithdrawConfirmTitle,
-      content: AppStringsAr.voucherWithdrawConfirmBody,
-      primaryActionLabel: AppStringsAr.voucherRedirectToOthers,
+      title: AppStrings.voucherWithdrawConfirmTitle,
+      content: AppStrings.voucherWithdrawConfirmBody,
+      primaryActionLabel: AppStrings.voucherRedirectToOthers,
       onPrimaryAction: () => Navigator.pop(context, 'edit_others'),
-      secondaryActionLabel: AppStringsAr.voucherDeleteOrWithdraw,
+      secondaryActionLabel: AppStrings.voucherDeleteOrWithdraw,
       onSecondaryAction: () => Navigator.pop(context, 'withdraw'),
-      tertiaryActionLabel: AppStringsAr.templateEditCancel,
+      tertiaryActionLabel: AppStrings.templateEditCancel,
       onTertiaryAction: () => Navigator.pop(context, 'cancel'),
     );
 
@@ -213,7 +213,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         (f) => QaydSnackBar.show(context, f.messageAr,
             type: QaydSnackBarType.error),
         (_) {
-          QaydSnackBar.show(context, AppStringsAr.voucherWithdrawalSuccess,
+          QaydSnackBar.show(context, AppStrings.voucherWithdrawalSuccess,
               type: QaydSnackBarType.success);
           cubit.reload();
         },
@@ -346,7 +346,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                 borderRadius: BorderRadius.circular(RadiusTokens.pill),
               ),
             ),
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
 
             // Interaction buttons like "same movement of reaction buttons"
             SingleChildScrollView(
@@ -358,7 +358,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                       msg.signatureStatusCode == AgreementStatus.rejected.name)
                     _ActionButton(
                       icon: Icons.edit_rounded,
-                      label: AppStringsAr.voucherEditAction,
+                      label: AppStrings.voucherEditAction,
                       onTap: () {
                         Navigator.pop(ctx);
                         _resubmitVoucher(context, msg.voucherId);
@@ -370,7 +370,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                           .isAccepted)
                     _ActionButton(
                       icon: Icons.undo_rounded,
-                      label: AppStringsAr.statementChatWithdraw,
+                      label: AppStrings.statementChatWithdraw,
                       color: ColorTokens.errorDeep,
                       onTap: () {
                         Navigator.pop(ctx);
@@ -379,7 +379,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     ),
                   _ActionButton(
                     icon: Icons.description_outlined,
-                    label: AppStringsAr.actionDetails,
+                    label: AppStrings.actionDetails,
                     onTap: () {
                       Navigator.pop(ctx);
                       VoucherDetailPage.show(context, msg.voucherId);
@@ -388,7 +388,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   if (msg.mediatorAccountId != null)
                     _ActionButton(
                       icon: Icons.support_agent_rounded,
-                      label: AppStringsAr.tripartiteMediatorLabel,
+                      label: AppStrings.tripartiteMediatorLabel,
                       color: custom.goldAccent,
                       onTap: () {
                         Navigator.pop(ctx);
@@ -401,7 +401,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     ),
                   _ActionButton(
                     icon: Icons.copy_rounded,
-                    label: AppStringsAr.actionCopy,
+                    label: AppStrings.actionCopy,
                     onTap: () {
                       Navigator.pop(ctx);
                       // Add copy logic
@@ -409,7 +409,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                   ),
                   _ActionButton(
                     icon: Icons.share_rounded,
-                    label: AppStringsAr.actionShare,
+                    label: AppStrings.actionShare,
                     onTap: () {
                       Navigator.pop(ctx);
                     },
@@ -442,7 +442,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       final dto = symbolLookup[code];
       currentBalances[code] = _BalanceSnapshot(
         code: code,
-        symbol: CurrencyUtil.getArabicName(code),
+        symbol: CurrencyUtil.getLocalizedName(code),
         digits: dto?.currencyDigits ?? 2,
         amount: amount,
       );
@@ -452,7 +452,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       final current = currentBalances[m.currencyCode] ??
           _BalanceSnapshot(
             code: m.currencyCode,
-            symbol: CurrencyUtil.getArabicName(m.currencyCode),
+            symbol: CurrencyUtil.getLocalizedName(m.currencyCode),
             digits: m.currencyDigits,
             amount: 0,
           );
@@ -484,7 +484,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
       final dto = symbolLookup[e.key];
       return _BalanceSnapshot(
         code: e.key,
-        symbol: CurrencyUtil.getArabicName(e.key),
+        symbol: CurrencyUtil.getLocalizedName(e.key),
         digits: dto?.currencyDigits ?? 2,
         amount: e.value,
       );
@@ -516,11 +516,11 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                       slot: QaydTextStyleSlot.bodyLarge,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
                     FilledButton(
                       onPressed: () =>
                           context.read<StatementChatCubit>().load(),
-                      child: Text(AppStringsAr.retryAction),
+                      child: Text(AppStrings.retryAction),
                     ),
                   ],
                 ),
@@ -560,9 +560,9 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(AppStringsAr.tripartiteRequestFunds),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.send_rounded),
+                        Text(AppStrings.tripartiteRequestFunds),
+                        SizedBox(width: 8),
+                        Icon(Icons.send_rounded),
                       ],
                     ),
                     backgroundColor: custom.goldAccent,
@@ -659,7 +659,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                 child: data.messages.isEmpty
                     ? Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(SpacingTokens.lg),
+                          padding:  EdgeInsets.all(SpacingTokens.lg),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -668,11 +668,11 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                 size: 56,
                                 color: custom.subtleBorder,
                               ),
-                              const SizedBox(height: SpacingTokens.md),
+                              SizedBox(height: SpacingTokens.md),
                               QaydText(
                                 data.hasActiveFilters
-                                    ? AppStringsAr.statementChatEmptyFiltered
-                                    : AppStringsAr.statementChatEmpty,
+                                    ? AppStrings.statementChatEmptyFiltered
+                                    : AppStrings.statementChatEmpty,
                                 slot: QaydTextStyleSlot.bodyLarge,
                                 textAlign: TextAlign.center,
                               ),
@@ -756,7 +756,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                     // Centered balance summary table
                                     _ChronologySummaryTable(balances: balances),
 
-                                    const SizedBox(height: SpacingTokens.sm),
+                                    SizedBox(height: SpacingTokens.sm),
                                   ],
                                 );
 
@@ -834,9 +834,9 @@ class _ChatHeader extends StatelessWidget {
             children: [
               // Back button
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.of(context).maybePop(),
-                tooltip: AppStringsAr.back,
+                tooltip: AppStrings.back,
               ),
               // Avatar + Name
               Expanded(
@@ -853,14 +853,14 @@ class _ChatHeader extends StatelessWidget {
                           counterpartyName.isNotEmpty
                               ? counterpartyName.trim().substring(0, 1)
                               : '?',
-                          textDirection: TextDirection.rtl,
+                          textDirection: Directionality.of(context),
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
                           ),
                         ),
                       ),
-                      const SizedBox(width: SpacingTokens.sm),
+                      SizedBox(width: SpacingTokens.sm),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -877,8 +877,8 @@ class _ChatHeader extends StatelessWidget {
                             ),
                             Text(
                               isUnified
-                                  ? AppStringsAr.statementUnifiedTitle
-                                  : '$messageCount ${AppStringsAr.statementVoucherCount}',
+                                  ? AppStrings.statementUnifiedTitle
+                                  : '$messageCount ${AppStrings.statementVoucherCount}',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -903,7 +903,7 @@ class _ChatHeader extends StatelessWidget {
               Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.tune_rounded, size: 22),
+                    icon: Icon(Icons.tune_rounded, size: 22),
                     onPressed: onFilterTap,
                   ),
                   if (hasFilters)
@@ -923,7 +923,7 @@ class _ChatHeader extends StatelessWidget {
               ),
               // Options Menu
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert_rounded, size: 22),
+                icon: Icon(Icons.more_vert_rounded, size: 22),
                 onSelected: (val) {
                   if (val == 'pdf') onExportPdf();
                   if (val == 'whatsapp') onShareWhatsapp();
@@ -934,9 +934,9 @@ class _ChatHeader extends StatelessWidget {
                     value: 'excel',
                     child: Row(
                       children: [
-                        const Icon(Icons.table_view_outlined, size: 20),
-                        const SizedBox(width: SpacingTokens.sm),
-                        Text(AppStringsAr.settingsExportStatementTitle),
+                        Icon(Icons.table_view_outlined, size: 20),
+                        SizedBox(width: SpacingTokens.sm),
+                        Text(AppStrings.settingsExportStatementTitle),
                       ],
                     ),
                   ),
@@ -944,9 +944,9 @@ class _ChatHeader extends StatelessWidget {
                     value: 'pdf',
                     child: Row(
                       children: [
-                        const Icon(Icons.picture_as_pdf_outlined, size: 20),
-                        const SizedBox(width: SpacingTokens.sm),
-                        Text(AppStringsAr.accountStatementExportPdfTooltip),
+                        Icon(Icons.picture_as_pdf_outlined, size: 20),
+                        SizedBox(width: SpacingTokens.sm),
+                        Text(AppStrings.accountStatementExportPdfTooltip),
                       ],
                     ),
                   ),
@@ -954,10 +954,10 @@ class _ChatHeader extends StatelessWidget {
                     value: 'whatsapp',
                     child: Row(
                       children: [
-                        const Icon(Icons.chat_bubble_outline_rounded,
+                        Icon(Icons.chat_bubble_outline_rounded,
                             size: 20, color: Colors.green),
-                        const SizedBox(width: SpacingTokens.sm),
-                        Text(AppStringsAr.shareAsWhatsappTooltip),
+                        SizedBox(width: SpacingTokens.sm),
+                        Text(AppStrings.shareAsWhatsappTooltip),
                       ],
                     ),
                   ),
@@ -991,20 +991,20 @@ class _SearchBar extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       color: scheme.surfaceContainerLow,
-      padding: const EdgeInsets.symmetric(
+      padding:  EdgeInsets.symmetric(
         horizontal: SpacingTokens.md,
         vertical: SpacingTokens.sm,
       ),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        textDirection: TextDirection.rtl,
+        textDirection: Directionality.of(context),
         decoration: InputDecoration(
-          hintText: AppStringsAr.statementChatSearchHint,
-          prefixIcon: const Icon(Icons.search_rounded, size: 20),
+          hintText: AppStrings.statementChatSearchHint,
+          prefixIcon: Icon(Icons.search_rounded, size: 20),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, size: 18),
+                  icon: Icon(Icons.clear_rounded, size: 18),
                   onPressed: onClear,
                 )
               : null,
@@ -1044,7 +1044,7 @@ class _ActiveFilterChips extends StatelessWidget {
       chips.add(
         InputChip(
           label: Text(
-            '${AppStringsAr.voucherFilterChipSearchPrefix}${data.searchQuery}',
+            '${AppStrings.voucherFilterChipSearchPrefix}${data.searchQuery}',
           ),
           onDeleted: () => context.read<StatementChatCubit>().clearSearch(),
           deleteIconColor: custom.goldAccent,
@@ -1054,10 +1054,10 @@ class _ActiveFilterChips extends StatelessWidget {
 
     if (data.filter.agreementStatus != null) {
       final label = switch (data.filter.agreementStatus!) {
-        AgreementStatus.accepted => AppStringsAr.statementStatusConfirmed,
-        AgreementStatus.underRequest => AppStringsAr.statementStatusPending,
-        AgreementStatus.rejected => AppStringsAr.statementStatusRejected,
-        AgreementStatus.unverified => AppStringsAr.agreementUnverified,
+        AgreementStatus.accepted => AppStrings.statementStatusConfirmed,
+        AgreementStatus.underRequest => AppStrings.statementStatusPending,
+        AgreementStatus.rejected => AppStrings.statementStatusRejected,
+        AgreementStatus.unverified => AppStrings.agreementUnverified,
       };
       chips.add(
         InputChip(
@@ -1073,8 +1073,8 @@ class _ActiveFilterChips extends StatelessWidget {
 
     if (data.filter.type != null) {
       final label = data.filter.type == VoucherType.receipt
-          ? AppStringsAr.voucherTypeReceipt
-          : AppStringsAr.voucherTypePayment;
+          ? AppStrings.voucherTypeReceipt
+          : AppStrings.voucherTypePayment;
       chips.add(
         InputChip(
           label: Text(label),
@@ -1112,7 +1112,7 @@ class _ActiveFilterChips extends StatelessWidget {
           data.filter.costCenterId;
       chips.add(
         InputChip(
-          label: Text('مركز: $name'),
+          label: Text('${AppStrings.costCenter}: $name'),
           onDeleted: () {
             final cubit = context.read<StatementChatCubit>();
             cubit.setFilter(cubit.filter.copyWith(clearCostCenter: true));
@@ -1124,7 +1124,7 @@ class _ActiveFilterChips extends StatelessWidget {
 
     chips.add(
       ActionChip(
-        label: Text(AppStringsAr.voucherClearAllFiltersChip),
+        label: Text(AppStrings.voucherClearAllFiltersChip),
         onPressed: onClearAll,
         avatar: Icon(
           Icons.clear_all_rounded,
@@ -1241,9 +1241,9 @@ class _UnreadSessionDivider extends StatelessWidget {
                   size: 14,
                   color: custom.goldAccent,
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Text(
-                  AppStringsAr.statementUnreadMessages,
+                  AppStrings.statementUnreadMessages,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: custom.goldAccent,
                         fontWeight: FontWeight.w600,
@@ -1302,7 +1302,7 @@ class _SummaryFooter extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  AppStringsAr.statementFinalBalance,
+                  AppStrings.statementFinalBalance,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -1320,7 +1320,7 @@ class _SummaryFooter extends StatelessWidget {
                           ),
                     ),
                     TextSpan(
-                      text: AppStringsAr.statementVoucherCount,
+                      text: AppStrings.statementVoucherCount,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color:
                                 scheme.onSurfaceVariant.withValues(alpha: 0.5),
@@ -1332,15 +1332,15 @@ class _SummaryFooter extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: SpacingTokens.xs),
+          SizedBox(height: SpacingTokens.xs),
           ...finalBalancesByCurrency.entries.map((e) {
             final isPositive = e.value > 0;
             final isNegative = e.value < 0;
             final statusLabel = isPositive
-                ? AppStringsAr.statementBalanceAgainstYou
+                ? AppStrings.statementBalanceAgainstYou
                 : isNegative
-                    ? AppStringsAr.statementBalanceForYou
-                    : AppStringsAr.statementBalanceSettled;
+                    ? AppStrings.statementBalanceForYou
+                    : AppStrings.statementBalanceSettled;
             final statusColor = isPositive
                 ? ColorTokens.errorDeep
                 : isNegative
@@ -1359,7 +1359,7 @@ class _SummaryFooter extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(width: SpacingTokens.sm),
+                  SizedBox(width: SpacingTokens.sm),
                   Expanded(
                     child: Text(
                       statusLabel,
@@ -1371,7 +1371,7 @@ class _SummaryFooter extends StatelessWidget {
                   ),
                   _BalanceAmountText(
                     minorUnits: e.value,
-                    currencySymbol: CurrencyUtil.getArabicName(e.key),
+                    currencySymbol: CurrencyUtil.getLocalizedName(e.key),
                     currencyDigits: 2,
                     large: true,
                   ),
@@ -1443,7 +1443,7 @@ class _ActionButton extends StatelessWidget {
               ),
               child: Icon(icon, color: effectColor, size: 24),
             ),
-            const SizedBox(height: SpacingTokens.xs),
+            SizedBox(height: SpacingTokens.xs),
             Text(
               label,
               textAlign: TextAlign.center,
@@ -1487,10 +1487,10 @@ class _ChronologySummaryTable extends StatelessWidget {
                       : custom.confirmedState;
 
               final label = isPositive
-                  ? AppStringsAr.creditorToYou
+                  ? AppStrings.creditorToYou
                   : isNegative
-                      ? AppStringsAr.oweToYou
-                      : AppStringsAr.neutral;
+                      ? AppStrings.oweToYou
+                      : AppStrings.neutral;
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -1514,7 +1514,7 @@ class _ChronologySummaryTable extends StatelessWidget {
                         color: color,
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     _BalanceAmountText(
                       minorUnits: b.amount,
                       currencySymbol: b.symbol,
@@ -1581,8 +1581,8 @@ class _MessageBubble extends StatelessWidget {
 
   String _typeLabel() {
     return msg.typeCode == VoucherType.receipt.name
-        ? AppStringsAr.voucherTypeReceipt
-        : AppStringsAr.voucherTypePayment;
+        ? AppStrings.voucherTypeReceipt
+        : AppStrings.voucherTypePayment;
   }
 
   IconData _typeIcon() {
@@ -1626,7 +1626,7 @@ class _MessageBubble extends StatelessWidget {
 
     final currency = CurrencyCode(
       code: msg.currencyCode,
-      nameAr: CurrencyUtil.getArabicName(msg.currencyCode),
+      nameAr: CurrencyUtil.getLocalizedName(msg.currencyCode),
       symbol: msg.currencySymbol,
       fractionalDigits: msg.currencyDigits,
     );
@@ -1714,10 +1714,10 @@ class _MessageBubble extends StatelessWidget {
                                 children: [
                                   Icon(Icons.reply_rounded,
                                       size: 14, color: statusColor),
-                                  const SizedBox(width: SpacingTokens.xs),
+                                  SizedBox(width: SpacingTokens.xs),
                                   Expanded(
                                     child: Text(
-                                      AppStringsAr.voucherReplyHeader,
+                                      AppStrings.voucherReplyHeader,
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelSmall
@@ -1764,7 +1764,7 @@ class _MessageBubble extends StatelessWidget {
                                   color: statusColor,
                                 ),
                               ),
-                              const SizedBox(width: SpacingTokens.sm),
+                              SizedBox(width: SpacingTokens.sm),
                               // Type label & Other Party
                               Expanded(
                                 child: Column(
@@ -1799,7 +1799,7 @@ class _MessageBubble extends StatelessWidget {
                               ),
                               // Badge
                               _stateWidget(context),
-                              const SizedBox(width: SpacingTokens.xs),
+                              SizedBox(width: SpacingTokens.xs),
                               // Ticks
                               Icon(
                                 _ticksIcon(),
@@ -1839,7 +1839,7 @@ class _MessageBubble extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  CurrencyUtil.getArabicName(msg.currencyCode),
+                                  CurrencyUtil.getLocalizedName(msg.currencyCode),
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelSmall
@@ -1906,10 +1906,10 @@ class _MessageBubble extends StatelessWidget {
                                     size: 14,
                                     color: scheme.tertiary,
                                   ),
-                                  const SizedBox(width: SpacingTokens.xs),
+                                  SizedBox(width: SpacingTokens.xs),
                                   Expanded(
                                     child: Text(
-                                      '${AppStringsAr.statementMediatorPrefix}${msg.mediatorName}',
+                                      '${AppStrings.statementMediatorPrefix}${msg.mediatorName}',
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelSmall
@@ -1930,7 +1930,7 @@ class _MessageBubble extends StatelessWidget {
                                           horizontal: SpacingTokens.xs),
                                     ),
                                     Text(
-                                      AppStringsAr.statementFeePrefix,
+                                      AppStrings.statementFeePrefix,
                                       style: Theme.of(context)
                                           .textTheme
                                           .labelSmall
@@ -1978,7 +1978,7 @@ class _MessageBubble extends StatelessWidget {
                                   alpha: 0.5,
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4),
                               Text(
                                 dateStr,
                                 style: Theme.of(context)
@@ -2000,9 +2000,9 @@ class _MessageBubble extends StatelessWidget {
                                   alpha: 0.5,
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: 4),
                               Text(
-                                '${AppStringsAr.statementRunningBalance}: ',
+                                '${AppStrings.statementRunningBalance}: ',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -2015,7 +2015,7 @@ class _MessageBubble extends StatelessWidget {
                               ),
                               _BalanceAmountText(
                                 minorUnits: msg.runningBalanceMinorUnits,
-                                currencySymbol: CurrencyUtil.getArabicName(
+                                currencySymbol: CurrencyUtil.getLocalizedName(
                                     msg.currencyCode),
                                 currencyDigits: msg.currencyDigits,
                                 fontSize: 10,
@@ -2081,8 +2081,8 @@ class _MessageBubble extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed:
                     mutating ? null : () async => onAccept(msg.voucherId),
-                icon: const Icon(Icons.check_rounded, size: 16),
-                label: Text(AppStringsAr.statementChatAccept),
+                icon: Icon(Icons.check_rounded, size: 16),
+                label: Text(AppStrings.statementChatAccept),
                 style: FilledButton.styleFrom(
                   backgroundColor: statusColor,
                   foregroundColor: Colors.white,
@@ -2095,13 +2095,13 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: SpacingTokens.sm),
+            SizedBox(width: SpacingTokens.sm),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed:
                     mutating ? null : () async => onReject(msg.voucherId),
-                icon: const Icon(Icons.close_rounded, size: 16),
-                label: Text(AppStringsAr.statementChatReject),
+                icon: Icon(Icons.close_rounded, size: 16),
+                label: Text(AppStrings.statementChatReject),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: ColorTokens.errorDeep,
                   padding: const EdgeInsets.symmetric(
@@ -2139,8 +2139,8 @@ class _MessageBubble extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed:
                     mutating ? null : () async => onResubmit(msg.voucherId),
-                icon: const Icon(Icons.refresh_rounded, size: 16),
-                label: Text(AppStringsAr.statementChatResubmit),
+                icon: Icon(Icons.refresh_rounded, size: 16),
+                label: Text(AppStrings.statementChatResubmit),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: custom.confirmedState,
                   padding: const EdgeInsets.symmetric(
@@ -2156,14 +2156,14 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           if (showResubmit && showWithdraw)
-            const SizedBox(width: SpacingTokens.sm),
+            SizedBox(width: SpacingTokens.sm),
           if (showWithdraw)
             Expanded(
               child: OutlinedButton.icon(
                 onPressed:
                     mutating ? null : () async => onWithdraw(msg.voucherId),
-                icon: const Icon(Icons.undo_rounded, size: 16),
-                label: Text(AppStringsAr.statementChatWithdraw),
+                icon: Icon(Icons.undo_rounded, size: 16),
+                label: Text(AppStrings.statementChatWithdraw),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: ColorTokens.errorDeep,
                   padding: const EdgeInsets.symmetric(
@@ -2271,18 +2271,18 @@ class _ViewModeToggle extends StatelessWidget {
           ButtonSegment<StatementChatViewMode>(
             value: StatementChatViewMode.myAccounts,
             label: Text(
-              AppStringsAr.statementViewModeMy,
+              AppStrings.statementViewModeMy,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            icon: const Icon(Icons.account_circle_outlined, size: 18),
+            icon: Icon(Icons.account_circle_outlined, size: 18),
           ),
           ButtonSegment<StatementChatViewMode>(
             value: StatementChatViewMode.otherPartyAccounts,
             label: Text(
-              AppStringsAr.statementViewModeOther,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              AppStrings.statementViewModeOther,
+              style:  TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            icon: const Icon(Icons.people_alt_outlined, size: 18),
+            icon: Icon(Icons.people_alt_outlined, size: 18),
           ),
         ],
         selected: {mode},

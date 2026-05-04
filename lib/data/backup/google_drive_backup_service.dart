@@ -10,7 +10,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/backup/attachments_zip_builder.dart';
 import 'package:qayd/data/database/database_provider.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Google Drive backup service — mirrors WhatsApp's Drive backup model.
@@ -83,9 +83,9 @@ final class GoogleDriveBackupService {
       var account = await _googleSignIn.signInSilently();
       account ??= await _googleSignIn.signIn();
       if (account == null) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.yourLoginHasBeen,
+            messageAr: AppStrings.yourLoginHasBeen,
             code: 'drive_auth_cancelled',
           ),
         );
@@ -97,9 +97,9 @@ final class GoogleDriveBackupService {
       final eStr = e.toString();
       if (eStr.contains('sign_in_failed')) {
         if (eStr.contains('10:')) {
-          msg = AppStringsAr.unableToConnectTo1;
+          msg = AppStrings.unableToConnectTo1;
         } else {
-          msg = AppStringsAr.yourGoogleAccountSignin;
+          msg = AppStrings.yourGoogleAccountSignin;
         }
       }
       return FailureResult(
@@ -144,8 +144,8 @@ final class GoogleDriveBackupService {
     try {
       final token = await _getAccessToken();
       if (token == null) {
-        return const FailureResult(
-          AuthFailure(messageAr: AppStringsAr.pleaseSignInTo),
+        return  FailureResult(
+          AuthFailure(messageAr: AppStrings.pleaseSignInTo),
         );
       }
 
@@ -227,16 +227,16 @@ final class GoogleDriveBackupService {
     try {
       final token = await _getAccessToken();
       if (token == null) {
-        return const FailureResult(
-          AuthFailure(messageAr: AppStringsAr.pleaseSignInTo),
+        return  FailureResult(
+          AuthFailure(messageAr: AppStrings.pleaseSignInTo),
         );
       }
 
       final fileInfo = await _findFile(token, _driveDbFileName);
       if (fileInfo == null) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.noBackupOnDrive,
+            messageAr: AppStrings.noBackupOnDrive,
             code: 'drive_no_backup',
           ),
         );
@@ -262,8 +262,8 @@ final class GoogleDriveBackupService {
     try {
       final token = await _getAccessToken();
       if (token == null) {
-        return const FailureResult(
-          AuthFailure(messageAr: AppStringsAr.pleaseSignInTo),
+        return  FailureResult(
+          AuthFailure(messageAr: AppStrings.pleaseSignInTo),
         );
       }
 
@@ -277,9 +277,9 @@ final class GoogleDriveBackupService {
       final dbPath = p.join(downloadDir.path, _driveDbFileName);
       final dbOk = await _downloadFile(token, _driveDbFileName, dbPath);
       if (!dbOk) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.thereIsNoDatabase,
+            messageAr: AppStrings.thereIsNoDatabase,
             code: 'drive_no_db',
           ),
         );

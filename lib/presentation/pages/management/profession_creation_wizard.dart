@@ -6,7 +6,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -72,7 +72,7 @@ class _ProfessionCreationWizardPageState
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (widget.personalRevenuesRootId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStringsAr.professionWizardRootError)),
+        SnackBar(content: Text(AppStrings.professionWizardRootError)),
       );
       return;
     }
@@ -117,7 +117,7 @@ class _ProfessionCreationWizardPageState
       },
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStringsAr.professionWizardSuccess)),
+          SnackBar(content: Text(AppStrings.professionWizardSuccess)),
         );
         Navigator.pop(context, true);
       },
@@ -131,7 +131,7 @@ class _ProfessionCreationWizardPageState
     final scheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.professionWizardTitle),
+      appBar: QaydAppBar(title: AppStrings.professionWizardTitle),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -149,20 +149,20 @@ class _ProfessionCreationWizardPageState
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.work_outline_rounded,
+                  Icon(Icons.work_outline_rounded,
                       size: 36, color: ColorTokens.debitBlue),
-                  const SizedBox(width: SpacingTokens.md),
+                  SizedBox(width: SpacingTokens.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         QaydText(
-                          AppStringsAr.professionWizardTitle,
+                          AppStrings.professionWizardTitle,
                           slot: QaydTextStyleSlot.titleMedium,
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
-                          AppStringsAr.professionWizardDesc,
+                          AppStrings.professionWizardDesc,
                           style: TextStyle(
                             fontSize: 11,
                             color: scheme.onSurfaceVariant,
@@ -175,86 +175,86 @@ class _ProfessionCreationWizardPageState
               ),
             ),
 
-            const SizedBox(height: SpacingTokens.xl),
+            SizedBox(height: SpacingTokens.xl),
 
             QaydTextField(
               controller: _nameController,
-              label: AppStringsAr.professionAccountNameLabel,
-              hint: AppStringsAr.professionAccountNameHint,
+              label: AppStrings.professionAccountNameLabel,
+              hint: AppStrings.professionAccountNameHint,
               validator: (v) => (v == null || v.trim().isEmpty)
-                  ? AppStringsAr.professionAccountNameRequired
+                  ? AppStrings.professionAccountNameRequired
                   : null,
             ),
 
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             QaydTextField(
               controller: _professionNameController,
-              label: AppStringsAr.professionNameLabel,
-              hint: AppStringsAr.professionNameHint,
+              label: AppStrings.professionNameLabel,
+              hint: AppStrings.professionNameHint,
               validator: (v) => (v == null || v.trim().isEmpty)
-                  ? AppStringsAr.professionNameRequired
+                  ? AppStrings.professionNameRequired
                   : null,
             ),
 
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             QaydTextField(
               controller: _licenseController,
-              label: AppStringsAr.professionLicenseLabel,
-              hint: AppStringsAr.professionLicenseHint,
+              label: AppStrings.professionLicenseLabel,
+              hint: AppStrings.professionLicenseHint,
             ),
 
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             QaydAmountField(
               controller: _hourlyRateController,
-              label: AppStringsAr.professionHourlyRateLabel,
+              label: AppStrings.professionHourlyRateLabel,
             ),
 
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             // Start date
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: QaydText(
-                AppStringsAr.professionStartDateLabel,
+                AppStrings.professionStartDateLabel,
                 slot: QaydTextStyleSlot.labelLarge,
                 color: scheme.onSurfaceVariant,
               ),
               subtitle: QaydText(
                 _startDate != null
                     ? '${_startDate!.year}-${_startDate!.month.toString().padLeft(2, '0')}-${_startDate!.day.toString().padLeft(2, '0')}'
-                    : AppStringsAr.professionStartDateHint,
+                    : AppStrings.professionStartDateHint,
                 slot: QaydTextStyleSlot.bodyLarge,
               ),
               trailing: Icon(Icons.calendar_month_rounded, color: gold),
               onTap: _pickStartDate,
             ),
 
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             QaydTextField(
               controller: _notesController,
-              label: AppStringsAr.professionNotesLabel,
-              hint: AppStringsAr.professionNotesHint,
+              label: AppStrings.professionNotesLabel,
+              hint: AppStrings.professionNotesHint,
               maxLines: 2,
             ),
 
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
 
             QaydText(
-              AppStringsAr.defaultCostCentersTitle,
+              AppStrings.defaultCostCentersTitle,
               slot: QaydTextStyleSlot.titleMedium,
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             CostCenterTagSelector(
               initialTags: _costCenterTags,
               onChanged: (tags) => setState(() => _costCenterTags = tags),
-              label: AppStringsAr.professionAddCostCenter,
+              label: AppStrings.professionAddCostCenter,
             ),
 
-            const SizedBox(height: SpacingTokens.xxl),
+            SizedBox(height: SpacingTokens.xxl),
 
             FilledButton(
               onPressed: _isSubmitting ? null : _submit,
@@ -270,17 +270,17 @@ class _ProfessionCreationWizardPageState
                   ? const CircularProgressIndicator(
                       color: Colors.black, strokeWidth: 2)
                   : Text(
-                      AppStringsAr.professionSubmitButton,
-                      style: const TextStyle(
+                      AppStrings.professionSubmitButton,
+                      style:  TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
                     ),
             ),
 
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             QaydText(
-              AppStringsAr.professionSubmitNote,
+              AppStrings.professionSubmitNote,
               slot: QaydTextStyleSlot.labelSmall,
               color: scheme.onSurfaceVariant,
               textAlign: TextAlign.center,

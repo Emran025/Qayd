@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/governance/governance_ui_state.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -55,22 +55,22 @@ class TrialExpiredPage extends StatelessWidget {
                           color: ColorTokens.warningAmber,
                         ),
                       ),
-                      const SizedBox(height: SpacingTokens.xl),
+                      SizedBox(height: SpacingTokens.xl),
                       QaydText(
-                        AppStringsAr.vaultTrialExpiredTitle,
+                        AppStrings.vaultTrialExpiredTitle,
                         slot: QaydTextStyleSlot.displaySmall,
                         textAlign: TextAlign.center,
                         color: scheme.onSurface,
                       ),
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       QaydText(
                         state.statusMessage ??
-                            AppStringsAr.vaultTrialExpiredBody,
+                            AppStrings.vaultTrialExpiredBody,
                         slot: QaydTextStyleSlot.bodyMedium,
                         textAlign: TextAlign.center,
                         color: scheme.onSurfaceVariant,
                       ),
-                      const SizedBox(height: SpacingTokens.xxl),
+                      SizedBox(height: SpacingTokens.xxl),
 
                       // Payment Section
                       Container(
@@ -85,12 +85,12 @@ class TrialExpiredPage extends StatelessWidget {
                         child: Column(
                           children: [
                             QaydText(
-                              AppStringsAr.governancePaymentInstruction,
+                              AppStrings.governancePaymentInstruction,
                               slot: QaydTextStyleSlot.labelLarge,
                               color: scheme.onSurface,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 vertical: SpacingTokens.md,
@@ -105,7 +105,7 @@ class TrialExpiredPage extends StatelessWidget {
                                 children: [
                                   Icon(Icons.account_balance_wallet,
                                       color: gold, size: 20),
-                                  const SizedBox(width: SpacingTokens.md),
+                                  SizedBox(width: SpacingTokens.md),
                                   SelectableText(
                                     account,
                                     style: TextStyle(
@@ -118,9 +118,9 @@ class TrialExpiredPage extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             QaydText(
-                              AppStringsAr.governanceContactAdmin,
+                              AppStrings.governanceContactAdmin,
                               slot: QaydTextStyleSlot.bodySmall,
                               color: scheme.onSurfaceVariant,
                               textAlign: TextAlign.center,
@@ -129,7 +129,7 @@ class TrialExpiredPage extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: SpacingTokens.xxl),
+                      SizedBox(height: SpacingTokens.xxl),
 
                       SizedBox(
                         width: double.infinity,
@@ -140,13 +140,13 @@ class TrialExpiredPage extends StatelessWidget {
                                   .read<GovernanceCubit>()
                                   .verifyRemoteStatus(),
                           icon: state.refreshInFlight
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                       strokeWidth: 2, color: Colors.white))
-                              : const Icon(Icons.refresh_rounded),
-                          label: Text(AppStringsAr.governanceRecheckAction),
+                              : Icon(Icons.refresh_rounded),
+                          label: Text(AppStrings.governanceRecheckAction),
                           style: FilledButton.styleFrom(
                             backgroundColor: gold,
                             foregroundColor: ColorTokens.navy950,
@@ -155,11 +155,11 @@ class TrialExpiredPage extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       TextButton(
                         onPressed: () => Navigator.of(context).pushReplacementNamed(
                             '/activation'), // Link back to activation if they have a key
-                        child: Text(AppStringsAr.backToLogin,
+                        child: Text(AppStrings.backToLogin,
                             style: TextStyle(color: scheme.onSurfaceVariant)),
                       ),
                     ],

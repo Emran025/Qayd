@@ -7,7 +7,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/sync_privacy_policy.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/core/result/result.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// State for the sync privacy settings UI.
@@ -127,7 +127,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
     } catch (e) {
       _emit(_state.copyWith(
         isLoading: false,
-        error: AppStringsAr.unableToLoadPrivacy,
+        error: AppStrings.unableToLoadPrivacy,
       ));
     }
   }
@@ -188,7 +188,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       _emit(_state.copyWith(
         policy: policy,
         isUpdating: false,
-        successMessage: AppStringsAr.privacyPolicyHasBeen,
+        successMessage: AppStrings.privacyPolicyHasBeen,
       ));
     } on AuthException catch (e) {
       _emit(_state.copyWith(
@@ -198,7 +198,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
     } catch (e) {
       _emit(_state.copyWith(
         isUpdating: false,
-        error: AppStringsAr.thePrivacyPolicyCould,
+        error: AppStrings.thePrivacyPolicyCould,
       ));
     }
   }
@@ -302,7 +302,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       var freshPolicy = await _identityRepo.getSyncPolicy();
       freshPolicy = await _resolveLocalNames(freshPolicy);
 
-      String successMsg = AppStringsAr.theListHasBeen;
+      String successMsg = AppStrings.theListHasBeen;
       if (skippedNoPhone > 0) {
         successMsg += ' (تم تخطي $skippedNoPhone حساب لعدم وجود رقم هاتف)';
       }
@@ -315,18 +315,18 @@ class SyncPrivacyCubit extends ChangeNotifier {
     } on AuthException catch (e) {
       _emit(_state.copyWith(isUpdating: false, error: e.message));
     } on DioException catch (e) {
-      String errorMsg = AppStringsAr.couldNotUpdateThe;
+      String errorMsg = AppStrings.couldNotUpdateThe;
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.toString().contains('SocketException')) {
-        errorMsg = AppStringsAr.internetConnectionFailedPlease;
+        errorMsg = AppStrings.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(isUpdating: false, error: errorMsg));
     } catch (e) {
-      String errorMsg = AppStringsAr.couldNotUpdateThe;
+      String errorMsg = AppStrings.couldNotUpdateThe;
       if (e.toString().contains('SocketException') ||
           e.toString().contains('connection')) {
-        errorMsg = AppStringsAr.internetConnectionFailedPlease;
+        errorMsg = AppStrings.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(isUpdating: false, error: errorMsg));
     }
@@ -350,7 +350,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       _emit(_state.copyWith(
         policy: policy,
         isUpdating: false,
-        successMessage: AppStringsAr.theUserHasBeen,
+        successMessage: AppStrings.theUserHasBeen,
       ));
     } on AuthException catch (e) {
       _emit(_state.copyWith(
@@ -358,21 +358,21 @@ class SyncPrivacyCubit extends ChangeNotifier {
         error: e.message,
       ));
     } on DioException catch (e) {
-      String errorMsg = AppStringsAr.theUserCouldNot;
+      String errorMsg = AppStrings.theUserCouldNot;
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.toString().contains('SocketException')) {
-        errorMsg = AppStringsAr.internetConnectionFailedPlease;
+        errorMsg = AppStrings.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,
         error: errorMsg,
       ));
     } catch (e) {
-      String errorMsg = AppStringsAr.theUserCouldNot;
+      String errorMsg = AppStrings.theUserCouldNot;
       if (e.toString().contains('SocketException') ||
           e.toString().contains('connection')) {
-        errorMsg = AppStringsAr.internetConnectionFailedPlease;
+        errorMsg = AppStrings.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,
@@ -410,7 +410,7 @@ class SyncPrivacyCubit extends ChangeNotifier {
       _emit(_state.copyWith(
         policy: policy,
         isUpdating: false,
-        successMessage: AppStringsAr.theUserHasBeen1,
+        successMessage: AppStrings.theUserHasBeen1,
       ));
     } on AuthException catch (e) {
       _emit(_state.copyWith(
@@ -418,21 +418,21 @@ class SyncPrivacyCubit extends ChangeNotifier {
         error: e.message,
       ));
     } on DioException catch (e) {
-      String errorMsg = AppStringsAr.unableToDeleteUser;
+      String errorMsg = AppStrings.unableToDeleteUser;
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.toString().contains('SocketException')) {
-        errorMsg = AppStringsAr.internetConnectionFailedPlease;
+        errorMsg = AppStrings.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,
         error: errorMsg,
       ));
     } catch (e) {
-      String errorMsg = AppStringsAr.unableToDeleteUser;
+      String errorMsg = AppStrings.unableToDeleteUser;
       if (e.toString().contains('SocketException') ||
           e.toString().contains('connection')) {
-        errorMsg = AppStringsAr.internetConnectionFailedPlease;
+        errorMsg = AppStrings.internetConnectionFailedPlease;
       }
       _emit(_state.copyWith(
         isUpdating: false,

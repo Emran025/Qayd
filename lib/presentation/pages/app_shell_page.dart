@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/accounts/account_list_page.dart';
 import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
@@ -158,31 +158,31 @@ class _AppShellPageState extends State<AppShellPage> {
         },
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.receipt_long_outlined),
+            icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long_rounded, color: gold),
-            label: AppStringsAr.navVouchersTab,
+            label: AppStrings.navVouchersTab,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.swap_horiz_outlined),
+            icon: Icon(Icons.swap_horiz_outlined),
             selectedIcon:
                 Icon(Icons.swap_horizontal_circle_rounded, color: gold),
-            label: AppStringsAr.navTripartiteTab,
+            label: AppStrings.navTripartiteTab,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.account_balance_wallet_outlined),
+            icon: Icon(Icons.account_balance_wallet_outlined),
             selectedIcon:
                 Icon(Icons.account_balance_wallet_rounded, color: gold),
-            label: AppStringsAr.navAccountsTab,
+            label: AppStrings.navAccountsTab,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.table_chart_outlined),
+            icon: Icon(Icons.table_chart_outlined),
             selectedIcon: Icon(Icons.table_chart_rounded, color: gold),
-            label: AppStringsAr.navReportsTab,
+            label: AppStrings.navReportsTab,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.business_center_outlined),
+            icon: Icon(Icons.business_center_outlined),
             selectedIcon: Icon(Icons.business_center_rounded, color: gold),
-            label: AppStringsAr.navManagementTab,
+            label: AppStrings.navManagementTab,
           ),
         ],
       ),
@@ -197,11 +197,11 @@ class _AppShellPageState extends State<AppShellPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
-            const Icon(Icons.restore_rounded, color: Colors.white),
-            const SizedBox(width: 12),
-            const Expanded(
+            Icon(Icons.restore_rounded, color: Colors.white),
+            SizedBox(width: 12),
+             Expanded(
               child: Text(
-                AppStringsAr.weFoundALocal,
+                AppStrings.weFoundALocal,
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -210,13 +210,13 @@ class _AppShellPageState extends State<AppShellPage> {
             ),
             TextButton(
               onPressed: _navigateToRestore,
-              child: const Text(AppStringsAr.restoreNow,
+              child: Text(AppStrings.restoreNow,
                   style: TextStyle(
                       color: Colors.white,
                       decoration: TextDecoration.underline)),
             ),
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white, size: 18),
+              icon: Icon(Icons.close, color: Colors.white, size: 18),
               onPressed: () => setState(() => _showRestorePrompt = false),
             ),
           ],
@@ -233,11 +233,11 @@ class _AppShellPageState extends State<AppShellPage> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
-            const Icon(Icons.lock_reset_rounded, color: ColorTokens.navy950),
-            const SizedBox(width: 12),
-            const Expanded(
+            Icon(Icons.lock_reset_rounded, color: ColorTokens.navy950),
+            SizedBox(width: 12),
+             Expanded(
               child: Text(
-                AppStringsAr.someDataCannotBe,
+                AppStrings.someDataCannotBe,
                 style: TextStyle(
                     color: ColorTokens.navy950,
                     fontWeight: FontWeight.bold,
@@ -246,14 +246,14 @@ class _AppShellPageState extends State<AppShellPage> {
             ),
             TextButton(
               onPressed: _navigateToRestore,
-              child: const Text(AppStringsAr.restoration,
+              child: Text(AppStrings.restoration,
                   style: TextStyle(
                       color: ColorTokens.navy950,
                       decoration: TextDecoration.underline)),
             ),
             IconButton(
               icon:
-                  const Icon(Icons.close, color: ColorTokens.navy950, size: 18),
+                  Icon(Icons.close, color: ColorTokens.navy950, size: 18),
               onPressed: () => InjectionContainer.syncStatusCubit.reset(),
             ),
           ],

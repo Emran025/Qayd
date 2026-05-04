@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/governance/governance_ui_state.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/app_shell_page.dart';
 import 'package:qayd/presentation/pages/governance/activation_page.dart';
 import 'package:qayd/presentation/pages/governance/trial_expired_page.dart';
@@ -47,10 +47,10 @@ class GovernanceHostPage extends StatelessWidget {
                             Icons.lock_clock_rounded,
                             color: ColorTokens.navy950,
                           ),
-                          const SizedBox(width: SpacingTokens.sm),
+                          SizedBox(width: SpacingTokens.sm),
                           Expanded(
                             child: QaydText(
-                              AppStringsAr.governanceSuspendedBanner,
+                              AppStrings.governanceSuspendedBanner,
                               slot: QaydTextStyleSlot.bodyMedium,
                               color: ColorTokens.navy950,
                             ),
@@ -60,7 +60,7 @@ class GovernanceHostPage extends StatelessWidget {
                                 .read<GovernanceCubit>()
                                 .verifyRemoteStatus(),
                             child: QaydText(
-                              AppStringsAr.governanceRecheckAction,
+                              AppStrings.governanceRecheckAction,
                               slot: QaydTextStyleSlot.labelLarge,
                               color: ColorTokens.navy950,
                             ),

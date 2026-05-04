@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/domain/value_objects/income_source_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -95,7 +95,7 @@ class IncomeStreamCard extends StatelessWidget {
                         child: Icon(typeInfo.icon,
                             color: typeInfo.color, size: 22),
                       ),
-                      const SizedBox(width: SpacingTokens.sm),
+                      SizedBox(width: SpacingTokens.sm),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,7 +108,7 @@ class IncomeStreamCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
@@ -138,9 +138,9 @@ class IncomeStreamCard extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
                   const Divider(height: 1),
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
 
                   // KPI Row
                   Row(
@@ -152,17 +152,17 @@ class IncomeStreamCard extends StatelessWidget {
                             ? ColorTokens.emerald500
                             : ColorTokens.warningAmber,
                       ),
-                      const SizedBox(width: SpacingTokens.sm),
+                      SizedBox(width: SpacingTokens.sm),
                       if (metadata['purchase_price'] != null)
                         _KpiChip(
-                          label: AppStringsAr.incomeStreamAcquisitionValue,
+                          label: AppStrings.incomeStreamAcquisitionValue,
                           value:
                               '${(metadata['purchase_price'] as num).toStringAsFixed(0)} $purchaseCurrency',
                           color: scheme.onSurfaceVariant,
                         ),
                       if (metadata['profession_name'] != null)
                         _KpiChip(
-                          label: AppStringsAr.incomeStreamProfessionField,
+                          label: AppStrings.incomeStreamProfessionField,
                           value: metadata['profession_name'] as String,
                           color: ColorTokens.debitBlue,
                         ),
@@ -171,7 +171,7 @@ class IncomeStreamCard extends StatelessWidget {
 
                   // Secondary metadata row
                   if (_hasSecondaryInfo(metadata)) ...[
-                    const SizedBox(height: SpacingTokens.xs),
+                    SizedBox(height: SpacingTokens.xs),
                     Wrap(
                       spacing: SpacingTokens.md,
                       runSpacing: 2,
@@ -186,7 +186,7 @@ class IncomeStreamCard extends StatelessWidget {
                           _MetaLabel(
                             icon: Icons.timer_outlined,
                             text:
-                                '${(metadata['hourly_rateAppStringsAr.asNumtostringasfixed0Hour'])}'
+                                '${(metadata['hourly_rateAppStrings.asNumtostringasfixed0Hour'])}'
                           ),
                         if (metadata['license_number'] != null &&
                             (metadata['license_number'] as String).isNotEmpty)
@@ -220,11 +220,11 @@ class IncomeStreamCard extends StatelessWidget {
 
   String _balanceLabel(IncomeSourceType? type) {
     return switch (type) {
-      IncomeSourceType.investmentAsset => AppStringsAr.incomeStreamTotalYield,
-      IncomeSourceType.profession => AppStringsAr.incomeStreamTotalEarned,
-      IncomeSourceType.possession => AppStringsAr.incomeStreamCurrentValue,
-      IncomeSourceType.other => AppStringsAr.incomeStreamTotalEarned,
-      null => AppStringsAr.incomeStreamBalance,
+      IncomeSourceType.investmentAsset => AppStrings.incomeStreamTotalYield,
+      IncomeSourceType.profession => AppStrings.incomeStreamTotalEarned,
+      IncomeSourceType.possession => AppStrings.incomeStreamCurrentValue,
+      IncomeSourceType.other => AppStrings.incomeStreamTotalEarned,
+      null => AppStrings.incomeStreamBalance,
     };
   }
 
@@ -234,22 +234,22 @@ class IncomeStreamCard extends StatelessWidget {
       IncomeSourceType.investmentAsset => _TypeInfo(
           icon: Icons.account_balance_rounded,
           color: ColorTokens.emerald500,
-          label: AppStringsAr.incomeSourceInvestmentAsset,
+          label: AppStrings.incomeSourceInvestmentAsset,
         ),
       IncomeSourceType.profession => _TypeInfo(
           icon: Icons.work_outline_rounded,
           color: ColorTokens.debitBlue,
-          label: AppStringsAr.incomeSourceProfession,
+          label: AppStrings.incomeSourceProfession,
         ),
       IncomeSourceType.other => _TypeInfo(
           icon: Icons.monetization_on_outlined,
           color: ColorTokens.warningAmber,
-          label: AppStringsAr.incomeSourceOther,
+          label: AppStrings.incomeSourceOther,
         ),
       IncomeSourceType.possession => _TypeInfo(
           icon: Icons.inventory_2_outlined,
           color: ColorTokens.slate400,
-          label: AppStringsAr.incomeSourcePossession,
+          label: AppStrings.incomeSourcePossession,
         ),
       null => _TypeInfo(
           icon: _fallbackIcon(account.standardClassificationKind),
@@ -276,8 +276,8 @@ class IncomeStreamCard extends StatelessWidget {
       };
 
   String _fallbackLabel(String? kind) => switch (kind) {
-        'personalExpenses' => AppStringsAr.incomeStreamExpenseCategory,
-        'personalRevenues' => AppStringsAr.incomeSourceOther,
+        'personalExpenses' => AppStrings.incomeStreamExpenseCategory,
+        'personalRevenues' => AppStrings.incomeSourceOther,
         _ => '',
       };
 }
@@ -321,7 +321,7 @@ class _KpiChip extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             value,
             style: TextStyle(
@@ -349,7 +349,7 @@ class _MetaLabel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 12, color: Colors.white54),
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
         Text(
           text,
           style: const TextStyle(fontSize: 10, color: Colors.white70),

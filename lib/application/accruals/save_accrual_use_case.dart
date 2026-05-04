@@ -3,7 +3,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/repositories/accrual_repository.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SaveAccrualUseCase {
@@ -44,8 +44,8 @@ final class SaveAccrualUseCase {
     );
 
     if (component.name.isEmpty) {
-      return const FailureResult(
-          ValidationFailure(messageAr: AppStringsAr.pleaseEnterACommit));
+      return  FailureResult(
+          ValidationFailure(messageAr: AppStrings.pleaseEnterACommit));
     }
 
     final result = await _repository.save(component);

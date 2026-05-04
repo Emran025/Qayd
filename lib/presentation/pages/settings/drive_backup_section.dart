@@ -4,7 +4,7 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/backup/google_drive_backup_service.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -83,11 +83,11 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
     final confirmed = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.logout_rounded,
-      title: AppStringsAr.driveBackupSignOutTitle,
-      content: AppStringsAr.driveBackupSignOutBody,
-      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      title: AppStrings.driveBackupSignOutTitle,
+      content: AppStrings.driveBackupSignOutBody,
+      secondaryActionLabel: AppStrings.templateEditCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.settingsProceed,
+      primaryActionLabel: AppStrings.settingsProceed,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (confirmed != true || !mounted) return;
@@ -128,7 +128,7 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppStringsAr.driveBackupUploadSuccess),
+          content: Text(AppStrings.driveBackupUploadSuccess),
         ),
       );
     }
@@ -162,21 +162,21 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
     final confirmed = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.cloud_download_outlined,
-      title: AppStringsAr.driveBackupRestoreTitle,
+      title: AppStrings.driveBackupRestoreTitle,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            AppStringsAr.driveBackupRestoreBody,
+            AppStrings.driveBackupRestoreBody,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
           ),
           if (info.lastModified != null) ...[
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             Text(
-              '${AppStringsAr.driveBackupLastDate}: '
+              '${AppStrings.driveBackupLastDate}: '
               '${DateFormat('yyyy/MM/dd – HH:mm').format(info.lastModified!)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.primary,
@@ -186,9 +186,9 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
           ],
         ],
       ),
-      secondaryActionLabel: AppStringsAr.templateEditCancel,
+      secondaryActionLabel: AppStrings.templateEditCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.settingsRestoreConfirm,
+      primaryActionLabel: AppStrings.settingsRestoreConfirm,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
     if (confirmed != true || !mounted) return;
@@ -197,7 +197,7 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
+      builder: (_) => Center(
         child: Card(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -241,7 +241,7 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
     } catch (e) {
       rResult = FailureResult(
         FileSystemFailure(
-          messageAr: '${AppStringsAr.settingsRestoreError}$e',
+          messageAr: '${AppStrings.settingsRestoreError}$e',
         ),
       );
     } finally {
@@ -257,7 +257,7 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.settingsRestoreDone)),
+        SnackBar(content: Text(AppStrings.settingsRestoreDone)),
       );
     }
   }
@@ -265,14 +265,14 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
   // ── Build ─────────────────────────────────────────────────────────────────
 
   String get _lastBackupLabel {
-    if (_lastBackup == null) return AppStringsAr.autoBackupNever;
+    if (_lastBackup == null) return AppStrings.autoBackupNever;
     return DateFormat('yyyy/MM/dd – HH:mm').format(_lastBackup!);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(SpacingTokens.md),
         child: Center(child: CircularProgressIndicator()),
       );
@@ -283,42 +283,42 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
       children: [
         // Drive toggle.
         SwitchListTile(
-          secondary: const Icon(Icons.add_to_drive_outlined),
-          title: Text(AppStringsAr.driveBackupToggleTitle),
-          subtitle: Text(AppStringsAr.driveBackupToggleSubtitle),
+          secondary: Icon(Icons.add_to_drive_outlined),
+          title: Text(AppStrings.driveBackupToggleTitle),
+          subtitle: Text(AppStrings.driveBackupToggleSubtitle),
           value: _enabled,
           onChanged: _working ? null : _toggleEnabled,
         ),
 
         // Account info.
         ListTile(
-          leading: const Icon(Icons.account_circle_outlined),
-          title: Text(AppStringsAr.driveBackupAccountLabel),
-          subtitle: Text(_accountEmail ?? AppStringsAr.driveBackupNoAccount),
+          leading: Icon(Icons.account_circle_outlined),
+          title: Text(AppStrings.driveBackupAccountLabel),
+          subtitle: Text(_accountEmail ?? AppStrings.driveBackupNoAccount),
           trailing: _accountEmail != null
               ? TextButton(
                   onPressed: _working ? null : _signOut,
-                  child: Text(AppStringsAr.driveBackupSignOut),
+                  child: Text(AppStrings.driveBackupSignOut),
                 )
               : TextButton(
                   onPressed: _working ? null : _signIn,
-                  child: Text(AppStringsAr.driveBackupSignIn),
+                  child: Text(AppStrings.driveBackupSignIn),
                 ),
         ),
 
         // Last backup.
         ListTile(
-          leading: const Icon(Icons.history_outlined),
-          title: Text(AppStringsAr.driveBackupLastDate),
+          leading: Icon(Icons.history_outlined),
+          title: Text(AppStrings.driveBackupLastDate),
           subtitle: Text(_lastBackupLabel),
           dense: true,
         ),
 
         // Frequency.
         ListTile(
-          leading: const Icon(Icons.schedule_outlined),
-          title: Text(AppStringsAr.driveBackupFrequencyLabel),
-          subtitle: Text(AppStringsAr.driveBackupFrequencyDaily),
+          leading: Icon(Icons.schedule_outlined),
+          title: Text(AppStrings.driveBackupFrequencyLabel),
+          subtitle: Text(AppStrings.driveBackupFrequencyDaily),
         ),
 
         // Action buttons.
@@ -334,17 +334,17 @@ class _DriveBackupSectionState extends State<DriveBackupSection> {
               FilledButton.tonal(
                 onPressed: _working ? null : _backupNow,
                 child: _working
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Text(AppStringsAr.driveBackupNow),
+                    : Text(AppStrings.driveBackupNow),
               ),
               OutlinedButton.icon(
                 onPressed: _working ? null : _restoreFromDrive,
-                icon: const Icon(Icons.cloud_download_outlined, size: 18),
-                label: Text(AppStringsAr.driveBackupRestoreAction),
+                icon: Icon(Icons.cloud_download_outlined, size: 18),
+                label: Text(AppStrings.driveBackupRestoreAction),
               ),
             ],
           ),

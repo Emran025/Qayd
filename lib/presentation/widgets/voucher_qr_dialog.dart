@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -27,10 +27,10 @@ class VoucherQrDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             QaydText(
-              AppStringsAr.qrCodeDisplayTitle,
+              AppStrings.qrCodeDisplayTitle,
               slot: QaydTextStyleSlot.titleMedium,
             ),
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -50,26 +50,26 @@ class VoucherQrDialog extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             QaydText(
               amountLabel,
               slot: QaydTextStyleSlot.titleLarge,
               color: const Color(0xFF38BDF8),
             ),
             if (voucherDescription.isNotEmpty) ...[
-              const SizedBox(height: SpacingTokens.xs),
+              SizedBox(height: SpacingTokens.xs),
               QaydText(
                 voucherDescription,
                 slot: QaydTextStyleSlot.bodyMedium,
                 textAlign: TextAlign.center,
               ),
             ],
-            const SizedBox(height: SpacingTokens.xl),
+            SizedBox(height: SpacingTokens.xl),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(AppStringsAr.qrCloseAction),
+                child: Text(AppStrings.qrCloseAction),
               ),
             ),
           ],

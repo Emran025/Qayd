@@ -7,7 +7,7 @@ import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/notification_message.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 sealed class ConflictResolutionState {
@@ -61,8 +61,8 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
     emit(ConflictResolutionLoading());
     try {
       if (notification.rawPayloadJson == null) {
-        emit(const ConflictResolutionFailure(
-          ValidationFailure(messageAr: AppStringsAr.missingBondInformationIn),
+        emit( ConflictResolutionFailure(
+          ValidationFailure(messageAr: AppStrings.missingBondInformationIn),
         ));
         return;
       }
@@ -83,8 +83,8 @@ class ConflictResolutionCubit extends Cubit<ConflictResolutionState> {
         )),
       );
     } catch (_) {
-      emit(const ConflictResolutionFailure(
-        DatabaseFailure(messageAr: AppStringsAr.unableToLoadComparison),
+      emit( ConflictResolutionFailure(
+        DatabaseFailure(messageAr: AppStrings.unableToLoadComparison),
       ));
     }
   }

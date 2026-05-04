@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -47,7 +47,7 @@ class InternalVoucherTile extends StatelessWidget {
                     foregroundColor: iconFg,
                     child: Icon(icon, size: 22),
                   ),
-                  const SizedBox(width: SpacingTokens.md),
+                  SizedBox(width: SpacingTokens.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +56,7 @@ class InternalVoucherTile extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             QaydText(
-                              isReceipt ? AppStringsAr.internalVoucherReceiptLabel : AppStringsAr.internalVoucherPaymentLabel,
+                              isReceipt ? AppStrings.internalVoucherReceiptLabel : AppStrings.internalVoucherPaymentLabel,
                               slot: QaydTextStyleSlot.labelLarge,
                               color: scheme.onSurfaceVariant,
                             ),
@@ -67,7 +67,7 @@ class InternalVoucherTile extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         QaydText(
                           dto.counterpartyName,
                           slot: QaydTextStyleSlot.titleMedium,
@@ -86,7 +86,7 @@ class InternalVoucherTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: SpacingTokens.md),
+                  SizedBox(width: SpacingTokens.md),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [

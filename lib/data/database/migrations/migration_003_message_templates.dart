@@ -52,8 +52,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_receipt',
   'receipt',
-  AppStringsAr.catchDefaultTemplate,
-  AppStringsAr.dearCustomernweWouldLike1,
+  AppStrings.catchDefaultTemplate,
+  AppStrings.dearCustomernweWouldLike1,
   1,
   0,
   '$t',
@@ -66,8 +66,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_payment',
   'payment',
-  AppStringsAr.exchangeDefaultTemplate,
-  AppStringsAr.dearCustomernweWouldLike,
+  AppStrings.exchangeDefaultTemplate,
+  AppStrings.dearCustomernweWouldLike,
   1,
   0,
   '$t',
@@ -80,8 +80,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_account',
   'account_balance',
-  AppStringsAr.accountBalanceDefaultTemplate,
-  AppStringsAr.accountDetailsAccountnamencurrentBalance,
+  AppStrings.accountBalanceDefaultTemplate,
+  AppStrings.accountDetailsAccountnamencurrentBalance,
   1,
   0,
   '$t',

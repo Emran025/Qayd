@@ -10,7 +10,7 @@ import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/core/utils/text_sanitizer.dart';
 import 'package:uuid/uuid.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Centralizes the encryption and enqueuing of financial mutations into the Local Outbox.
@@ -125,15 +125,15 @@ class SyncEventDispatcher {
   }) async {
     try {
       final senderKeyPair = await getCurrentUserKeyPair();
-      if (senderKeyPair == null) return const Success(null);
+      if (senderKeyPair == null) return  Success(null);
 
       // 1. Resolve counterparty public key.
       final partyResult = await accountRepository
           .getPartyDetails(AccountId(counterpartyAccountId));
       final party = partyResult.valueOrNull;
       if (party == null) {
-        return const FailureResult(ValidationFailure(
-            messageAr: AppStringsAr.noCounterpartyDataFound));
+        return  FailureResult(ValidationFailure(
+            messageAr: AppStrings.noCounterpartyDataFound));
       }
 
       String? receiverPubKey = party.currentPublicKeyHex;
@@ -152,8 +152,8 @@ class SyncEventDispatcher {
 
         // §6: Sync Privacy Policy — check if target has restricted access.
         if (serverIdentity != null && serverIdentity.syncBlocked) {
-          return const FailureResult(ValidationFailure(
-            messageAr: AppStringsAr.theCounterpartyHasRestricted,
+          return  FailureResult(ValidationFailure(
+            messageAr: AppStrings.theCounterpartyHasRestricted,
           ));
         }
 
@@ -171,9 +171,9 @@ class SyncEventDispatcher {
         // ── Queue Suspension ──────────────────────────────────────────────────
         // If we cannot find a public key, we cannot encrypt.
         // Synchronous flows must stop here to prevent "Plaintext Leakage".
-        return const FailureResult(ValidationFailure(
+        return  FailureResult(ValidationFailure(
           messageAr:
-              AppStringsAr.theCounterpartysPublicKey,
+              AppStrings.theCounterpartysPublicKey,
         ));
       }
 

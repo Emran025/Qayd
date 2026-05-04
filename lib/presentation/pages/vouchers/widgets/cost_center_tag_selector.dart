@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
@@ -58,7 +58,7 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
     if (centers.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(AppStringsAr.costCenterNoCentersAvailable)));
+      ).showSnackBar(SnackBar(content: Text(AppStrings.costCenterNoCentersAvailable)));
       return;
     }
     final available = centers
@@ -69,7 +69,7 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppStringsAr.costCenterAllAddedAllAvailable),
+            content: Text(AppStrings.costCenterAllAddedAllAvailable),
           ),
         );
       }
@@ -104,13 +104,13 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             QaydText(
-              widget.label ?? AppStringsAr.costCenterTagsLabel,
+              widget.label ?? AppStrings.costCenterTagsLabel,
               slot: QaydTextStyleSlot.labelLarge,
             ),
             TextButton.icon(
               onPressed: _addCostCenter,
-              icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-              label: Text(AppStringsAr.actionAdd),
+              icon: Icon(Icons.add_circle_outline_rounded, size: 18),
+              label: Text(AppStrings.actionAdd),
             ),
           ],
         ),
@@ -118,7 +118,7 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
             child: Text(
-              AppStringsAr.costCenterNoneLinked,
+              AppStrings.costCenterNoneLinked,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(
                   alpha: 0.6,
@@ -143,7 +143,7 @@ class _CostCenterTagSelectorState extends State<CostCenterTagSelector> {
                       setState(() => _selectedTags.remove(tag));
                       _notify();
                     },
-                    deleteIcon: const Icon(Icons.close_rounded, size: 14),
+                    deleteIcon: Icon(Icons.close_rounded, size: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(RadiusTokens.md),
                     ),

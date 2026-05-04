@@ -11,7 +11,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
 import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
 import 'package:qayd/presentation/security/security_state.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Unified security cubit.
@@ -205,7 +205,7 @@ class SecurityCubit extends Cubit<SecurityState> {
 
       return (success: true, errorAr: null);
     } catch (e) {
-      return (success: false, errorAr: AppStringsAr.failedToUpdateLicense);
+      return (success: false, errorAr: AppStrings.failedToUpdateLicense);
     }
   }
 
@@ -333,7 +333,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     } catch (e, stack) {
       debugPrint('Provisioning Error: $e\n$stack');
       return ProvisioningResult.failure(
-        AppStringsAr.anUnexpectedErrorOccurred1,
+        AppStrings.anUnexpectedErrorOccurred1,
       );
     }
   }
@@ -362,7 +362,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     } catch (e, stack) {
       debugPrint('Registration Error: $e\n$stack');
       return ProvisioningResult.failure(
-        AppStringsAr.anUnexpectedErrorOccurred2,
+        AppStrings.anUnexpectedErrorOccurred2,
       );
     }
   }
@@ -462,7 +462,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     } catch (e, stack) {
       debugPrint('Post-Auth Processing Error: $e\n$stack');
       return ProvisioningResult.failure(
-        AppStringsAr.anErrorOccurredWhile,
+        AppStrings.anErrorOccurredWhile,
       );
     }
   }
@@ -536,8 +536,9 @@ class SecurityCubit extends Cubit<SecurityState> {
     final oldData = await _licenseVault.readLicenseData() ?? {};
     final retainedData = <String, dynamic>{};
     if (oldData.containsKey('id')) retainedData['id'] = oldData['id'];
-    if (oldData.containsKey('public_key'))
+    if (oldData.containsKey('public_key')) {
       retainedData['public_key'] = oldData['public_key'];
+    }
 
     await _licenseVault.writeJwt('');
     await _licenseVault.writeLicenseData(retainedData);

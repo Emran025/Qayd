@@ -4,7 +4,7 @@ import 'package:qayd/application/accounts/dtos/batch_import_accounts_output.dart
 import 'package:qayd/application/accounts/dtos/create_account_input.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Creates root accounts from parsed CSV rows using [CreateAccountUseCase].
@@ -51,10 +51,10 @@ final class BatchImportAccountsFromCsvUseCase {
   ) {
     final h = row.natureHint?.trim().toLowerCase();
     if (h == null || h.isEmpty) return defaultKind;
-    if (h == AppStringsAr.creditor || h == 'debit' || h == 'dr' || h == 'd' || h == AppStringsAr.myCity) {
+    if (h == AppStrings.creditor || h == 'debit' || h == 'dr' || h == 'd' || h == AppStrings.myCity) {
       return StandardAccountClassificationKind.receivables;
     }
-    if (h == AppStringsAr.debtor || h == 'credit' || h == 'cr' || h == 'c' || h == AppStringsAr.myCreditors) {
+    if (h == AppStrings.debtor || h == 'credit' || h == 'cr' || h == 'c' || h == AppStrings.myCreditors) {
       return StandardAccountClassificationKind.payables;
     }
     return defaultKind;

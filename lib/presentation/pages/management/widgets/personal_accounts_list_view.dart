@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/core/result/result.dart';
@@ -76,7 +76,7 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading) return Center(child: CircularProgressIndicator());
     if (_accounts.isEmpty) {
       return Center(
         child: Column(
@@ -84,7 +84,7 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
           children: [
             Icon(Icons.inventory_2_outlined,
                 size: 48, color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             QaydText(
               widget.emptyText,
               color: Theme.of(context).colorScheme.outline,
@@ -172,33 +172,33 @@ class _PersonalAccountsListViewState extends State<PersonalAccountsListView> {
                           (model != null ||
                               serial != null ||
                               date != null)) ...[
-                        const SizedBox(height: SpacingTokens.sm),
+                        SizedBox(height: SpacingTokens.sm),
                         if (model != null && model.isNotEmpty)
                           _InfoRow(
                               icon: Icons.directions_car_rounded,
-                              label: AppStringsAr.modelLabel,
+                              label: AppStrings.modelLabel,
                               value: model),
                         if (serial != null && serial.isNotEmpty)
                           _InfoRow(
                               icon: Icons.numbers_rounded,
-                              label: AppStringsAr.serialNumberLabel,
+                              label: AppStrings.serialNumberLabel,
                               value: serial),
                         if (date != null)
                           _InfoRow(
                               icon: Icons.calendar_today_rounded,
-                              label: AppStringsAr.purchaseDateLabel,
+                              label: AppStrings.purchaseDateLabel,
                               value: date.split('T').first),
                       ],
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       const Divider(height: 1),
-                      const SizedBox(height: SpacingTokens.md),
+                      SizedBox(height: SpacingTokens.md),
                       Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded,
+                          Icon(Icons.info_outline_rounded,
                               size: 14, color: Colors.white54),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text(
-                            a.isActive ? AppStringsAr.statusActiveEn : AppStringsAr.statusInactiveEn,
+                            a.isActive ? AppStrings.statusActiveEn : AppStrings.statusInactiveEn,
                             style: TextStyle(
                               fontSize: 10,
                               color: a.isActive
@@ -234,7 +234,7 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, size: 14, color: Colors.white54),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Text('$label: ',
               style: const TextStyle(color: Colors.white70, fontSize: 12)),
           Text(value,

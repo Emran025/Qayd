@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 extension CostCenterTypeLabel on CostCenterType {
   String get labelAr {
     return switch (this) {
-      CostCenterType.cost => AppStringsAr.costCenterTypeCost,
-      CostCenterType.profit => AppStringsAr.costCenterTypeProfit,
+      CostCenterType.cost => AppStrings.costCenterTypeCost,
+      CostCenterType.profit => AppStrings.costCenterTypeProfit,
     };
   }
 

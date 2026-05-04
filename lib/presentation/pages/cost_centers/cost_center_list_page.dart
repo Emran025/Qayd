@@ -5,7 +5,7 @@ import 'package:qayd/domain/entities/cost_center.dart';
 import 'package:qayd/domain/value_objects/cost_center_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_create_page.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_detail_page.dart';
@@ -78,12 +78,12 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
 
     return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.costCentersTitle),
+      appBar: QaydAppBar(title: AppStrings.costCentersTitle),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_cost_center_list',
         onPressed: _openCreate,
-        icon: const Icon(Icons.add_rounded),
-        label: Text(AppStringsAr.addCostCenterFab),
+        icon: Icon(Icons.add_rounded),
+        label: Text(AppStrings.addCostCenterFab),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
       ),
@@ -100,8 +100,8 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: AppStringsAr.searchCostCentersHint,
-                prefixIcon: const Icon(Icons.search_rounded),
+                hintText: AppStrings.searchCostCentersHint,
+                prefixIcon: Icon(Icons.search_rounded),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(RadiusTokens.md),
                 ),
@@ -130,23 +130,23 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
                     children: [
                       // Type filters
                       ChoiceChip(
-                        label: Text(AppStringsAr.allLabel),
+                        label: Text(AppStrings.allLabel),
                         selected: typeFilter == null,
                         onSelected: (_) => context
                             .read<CostCenterListCubit>()
                             .setTypeFilter(null),
                       ),
-                      const SizedBox(width: SpacingTokens.xs),
+                      SizedBox(width: SpacingTokens.xs),
                       ChoiceChip(
-                        label: Text(AppStringsAr.costCenterTypeCostGroup),
+                        label: Text(AppStrings.costCenterTypeCostGroup),
                         selected: typeFilter == CostCenterType.cost,
                         onSelected: (_) => context
                             .read<CostCenterListCubit>()
                             .setTypeFilter(CostCenterType.cost),
                       ),
-                      const SizedBox(width: SpacingTokens.xs),
+                      SizedBox(width: SpacingTokens.xs),
                       ChoiceChip(
-                        label: Text(AppStringsAr.costCenterTypeProfitGroup),
+                        label: Text(AppStrings.costCenterTypeProfitGroup),
                         selected: typeFilter == CostCenterType.profit,
                         onSelected: (_) => context
                             .read<CostCenterListCubit>()
@@ -164,7 +164,7 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
                       ),
                       // Suspended toggle
                       FilterChip(
-                        label: Text(AppStringsAr.showSuspendedLabel),
+                        label: Text(AppStrings.showSuspendedLabel),
                         selected: showSuspended,
                         onSelected: (v) => context
                             .read<CostCenterListCubit>()
@@ -184,7 +184,7 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
                 return switch (state) {
                   CostCenterListInitial() ||
                   CostCenterListLoading() =>
-                    const Center(child: CircularProgressIndicator()),
+                    Center(child: CircularProgressIndicator()),
                   CostCenterListFailure(:final failure) => Center(
                       child: Padding(
                         padding: const EdgeInsets.all(SpacingTokens.lg),
@@ -196,17 +196,17 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
                               size: 48,
                               color: custom.subtleBorder,
                             ),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             QaydText(
                               failure.messageAr,
                               slot: QaydTextStyleSlot.bodyLarge,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             FilledButton.tonal(
                               onPressed: () =>
                                   context.read<CostCenterListCubit>().load(),
-                              child: Text(AppStringsAr.retryAction),
+                              child: Text(AppStrings.retryAction),
                             ),
                           ],
                         ),
@@ -223,9 +223,9 @@ class _CostCenterListScaffoldState extends State<_CostCenterListScaffold> {
                                   size: 64,
                                   color: custom.subtleBorder,
                                 ),
-                                const SizedBox(height: SpacingTokens.md),
+                                SizedBox(height: SpacingTokens.md),
                                 QaydText(
-                                  AppStringsAr.costCentersEmpty,
+                                  AppStrings.costCentersEmpty,
                                   slot: QaydTextStyleSlot.bodyLarge,
                                   textAlign: TextAlign.center,
                                 ),
@@ -312,7 +312,7 @@ class _CostCenterCard extends StatelessWidget {
                       ),
                       child: Icon(typeIcon, color: typeColor, size: 22),
                     ),
-                    const SizedBox(width: SpacingTokens.sm),
+                    SizedBox(width: SpacingTokens.sm),
 
                     // Name + type label
                     Expanded(
@@ -328,7 +328,7 @@ class _CostCenterCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Row(
                             children: [
                               Container(
@@ -354,7 +354,7 @@ class _CostCenterCard extends StatelessWidget {
                                 ),
                               ),
                               if (!center.isActive) ...[
-                                const SizedBox(width: SpacingTokens.xs),
+                                SizedBox(width: SpacingTokens.xs),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: SpacingTokens.sm,
@@ -369,7 +369,7 @@ class _CostCenterCard extends StatelessWidget {
                                     ),
                                   ),
                                   child: Text(
-                                    AppStringsAr.costCenterSuspendedBadge,
+                                    AppStrings.costCenterSuspendedBadge,
                                     style: Theme.of(context)
                                         .textTheme
                                         .labelSmall
@@ -388,7 +388,7 @@ class _CostCenterCard extends StatelessWidget {
 
                     // Actions menu
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert_rounded, size: 20),
+                      icon: Icon(Icons.more_vert_rounded, size: 20),
                       onSelected: (v) {
                         if (v == 'suspend') onSuspend();
                         if (v == 'activate') onActivate();
@@ -399,9 +399,9 @@ class _CostCenterCard extends StatelessWidget {
                             value: 'suspend',
                             child: Row(
                               children: [
-                                const Icon(Icons.pause_circle_outline_rounded),
-                                const SizedBox(width: 8),
-                                Text(AppStringsAr.costCenterSuspendAction),
+                                Icon(Icons.pause_circle_outline_rounded),
+                                SizedBox(width: 8),
+                                Text(AppStrings.costCenterSuspendAction),
                               ],
                             ),
                           )
@@ -410,9 +410,9 @@ class _CostCenterCard extends StatelessWidget {
                             value: 'activate',
                             child: Row(
                               children: [
-                                const Icon(Icons.play_circle_outline_rounded),
-                                const SizedBox(width: 8),
-                                Text(AppStringsAr.costCenterActivateAction),
+                                Icon(Icons.play_circle_outline_rounded),
+                                SizedBox(width: 8),
+                                Text(AppStrings.costCenterActivateAction),
                               ],
                             ),
                           ),
@@ -424,7 +424,7 @@ class _CostCenterCard extends StatelessWidget {
                 // Description
                 if (center.description != null &&
                     center.description!.isNotEmpty) ...[
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
                   Text(
                     center.description!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -437,9 +437,9 @@ class _CostCenterCard extends StatelessWidget {
 
                 // Budget progress if set
                 if (center.hasBudget) ...[
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
                   const Divider(height: 1, thickness: 0.5),
-                  const SizedBox(height: SpacingTokens.sm),
+                  SizedBox(height: SpacingTokens.sm),
                   Row(
                     children: [
                       Icon(
@@ -447,9 +447,9 @@ class _CostCenterCard extends StatelessWidget {
                         size: 14,
                         color: custom.goldAccent,
                       ),
-                      const SizedBox(width: SpacingTokens.xs),
+                      SizedBox(width: SpacingTokens.xs),
                       Text(
-                        '${AppStringsAr.costCenterBudgetPrefix} ${center.budgetMinorUnits ~/ 100} ${center.currencyCode}',
+                        '${AppStrings.costCenterBudgetPrefix} ${center.budgetMinorUnits ~/ 100} ${center.currencyCode}',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: custom.goldAccent,
                             ),
@@ -459,17 +459,17 @@ class _CostCenterCard extends StatelessWidget {
                 ],
 
                 // Navigate hint
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      AppStringsAr.costCenterViewVouchers,
+                      AppStrings.costCenterViewVouchers,
                       style: Theme.of(
                         context,
                       ).textTheme.labelSmall?.copyWith(color: typeColor),
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 12,

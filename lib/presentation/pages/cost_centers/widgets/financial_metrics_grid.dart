@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/application/cost_centers/dtos/cost_center_details_dto.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -65,13 +65,13 @@ class _FinancialMetricsGridState extends State<FinancialMetricsGrid>
 
     final items = <_MetricData>[
       _MetricData(
-        label: AppStringsAr.costCenterVoucherCountLabel,
+        label: AppStrings.costCenterVoucherCountLabel,
         values: [dto.voucherCount.toString()],
         icon: Icons.receipt_long_rounded,
         accent: widget.typeColor,
       ),
       _MetricData(
-        label: AppStringsAr.costCenterCurrentMonthLabel,
+        label: AppStrings.costCenterCurrentMonthLabel,
         values: currentMonthVals,
         icon: Icons.calendar_today_rounded,
         accent:
@@ -79,14 +79,14 @@ class _FinancialMetricsGridState extends State<FinancialMetricsGrid>
       ),
       if (dto.center.hasBudget)
         _MetricData(
-          label: AppStringsAr.costCenterBudgetPrefix,
+          label: AppStrings.costCenterBudgetPrefix,
           values: [_fmt(dto.center.budgetMinorUnits ~/ 100, currency)],
           icon: Icons.account_balance_wallet_outlined,
           accent: ColorTokens.warningAmber,
         )
       else
         _MetricData(
-          label: AppStringsAr.costCenterGrowthLabel,
+          label: AppStrings.costCenterGrowthLabel,
           values: [
             growthPct == null
                 ? '—'
@@ -165,7 +165,7 @@ class _FinancialMetricsGridState extends State<FinancialMetricsGrid>
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(data.icon, size: 18, color: data.accent),
-            const SizedBox(height: SpacingTokens.xs + 2),
+            SizedBox(height: SpacingTokens.xs + 2),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: data.values.map((v) {
@@ -185,7 +185,7 @@ class _FinancialMetricsGridState extends State<FinancialMetricsGrid>
                 );
               }).toList(),
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               data.label,
               style: tt.labelSmall?.copyWith(

@@ -17,7 +17,7 @@ import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class ConfirmVoucherUseCase {
@@ -56,10 +56,10 @@ class ConfirmVoucherUseCase {
       // We don't block local accounting just because the counterparty hasn't signed yet.
       if (draft.senderStatus != AgreementStatus.accepted &&
           draft.receiverStatus != AgreementStatus.accepted) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
             messageAr:
-                AppStringsAr.theBondCannotBe,
+                AppStrings.theBondCannotBe,
             code: 'voucher_not_signed',
           ),
         );

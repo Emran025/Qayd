@@ -5,7 +5,7 @@ import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -152,17 +152,17 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
       runSpacing: SpacingTokens.sm,
       children: [
         FilterChip(
-          label: Text(AppStringsAr.voucherFilterTypeAny),
+          label: Text(AppStrings.voucherFilterTypeAny),
           selected: _type == null,
           onSelected: (_) => setState(() => _type = null),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherTypeReceipt),
+          label: Text(AppStrings.voucherTypeReceipt),
           selected: _type == VoucherType.receipt,
           onSelected: (_) => setState(() => _type = VoucherType.receipt),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherTypePayment),
+          label: Text(AppStrings.voucherTypePayment),
           selected: _type == VoucherType.payment,
           onSelected: (_) => setState(() => _type = VoucherType.payment),
         ),
@@ -176,22 +176,22 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
       runSpacing: SpacingTokens.sm,
       children: [
         FilterChip(
-          label: Text(AppStringsAr.voucherFilterStateAny),
+          label: Text(AppStrings.voucherFilterStateAny),
           selected: _state == null,
           onSelected: (_) => setState(() => _state = null),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherStateDraft),
+          label: Text(AppStrings.voucherStateDraft),
           selected: _state == VoucherState.draft,
           onSelected: (_) => setState(() => _state = VoucherState.draft),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherStateConfirmed),
+          label: Text(AppStrings.voucherStateConfirmed),
           selected: _state == VoucherState.confirmed,
           onSelected: (_) => setState(() => _state = VoucherState.confirmed),
         ),
         FilterChip(
-          label: Text(AppStringsAr.voucherStateSettled),
+          label: Text(AppStrings.voucherStateSettled),
           selected: _state == VoucherState.settled,
           onSelected: (_) => setState(() => _state = VoucherState.settled),
         ),
@@ -219,65 +219,65 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
             Padding(
               padding: const EdgeInsets.only(bottom: SpacingTokens.sm),
               child: QaydText(
-                AppStringsAr.voucherFilterSheetTitle,
+                AppStrings.voucherFilterSheetTitle,
                 slot: QaydTextStyleSlot.titleLarge,
               ),
             ),
-            _sectionTitle(AppStringsAr.voucherFilterTypeSection),
+            _sectionTitle(AppStrings.voucherFilterTypeSection),
             _typeChips(),
-            _sectionTitle(AppStringsAr.voucherFilterStateSection),
+            _sectionTitle(AppStrings.voucherFilterStateSection),
             _stateChips(),
-            _sectionTitle(AppStringsAr.voucherFilterDateSection),
+            _sectionTitle(AppStrings.voucherFilterDateSection),
             Row(
               children: [
                 Expanded(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      AppStringsAr.voucherFilterDateFrom,
+                      AppStrings.voucherFilterDateFrom,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
                       _from != null
                           ? df.format(_from!)
-                          : AppStringsAr.voucherFilterDateNotSet,
+                          : AppStrings.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
                     trailing:
-                        const Icon(Icons.calendar_month_rounded, size: 20),
+                        Icon(Icons.calendar_month_rounded, size: 20),
                     onTap: () => _pickDate(isFrom: true),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 Expanded(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: QaydText(
-                      AppStringsAr.voucherFilterDateTo,
+                      AppStrings.voucherFilterDateTo,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
                     subtitle: QaydText(
                       _to != null
                           ? df.format(_to!)
-                          : AppStringsAr.voucherFilterDateNotSet,
+                          : AppStrings.voucherFilterDateNotSet,
                       slot: QaydTextStyleSlot.bodySmall,
                     ),
                     trailing:
-                        const Icon(Icons.calendar_month_rounded, size: 20),
+                        Icon(Icons.calendar_month_rounded, size: 20),
                     onTap: () => _pickDate(isFrom: false),
                   ),
                 ),
               ],
             ),
-            _sectionTitle(AppStringsAr.voucherFilterAccountsSection),
+            _sectionTitle(AppStrings.voucherFilterAccountsSection),
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: QaydText(
-                AppStringsAr.voucherCounterpartyLabel,
+                AppStrings.voucherCounterpartyLabel,
                 slot: QaydTextStyleSlot.bodyMedium,
               ),
               subtitle: QaydText(
-                _cpName ?? AppStringsAr.voucherFilterNotSelected,
+                _cpName ?? AppStrings.voucherFilterNotSelected,
                 slot: QaydTextStyleSlot.bodySmall,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -305,11 +305,11 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: QaydText(
-                AppStringsAr.voucherAffectedAccountLabel,
+                AppStrings.voucherAffectedAccountLabel,
                 slot: QaydTextStyleSlot.bodyMedium,
               ),
               subtitle: QaydText(
-                _affName ?? AppStringsAr.voucherFilterNotSelected,
+                _affName ?? AppStrings.voucherFilterNotSelected,
                 slot: QaydTextStyleSlot.bodySmall,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -334,15 +334,15 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 }
               },
             ),
-            _sectionTitle(AppStringsAr.costCenter),
+            _sectionTitle(AppStrings.costCenter),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const QaydText(
-                AppStringsAr.filterByCostCenter,
+              title: QaydText(
+                AppStrings.filterByCostCenter,
                 slot: QaydTextStyleSlot.bodyMedium,
               ),
               subtitle: QaydText(
-                _ccName ?? AppStringsAr.voucherFilterNotSelected,
+                _ccName ?? AppStrings.voucherFilterNotSelected,
                 slot: QaydTextStyleSlot.bodySmall,
               ),
               trailing: Icon(
@@ -365,16 +365,16 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const QaydText(AppStringsAr.selectCostCenter,
+                            QaydText(AppStrings.selectCostCenter,
                                 slot: QaydTextStyleSlot.titleMedium),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             ...centers.map((c) => ListTile(
                                   title: Text(c.name),
-                                  leading: const Icon(
+                                  leading: Icon(
                                       Icons.pie_chart_outline_rounded),
                                   onTap: () => Navigator.pop(ctx, c),
                                 )),
-                            const SizedBox(height: SpacingTokens.xl),
+                            SizedBox(height: SpacingTokens.xl),
                           ],
                         ),
                       ),
@@ -389,7 +389,7 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                 );
               },
             ),
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             Row(
               children: [
                 Expanded(
@@ -408,10 +408,10 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                         _ccName = null;
                       });
                     },
-                    child: Text(AppStringsAr.voucherFilterClearFields),
+                    child: Text(AppStrings.voucherFilterClearFields),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.sm),
+                SizedBox(width: SpacingTokens.sm),
                 Expanded(
                   child: FilledButton(
                     style: FilledButton.styleFrom(
@@ -419,7 +419,7 @@ class _VoucherFilterSheetBodyState extends State<_VoucherFilterSheetBody> {
                       foregroundColor: ColorTokens.navy950,
                     ),
                     onPressed: () => Navigator.of(context).pop(_buildResult()),
-                    child: Text(AppStringsAr.voucherFilterApply),
+                    child: Text(AppStrings.voucherFilterApply),
                   ),
                 ),
               ],

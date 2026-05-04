@@ -2,7 +2,7 @@ import 'package:qayd/data/governance/remote/governance_remote_data_source.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
 import 'package:qayd/domain/value_objects/submit_activation_request.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Production [GovernanceRemoteDataSource] that derives governance status
@@ -37,19 +37,19 @@ final class LicenseVaultGovernanceRemoteDataSource
     if (status == 'FORCE_REVOKE' || status == 'revoked' || !isActive) {
       return GovernanceStatus(
         kind: GovernanceStatusKind.revoked,
-        messageAr: AppStringsAr.theAccountHasBeen,
+        messageAr: AppStrings.theAccountHasBeen,
       );
     }
     if (accountClosed) {
       return GovernanceStatus(
         kind: GovernanceStatusKind.expired,
-        messageAr: AppStringsAr.theFreeTrialPeriod,
+        messageAr: AppStrings.theFreeTrialPeriod,
       );
     }
     if (status == 'suspended') {
       return GovernanceStatus(
         kind: GovernanceStatusKind.suspended,
-        messageAr: AppStringsAr.theAccountIsTemporarily,
+        messageAr: AppStrings.theAccountIsTemporarily,
       );
     }
     if (hasFormalLicense || status == 'active') {

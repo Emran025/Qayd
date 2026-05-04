@@ -5,7 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Phase-A: "Resubmit" clears the red (invalid signature) look by setting the
@@ -43,9 +43,9 @@ final class ResubmitVoucherUseCase {
       if (loaded.isFailure) return FailureResult(loaded.failureOrNull!);
       final v = loaded.valueOrNull!;
       if (!v.state.isDraft) {
-        return const FailureResult(
+        return  FailureResult(
           ValidationFailure(
-            messageAr: AppStringsAr.aConfirmedOrSettled1,
+            messageAr: AppStrings.aConfirmedOrSettled1,
             code: 'voucher_resubmit_not_draft',
           ),
         );

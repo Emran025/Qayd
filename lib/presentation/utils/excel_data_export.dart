@@ -5,7 +5,7 @@ import 'package:qayd/application/accounts/dtos/account_statement_line_dto.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/data/export/qayd_excel_workbook.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/core/utils/text_sanitizer.dart';
 
 String _moneyMinor(int minorUnits, {int digits = 2, String? symbol}) {
@@ -30,9 +30,9 @@ String _formatDateIso(String iso) {
 String _voucherTypeAr(String code) {
   switch (code) {
     case 'receipt':
-      return AppStringsAr.voucherTypeReceipt;
+      return AppStrings.voucherTypeReceipt;
     case 'payment':
-      return AppStringsAr.voucherTypePayment;
+      return AppStrings.voucherTypePayment;
     default:
       return code;
   }
@@ -41,11 +41,11 @@ String _voucherTypeAr(String code) {
 String _voucherStateAr(String code) {
   switch (code) {
     case 'draft':
-      return AppStringsAr.voucherStateDraft;
+      return AppStrings.voucherStateDraft;
     case 'confirmed':
-      return AppStringsAr.voucherStateConfirmed;
+      return AppStrings.voucherStateConfirmed;
     case 'settled':
-      return AppStringsAr.voucherStateSettled;
+      return AppStrings.voucherStateSettled;
     default:
       return code;
   }
@@ -54,9 +54,9 @@ String _voucherStateAr(String code) {
 String _natureAr(String code) {
   switch (code) {
     case 'debit':
-      return AppStringsAr.natureDebitShort;
+      return AppStrings.natureDebitShort;
     case 'credit':
-      return AppStringsAr.natureCreditShort;
+      return AppStrings.natureCreditShort;
     default:
       return code;
   }
@@ -65,13 +65,13 @@ String _natureAr(String code) {
 String _agreementStatusAr(String code) {
   switch (code) {
     case 'underRequest':
-      return AppStringsAr.agreementUnderRequest;
+      return AppStrings.agreementUnderRequest;
     case 'accepted':
-      return AppStringsAr.agreementAccepted;
+      return AppStrings.agreementAccepted;
     case 'rejected':
-      return AppStringsAr.agreementRejected;
+      return AppStrings.agreementRejected;
     case 'unverified':
-      return AppStringsAr.agreementUnverified;
+      return AppStrings.agreementUnverified;
     default:
       return code;
   }
@@ -79,14 +79,14 @@ String _agreementStatusAr(String code) {
 
 Uint8List buildVouchersExcelBytes(List<VoucherSummaryDto> vouchers) {
   final headers = <String>[
-    AppStringsAr.theDate,
-    AppStringsAr.type,
-    AppStringsAr.theCondition,
-    AppStringsAr.signatureAgreement,
-    AppStringsAr.amount,
-    AppStringsAr.oppositeParty,
-    AppStringsAr.affectedAccount,
-    AppStringsAr.id,
+    AppStrings.theDate,
+    AppStrings.type,
+    AppStrings.theCondition,
+    AppStrings.signatureAgreement,
+    AppStrings.amount,
+    AppStrings.oppositeParty,
+    AppStrings.affectedAccount,
+    AppStrings.id,
   ];
   final rows = <List<Object?>>[];
   for (final v in vouchers) {
@@ -110,12 +110,12 @@ Uint8List buildVouchersExcelBytes(List<VoucherSummaryDto> vouchers) {
 
 Uint8List buildAccountsExcelBytes(List<AccountSummaryDto> accounts) {
   final headers = <String>[
-    AppStringsAr.accountName,
-    AppStringsAr.nature1,
-    AppStringsAr.balance,
-    AppStringsAr.active,
-    AppStringsAr.root,
-    AppStringsAr.id,
+    AppStrings.accountName,
+    AppStrings.nature1,
+    AppStrings.balance,
+    AppStrings.active,
+    AppStrings.root,
+    AppStrings.id,
   ];
   final rows = <List<Object?>>[];
   for (final a in accounts) {
@@ -125,8 +125,8 @@ Uint8List buildAccountsExcelBytes(List<AccountSummaryDto> accounts) {
       a.balancesMinorUnits.entries
           .map((e) => _moneyMinor(e.value, symbol: e.key))
           .join(', '),
-      a.isActive ? AppStringsAr.statusActive : AppStringsAr.statusInactive,
-      a.isRoot ? AppStringsAr.accountTypeRoot : AppStringsAr.accountTypeChild,
+      a.isActive ? AppStrings.statusActive : AppStrings.statusInactive,
+      a.isRoot ? AppStrings.accountTypeRoot : AppStrings.accountTypeChild,
       a.id,
     ]);
   }
@@ -139,12 +139,12 @@ Uint8List buildAccountStatementExcelBytes({
   String? issuerName,
 }) {
   final headers = <String>[
-    AppStringsAr.theDate,
-    AppStringsAr.bondNumber,
-    AppStringsAr.statement1,
-    AppStringsAr.theCondition,
-    AppStringsAr.creditor,
-    AppStringsAr.debtor,
+    AppStrings.theDate,
+    AppStrings.bondNumber,
+    AppStrings.statement1,
+    AppStrings.theCondition,
+    AppStrings.creditor,
+    AppStrings.debtor,
   ];
   final rows = <List<Object?>>[];
   int totalDebit = 0;
@@ -172,7 +172,7 @@ Uint8List buildAccountStatementExcelBytes({
     totalDebit: _moneyMinor(totalDebit),
     totalCredit: _moneyMinor(totalCredit),
     netBalance: _moneyMinor(netBalance),
-    notesText: AppStringsAr.thankYouForDealing,
+    notesText: AppStrings.thankYouForDealing,
     issuerName: issuerName,
   );
 }
@@ -182,13 +182,13 @@ Uint8List buildCombinedExportExcelBytes({
   required List<AccountSummaryDto> accounts,
 }) {
   final vHeaders = <String>[
-    AppStringsAr.theDate,
-    AppStringsAr.type,
-    AppStringsAr.theCondition,
-    AppStringsAr.signatureAgreement,
-    AppStringsAr.amount,
-    AppStringsAr.oppositeParty,
-    AppStringsAr.affectedAccount,
+    AppStrings.theDate,
+    AppStrings.type,
+    AppStrings.theCondition,
+    AppStrings.signatureAgreement,
+    AppStrings.amount,
+    AppStrings.oppositeParty,
+    AppStrings.affectedAccount,
   ];
   final vRows = <List<Object?>>[];
   for (final v in vouchers) {
@@ -207,10 +207,10 @@ Uint8List buildCombinedExportExcelBytes({
     ]);
   }
   final aHeaders = <String>[
-    AppStringsAr.accountName,
-    AppStringsAr.nature1,
-    AppStringsAr.balance,
-    AppStringsAr.active,
+    AppStrings.accountName,
+    AppStrings.nature1,
+    AppStrings.balance,
+    AppStrings.active,
   ];
   final aRows = <List<Object?>>[];
   for (final a in accounts) {
@@ -220,7 +220,7 @@ Uint8List buildCombinedExportExcelBytes({
       a.balancesMinorUnits.entries
           .map((e) => _moneyMinor(e.value, symbol: e.key))
           .join(', '),
-      a.isActive ? AppStringsAr.statusActive : AppStringsAr.statusInactive,
+      a.isActive ? AppStrings.statusActive : AppStrings.statusInactive,
     ]);
   }
   return QaydExcelWorkbook.buildCombined(

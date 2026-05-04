@@ -14,7 +14,7 @@ import 'package:qayd/presentation/pages/vouchers/conflict_resolution_cubit.dart'
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class ConflictResolutionPage extends StatelessWidget {
@@ -42,8 +42,8 @@ class ConflictResolutionPage extends StatelessWidget {
       listener: (context, state) {
         if (state is ConflictResolutionSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(AppStringsAr.theConflictWasSuccessfully),
+            SnackBar(
+              content: Text(AppStrings.theConflictWasSuccessfully),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -57,7 +57,7 @@ class ConflictResolutionPage extends StatelessWidget {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: QaydAppBar(title: AppStringsAr.addressingBondConflicts),
+          appBar: QaydAppBar(title: AppStrings.addressingBondConflicts),
           body: _buildBody(context, state, gold),
         );
       },
@@ -67,35 +67,35 @@ class ConflictResolutionPage extends StatelessWidget {
   Widget _buildBody(
       BuildContext context, ConflictResolutionState state, Color gold) {
     if (state is ConflictResolutionLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
     if (state is ConflictResolutionReady) {
       return ListView(
         padding: const EdgeInsets.all(SpacingTokens.lg),
         children: [
-          const QaydText(
-            AppStringsAr.aPossibleMatchHas,
+          QaydText(
+            AppStrings.aPossibleMatchHas,
             slot: QaydTextStyleSlot.bodyMedium,
           ),
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
           _ComparisonCard(
-            title: AppStringsAr.yourLocalRecordDraft,
+            title: AppStrings.yourLocalRecordDraft,
             icon: Icons.file_present_rounded,
             color: ColorTokens.navy800,
             voucher: state.localVoucher,
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: SpacingTokens.md),
             child: Icon(Icons.sync_alt_rounded, color: Colors.grey),
           ),
           _InboundComparisonCard(
-            title: AppStringsAr.incomingBondSync,
+            title: AppStrings.incomingBondSync,
             icon: Icons.cloud_sync_rounded,
             color: ColorTokens.navy950,
             payload: state.inboundPayload,
             currencyDigits: state.localVoucher.currencyDigits,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
           Row(
             children: [
               Expanded(
@@ -107,10 +107,10 @@ class ConflictResolutionPage extends StatelessWidget {
                           .resolve(merge: false),
                   style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.redAccent),
-                  child: const Text(AppStringsAr.ignoreIncomingDuplicate),
+                  child: Text(AppStrings.ignoreIncomingDuplicate),
                 ),
               ),
-              const SizedBox(width: SpacingTokens.md),
+              SizedBox(width: SpacingTokens.md),
               Expanded(
                 child: FilledButton(
                   onPressed: state.isResolving
@@ -123,11 +123,11 @@ class ConflictResolutionPage extends StatelessWidget {
                     foregroundColor: ColorTokens.navy950,
                   ),
                   child: state.isResolving
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text(AppStringsAr.mergeAndConfirmLocal),
+                      : Text(AppStrings.mergeAndConfirmLocal),
                 ),
               ),
             ],
@@ -167,11 +167,11 @@ class _ComparisonCard extends StatelessWidget {
           Row(
             children: [
               Icon(icon, size: 20, color: Colors.blueAccent),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               QaydText(title, slot: QaydTextStyleSlot.labelLarge),
             ],
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -188,14 +188,14 @@ class _ComparisonCard extends StatelessWidget {
                 size: QaydMoneyDisplaySize.large,
               ),
               QaydText(
-                voucher.typeCode == 'receipt' ? AppStringsAr.catchStr : AppStringsAr.exchange,
+                voucher.typeCode == 'receipt' ? AppStrings.catchStr : AppStrings.exchange,
                 color: voucher.typeCode == 'receipt'
                     ? Colors.greenAccent
                     : Colors.orangeAccent,
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           QaydText(
             DateFormat.yMMMd('ar').format(DateTime.parse(voucher.dateIso)),
             slot: QaydTextStyleSlot.bodySmall,
@@ -243,11 +243,11 @@ class _InboundComparisonCard extends StatelessWidget {
           Row(
             children: [
               Icon(icon, size: 20, color: Colors.purpleAccent),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               QaydText(title, slot: QaydTextStyleSlot.labelLarge),
             ],
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -264,14 +264,14 @@ class _InboundComparisonCard extends StatelessWidget {
                 size: QaydMoneyDisplaySize.large,
               ),
               QaydText(
-                type == 'receipt' ? AppStringsAr.catchStr : AppStringsAr.exchange,
+                type == 'receipt' ? AppStrings.catchStr : AppStrings.exchange,
                 color: type == 'receipt'
                     ? Colors.greenAccent
                     : Colors.orangeAccent,
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           QaydText(
             DateFormat.yMMMd('ar').format(date),
             slot: QaydTextStyleSlot.bodySmall,

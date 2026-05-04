@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/application/cost_centers/dtos/dimension_breakdown_item.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -44,7 +44,7 @@ class FilterActionBar extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: SpacingTokens.xs),
                 child: _FilterPill(
-                  label: AppStringsAr.costCenterAllDimensionsFilter,
+                  label: AppStrings.costCenterAllDimensionsFilter,
                   isSelected: false,
                   onTap: onClearFilter,
                   typeColor: scheme.onSurfaceVariant,
@@ -116,7 +116,7 @@ class _FilterPill extends StatelessWidget {
           children: [
             if (showClose) ...[
               Icon(Icons.close_rounded, size: 12, color: fg),
-              const SizedBox(width: 3),
+              SizedBox(width: 3),
             ],
             Text(
               label,

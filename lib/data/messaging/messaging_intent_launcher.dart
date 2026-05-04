@@ -2,17 +2,19 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qayd/core/constants/countries_names.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 enum WhatsAppFlavor {
-  standard('com.whatsapp', AppStringsAr.whatsapp),
-  business('com.whatsapp.w4b', AppStringsAr.whatsappBusiness);
+  standard('com.whatsapp'),
+  business('com.whatsapp.w4b');
 
   final String packageName;
-  final String displayName;
 
-  const WhatsAppFlavor(this.packageName, this.displayName);
+  const WhatsAppFlavor(this.packageName);
+
+  String get displayName =>
+      this == standard ? AppStrings.whatsapp : AppStrings.whatsappBusiness;
 }
 
 /// Opens the platform SMS composer or WhatsApp with pre-filled [text] (offline intent).

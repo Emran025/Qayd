@@ -11,7 +11,7 @@ import 'package:qayd/domain/value_objects/attachment_id.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:qayd/core/result/result.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Opens an encrypted attachment file by decrypting it to a temporary
@@ -42,7 +42,7 @@ abstract final class AttachmentFileOpener {
           .firstOrNull;
 
       if (match == null) {
-        return AppStringsAr.theAttachmentDoesNot;
+        return AppStrings.theAttachmentDoesNot;
       }
 
       // 2. Decrypt to bytes
@@ -140,7 +140,7 @@ class _AttachmentFileTileState extends State<AttachmentFileTile> {
                     .withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Center(
+              child: Center(
                 child: SizedBox(
                   width: 20,
                   height: 20,

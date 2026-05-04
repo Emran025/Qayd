@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/services/receipt_sharing_service.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
@@ -53,7 +53,7 @@ class ReceiptShareSheet extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Text(
-              AppStringsAr.shareReceiptTitle,
+              AppStrings.shareReceiptTitle,
               style: theme.textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
@@ -63,8 +63,8 @@ class ReceiptShareSheet extends StatelessWidget {
           _buildShareOption(
             context,
             icon: Icons.qr_code,
-            label: AppStringsAr.shareAsQr,
-            title: AppStringsAr.qrCodeDisplayTitle,
+            label: AppStrings.shareAsQr,
+            title: AppStrings.qrCodeDisplayTitle,
             onTap: () {
               Navigator.of(context).pop();
               _showQrCodeDialog(context, qrData, theme);
@@ -73,8 +73,8 @@ class ReceiptShareSheet extends StatelessWidget {
           _buildShareOption(
             context,
             icon: Icons.sms,
-            label: AppStringsAr.shareAsSms,
-            title: AppStringsAr.shareAsSms,
+            label: AppStrings.shareAsSms,
+            title: AppStrings.shareAsSms,
             onTap: () async {
               Navigator.of(context).pop();
               await sharingService.shareAsSms(receipt);
@@ -83,8 +83,8 @@ class ReceiptShareSheet extends StatelessWidget {
           _buildShareOption(
             context,
             icon: Icons.chat,
-            label: AppStringsAr.shareViaWhatsApp,
-            title: AppStringsAr.shareViaWhatsApp,
+            label: AppStrings.shareViaWhatsApp,
+            title: AppStrings.shareViaWhatsApp,
             onTap: () async {
               Navigator.of(context).pop();
               await sharingService.shareViaWhatsApp(receipt);
@@ -93,8 +93,8 @@ class ReceiptShareSheet extends StatelessWidget {
           _buildShareOption(
             context,
             icon: Icons.picture_as_pdf,
-            label: AppStringsAr.shareAsPdf,
-            title: AppStringsAr.shareAsPdf,
+            label: AppStrings.shareAsPdf,
+            title: AppStrings.shareAsPdf,
             onTap: () async {
               Navigator.of(context).pop();
               await sharingService.shareAsPdf(receipt);
@@ -103,14 +103,14 @@ class ReceiptShareSheet extends StatelessWidget {
           _buildShareOption(
             context,
             icon: Icons.image,
-            label: AppStringsAr.shareAsImage,
-            title: AppStringsAr.shareAsImage,
+            label: AppStrings.shareAsImage,
+            title: AppStrings.shareAsImage,
             onTap: () async {
               Navigator.of(context).pop();
               await sharingService.shareAsImage(receipt);
             },
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
         ],
       ),
     );
@@ -134,7 +134,7 @@ class ReceiptShareSheet extends StatelessWidget {
     QaydDialog.show(
       context: context,
       icon: Icons.qr_code_rounded,
-      title: AppStringsAr.qrCodeDisplayTitle,
+      title: AppStrings.qrCodeDisplayTitle,
       content: Center(
         child: SizedBox(
           width: 250,
@@ -154,7 +154,7 @@ class ReceiptShareSheet extends StatelessWidget {
           ),
         ),
       ),
-      primaryActionLabel: AppStringsAr.closing1,
+      primaryActionLabel: AppStrings.closing1,
       onPrimaryAction: () => Navigator.pop(context),
     );
   }

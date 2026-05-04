@@ -5,11 +5,11 @@ import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/repositories/accrual_repository.dart';
 import 'package:qayd/application/vouchers/create_voucher_use_case.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class ProcessAccrualUseCase {
-  const ProcessAccrualUseCase(this._repository, this._createVoucherUseCase);
+   ProcessAccrualUseCase(this._repository, this._createVoucherUseCase);
 
   final AccrualRepository _repository;
   final CreateVoucherUseCase _createVoucherUseCase;
@@ -20,14 +20,14 @@ final class ProcessAccrualUseCase {
       (f) => FailureResult(f),
       (accrual) async {
         if (accrual == null) {
-          return const FailureResult(
-              ValidationFailure(messageAr: AppStringsAr.entitlementDoesNotExist));
+          return  FailureResult(
+              ValidationFailure(messageAr: AppStrings.entitlementDoesNotExist));
         }
 
         final source = sourceAccountId ?? accrual.sourceAccountId;
         if (source == null) {
-          return const FailureResult(ValidationFailure(
-              messageAr: AppStringsAr.pleaseSelectTheSource));
+          return  FailureResult(ValidationFailure(
+              messageAr: AppStrings.pleaseSelectTheSource));
         }
 
         // 1. Create the Voucher

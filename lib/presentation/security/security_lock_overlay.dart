@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_state.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -106,7 +106,7 @@ class _VaultScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _AnimatedIcon(iconData: config.icon, color: config.iconColor),
-                const SizedBox(height: SpacingTokens.lg),
+                SizedBox(height: SpacingTokens.lg),
                 Text(
                   config.titleAr,
                   style: const TextStyle(
@@ -118,7 +118,7 @@ class _VaultScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: SpacingTokens.sm),
+                SizedBox(height: SpacingTokens.sm),
                 Text(
                   config.bodyAr,
                   style: const TextStyle(
@@ -131,17 +131,16 @@ class _VaultScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 if (config.trialDaysRemaining != null) ...[
-                  const SizedBox(height: SpacingTokens.md),
+                  SizedBox(height: SpacingTokens.md),
                   SecurityTrialBadge(days: config.trialDaysRemaining!),
                 ],
-                const SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.xl),
                 if (config.showProvisioningButton)
                   _ProvisioningButton(config: config),
-                if (config.showRefreshButton)
-                  const _RefreshStatusButton(),
+                if (config.showRefreshButton) const _RefreshStatusButton(),
                 if (config.showContactButton) ...[
                   if (config.showRefreshButton || config.showProvisioningButton)
-                    const SizedBox(height: SpacingTokens.md),
+                    SizedBox(height: SpacingTokens.md),
                   _ContactBadge(messageAr: config.contactAr ?? ''),
                 ]
               ],
@@ -160,10 +159,10 @@ class _VaultScreen extends StatelessWidget {
       return _OverlayConfig(
         icon: Icons.history_toggle_off_rounded,
         iconColor: const Color(0xFFDC2626), // crimson-600
-        titleAr: AppStringsAr.vaultClockTamperedTitle,
-        bodyAr: AppStringsAr.vaultClockTamperedBody,
+        titleAr: AppStrings.vaultClockTamperedTitle,
+        bodyAr: AppStrings.vaultClockTamperedBody,
         showContactButton: true,
-        contactAr: AppStringsAr.vaultContactSupport,
+        contactAr: AppStrings.vaultContactSupport,
         trialDaysRemaining: state.trialDaysRemaining,
       );
     }
@@ -173,8 +172,8 @@ class _VaultScreen extends StatelessWidget {
         return _OverlayConfig(
           icon: Icons.verified_user_rounded,
           iconColor: ColorTokens.goldAccent,
-          titleAr: AppStringsAr.vaultPendingTitle,
-          bodyAr: AppStringsAr.vaultPendingBody,
+          titleAr: AppStrings.vaultPendingTitle,
+          bodyAr: AppStrings.vaultPendingBody,
           showProvisioningButton: true,
           trialDaysRemaining: state.trialDaysRemaining,
         );
@@ -182,39 +181,39 @@ class _VaultScreen extends StatelessWidget {
         return _OverlayConfig(
           icon: Icons.hourglass_disabled_rounded,
           iconColor: const Color(0xFFDC2626),
-          titleAr: AppStringsAr.vaultTrialExpiredTitle,
-          bodyAr: AppStringsAr.vaultTrialExpiredBody,
+          titleAr: AppStrings.vaultTrialExpiredTitle,
+          bodyAr: AppStrings.vaultTrialExpiredBody,
           showRefreshButton: true,
           showContactButton: true,
-          contactAr: AppStringsAr.vaultContactSupport,
+          contactAr: AppStrings.vaultContactSupport,
           trialDaysRemaining: state.trialDaysRemaining,
         );
       case LicenseStatus.revoked:
         return _OverlayConfig(
           icon: Icons.block_rounded,
           iconColor: const Color(0xFFDC2626),
-          titleAr: AppStringsAr.vaultRevokedTitle,
-          bodyAr: AppStringsAr.vaultRevokedBody,
+          titleAr: AppStrings.vaultRevokedTitle,
+          bodyAr: AppStrings.vaultRevokedBody,
           showContactButton: true,
-          contactAr: AppStringsAr.vaultContactSupport,
+          contactAr: AppStrings.vaultContactSupport,
           trialDaysRemaining: state.trialDaysRemaining,
         );
       case LicenseStatus.deviceUnbound:
         return _OverlayConfig(
           icon: Icons.devices_other_rounded,
           iconColor: const Color(0xFFDC2626),
-          titleAr: AppStringsAr.vaultDeviceUnboundTitle,
-          bodyAr: AppStringsAr.vaultDeviceUnboundBody,
+          titleAr: AppStrings.vaultDeviceUnboundTitle,
+          bodyAr: AppStrings.vaultDeviceUnboundBody,
           showContactButton: true,
-          contactAr: AppStringsAr.vaultContactSupport,
+          contactAr: AppStrings.vaultContactSupport,
           trialDaysRemaining: state.trialDaysRemaining,
         );
       default:
         return _OverlayConfig(
           icon: Icons.lock_rounded,
           iconColor: ColorTokens.goldAccent,
-          titleAr: AppStringsAr.lockScreenTitle,
-          bodyAr: AppStringsAr.lockScreenSubtitle,
+          titleAr: AppStrings.lockScreenTitle,
+          bodyAr: AppStrings.lockScreenSubtitle,
           trialDaysRemaining: state.trialDaysRemaining,
         );
     }
@@ -293,7 +292,7 @@ class SecurityTrialBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        '$days ${AppStringsAr.vaultTrialDaysRemaining}',
+        '$days ${AppStrings.vaultTrialDaysRemaining}',
         style: const TextStyle(
           fontFamily: 'Cairo',
           fontSize: 13,
@@ -355,67 +354,73 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
 
     return Column(
       children: [
-        TextField(
-          controller: _emailCtrl,
-          style: fieldStyle,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            hintText: AppStringsAr.vaultEmailHint,
-            hintStyle: fieldStyle.copyWith(color: ColorTokens.slate400),
-            filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.06),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: borderColor),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: borderColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: ColorTokens.emerald500.withValues(alpha: 0.7),
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: TextField(
+            controller: _emailCtrl,
+            style: fieldStyle,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              hintText: AppStrings.vaultEmailHint,
+              hintStyle: fieldStyle.copyWith(color: ColorTokens.slate400),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.06),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: borderColor),
               ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: ColorTokens.emerald500.withValues(alpha: 0.7),
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
         ),
-        const SizedBox(height: SpacingTokens.sm),
-        TextField(
-          controller: _passCtrl,
-          style: fieldStyle,
-          obscureText: true,
-          decoration: InputDecoration(
-            hintText: AppStringsAr.vaultPasswordHint,
-            hintStyle: fieldStyle.copyWith(color: ColorTokens.slate400),
-            filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.06),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: borderColor),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: borderColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: ColorTokens.emerald500.withValues(alpha: 0.7),
+        SizedBox(height: SpacingTokens.sm),
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: TextField(
+            controller: _passCtrl,
+            style: fieldStyle,
+            obscureText: true,
+            decoration: InputDecoration(
+              hintText: AppStrings.vaultPasswordHint,
+              hintStyle: fieldStyle.copyWith(color: ColorTokens.slate400),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.06),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: borderColor),
               ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: ColorTokens.emerald500.withValues(alpha: 0.7),
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
             ),
           ),
         ),
         if (_errorAr != null) ...[
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           Text(
             _errorAr!,
             style: const TextStyle(
@@ -426,7 +431,7 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
             textAlign: TextAlign.center,
           ),
         ],
-        const SizedBox(height: SpacingTokens.md),
+        SizedBox(height: SpacingTokens.md),
         SizedBox(
           width: double.infinity,
           height: 48,
@@ -440,7 +445,7 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
             ),
             onPressed: _loading ? null : _submit,
             child: _loading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -449,7 +454,7 @@ class _ProvisioningButtonState extends State<_ProvisioningButton> {
                     ),
                   )
                 : Text(
-                    AppStringsAr.vaultActivateAction,
+                    AppStrings.vaultActivateAction,
                     style: const TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 15,
@@ -506,17 +511,17 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
     });
 
     final result = await context.read<SecurityCubit>().refreshLicenseStatus();
-    
+
     if (!mounted) return;
     setState(() => _loading = false);
-    
+
     if (!result.success) {
       setState(() => _errorAr = result.errorAr);
     } else if (context.read<SecurityCubit>().state.isHardBlocked) {
       // It succeeded but the account is still locked
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStringsAr.theAccountStatusHas),
+        SnackBar(
+          content: Text(AppStrings.theAccountStatusHas),
           backgroundColor: ColorTokens.slate800,
         ),
       );
@@ -536,12 +541,13 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
               foregroundColor: ColorTokens.emerald400,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
-                side: BorderSide(color: ColorTokens.emerald500.withValues(alpha: 0.3)),
+                side: BorderSide(
+                    color: ColorTokens.emerald500.withValues(alpha: 0.3)),
               ),
             ),
             onPressed: _loading ? null : _refresh,
             icon: _loading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -549,9 +555,9 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
                       color: ColorTokens.emerald400,
                     ),
                   )
-                : const Icon(Icons.refresh_rounded),
+                : Icon(Icons.refresh_rounded),
             label: Text(
-              AppStringsAr.updateAccountStatus,
+              AppStrings.updateAccountStatus,
               style: const TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 15,
@@ -561,7 +567,7 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
           ),
         ),
         if (_errorAr != null) ...[
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           Text(
             _errorAr!,
             style: const TextStyle(

@@ -5,7 +5,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/accruals/accrual_create_page.dart';
 import 'package:qayd/presentation/pages/cost_centers/cost_center_dashboard_widgets.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
@@ -50,7 +50,7 @@ class _AccrualListPageState extends State<AccrualListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppStringsAr.accrualListTitle),
+        title: Text(AppStrings.accrualListTitle),
         leading: const BackButton(),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -58,13 +58,13 @@ class _AccrualListPageState extends State<AccrualListPage> {
           MaterialPageRoute(
               builder: (_) => AccrualCreatePage(onCreated: _load)),
         ),
-        label: Text(AppStringsAr.accrualAddFab),
-        icon: const Icon(Icons.add_task_rounded),
+        label: Text(AppStrings.accrualAddFab),
+        icon: Icon(Icons.add_task_rounded),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
                 // ── Hero Summary ───────────────────────────────────────────
@@ -82,7 +82,7 @@ class _AccrualListPageState extends State<AccrualListPage> {
                   SliverFillRemaining(
                     child: Center(
                       child: QaydText(
-                        AppStringsAr.accrualEmptyState,
+                        AppStrings.accrualEmptyState,
                         slot: QaydTextStyleSlot.bodyMedium,
                       ),
                     ),
@@ -161,7 +161,7 @@ class _HeroSummary extends StatelessWidget {
         horizontal: SpacingTokens.lg,
         vertical: SpacingTokens.md,
       ),
-      decoration: const BoxDecoration(
+      decoration:  BoxDecoration(
         gradient: LinearGradient(
           colors: [ColorTokens.navy900, ColorTokens.navy800],
           begin: Alignment.topLeft,
@@ -171,11 +171,11 @@ class _HeroSummary extends StatelessWidget {
       child: Column(
         children: [
           QaydText(
-            AppStringsAr.accrualMonthlySummaryLabel,
+            AppStrings.accrualMonthlySummaryLabel,
             slot: QaydTextStyleSlot.labelSmall,
             color: Colors.white70,
           ),
-          const SizedBox(height: SpacingTokens.xs),
+          SizedBox(height: SpacingTokens.xs),
           Text(
             '${NumberFormat.decimalPattern('en').format(totalMonthly)} SAR',
             style: textTheme.displayMedium?.copyWith(
@@ -183,18 +183,18 @@ class _HeroSummary extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _KpiChip(
-                label: AppStringsAr.accrualActiveLabel,
+                label: AppStrings.accrualActiveLabel,
                 value: activeCount.toString(),
                 icon: Icons.check_circle_outline_rounded,
                 color: ColorTokens.emerald400,
               ),
               _KpiChip(
-                label: AppStringsAr.accrualDueSoonLabel,
+                label: AppStrings.accrualDueSoonLabel,
                 value: dueSoonCount.toString(),
                 icon: Icons.access_time_rounded,
                 color: ColorTokens.warningAmber,
@@ -231,7 +231,7 @@ class _KpiChip extends StatelessWidget {
     return Column(
       children: [
         Icon(icon, color: color, size: 18),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           value,
           style: textTheme.titleSmall?.copyWith(
@@ -255,7 +255,7 @@ class _KpiChip extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _AccrualCard extends StatelessWidget {
-  const _AccrualCard({required this.item, required this.onProcessed});
+   _AccrualCard({required this.item, required this.onProcessed});
   final AccrualComponent item;
   final VoidCallback onProcessed;
 
@@ -265,14 +265,14 @@ class _AccrualCard extends StatelessWidget {
     final confirm = await QaydDialog.show<bool>(
       context: context,
       icon: Icons.payments_rounded,
-      title: AppStringsAr.accrualProcessConfirmTitle,
-      content: AppStringsAr.accrualProcessConfirmBody(
+      title: AppStrings.accrualProcessConfirmTitle,
+      content: AppStrings.accrualProcessConfirmBody(
         item.amount,
         item.currencyCode,
       ),
-      secondaryActionLabel: AppStringsAr.actionCancel,
+      secondaryActionLabel: AppStrings.actionCancel,
       onSecondaryAction: () => Navigator.pop(context, false),
-      primaryActionLabel: AppStringsAr.accrualProcessConfirmAction,
+      primaryActionLabel: AppStrings.accrualProcessConfirmAction,
       onPrimaryAction: () => Navigator.pop(context, true),
     );
 
@@ -283,7 +283,7 @@ class _AccrualCard extends StatelessWidget {
       (f) => scaffold.showSnackBar(SnackBar(content: Text(f.messageAr))),
       (_) {
         scaffold.showSnackBar(
-          SnackBar(content: Text(AppStringsAr.accrualProcessedSuccess)),
+          SnackBar(content: Text(AppStrings.accrualProcessedSuccess)),
         );
         onProcessed();
       },
@@ -312,7 +312,7 @@ class _AccrualCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(RadiusTokens.pill),
                 ),
               ),
-              const SizedBox(width: SpacingTokens.sm),
+              SizedBox(width: SpacingTokens.sm),
 
               // ── Content ──────────────────────────────────────────────────
               Expanded(
@@ -339,7 +339,7 @@ class _AccrualCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       item.frequency.labelAr,
                       style: textTheme.bodySmall?.copyWith(
@@ -347,7 +347,7 @@ class _AccrualCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    const SizedBox(height: SpacingTokens.xs),
+                    SizedBox(height: SpacingTokens.xs),
                     Row(
                       children: [
                         Icon(
@@ -355,9 +355,9 @@ class _AccrualCard extends StatelessWidget {
                           size: 12,
                           color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(
-                          '${AppStringsAr.accrualNextDuePrefix}: ${DateFormat('yyyy-MM-dd', 'en').format(item.nextDueDate)}',
+                          '${AppStrings.accrualNextDuePrefix}: ${DateFormat('yyyy-MM-dd', 'en').format(item.nextDueDate)}',
                           style: textTheme.labelSmall?.copyWith(
                             color: isDueSoon
                                 ? ColorTokens.errorSoft
@@ -371,7 +371,7 @@ class _AccrualCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: SpacingTokens.sm),
+              SizedBox(width: SpacingTokens.sm),
 
               // ── Action ───────────────────────────────────────────────────
               Column(
@@ -379,8 +379,8 @@ class _AccrualCard extends StatelessWidget {
                 children: [
                   IconButton.filledTonal(
                     onPressed: () => _onPay(context),
-                    icon: const Icon(Icons.payments_rounded, size: 20),
-                    tooltip: AppStringsAr.accrualPayTooltip,
+                    icon: Icon(Icons.payments_rounded, size: 20),
+                    tooltip: AppStrings.accrualPayTooltip,
                     style: IconButton.styleFrom(
                       backgroundColor:
                           ColorTokens.emerald400.withValues(alpha: 0.1),

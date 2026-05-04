@@ -6,7 +6,7 @@ import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
 import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
 import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
 import 'package:qayd/presentation/components/auth/auth_title_block.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -42,7 +42,7 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
     try {
       final text = _phraseController.text.trim();
       if (text.isEmpty) {
-        setState(() => _error = AppStringsAr.identityRecoveryInputRequired);
+        setState(() => _error = AppStrings.identityRecoveryInputRequired);
         return;
       }
 
@@ -51,12 +51,12 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(AppStringsAr.seedRecoverySuccess)),
+          SnackBar(content: Text(AppStrings.seedRecoverySuccess)),
         );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
-      setState(() => _error = AppStringsAr.seedRecoveryInvalid);
+      setState(() => _error = AppStrings.seedRecoveryInvalid);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -71,7 +71,7 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: IconButton(
-                icon: const Icon(Icons.arrow_forward_ios_rounded,
+                icon: Icon(Icons.arrow_forward_ios_rounded,
                     color: ColorTokens.slate400, size: 20),
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
@@ -84,16 +84,16 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
                 ),
                 child: Column(
                   children: [
-                    const AuthAnimatedIcon(
+                     AuthAnimatedIcon(
                       iconData: Icons.vibration_rounded,
                       iconColor: ColorTokens.emerald500,
                     ),
-                    const SizedBox(height: SpacingTokens.lg),
-                    const AuthTitleBlock(
-                      title: AppStringsAr.seedRecoveryTitle,
-                      subtitle: AppStringsAr.seedRecoveryBody,
+                    SizedBox(height: SpacingTokens.lg),
+                    AuthTitleBlock(
+                      title: AppStrings.seedRecoveryTitle,
+                      subtitle: AppStrings.seedRecoveryBody,
                     ),
-                    const SizedBox(height: SpacingTokens.xl),
+                    SizedBox(height: SpacingTokens.xl),
                     TextField(
                       controller: _phraseController,
                       maxLines: 5,
@@ -108,7 +108,7 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
                         filled: true,
                         fillColor: const Color(0xFF1E293B), // Slate 800
                         hintText: 'word1 word2 word3 ...',
-                        hintStyle: const TextStyle(color: ColorTokens.slate400),
+                        hintStyle:  TextStyle(color: ColorTokens.slate400),
                         errorText: _error,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -125,15 +125,15 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: SpacingTokens.xl),
+                    SizedBox(height: SpacingTokens.xl),
                     AuthSubmitButton(
-                      label: AppStringsAr.seedRecoveryAction,
+                      label: AppStrings.seedRecoveryAction,
                       loading: _isLoading,
                       onPressed: _recover,
                     ),
-                    const SizedBox(height: SpacingTokens.lg),
-                    const Text(
-                      AppStringsAr.identityRecoveryHint,
+                    SizedBox(height: SpacingTokens.lg),
+                    Text(
+                      AppStrings.identityRecoveryHint,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: ColorTokens.slate400,

@@ -7,7 +7,7 @@ import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// DTO returned by [CollateralEntrySheet] when the user confirms input.
@@ -100,7 +100,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
 
     if (valueMinor <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStringsAr.pleaseEnterAValid)),
+        SnackBar(content: Text(AppStrings.pleaseEnterAValid)),
       );
       return;
     }
@@ -147,9 +147,9 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                 Row(
                   children: [
                     Icon(Icons.shield_rounded, color: gold, size: 24),
-                    const SizedBox(width: SpacingTokens.sm),
+                    SizedBox(width: SpacingTokens.sm),
                     Text(
-                      AppStringsAr.addAMortgagesecurity,
+                      AppStrings.addAMortgagesecurity,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: scheme.onSurface,
                             fontWeight: FontWeight.w600,
@@ -157,30 +157,30 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.xl),
 
                 // Description
                 QaydTextField(
                   controller: _descriptionController,
-                  label: AppStringsAr.descriptionOfTheMortgagesecurity,
+                  label: AppStrings.descriptionOfTheMortgagesecurity,
                   maxLines: 3,
                   validator: (v) =>
-                      (v?.trim().isEmpty ?? true) ? AppStringsAr.required : null,
+                      (v?.trim().isEmpty ?? true) ? AppStrings.required : null,
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
 
                 // Estimated value
                 QaydAmountField(
                   controller: _valueController,
                   label: 'القيمة التقديرية (${widget.currencyCode})',
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
 
                 // Expiry date
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
-                    AppStringsAr.dueDate,
+                    AppStrings.dueDate,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -188,7 +188,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                   subtitle: Text(
                     _expiryDate != null
                         ? DateFormat.yMMMd('ar').format(_expiryDate!)
-                        : AppStringsAr.chooseADateOptional,
+                        : AppStrings.chooseADateOptional,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: _expiryDate != null
                               ? scheme.onSurface
@@ -205,7 +205,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      AppStringsAr.mortgagePictures,
+                      AppStrings.mortgagePictures,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: scheme.onSurfaceVariant,
                           ),
@@ -214,7 +214,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                       onPressed: _addImages,
                       icon: Icon(Icons.add_photo_alternate, color: gold),
                       label: Text(
-                        AppStringsAr.addition,
+                        AppStrings.addition,
                         style: TextStyle(color: gold),
                       ),
                     ),
@@ -229,7 +229,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                       scrollDirection: Axis.horizontal,
                       itemCount: _images.length,
                       separatorBuilder: (_, __) =>
-                          const SizedBox(width: SpacingTokens.sm),
+                          SizedBox(width: SpacingTokens.sm),
                       itemBuilder: (context, i) {
                         return Stack(
                           children: [
@@ -253,7 +253,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                                     color: Colors.black54,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.close,
                                     size: 16,
                                     color: Colors.white,
@@ -267,7 +267,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                     ),
                   ),
 
-                const SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.xl),
 
                 // Save button
                 FilledButton.icon(
@@ -276,10 +276,10 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                     backgroundColor: gold,
                     foregroundColor: scheme.surface,
                   ),
-                  icon: const Icon(Icons.check_rounded),
-                  label: const Text(AppStringsAr.saveTheMortgage),
+                  icon: Icon(Icons.check_rounded),
+                  label: Text(AppStrings.saveTheMortgage),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
               ],
             ),
           ),

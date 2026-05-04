@@ -6,7 +6,7 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -90,8 +90,8 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
           },
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text(AppStringsAr.theTransferRequestHas)),
+              SnackBar(
+                  content: Text(AppStrings.theTransferRequestHas)),
             );
             Navigator.pop(context);
           },
@@ -127,16 +127,16 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
           Row(
             children: [
               Icon(Icons.account_tree_outlined, color: gold),
-              const SizedBox(width: SpacingTokens.md),
+              SizedBox(width: SpacingTokens.md),
               Expanded(
                 child: QaydText(
-                  'طلب حوالة (لصالح ${widget.destinationName})',
+                  AppStrings.tripartiteRequestFor(widget.destinationName),
                   slot: QaydTextStyleSlot.titleLarge,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: CircleAvatar(
@@ -144,17 +144,17 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
               child: Icon(Icons.person,
                   color: theme.colorScheme.onPrimaryContainer),
             ),
-            title: const Text(AppStringsAr.selectTheApprovedFinancial),
-            subtitle: Text(_mediator?.name ?? AppStringsAr.clickToChooseThe),
+            title: Text(AppStrings.selectTheApprovedFinancial),
+            subtitle: Text(_mediator?.name ?? AppStrings.clickToChooseThe),
             trailing: Icon(Icons.arrow_forward_ios, size: 14, color: gold),
             onTap: _pickMediator,
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           QaydAmountField(
             controller: _amountController,
-            label: AppStringsAr.voucherAmountLabel,
+            label: AppStrings.voucherAmountLabel,
           ),
-          const SizedBox(height: SpacingTokens.xl),
+          SizedBox(height: SpacingTokens.xl),
           FilledButton(
             onPressed: (_mediator != null && !_submitting) ? _submit : null,
             style: FilledButton.styleFrom(
@@ -164,7 +164,7 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
             ),
             child: _submitting
                 ? const CircularProgressIndicator()
-                : const Text(AppStringsAr.submitTheRequest),
+                : Text(AppStrings.submitTheRequest),
           ),
         ],
       ),

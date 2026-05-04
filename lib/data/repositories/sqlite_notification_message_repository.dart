@@ -3,7 +3,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/notification_message.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SqliteNotificationMessageRepository
@@ -35,10 +35,10 @@ final class SqliteNotificationMessageRepository
         'counterparty_account_id': counterpartyAccountId,
         'processed': 0,
       });
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToSaveNotification),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToSaveNotification),
       );
     }
   }
@@ -76,8 +76,8 @@ final class SqliteNotificationMessageRepository
       }
       return Success(out);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToLoadNotification),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToLoadNotification),
       );
     }
   }
@@ -112,8 +112,8 @@ final class SqliteNotificationMessageRepository
       }
       return Success(out);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToLoadInbox),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToLoadInbox),
       );
     }
   }
@@ -128,14 +128,14 @@ final class SqliteNotificationMessageRepository
         whereArgs: [id],
       );
       if (n == 0) {
-        return const FailureResult(
-          DatabaseFailure(messageAr: AppStringsAr.notificationRecordNotFound),
+        return  FailureResult(
+          DatabaseFailure(messageAr: AppStrings.notificationRecordNotFound),
         );
       }
-      return const Success(null);
+      return  Success(null);
     } catch (_) {
-      return const FailureResult(
-        DatabaseFailure(messageAr: AppStringsAr.unableToUpdateNotification),
+      return  FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToUpdateNotification),
       );
     }
   }

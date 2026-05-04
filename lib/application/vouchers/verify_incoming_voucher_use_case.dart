@@ -8,7 +8,7 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Outcome of incoming voucher verification.
@@ -87,7 +87,7 @@ class VerifyIncomingVoucherUseCase {
       } else if (result.isAccountNotFound) {
         // §5.6 Failure: account not found — user is notified.
         finalStatus = AgreementStatus.unverified;
-        failureReason = AppStringsAr.theAccountDoesNot1;
+        failureReason = AppStrings.theAccountDoesNot1;
         debugPrint(
           'Voucher [${voucher.id.value}] SUSPENDED: sender account not found.',
         );
@@ -95,7 +95,7 @@ class VerifyIncomingVoucherUseCase {
         // §5.6 Failure: signature doesn't match — suspended as unapproved claim.
         finalStatus = AgreementStatus.unverified;
         failureReason =
-            AppStringsAr.theSignatureDoesNot;
+            AppStrings.theSignatureDoesNot;
         debugPrint(
           'Voucher [${voucher.id.value}] SUSPENDED: signature mismatch (${result.failureReason}).',
         );

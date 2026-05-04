@@ -4,7 +4,7 @@ import 'package:qayd/data/governance/remote/governance_remote_data_source.dart';
 import 'package:qayd/domain/repositories/governance_repository.dart';
 import 'package:qayd/domain/value_objects/governance_status.dart';
 import 'package:qayd/domain/value_objects/submit_activation_request.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Caches governance status briefly to avoid hammering the remote stub / future API.
@@ -36,7 +36,7 @@ final class GovernanceRepositoryImpl implements GovernanceRepository {
     } on Object catch (_) {
       return FailureResult(
         NetworkFailure(
-          messageAr: AppStringsAr.unableToCheckLicense,
+          messageAr: AppStrings.unableToCheckLicense,
         ),
       );
     }
@@ -52,21 +52,21 @@ final class GovernanceRepositoryImpl implements GovernanceRepository {
     } on ArgumentError catch (_) {
       return FailureResult(
         ValidationFailure(
-          messageAr: AppStringsAr.pleaseEnterYourFacility,
+          messageAr: AppStrings.pleaseEnterYourFacility,
           code: 'governance_activation_invalid_input',
         ),
       );
     } on StateError catch (_) {
       return FailureResult(
         ValidationFailure(
-          messageAr: AppStringsAr.activationDataIsIncorrect,
+          messageAr: AppStrings.activationDataIsIncorrect,
           code: 'governance_activation_rejected',
         ),
       );
     } on Object catch (_) {
       return FailureResult(
         NetworkFailure(
-          messageAr: AppStringsAr.activationCouldNotBe,
+          messageAr: AppStrings.activationCouldNotBe,
         ),
       );
     }

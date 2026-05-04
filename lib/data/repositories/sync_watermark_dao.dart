@@ -1,7 +1,7 @@
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 /// Per-counterparty sync watermark — tracks the last successful sync point
@@ -62,9 +62,9 @@ class SyncWatermarkDao {
       if (rows.isEmpty) return const Success(null);
       return Success(SyncWatermark.fromMap(rows.first));
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.theSyncTagCould,
+          messageAr: AppStrings.theSyncTagCould,
         ),
       );
     }
@@ -80,9 +80,9 @@ class SyncWatermarkDao {
       );
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.unableToUpdateSync,
+          messageAr: AppStrings.unableToUpdateSync,
         ),
       );
     }
@@ -102,9 +102,9 @@ class SyncWatermarkDao {
       );
       return const Success(null);
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.theLastOpenDocument,
+          messageAr: AppStrings.theLastOpenDocument,
         ),
       );
     }
@@ -116,9 +116,9 @@ class SyncWatermarkDao {
       final rows = await _db.query(_table, orderBy: 'last_synced_at DESC');
       return Success(rows.map(SyncWatermark.fromMap).toList());
     } catch (_) {
-      return const FailureResult(
+      return  FailureResult(
         DatabaseFailure(
-          messageAr: AppStringsAr.theSynchronizationTableCould,
+          messageAr: AppStrings.theSynchronizationTableCould,
         ),
       );
     }

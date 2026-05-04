@@ -7,7 +7,7 @@ import 'package:qayd/application/cost_centers/dtos/dimension_breakdown_item.dart
 import 'package:qayd/application/cost_centers/dtos/monthly_trend_point.dart';
 import 'package:qayd/domain/entities/cost_center.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -165,7 +165,7 @@ class HeroBackground extends StatelessWidget {
                         color: Colors.white,
                         size: 32,
                       ),
-                      const SizedBox(width: SpacingTokens.sm),
+                      SizedBox(width: SpacingTokens.sm),
                       Expanded(
                         child: Text(
                           center.name,
@@ -182,7 +182,7 @@ class HeroBackground extends StatelessWidget {
                     ],
                   ),
                   if (center.description != null) ...[
-                    const SizedBox(height: SpacingTokens.xs),
+                    SizedBox(height: SpacingTokens.xs),
                     Text(
                       center.description!,
                       style: TextStyle(
@@ -274,7 +274,7 @@ class _DashKpiCardState extends State<DashKpiCard>
             ),
             child: Icon(widget.icon, color: c, size: 20),
           ),
-          const SizedBox(height: SpacingTokens.sm),
+          SizedBox(height: SpacingTokens.sm),
           AnimatedBuilder(
             animation: _anim,
             builder: (context, _) => Text.rich(
@@ -290,7 +290,7 @@ class _DashKpiCardState extends State<DashKpiCard>
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             widget.label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -356,7 +356,7 @@ class TrendLineChart extends StatelessWidget {
               interval: 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index < 0 || index >= trend.length) return const SizedBox();
+                if (index < 0 || index >= trend.length) return SizedBox();
                 return Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
@@ -450,7 +450,7 @@ class _DonutChartState extends State<DonutChart> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.items.isEmpty) return const SizedBox();
+    if (widget.items.isEmpty) return SizedBox();
 
     final scheme = Theme.of(context).colorScheme;
 
@@ -525,7 +525,7 @@ class _DonutChartState extends State<DonutChart> {
             curve: Curves.easeOutCubic,
           ),
         ),
-        const SizedBox(width: SpacingTokens.sm),
+        SizedBox(width: SpacingTokens.sm),
         Expanded(
           flex: 5,
           child: Column(
@@ -554,7 +554,7 @@ class _DonutChartState extends State<DonutChart> {
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             item.dimensionName,
@@ -724,11 +724,11 @@ class _BudgetGaugeState extends State<BudgetGauge>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.warning_amber_rounded,
+                Icon(Icons.warning_amber_rounded,
                     size: 13, color: ColorTokens.errorSoft),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Text(
-                  AppStringsAr.costCenterOverBudgetWarning,
+                  AppStrings.costCenterOverBudgetWarning,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: ColorTokens.errorSoft,
                         fontWeight: FontWeight.bold,
@@ -787,7 +787,7 @@ class VoucherActivityCard extends StatelessWidget {
           child: Icon(icon, color: c, size: 20),
         ),
         title: Text(
-          summary.counterpartyName ?? AppStringsAr.voucherStateConfirmed,
+          summary.counterpartyName ?? AppStrings.voucherStateConfirmed,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -802,7 +802,7 @@ class VoucherActivityCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             Text(
               DateFormat('yyyy/MM/dd').format(summary.date),
               style: TextStyle(

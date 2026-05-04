@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class TemplateVariable {
@@ -9,33 +9,33 @@ class TemplateVariable {
   final String charCode;
   final MessageTemplateKind? kindRestricted; // if null, available for all
 
-  const TemplateVariable(this.key, this.label, this.charCode,
+   TemplateVariable(this.key, this.label, this.charCode,
       {this.kindRestricted});
 }
 
 // Private Use Area Unicode Characters
 final List<TemplateVariable> kTemplateVariables = [
-  const TemplateVariable('{{customer}}', AppStringsAr.theOtherParty, '\uE000'),
-  const TemplateVariable('{{counterparty}}', AppStringsAr.theOtherParty, '\uE001'),
-  const TemplateVariable('{{amount}}', AppStringsAr.amount, '\uE002'),
-  const TemplateVariable('{{currency}}', AppStringsAr.currency, '\uE003'),
-  const TemplateVariable('{{date}}', AppStringsAr.theDate, '\uE004'),
-  const TemplateVariable('{{affected_account}}', AppStringsAr.theAccount, '\uE005'),
-  const TemplateVariable('{{reference}}', AppStringsAr.referenceNumber1, '\uE006'),
-  const TemplateVariable('{{description}}', AppStringsAr.statement1, '\uE007'),
-  const TemplateVariable('{{notes}}', AppStringsAr.notes1, '\uE008'),
-  const TemplateVariable('{{voucher_id}}', AppStringsAr.bondNumber, '\uE009'),
-  const TemplateVariable('{{type}}', AppStringsAr.type, '\uE00A'),
-  const TemplateVariable('{{signature}}', AppStringsAr.electronicSignature, '\uE00B'),
-  const TemplateVariable('{{net_balance}}', AppStringsAr.totalBalance1, '\uE010'),
+   TemplateVariable('{{customer}}', AppStrings.theOtherParty, '\uE000'),
+   TemplateVariable('{{counterparty}}', AppStrings.theOtherParty, '\uE001'),
+   TemplateVariable('{{amount}}', AppStrings.amount, '\uE002'),
+   TemplateVariable('{{currency}}', AppStrings.currency, '\uE003'),
+   TemplateVariable('{{date}}', AppStrings.theDate, '\uE004'),
+   TemplateVariable('{{affected_account}}', AppStrings.theAccount, '\uE005'),
+   TemplateVariable('{{reference}}', AppStrings.referenceNumber1, '\uE006'),
+   TemplateVariable('{{description}}', AppStrings.statement1, '\uE007'),
+   TemplateVariable('{{notes}}', AppStrings.notes1, '\uE008'),
+   TemplateVariable('{{voucher_id}}', AppStrings.bondNumber, '\uE009'),
+   TemplateVariable('{{type}}', AppStrings.type, '\uE00A'),
+   TemplateVariable('{{signature}}', AppStrings.electronicSignature, '\uE00B'),
+   TemplateVariable('{{net_balance}}', AppStrings.totalBalance1, '\uE010'),
   // Account Specific
-  const TemplateVariable('{{account_name}}', AppStringsAr.accountName, '\uE00C',
+   TemplateVariable('{{account_name}}', AppStrings.accountName, '\uE00C',
       kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{balance}}', AppStringsAr.balance, '\uE00D',
+   TemplateVariable('{{balance}}', AppStrings.balance, '\uE00D',
       kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{nature}}', AppStringsAr.typeDebitcredit, '\uE00E',
+   TemplateVariable('{{nature}}', AppStrings.typeDebitcredit, '\uE00E',
       kindRestricted: MessageTemplateKind.accountBalance),
-  const TemplateVariable('{{account_id}}', AppStringsAr.accountId, '\uE00F'),
+   TemplateVariable('{{account_id}}', AppStrings.accountId, '\uE00F'),
 ];
 
 class TemplateTextController extends TextEditingController {
@@ -43,7 +43,7 @@ class TemplateTextController extends TextEditingController {
     text = _dbToUi(initialDbText ?? '');
   }
 
-  /// Converts DB format e.g. AppStringsAr.dearCustomer -> AppStringsAr.dearue000
+  /// Converts DB format e.g. AppStrings.dearCustomer -> AppStrings.dearue000
   static String _dbToUi(String dbText) {
     String ui = dbText;
     for (final v in kTemplateVariables) {
@@ -52,7 +52,7 @@ class TemplateTextController extends TextEditingController {
     return ui;
   }
 
-  /// Converts UI format e.g. AppStringsAr.dearue000 -> AppStringsAr.dearCustomer
+  /// Converts UI format e.g. AppStrings.dearue000 -> AppStrings.dearCustomer
   String get dbText {
     String db = text;
     for (final v in kTemplateVariables) {

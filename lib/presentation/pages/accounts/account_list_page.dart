@@ -11,7 +11,7 @@ import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
 import 'package:qayd/presentation/components/atomic/qayd_money_display.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
@@ -168,12 +168,12 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
       appBar: QaydAppBar(
         showNotifications: true,
         title: widget.isRootMode
-            ? AppStringsAr.chartOfAccountsTitle
-            : AppStringsAr.navAccountsTab,
+            ? AppStrings.chartOfAccountsTitle
+            : AppStrings.navAccountsTab,
         actions: [
           IconButton(
-            icon: const Icon(Icons.inventory_2_outlined),
-            tooltip: AppStringsAr.archivedAccountsTitle,
+            icon: Icon(Icons.inventory_2_outlined),
+            tooltip: AppStrings.archivedAccountsTitle,
             onPressed: () async {
               await Navigator.of(context).push<void>(
                 QaydPageRoute.slideFromStart<void>(
@@ -183,7 +183,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                           InjectionContainer.listArchivedAccountsUseCase,
                       restoreAccount: InjectionContainer.restoreAccountUseCase,
                     )..load(),
-                    child: const ArchivedAccountsPage(),
+                    child: ArchivedAccountsPage(),
                   ),
                 ),
               );
@@ -205,8 +205,8 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
             _openCreate();
           }
         },
-        icon: const Icon(Icons.add_rounded),
-        label: Text(AppStringsAr.addAccountFab),
+        icon: Icon(Icons.add_rounded),
+        label: Text(AppStrings.addAccountFab),
         backgroundColor: gold,
         foregroundColor: ColorTokens.navy950,
       ),
@@ -222,8 +222,8 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
             ),
             child: QaydTextField(
               controller: _searchController,
-              hint: AppStringsAr.searchAccountsHint,
-              prefixIcon: const Icon(Icons.search_rounded),
+              hint: AppStrings.searchAccountsHint,
+              prefixIcon: Icon(Icons.search_rounded),
               onChanged: (q) =>
                   context.read<AccountListCubit>().setSearchQuery(q),
             ),
@@ -247,21 +247,21 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                         spacing: SpacingTokens.sm,
                         children: [
                           ChoiceChip(
-                            label: Text(AppStringsAr.filterNatureAll),
+                            label: Text(AppStrings.filterNatureAll),
                             selected: natureFilter == AccountNatureFilter.all,
                             onSelected: (_) => context
                                 .read<AccountListCubit>()
                                 .setNatureFilter(AccountNatureFilter.all),
                           ),
                           ChoiceChip(
-                            label: Text(AppStringsAr.filterNatureDebit),
+                            label: Text(AppStrings.filterNatureDebit),
                             selected: natureFilter == AccountNatureFilter.debit,
                             onSelected: (_) => context
                                 .read<AccountListCubit>()
                                 .setNatureFilter(AccountNatureFilter.debit),
                           ),
                           ChoiceChip(
-                            label: Text(AppStringsAr.filterNatureCredit),
+                            label: Text(AppStrings.filterNatureCredit),
                             selected:
                                 natureFilter == AccountNatureFilter.credit,
                             onSelected: (_) => context
@@ -282,7 +282,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
               builder: (context, state) {
                 return switch (state) {
                   AccountListInitial() => const SizedBox.shrink(),
-                  AccountListLoading() => const Center(
+                  AccountListLoading() => Center(
                       child: CircularProgressIndicator(),
                     ),
                   AccountListFailure(:final failure) => Center(
@@ -296,11 +296,11 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> {
                               slot: QaydTextStyleSlot.bodyLarge,
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: SpacingTokens.md),
+                            SizedBox(height: SpacingTokens.md),
                             FilledButton.tonal(
                               onPressed: () =>
                                   context.read<AccountListCubit>().load(),
-                              child: Text(AppStringsAr.retryAction),
+                              child: Text(AppStrings.retryAction),
                             ),
                           ],
                         ),
@@ -347,11 +347,11 @@ class _AccountListBody extends StatelessWidget {
             ? Icons.account_tree_outlined
             : Icons.search_off_rounded,
         title: chartIsEmpty
-            ? AppStringsAr.accountsEmpty
-            : AppStringsAr.accountsEmptyFiltered,
+            ? AppStrings.accountsEmpty
+            : AppStrings.accountsEmptyFiltered,
         description: chartIsEmpty
-            ? AppStringsAr.startByAddingYour1
-            : AppStringsAr.trySearchingWithOther2,
+            ? AppStrings.startByAddingYour1
+            : AppStrings.trySearchingWithOther2,
       );
     }
 
@@ -514,7 +514,7 @@ class _AccountCard extends StatelessWidget {
                                   color: natureColor,
                                 ),
                               ),
-                              const SizedBox(width: SpacingTokens.sm),
+                              SizedBox(width: SpacingTokens.sm),
                               // Name & Classification
                               Expanded(
                                 child: Column(
@@ -530,7 +530,7 @@ class _AccountCard extends StatelessWidget {
                                         height: 1.2,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                    SizedBox(height: 2),
                                     // Classification label
                                     QaydText(
                                       _getClassificationLabel(dto),
@@ -540,7 +540,7 @@ class _AccountCard extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: SpacingTokens.sm),
+                              SizedBox(width: SpacingTokens.sm),
                               // Detail navigation button
                               Material(
                                 color: Colors.transparent,
@@ -574,7 +574,7 @@ class _AccountCard extends StatelessWidget {
 
                           // ── Balance Section ──
                           if (dto.balancesMinorUnits.isNotEmpty) ...[
-                            const SizedBox(height: SpacingTokens.sm),
+                            SizedBox(height: SpacingTokens.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: SpacingTokens.md,
@@ -631,12 +631,12 @@ class _AccountCard extends StatelessWidget {
       final Color sideColor;
 
       if (minor == 0) {
-        sideLabel = AppStringsAr.statementBalanceSettled;
+        sideLabel = AppStrings.statementBalanceSettled;
         sideColor = custom.credit;
       } else {
         sideLabel = isDebitSide
-            ? AppStringsAr.natureDebitShort
-            : AppStringsAr.natureCreditShort;
+            ? AppStrings.natureDebitShort
+            : AppStrings.natureCreditShort;
         sideColor = isDebitSide ? custom.credit : custom.debit;
       }
 
@@ -684,7 +684,7 @@ class _AccountCard extends StatelessWidget {
                 size: QaydMoneyDisplaySize.small,
                 fontWeight: FontWeight.w600,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               // Side label badge
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -734,8 +734,8 @@ class _AccountCard extends StatelessWidget {
 
   String _getClassificationLabel(AccountSummaryDto dto) {
     final nature = dto.natureCode == 'debit'
-        ? AppStringsAr.natureDebitShort
-        : AppStringsAr.natureCreditShort;
+        ? AppStrings.natureDebitShort
+        : AppStrings.natureCreditShort;
 
     if (dto.customClassificationName != null) {
       return '${dto.customClassificationName} • $nature';

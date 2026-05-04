@@ -15,7 +15,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/data/dtos/account_statement_report_dto.dart';
 import 'package:qayd/data/export/qayd_excel_workbook.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
 import 'package:qayd/core/utils/text_sanitizer.dart';
 
@@ -39,7 +39,7 @@ Future<void> shareStatementChatAsPdf(
   showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => const Center(
+    builder: (ctx) => Center(
       child: Card(
         child: Padding(
           padding: EdgeInsets.all(24),
@@ -60,7 +60,7 @@ Future<void> shareStatementChatAsPdf(
       lines.add(
         AccountStatementLineReportDto(
           dateIso: filter.fromDate!.toIso8601String(),
-          description: '${AppStringsAr.statementBroughtForward} ($code)',
+          description: '${AppStrings.statementBroughtForward} ($code)',
           debitMinorUnits: isPositive ? 0 : amount.abs(),
           creditMinorUnits: isPositive ? amount : 0,
           balanceMinorUnits: amount,
@@ -153,7 +153,7 @@ Future<void> shareStatementChatAsPdf(
     }
   } catch (_) {
     messenger.showSnackBar(
-      SnackBar(content: Text(AppStringsAr.exportPdfShareError)),
+      SnackBar(content: Text(AppStrings.exportPdfShareError)),
     );
   }
 }
@@ -181,7 +181,7 @@ Future<void> shareStatementChatAsExcel(
   showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => const Center(
+    builder: (ctx) => Center(
       child: Card(
         child: Padding(
           padding: EdgeInsets.all(24),
@@ -193,13 +193,13 @@ Future<void> shareStatementChatAsExcel(
 
   try {
     final headers = <String>[
-      AppStringsAr.theDate,
-      AppStringsAr.bondNumber,
-      AppStringsAr.type,
-      AppStringsAr.theCondition,
-      AppStringsAr.creditor,
-      AppStringsAr.debtor,
-      AppStringsAr.balance,
+      AppStrings.theDate,
+      AppStrings.bondNumber,
+      AppStrings.type,
+      AppStrings.theCondition,
+      AppStrings.creditor,
+      AppStrings.debtor,
+      AppStrings.balance,
     ];
 
     num divisor = 1;
@@ -226,7 +226,7 @@ Future<void> shareStatementChatAsExcel(
         rows.add([
           dateFmtAr.format(filter.fromDate!),
           '-',
-          '${AppStringsAr.statementBroughtForward} ($code)',
+          '${AppStrings.statementBroughtForward} ($code)',
           '-',
           debitVal == 0 ? '' : _fmtNum(debitVal, currencyDigits),
           creditVal == 0 ? '' : _fmtNum(creditVal, currencyDigits),
@@ -249,14 +249,14 @@ Future<void> shareStatementChatAsExcel(
       final balance = m.runningBalanceMinorUnits / divisor;
 
       final typeLabel = m.typeCode == 'receipt'
-          ? AppStringsAr.voucherTypeReceipt
-          : AppStringsAr.voucherTypePayment;
+          ? AppStrings.voucherTypeReceipt
+          : AppStrings.voucherTypePayment;
 
       final statusLabel = switch (m.signatureStatusCode) {
-        'accepted' => AppStringsAr.statementStatusConfirmed,
-        'underRequest' => AppStringsAr.statementStatusPending,
-        'rejected' => AppStringsAr.statementStatusRejected,
-        'unverified' => AppStringsAr.agreementUnverified,
+        'accepted' => AppStrings.statementStatusConfirmed,
+        'underRequest' => AppStrings.statementStatusPending,
+        'rejected' => AppStrings.statementStatusRejected,
+        'unverified' => AppStrings.agreementUnverified,
         _ => m.signatureStatusCode,
       };
 
@@ -325,7 +325,7 @@ Future<void> shareStatementChatAsExcel(
               totalCredit: totalCreditStr,
               netBalance: netBalanceStr,
               notesText:
-                  AppStringsAr.thankYouForDealing,
+                  AppStrings.thankYouForDealing,
             ));
 
     if (!context.mounted) return;
@@ -398,7 +398,7 @@ Future<void> shareStatementChatAsExcel(
           .pop(); // dismiss loading if error
     }
     messenger.showSnackBar(
-      const SnackBar(content: Text(AppStringsAr.anErrorOccurredWhile1)),
+       SnackBar(content: Text(AppStrings.anErrorOccurredWhile1)),
     );
   }
 }

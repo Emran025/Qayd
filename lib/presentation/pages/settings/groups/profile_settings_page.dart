@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/settings/identity_settings_section.dart';
 import 'package:qayd/presentation/pages/settings/profile_details_section.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -16,7 +16,7 @@ class ProfileSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: QaydAppBar(title: AppStringsAr.settingsGroupProfile),
+      appBar: QaydAppBar(title: AppStrings.settingsGroupProfile),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
         children: const [
@@ -50,31 +50,31 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
           return QaydDialog(
             icon: Icons.warning_amber_rounded,
             iconColor: Colors.red,
-            title: AppStringsAr.profileDeleteAccountWarningTitle,
-            primaryActionLabel: AppStringsAr.profileDeleteAccountExecute,
+            title: AppStrings.profileDeleteAccountWarningTitle,
+            primaryActionLabel: AppStrings.profileDeleteAccountExecute,
             onPrimaryAction: !confirmed
                 ? null
                 : () {
                     Navigator.pop(ctx);
                     _executeDelete();
                   },
-            secondaryActionLabel: AppStringsAr.templateEditCancel,
+            secondaryActionLabel: AppStrings.templateEditCancel,
             onSecondaryAction: () => Navigator.pop(ctx),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  AppStringsAr.profileDeleteAccountWarningBody,
+                  AppStrings.profileDeleteAccountWarningBody,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
-                const SizedBox(height: SpacingTokens.md),
+                SizedBox(height: SpacingTokens.md),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
-                    AppStringsAr.profileDeleteAccountConfirmLabel,
+                    AppStrings.profileDeleteAccountConfirmLabel,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   value: confirmed,
@@ -99,8 +99,8 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
 
       if (result.isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(AppStringsAr.profileDeleteAccountSuccess),
+          SnackBar(
+            content: Text(AppStrings.profileDeleteAccountSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -110,7 +110,7 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.failureOrNull?.messageAr ?? AppStringsAr.anErrorOccurred),
+            content: Text(result.failureOrNull?.messageAr ?? AppStrings.anErrorOccurred),
             backgroundColor: Colors.red,
           ),
         );
@@ -146,9 +146,9 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
                   child: Icon(Icons.warning_amber_rounded,
                       color: scheme.error, size: 20),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 QaydText(
-                  AppStringsAr.dangerZone,
+                  AppStrings.dangerZone,
                   slot: QaydTextStyleSlot.titleMedium,
                   style: TextStyle(
                     color: scheme.error,
@@ -157,23 +157,23 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
                 ),
               ],
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             QaydText(
-              AppStringsAr.accountErasureIsA,
+              AppStrings.accountErasureIsA,
               slot: QaydTextStyleSlot.bodySmall,
               color: scheme.onSurfaceVariant,
             ),
-            const SizedBox(height: SpacingTokens.lg),
+            SizedBox(height: SpacingTokens.lg),
             OutlinedButton.icon(
               onPressed: _loading ? null : _confirmDelete,
               icon: _loading
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.delete_forever_rounded),
-              label: Text(AppStringsAr.profileDeleteAccountAction),
+                  : Icon(Icons.delete_forever_rounded),
+              label: Text(AppStrings.profileDeleteAccountAction),
               style: OutlinedButton.styleFrom(
                 foregroundColor: scheme.error,
                 side: BorderSide(color: scheme.error),

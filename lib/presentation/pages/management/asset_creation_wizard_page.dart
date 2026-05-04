@@ -6,7 +6,7 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -58,8 +58,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
 
     if (rootId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(AppStringsAr.errorTheAssetRoot)),
+        SnackBar(content: Text(AppStrings.errorTheAssetRoot)),
       );
       return;
     }
@@ -101,8 +100,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
       },
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(AppStringsAr.theAssetHasBeen)),
+          SnackBar(content: Text(AppStrings.theAssetHasBeen)),
         );
         Navigator.pop(context, true);
       },
@@ -118,8 +116,8 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
     return Scaffold(
       appBar: QaydAppBar(
         title: _assetType == 'investment'
-            ? AppStringsAr.assetWizardInvestmentTitle
-            : AppStringsAr.assetWizardPossessionTitle,
+            ? AppStrings.assetWizardInvestmentTitle
+            : AppStrings.assetWizardPossessionTitle,
       ),
       body: Form(
         key: _formKey,
@@ -127,27 +125,27 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
           padding: const EdgeInsets.all(SpacingTokens.lg),
           children: [
             QaydText(
-              AppStringsAr.classificationOfEconomicAsset,
+              AppStrings.classificationOfEconomicAsset,
               slot: QaydTextStyleSlot.titleMedium,
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             Row(
               children: [
                 Expanded(
                   child: _TypeCard(
-                    title: AppStringsAr.managementInvestmentAssets,
-                    description: AppStringsAr.realEstateStocksMoneymaking,
+                    title: AppStrings.managementInvestmentAssets,
+                    description: AppStrings.realEstateStocksMoneymaking,
                     icon: Icons.account_balance_rounded,
                     color: ColorTokens.emerald400,
                     isSelected: _assetType == 'investment',
                     onTap: () => setState(() => _assetType = 'investment'),
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 Expanded(
                   child: _TypeCard(
-                    title: AppStringsAr.managementPersonalPossessions,
-                    description: AppStringsAr.carFurniturePersonalItems,
+                    title: AppStrings.managementPersonalPossessions,
+                    description: AppStrings.carFurniturePersonalItems,
                     icon: Icons.inventory_2_outlined,
                     color: Colors.blueAccent,
                     isSelected: _assetType == 'possession',
@@ -156,15 +154,15 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                 ),
               ],
             ),
-            const SizedBox(height: SpacingTokens.xl),
+            SizedBox(height: SpacingTokens.xl),
             QaydTextField(
               controller: _nameController,
-              label: AppStringsAr.nameOfOriginking,
-              hint: AppStringsAr.buildingCFordCar,
+              label: AppStrings.nameOfOriginking,
+              hint: AppStrings.buildingCFordCar,
               validator: (v) =>
-                  (v == null || v.isEmpty) ? AppStringsAr.pleaseEnterAName : null,
+                  (v == null || v.isEmpty) ? AppStrings.pleaseEnterAName : null,
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -172,16 +170,16 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                   flex: 3,
                   child: QaydAmountField(
                     controller: _valueController,
-                    label: AppStringsAr.managementAssetValueLabel,
+                    label: AppStrings.managementAssetValueLabel,
                   ),
                 ),
-                const SizedBox(width: SpacingTokens.md),
+                SizedBox(width: SpacingTokens.md),
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<CurrencyCode>(
-                    value: _purchaseCurrency,
+                    initialValue: _purchaseCurrency,
                     decoration: InputDecoration(
-                      labelText: AppStringsAr.acquisitionCurrency,
+                      labelText: AppStrings.acquisitionCurrency,
                       labelStyle: TextStyle(
                         fontFamily: 'Tajawal',
                         fontSize: 14,
@@ -212,7 +210,7 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
               ],
             ),
             if (_assetType == 'investment') ...[
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
               Container(
                 padding: const EdgeInsets.all(SpacingTokens.md),
                 decoration: BoxDecoration(
@@ -222,17 +220,16 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.auto_graph_rounded,
+                    Icon(Icons.auto_graph_rounded,
                         color: ColorTokens.emerald400),
-                    const SizedBox(width: SpacingTokens.md),
+                    SizedBox(width: SpacingTokens.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          QaydText(AppStringsAr.assetWizardIncomeSourceLabel,
+                          QaydText(AppStrings.assetWizardIncomeSourceLabel,
                               slot: QaydTextStyleSlot.labelLarge),
-                          const Text(
-                              AppStringsAr.theSystemWillAutomatically,
+                          Text(AppStrings.theSystemWillAutomatically,
                               style:
                                   TextStyle(fontSize: 10, color: Colors.grey)),
                         ],
@@ -241,20 +238,20 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
                     Switch(
                       value: _generatesIncome,
                       onChanged: (v) => setState(() => _generatesIncome = v),
-                      activeColor: ColorTokens.emerald400,
+                      activeThumbColor: ColorTokens.emerald400,
                     ),
                   ],
                 ),
               ),
             ],
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             QaydTextField(
               controller: _notesController,
-              label: AppStringsAr.referenceDataOptional,
-              hint: AppStringsAr.registrationNumberLocationSpecifications,
+              label: AppStrings.referenceDataOptional,
+              hint: AppStrings.registrationNumberLocationSpecifications,
               maxLines: 2,
             ),
-            const SizedBox(height: SpacingTokens.xxl),
+            SizedBox(height: SpacingTokens.xxl),
             FilledButton(
               onPressed: _isSubmitting ? null : _submit,
               style: FilledButton.styleFrom(
@@ -266,13 +263,13 @@ class _AssetCreationWizardPageState extends State<AssetCreationWizardPage> {
               ),
               child: _isSubmitting
                   ? const CircularProgressIndicator(color: Colors.black)
-                  : const Text(AppStringsAr.confirmAndRegisterThe,
+                  : Text(AppStrings.confirmAndRegisterThe,
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             ),
-            const SizedBox(height: SpacingTokens.md),
+            SizedBox(height: SpacingTokens.md),
             QaydText(
-              AppStringsAr.aFinancialAccountAnd,
+              AppStrings.aFinancialAccountAnd,
               slot: QaydTextStyleSlot.labelSmall,
               color: scheme.onSurfaceVariant,
               textAlign: TextAlign.center,
@@ -330,7 +327,7 @@ class _TypeCard extends StatelessWidget {
           children: [
             Icon(icon,
                 size: 32, color: isSelected ? color : scheme.onSurfaceVariant),
-            const SizedBox(height: SpacingTokens.sm),
+            SizedBox(height: SpacingTokens.sm),
             QaydText(title,
                 slot: QaydTextStyleSlot.labelLarge,
                 textAlign: TextAlign.center,
@@ -339,7 +336,7 @@ class _TypeCard extends StatelessWidget {
                     color: isSelected
                         ? scheme.onSurface
                         : scheme.onSurfaceVariant)),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               description,
               style: TextStyle(

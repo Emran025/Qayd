@@ -3,7 +3,7 @@ import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class VoucherSharePreviewSheet extends StatefulWidget {
@@ -83,19 +83,19 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
               ),
             ),
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           Row(
             children: [
               Icon(Icons.edit_note_rounded, color: gold),
-              const SizedBox(width: SpacingTokens.sm),
+              SizedBox(width: SpacingTokens.sm),
               QaydText(
-                AppStringsAr.reviewAndEditThe,
+                AppStrings.reviewAndEditThe,
                 slot: QaydTextStyleSlot.titleMedium,
                 color: scheme.onSurface,
               ),
             ],
           ),
-          const SizedBox(height: SpacingTokens.md),
+          SizedBox(height: SpacingTokens.md),
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.all(SpacingTokens.md),
@@ -133,15 +133,15 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
                           slot: QaydTextStyleSlot.bodyMedium,
                           color: scheme.onSurfaceVariant,
                         ),
-                        const SizedBox(height: SpacingTokens.sm),
+                        SizedBox(height: SpacingTokens.sm),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Icon(Icons.touch_app_rounded,
                                 size: 14, color: gold.withValues(alpha: 0.6)),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             QaydText(
-                              AppStringsAr.clickToEdit,
+                              AppStrings.clickToEdit,
                               slot: QaydTextStyleSlot.labelSmall,
                               color: gold.withValues(alpha: 0.6),
                             ),
@@ -151,22 +151,22 @@ class _VoucherSharePreviewSheetState extends State<VoucherSharePreviewSheet> {
                     ),
             ),
           ),
-          const SizedBox(height: SpacingTokens.lg),
+          SizedBox(height: SpacingTokens.lg),
           Row(
             children: [
               Expanded(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(AppStringsAr.cancellation),
+                  child: Text(AppStrings.cancellation),
                 ),
               ),
-              const SizedBox(width: SpacingTokens.md),
+              SizedBox(width: SpacingTokens.md),
               Expanded(
                 flex: 2,
                 child: FilledButton.icon(
                   onPressed: () => Navigator.pop(context, _controller.text),
-                  icon: const Icon(Icons.send_rounded),
-                  label: const Text(AppStringsAr.confirmAndSend),
+                  icon: Icon(Icons.send_rounded),
+                  label: Text(AppStrings.confirmAndSend),
                   style: FilledButton.styleFrom(
                     backgroundColor: gold,
                     foregroundColor: ColorTokens.navy950,

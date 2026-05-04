@@ -9,7 +9,7 @@ import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
-import 'package:qayd/presentation/l10n/app_strings_ar.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -76,7 +76,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
       context: context,
       initialDate: _nextDueDate,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      lastDate: DateTime.now().add( Duration(days: 365 * 5)),
     );
     if (picked != null) setState(() => _nextDueDate = picked);
   }
@@ -84,7 +84,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_selectedDestAccountId == null) {
-      _showError(AppStringsAr.accrualDestAccountRequired);
+      _showError(AppStrings.accrualDestAccountRequired);
       return;
     }
 
@@ -157,7 +157,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: QaydAppBar(
-          title: AppStringsAr.accrualCreateTitle
+          title: AppStrings.accrualCreateTitle
           // leading: const BackButton(),
         ),
         body: Form(
@@ -173,45 +173,45 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 controller: _nameCtrl,
                 style: tt.bodySmall,
                 decoration: _inputDeco(
-                  labelText: AppStringsAr.accrualNameLabel,
-                  hintText: AppStringsAr.accrualNameHint,
+                  labelText: AppStrings.accrualNameLabel,
+                  hintText: AppStrings.accrualNameHint,
                   icon: Icons.label_important_outline_rounded,
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty)
-                    ? AppStringsAr.accrualNameRequired
+                    ? AppStrings.accrualNameRequired
                     : null,
                 inputFormatters: [
                   FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
                 ],
                 textInputAction: TextInputAction.next,
               ),
-              const SizedBox(height: SpacingTokens.sm + 4),
+              SizedBox(height: SpacingTokens.sm + 4),
 
               // ── Amount ──────────────────────────────────────────────────
               TextFormField(
                 controller: _amountCtrl,
                 style: tt.bodySmall,
                 decoration: _inputDeco(
-                  labelText: AppStringsAr.accrualAmountLabel,
+                  labelText: AppStrings.accrualAmountLabel,
                   icon: Icons.account_balance_wallet_outlined,
                 ),
                 keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                     TextInputType.numberWithOptions(decimal: true),
                 validator: (v) => (double.tryParse(v ?? '0') ?? 0) <= 0
-                    ? AppStringsAr.accrualAmountInvalid
+                    ? AppStrings.accrualAmountInvalid
                     : null,
                 inputFormatters: [
                   FilteringTextInputFormatter.deny(TextSanitizer.emojiRegex, replacementString: ' '),
                 ],
                 textInputAction: TextInputAction.next,
               ),
-              const SizedBox(height: SpacingTokens.sm + 4),
+              SizedBox(height: SpacingTokens.sm + 4),
 
               // ── Frequency ───────────────────────────────────────────────
-              const _SectionLabel(AppStringsAr.accrualFrequencyLabel),
-              const SizedBox(height: SpacingTokens.xs),
+               _SectionLabel(AppStrings.accrualFrequencyLabel),
+              SizedBox(height: SpacingTokens.xs),
               DropdownButtonFormField<AccrualFrequency>(
-                value: _frequency,
+                initialValue: _frequency,
                 isDense: true,
                 style: tt.bodySmall?.copyWith(color: scheme.onSurface),
                 items: AccrualFrequency.values
@@ -223,7 +223,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 onChanged: (v) => setState(() => _frequency = v!),
                 decoration: _inputDeco(icon: Icons.repeat_rounded),
               ),
-              const SizedBox(height: SpacingTokens.sm + 4),
+              SizedBox(height: SpacingTokens.sm + 4),
 
               // ── Next Due Date ───────────────────────────────────────────
               InkWell(
@@ -231,7 +231,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 borderRadius: BorderRadius.circular(RadiusTokens.md),
                 child: InputDecorator(
                   decoration: _inputDeco(
-                    labelText: AppStringsAr.accrualNextDueDateLabel,
+                    labelText: AppStrings.accrualNextDueDateLabel,
                     icon: Icons.calendar_today_rounded,
                   ),
                   child: Text(
@@ -240,13 +240,13 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: SpacingTokens.sm + 4),
+              SizedBox(height: SpacingTokens.sm + 4),
 
               // ── Source Account ──────────────────────────────────────────
-              const _SectionLabel(AppStringsAr.accrualSourceAccountLabel),
-              const SizedBox(height: SpacingTokens.xs),
+               _SectionLabel(AppStrings.accrualSourceAccountLabel),
+              SizedBox(height: SpacingTokens.xs),
               DropdownButtonFormField<String>(
-                value: _selectedSourceAccountId,
+                initialValue: _selectedSourceAccountId,
                 isDense: true,
                 style: tt.bodySmall?.copyWith(color: scheme.onSurface),
                 items: _accounts
@@ -257,17 +257,17 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                     .toList(),
                 onChanged: (v) => setState(() => _selectedSourceAccountId = v),
                 decoration: _inputDeco(
-                  hintText: AppStringsAr.accrualSourceAccountHint,
+                  hintText: AppStrings.accrualSourceAccountHint,
                   icon: Icons.account_balance_rounded,
                 ),
               ),
-              const SizedBox(height: SpacingTokens.sm + 4),
+              SizedBox(height: SpacingTokens.sm + 4),
 
               // ── Destination Account ─────────────────────────────────────
-              const _SectionLabel(AppStringsAr.accrualDestAccountLabel),
-              const SizedBox(height: SpacingTokens.xs),
+               _SectionLabel(AppStrings.accrualDestAccountLabel),
+              SizedBox(height: SpacingTokens.xs),
               DropdownButtonFormField<String>(
-                value: _selectedDestAccountId,
+                initialValue: _selectedDestAccountId,
                 isDense: true,
                 style: tt.bodySmall?.copyWith(color: scheme.onSurface),
                 items: _accounts
@@ -278,20 +278,20 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                     .toList(),
                 onChanged: (v) => setState(() => _selectedDestAccountId = v),
                 decoration: _inputDeco(
-                  hintText: AppStringsAr.accrualDestAccountHint,
+                  hintText: AppStrings.accrualDestAccountHint,
                   icon: Icons.account_tree_rounded,
                 ),
                 validator: (v) =>
-                    v == null ? AppStringsAr.accrualDestAccountRequired : null,
+                    v == null ? AppStrings.accrualDestAccountRequired : null,
               ),
-              const SizedBox(height: SpacingTokens.sm + 4),
+              SizedBox(height: SpacingTokens.sm + 4),
 
               // ── Description ─────────────────────────────────────────────
               TextFormField(
                 controller: _descCtrl,
                 style: tt.bodySmall,
                 decoration: _inputDeco(
-                  labelText: AppStringsAr.accrualDescriptionLabel,
+                  labelText: AppStrings.accrualDescriptionLabel,
                   icon: Icons.notes_rounded,
                 ),
                 maxLines: 2,
@@ -300,11 +300,11 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                 ],
                 textInputAction: TextInputAction.done,
               ),
-              const SizedBox(height: SpacingTokens.sm + 4),
+              SizedBox(height: SpacingTokens.sm + 4),
 
               // ── Categories (Dimensions) ────────────────────────────────
-              const _SectionLabel(AppStringsAr.accrualCategoryLabel),
-              const SizedBox(height: SpacingTokens.xs),
+               _SectionLabel(AppStrings.accrualCategoryLabel),
+              SizedBox(height: SpacingTokens.xs),
               Wrap(
                 spacing: SpacingTokens.xs,
                 runSpacing: SpacingTokens.xs,
@@ -334,19 +334,19 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: SpacingTokens.lg),
+              SizedBox(height: SpacingTokens.lg),
 
               // ── Save Button ─────────────────────────────────────────────
               FilledButton.icon(
                 onPressed: _saving ? null : _save,
                 icon: _saving
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.check_rounded, size: 18),
-                label: Text(AppStringsAr.accrualSaveAction),
+                    : Icon(Icons.check_rounded, size: 18),
+                label: Text(AppStrings.accrualSaveAction),
                 style: FilledButton.styleFrom(
                   backgroundColor: gold,
                   foregroundColor: ColorTokens.navy950,
@@ -356,7 +356,7 @@ class _AccrualCreatePageState extends State<AccrualCreatePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: SpacingTokens.md),
+              SizedBox(height: SpacingTokens.md),
             ],
           ),
         ),
