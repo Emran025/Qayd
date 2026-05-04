@@ -6,11 +6,9 @@ import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
-import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
-import 'package:qayd/domain/services/e2ee_encryption_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
@@ -33,11 +31,7 @@ class FakeSyncNode extends Fake implements SyncNode {}
 
 class MockAccountRepository extends Mock implements AccountRepository {}
 
-class MockSyncRepository extends Mock implements SyncRepository {}
-
 class MockReceiptSigningService extends Mock implements ReceiptSigningService {}
-
-class MockE2EEEncryptionService extends Mock implements E2EEEncryptionService {}
 
 class FakeVoucher extends Fake implements Voucher {}
 
@@ -51,9 +45,7 @@ void main() {
   late AcceptVoucherUseCase useCase;
   late MockVoucherRepository mockVoucherRepo;
   late MockAccountRepository mockAccountRepo;
-  late MockSyncRepository mockSyncRepo;
   late MockReceiptSigningService mockSigningService;
-  late MockE2EEEncryptionService mockE2EEService;
   late MockLicenseVault mockLicenseVault;
   late MockEntryGenerator mockEntryGenerator;
   late MockIdGenerator mockIdGenerator;
@@ -61,9 +53,7 @@ void main() {
   setUp(() {
     mockVoucherRepo = MockVoucherRepository();
     mockAccountRepo = MockAccountRepository();
-    mockSyncRepo = MockSyncRepository();
     mockSigningService = MockReceiptSigningService();
-    mockE2EEService = MockE2EEEncryptionService();
     mockLicenseVault = MockLicenseVault();
     mockEntryGenerator = MockEntryGenerator();
     mockIdGenerator = MockIdGenerator();
@@ -71,9 +61,7 @@ void main() {
     useCase = AcceptVoucherUseCase(
       voucherRepository: mockVoucherRepo,
       accountRepository: mockAccountRepo,
-      syncRepository: mockSyncRepo,
       signingService: mockSigningService,
-      e2eeEncryptionService: mockE2EEService,
       getCurrentUserKeyPair: () async =>
           throw Exception('Not implemented for testing failure cases'),
       licenseVault: mockLicenseVault,
@@ -208,22 +196,11 @@ void main() {
 
     when(() => mockIdGenerator.next()).thenReturn('id-123');
 
-    when(() => mockE2EEService.encryptPayload(
-            rawPayload: any(named: 'rawPayload'),
-            senderKeyPair: any(named: 'senderKeyPair'),
-            receiverPublicKeyHex: any(named: 'receiverPublicKeyHex')))
-        .thenAnswer((_) async => 'encrypted');
-
-    when(() => mockSyncRepo.pushNode(any()))
-        .thenAnswer((_) async => const Success(null));
-
     // For this test we need to pass a key pair, so we override the useCase specifically for it
     useCase = AcceptVoucherUseCase(
         voucherRepository: mockVoucherRepo,
         accountRepository: mockAccountRepo,
-        syncRepository: mockSyncRepo,
         signingService: mockSigningService,
-        e2eeEncryptionService: mockE2EEService,
         getCurrentUserKeyPair: () async =>
             CryptoKeyPair(publicKey: Uint8List(32), privateKey: Uint8List(32)),
         licenseVault: mockLicenseVault,

@@ -22,34 +22,60 @@ enum SyncEventType {
   }
 }
 
+/// Represents an encrypted sync event exchanged between two parties via the server.
+///
+/// §5.C — Flexible Routing: The receiver is identified by ANY of the following
+/// routing headers (in order of preference). The server resolves the correct
+/// target from these plaintext hints WITHOUT decrypting [encryptedPayload].
+///
+///   1. [receiverId]         — numeric server-side user ID (fastest, most precise)
+///   2. [receiverPhone]      — E.164 phone number (e.g. "+967776026711")
+///   3. [receiverWhatsapp]   — WhatsApp number if different from phone
+///   4. [receiverPublicKey]  — Ed25519 public key hex (QR/offline discovery)
+///
+/// The [encryptedPayload] is strictly opaque: it must NEVER contain plaintext
+/// identifiers that would bypass the privacy policy checks.
 @immutable
 class SyncNode {
   const SyncNode({
     required this.id,
     required this.senderId,
-    required this.receiverId,
     required this.eventType,
     required this.encryptedPayload,
     required this.syncState,
+    // Routing headers — at least one must be present for server delivery
+    this.receiverId,
+    this.receiverPhone,
+    this.receiverWhatsapp,
+    this.receiverPublicKey,
     this.clientTimestamp,
   });
 
-  /// Unique client-generated UUID for the node
+  /// Unique client-generated UUID for this node (used for idempotency)
   final String id;
 
-  /// Counterpart who sent it
+  /// Server-side user ID of the authenticated sender
   final int senderId;
 
-  /// User who the payload is targeted at
-  final int receiverId;
+  /// §5.C Routing hint 1: Direct server FK (preferred when known)
+  final int? receiverId;
+
+  /// §5.C Routing hint 2: E.164 phone number (plaintext routing)
+  final String? receiverPhone;
+
+  /// §5.C Routing hint 3: WhatsApp number (if different from phone)
+  final String? receiverWhatsapp;
+
+  /// §5.C Routing hint 4: Ed25519 public key hex (offline / QR discovery)
+  final String? receiverPublicKey;
 
   /// Strongly typed event discriminator
   final SyncEventType eventType;
 
-  /// Opaque encrypted string
+  /// Opaque E2EE-encrypted blob — never contains plaintext identifiers
   final String encryptedPayload;
 
-  /// Sync state: 'pending', 'delivered', 'read'
+  /// Sync state: 'pending', 'delivered', 'read', 'pending_routing', 'unroutable'
   final String syncState;
 
   final DateTime? clientTimestamp;
@@ -57,8 +83,13 @@ class SyncNode {
   factory SyncNode.fromJson(Map<String, dynamic> json) {
     return SyncNode(
       id: json['id'] as String,
-      senderId: json['sender_id'] as int,
-      receiverId: json['receiver_id'] as int,
+      senderId: (json['sender_id'] as num).toInt(),
+      receiverId: json['receiver_id'] != null
+          ? (json['receiver_id'] as num).toInt()
+          : null,
+      receiverPhone: json['receiver_phone'] as String?,
+      receiverWhatsapp: json['receiver_whatsapp'] as String?,
+      receiverPublicKey: json['receiver_public_key'] as String?,
       eventType: SyncEventType.fromString(json['event_type'] as String),
       encryptedPayload: json['encrypted_payload'] as String,
       syncState: json['sync_state'] as String,
@@ -72,11 +103,21 @@ class SyncNode {
     return {
       'id': id,
       'sender_id': senderId,
-      'receiver_id': receiverId,
+      if (receiverId != null) 'receiver_id': receiverId,
+      if (receiverPhone != null) 'receiver_phone': receiverPhone,
+      if (receiverWhatsapp != null) 'receiver_whatsapp': receiverWhatsapp,
+      if (receiverPublicKey != null) 'receiver_public_key': receiverPublicKey,
       'event_type': eventType.name,
       'encrypted_payload': encryptedPayload,
       'sync_state': syncState,
       'client_timestamp': clientTimestamp?.toIso8601String(),
     };
   }
+
+  /// Returns true if this node has at least one valid routing hint.
+  bool get hasRoutingHint =>
+      receiverId != null ||
+      (receiverPhone?.isNotEmpty ?? false) ||
+      (receiverWhatsapp?.isNotEmpty ?? false) ||
+      (receiverPublicKey?.isNotEmpty ?? false);
 }

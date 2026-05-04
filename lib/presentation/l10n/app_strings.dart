@@ -1689,6 +1689,7 @@ class AppStrings {
   static String get theApplicationIsIn => i.theApplicationIsIn;
   static String get theAssetHasBeen => i.theAssetHasBeen;
   static String get theAttachmentDoesNot => i.theAttachmentDoesNot;
+  static String get theAttachmentNotDownloaded => i.theAttachmentNotDownloaded;
   static String get theAutomaticBackupCould => i.theAutomaticBackupCould;
   static String get theBackupCouldNot => i.theBackupCouldNot;
   static String get theBackupCouldNot1 => i.theBackupCouldNot1;
@@ -2259,4 +2260,11 @@ class AppStrings {
       i.tripartiteCreditDesc(receiver, sender);
   static String couldNotShareReceiptAsImage(String error) =>
       i.couldNotShareReceiptAsImage(error);
+
+  static String couldNotLoadAttachment(String error) =>
+      i.couldNotLoadAttachment(error);
+
+  static String get attachmentNotDownloadedYet => i.attachmentNotDownloadedYet;
+
+  static String errorOpeningFile(String error) => i.errorOpeningFile(error);
 }

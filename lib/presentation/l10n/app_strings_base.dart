@@ -1714,6 +1714,7 @@ abstract class AppStringsBase {
   String get theAssetHasBeen =>
       'تم تسجيل الأصل وربطه بالدائرة الاقتصادية بنجاح.';
   String get theAttachmentDoesNot => 'المرفق غير موجود في قاعدة البيانات.';
+  String get theAttachmentNotDownloaded => 'لم يتم تحميل ملف المرفق بعد. يُرجى الانتظار حتى اكتمال المزامنة.';
   String get theAutomaticBackupCould =>
       'تعذر إنشاء النسخة الاحتياطية التلقائية.';
   String get theBackupCouldNot =>
@@ -2385,4 +2386,15 @@ abstract class AppStringsBase {
   /// Error message when image sharing fails.
   String couldNotShareReceiptAsImage(String error) =>
       'تعذر مشاركة الإيصال كصورة: $error';
+
+  /// Error message when attachment fails to load.
+  String couldNotLoadAttachment(String error) => 'تعذّر تحميل المرفق: $error';
+
+  /// Error message when attachment is not yet downloaded.
+  String get attachmentNotDownloadedYet =>
+      'المرفق لم يُحمَّل بعد (storagePath فارغ). '
+      'انتظر اكتمال المزامنة أو حاول لاحقاً.';
+
+  /// Error message when opening a file fails.
+  String errorOpeningFile(String error) => 'حدث خطأ أثناء فتح الملف: $error';
 }

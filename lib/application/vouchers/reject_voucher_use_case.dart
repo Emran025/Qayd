@@ -1,3 +1,4 @@
+import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/application/failure_mapping.dart';
@@ -8,15 +9,27 @@ import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
-/// "Reject" is represented by setting the voucher agreement status to `rejected`.
+/// \"Reject\" is represented by setting the voucher agreement status to `rejected`
+/// and dispatching an E2EE rejection event to the counterparty.
+///
+/// Sync flow:
+///   1. Validate voucher is in draft state.
+///   2. Mark as rejected locally.
+///   3. Fire-and-forget rejection E2EE event via [SyncEventDispatcher] (outbox-routed
+///      so it survives network outages and retries automatically).
 class RejectVoucherUseCase {
   const RejectVoucherUseCase(
     this._voucherRepository,
-    this._writeGuard,
-  );
+    this._writeGuard, {
+    this.syncEventDispatcher,
+  });
 
   final VoucherRepository _voucherRepository;
   final GovernanceWriteGuard _writeGuard;
+
+  /// Optional — when provided the rejection is propagated via E2EE sync.
+  /// Omitted in contexts that have no network dependency (e.g. unit tests).
+  final SyncEventDispatcher? syncEventDispatcher;
 
   Future<Result<void>> call({
     required String voucherId,
@@ -34,7 +47,7 @@ class RejectVoucherUseCase {
       final v = loaded.valueOrNull!;
       if (!v.state.isDraft) {
         // Only drafts can be rejected in Phase-A.
-        return  FailureResult(
+        return FailureResult(
           ValidationFailure(
             messageAr: AppStrings.aConfirmedOrSettled,
             code: 'voucher_reject_not_draft',
@@ -48,6 +61,12 @@ class RejectVoucherUseCase {
       );
 
       final saved = await _voucherRepository.save(rejected);
+      if (saved.isFailure) return saved;
+
+      // §5.A — Dispatch rejection E2EE event via outbox (fire-and-forget).
+      // The outbox guarantees delivery even if the network is temporarily down.
+      syncEventDispatcher?.dispatchVoucherRejection(rejected).ignore();
+
       return saved;
     } catch (e, _) {
       return FailureResult(failureFromDomainException(e));

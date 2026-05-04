@@ -21,6 +21,7 @@ final class VoucherAttachment {
     required this.sourceType,
     required this.createdAt,
     this.thumbnailPath,
+    this.attachmentKeyHex,
   });
 
   /// Unique attachment identifier.
@@ -52,4 +53,12 @@ final class VoucherAttachment {
 
   /// Optional path to an encrypted thumbnail for fast gallery rendering.
   final String? thumbnailPath;
+
+  /// Per-voucher AES-256 key (hex) used to encrypt this blob.
+  ///
+  /// Non-null for attachments created with [VoucherKeyService] (v30+).
+  /// Null for legacy attachments encrypted with the device-wide DB key.
+  /// This key is stored in the SQLCipher DB (never in plaintext on server)
+  /// and embedded inside the E2EE sync payload for the counterparty.
+  final String? attachmentKeyHex;
 }

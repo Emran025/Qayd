@@ -3,8 +3,12 @@ import 'package:qayd/core/error/failures.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
-
 /// Data model for an outbox entry.
+///
+/// §5.C — Flexible Routing: Routing headers are captured at enqueue time
+/// (during identity discovery) and stored OUTSIDE the encrypted payload.
+/// This allows [SyncCoordinatorService] to construct a [SyncNode] with all
+/// routing hints without re-running the discovery process.
 class OutboxEntry {
   const OutboxEntry({
     required this.id,
@@ -17,11 +21,18 @@ class OutboxEntry {
     required this.retryCount,
     required this.createdAt,
     this.deliveredAt,
+    // §5.C Routing headers
+    this.receiverPhone,
+    this.receiverWhatsapp,
+    this.receiverPublicKey,
+    this.receiverServerId,
   });
 
   final String id;
   final String eventType;
   final String? voucherId;
+
+  /// Local account UUID (may be a phone number or local UUID, not a server ID)
   final String counterpartyAccountId;
   final String encryptedPayload;
   final String state; // 'pending', 'delivered', 'failed'
@@ -29,6 +40,20 @@ class OutboxEntry {
   final int retryCount;
   final DateTime createdAt;
   final DateTime? deliveredAt;
+
+  // ── §5.C Routing headers (plaintext, captured during identity discovery) ──
+
+  /// E.164 phone number (primary routing hint)
+  final String? receiverPhone;
+
+  /// WhatsApp number if different from [receiverPhone]
+  final String? receiverWhatsapp;
+
+  /// Ed25519 public key hex (discovered via server or QR)
+  final String? receiverPublicKey;
+
+  /// Numeric server user ID (when known — fastest routing path)
+  final int? receiverServerId;
 
   Map<String, Object?> toMap() => {
         'id': id,
@@ -41,6 +66,10 @@ class OutboxEntry {
         'retry_count': retryCount,
         'created_at': createdAt.toIso8601String(),
         'delivered_at': deliveredAt?.toIso8601String(),
+        'receiver_phone': receiverPhone,
+        'receiver_whatsapp': receiverWhatsapp,
+        'receiver_public_key': receiverPublicKey,
+        'receiver_server_id': receiverServerId,
       };
 
   factory OutboxEntry.fromMap(Map<String, Object?> map) {
@@ -57,6 +86,34 @@ class OutboxEntry {
       deliveredAt: map['delivered_at'] != null
           ? DateTime.parse(map['delivered_at']! as String)
           : null,
+      receiverPhone: map['receiver_phone'] as String?,
+      receiverWhatsapp: map['receiver_whatsapp'] as String?,
+      receiverPublicKey: map['receiver_public_key'] as String?,
+      receiverServerId: map['receiver_server_id'] as int?,
+    );
+  }
+
+  OutboxEntry copyWith({
+    String? receiverPhone,
+    String? receiverWhatsapp,
+    String? receiverPublicKey,
+    int? receiverServerId,
+  }) {
+    return OutboxEntry(
+      id: id,
+      eventType: eventType,
+      voucherId: voucherId,
+      counterpartyAccountId: counterpartyAccountId,
+      encryptedPayload: encryptedPayload,
+      state: state,
+      transport: transport,
+      retryCount: retryCount,
+      createdAt: createdAt,
+      deliveredAt: deliveredAt,
+      receiverPhone: receiverPhone ?? this.receiverPhone,
+      receiverWhatsapp: receiverWhatsapp ?? this.receiverWhatsapp,
+      receiverPublicKey: receiverPublicKey ?? this.receiverPublicKey,
+      receiverServerId: receiverServerId ?? this.receiverServerId,
     );
   }
 }

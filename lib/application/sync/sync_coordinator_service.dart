@@ -228,6 +228,10 @@ class SyncCoordinatorService {
   }
 
   /// Flushes pending entries in the Local Change Queue (Outbox) to the central server.
+  ///
+  /// §5.C — Flexible Routing: Constructs the SyncNode with all available routing
+  /// hints captured during identity discovery. The server resolves the receiver
+  /// from these hints without decrypting the payload.
   Future<void> _flushOutbox() async {
     final pendingResult = await outboxDao.listPending();
     if (pendingResult.isFailure) return;
@@ -238,10 +242,28 @@ class SyncCoordinatorService {
     final deliveredIds = <String>[];
     for (final entry in entries) {
       try {
+        // §5.C: Build routing-aware SyncNode from stored hints.
+        // Skip entries that have NO routing hint — they cannot be delivered
+        // and would cause a 422. They will be retried after identity discovery.
+        final hasHint = (entry.receiverServerId != null) ||
+            (entry.receiverPhone?.isNotEmpty ?? false) ||
+            (entry.receiverWhatsapp?.isNotEmpty ?? false) ||
+            (entry.receiverPublicKey?.isNotEmpty ?? false);
+
+        if (!hasHint) {
+          debugPrint(
+              'Sync: ⏭ Skipping ${entry.id} — no routing hint yet. Will retry after discovery.');
+          continue;
+        }
+
         final node = SyncNode(
           id: entry.id,
           senderId: currentUserId,
-          receiverId: int.tryParse(entry.counterpartyAccountId) ?? 0,
+          // §5.C Routing headers — server picks first non-null in resolution order
+          receiverId: entry.receiverServerId,
+          receiverPhone: entry.receiverPhone,
+          receiverWhatsapp: entry.receiverWhatsapp,
+          receiverPublicKey: entry.receiverPublicKey,
           eventType: _parseEventType(entry.eventType),
           encryptedPayload: entry.encryptedPayload,
           syncState: 'pending',
@@ -250,7 +272,8 @@ class SyncCoordinatorService {
 
         await syncRepository.pushNode(node);
         deliveredIds.add(entry.id);
-        debugPrint('Sync: ✅ Pushed node ${entry.id} (${entry.eventType})');
+        debugPrint('Sync: ✅ Pushed node ${entry.id} (${entry.eventType}) '
+            '[routed via: ${_describeRoute(entry)}]');
       } catch (e) {
         debugPrint('Sync: ❌ Push failed for ${entry.id}: $e');
         await outboxDao.incrementRetry(entry.id);
@@ -260,6 +283,15 @@ class SyncCoordinatorService {
     if (deliveredIds.isNotEmpty) {
       await outboxDao.markDelivered(deliveredIds, transport: 'server');
     }
+  }
+
+  /// Returns a human-readable routing description for debug logs.
+  String _describeRoute(OutboxEntry entry) {
+    if (entry.receiverServerId != null) return 'serverId=${entry.receiverServerId}';
+    if (entry.receiverPhone?.isNotEmpty ?? false) return 'phone=${entry.receiverPhone}';
+    if (entry.receiverWhatsapp?.isNotEmpty ?? false) return 'whatsapp=${entry.receiverWhatsapp}';
+    if (entry.receiverPublicKey?.isNotEmpty ?? false) return 'pubkey=${entry.receiverPublicKey!.substring(0, 8)}...';
+    return 'none';
   }
 
   SyncEventType _parseEventType(String type) {

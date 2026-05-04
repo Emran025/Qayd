@@ -4452,4 +4452,15 @@ class AppStringsEn extends AppStringsBase {
   @override
   String couldNotShareReceiptAsImage(String error) =>
       'Could not share receipt as image: $error';
+
+  @override
+  String couldNotLoadAttachment(String error) => 'Could not load attachment: $error';
+
+  @override
+  String get attachmentNotDownloadedYet =>
+      'The attachment has not been downloaded yet (empty storagePath). '
+      'Wait for sync to complete or try again later.';
+
+  @override
+  String errorOpeningFile(String error) => 'An error occurred while opening the file: $error';
 }

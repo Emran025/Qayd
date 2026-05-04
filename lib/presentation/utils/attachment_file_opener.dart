@@ -33,7 +33,9 @@ abstract final class AttachmentFileOpener {
         VoucherId(voucherId),
       );
       if (attachR.isFailure) {
-        return 'تعذّر تحميل المرفق: ${attachR.failureOrNull?.messageAr}';
+        return AppStrings.couldNotLoadAttachment(
+          attachR.failureOrNull?.messageAr ?? '',
+        );
       }
 
       final attachments = attachR.valueOrNull ?? [];
@@ -45,7 +47,12 @@ abstract final class AttachmentFileOpener {
         return AppStrings.theAttachmentDoesNot;
       }
 
-      // 2. Decrypt to bytes
+      // 2. Guard: if the blob has not been downloaded yet, show a clear message.
+      if (match.storagePath.isEmpty) {
+        return AppStrings.attachmentNotDownloadedYet;
+      }
+
+      // 3. Decrypt to bytes
       final bytes = await attachmentStorage.decrypt(match);
 
       // 3. Write to a temp file
@@ -64,7 +71,7 @@ abstract final class AttachmentFileOpener {
 
       return null; // success
     } catch (e) {
-      return 'حدث خطأ أثناء فتح الملف: $e';
+      return AppStrings.errorOpeningFile(e.toString());
     }
   }
 }

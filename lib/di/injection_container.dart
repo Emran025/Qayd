@@ -7,6 +7,7 @@ import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/application/suggestions/analyze_for_suggestions_use_case.dart';
 import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
+import 'package:qayd/data/file_system/backup_file_manager.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
@@ -491,6 +492,7 @@ abstract final class InjectionContainer {
 
     attachmentStorage = AttachmentStorageService(
       keyProvider: _encryptionKeyProvider,
+      voucherKeyService: const VoucherKeyService(),
     );
 
     // ── Sync Socket (needs no DB) ───────────────────────────────────────────
@@ -613,6 +615,19 @@ abstract final class InjectionContainer {
     database = await DatabaseProvider.open(keyProvider: _encryptionKeyProvider);
     await _initializeDatabaseDependentStack();
     databaseEpoch.value++;
+
+    // §5.E: After restore, heal stale attachment storage paths.
+    // Absolute paths in the DB may point to the old device's filesystem.
+    // This is a best-effort operation; failures are non-fatal.
+    try {
+      final freshAttachRepo = SqliteAttachmentRepository(database);
+      final imagesDir = await const BackupFileManager().externalImagesDir();
+      if (imagesDir != null) {
+        await freshAttachRepo.healStoragePathsAfterRestore(imagesDir);
+      }
+    } catch (e) {
+      debugPrint('InjectionContainer: healStoragePaths failed (non-fatal): $e');
+    }
   }
 
   /// Wipes the local database and identity completely, without wiping the current
@@ -720,11 +735,14 @@ abstract final class InjectionContainer {
     syncEventDispatcher = SyncEventDispatcher(
       outboxDao: outboxDao,
       e2eeEncryptionService: e2eeService,
-      accountRepository: SqliteAccountRepository(
-        database,
-      ), // Use fresh instances or shared
+      accountRepository: SqliteAccountRepository(database),
       identityRepository: identityRepository,
       getCurrentUserKeyPair: () => setupIdentityUseCase.getKeyPair(),
+      attachmentKeyProvider: _encryptionKeyProvider,
+      // §5.E: attachmentRepository is initialized later in _registerSqliteStack,
+      // but SyncEventDispatcher only calls it lazily during dispatchVoucherClaim,
+      // which is always after full initialization — so this forward reference is safe.
+      attachmentRepository: SqliteAttachmentRepository(database),
     );
 
     accountRepository = SqliteAccountRepository(database);
@@ -894,6 +912,7 @@ abstract final class InjectionContainer {
     rejectVoucherUseCase = RejectVoucherUseCase(
       voucherRepository,
       governanceWriteGuard,
+      syncEventDispatcher: syncEventDispatcher,
     );
     resubmitVoucherUseCase = ResubmitVoucherUseCase(
       voucherRepository,
@@ -1008,14 +1027,13 @@ abstract final class InjectionContainer {
     acceptVoucherUseCase = AcceptVoucherUseCase(
       voucherRepository: voucherRepository,
       accountRepository: accountRepository,
-      syncRepository: syncRepository,
       signingService: receiptSigningService,
-      e2eeEncryptionService: e2eeService,
       getCurrentUserKeyPair: () =>
           setupIdentityUseCase.getKeyPair().then((v) => v!),
       licenseVault: licenseVault,
       entryGenerator: entryGenerator,
       idGenerator: _idGenerator,
+      syncEventDispatcher: syncEventDispatcher,
     );
 
     // ── Threaded Financial Interactions ──────────────────────────────────

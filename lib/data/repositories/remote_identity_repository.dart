@@ -50,8 +50,10 @@ final class RemoteIdentityRepository implements IdentityRepository {
         email: data['email'] as String?,
         whatsappNumber: data['whatsapp_number'] as String?,
         syncBlocked: data['sync_blocked'] == true,
-        isRegistered: data['registered'] !=
-            false, // Default to true for backward compatibility
+        isRegistered: data['registered'] != false,
+        serverId: data['user_id'] != null
+            ? (data['user_id'] as num).toInt()
+            : null,
       );
     } on AuthException {
       rethrow;
@@ -83,6 +85,9 @@ final class RemoteIdentityRepository implements IdentityRepository {
         whatsappNumber: data['whatsapp_number'] as String?,
         syncBlocked: data['sync_blocked'] == true,
         isRegistered: data['registered'] != false,
+        serverId: data['user_id'] != null
+            ? (data['user_id'] as num).toInt()
+            : null,
       );
     } on AuthException {
       rethrow;
@@ -132,6 +137,9 @@ final class RemoteIdentityRepository implements IdentityRepository {
           whatsappNumber: map['whatsapp_number'] as String?,
           syncBlocked: map['sync_blocked'] == true,
           isRegistered: map['registered'] != false,
+          serverId: map['user_id'] != null
+              ? (map['user_id'] as num).toInt()
+              : null,
         );
       }
       return results;

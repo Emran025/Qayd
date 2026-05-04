@@ -288,6 +288,40 @@ class SyncPayloadProcessor {
     await voucherRepository.save(voucher);
     debugPrint('VoucherClaim [$voucherIdStr]: Ingested and stored as $myType.');
 
+    // 7.5. §5.E: Extract and persist attachment metadata + per-attachment AES keys.
+    // The blob files are NOT downloaded here — that happens via a background
+    // download queue (attachmentSync event or on-demand). We store the metadata
+    // and key now so the UI can show placeholders and decrypt blobs once downloaded.
+    final attachmentsList = payload['attachments'] as List<dynamic>?;
+    if (attachmentsList != null && attachmentsList.isNotEmpty) {
+      final voucherId = VoucherId(voucherIdStr);
+      final mappedAttachments = attachmentsList.map((dynamic a) {
+        final map = a as Map<String, dynamic>;
+        return VoucherAttachment(
+          id: AttachmentId(map['id'] as String? ?? const Uuid().v4()),
+          voucherId: voucherId,
+          fileName: map['file_name'] as String? ?? 'attachment.jpg',
+          // Empty path = not yet downloaded; AttachmentStorageService will
+          // handle path resolution after the blob is downloaded.
+          storagePath: '',
+          encryptedBlobHash: map['encrypted_blob_hash'] as String? ?? '',
+          mimeType: map['mime_type'] as String? ?? 'image/jpeg',
+          byteSize: map['byte_size'] as int? ?? 0,
+          sourceType: AttachmentSourceType.gallery,
+          createdAt: DateTime.now(),
+          // §5.E: per-attachment decryption key from the sender's payload.
+          attachmentKeyHex: map['attachment_key_hex'] as String?,
+        );
+      }).toList();
+
+      if (mappedAttachments.isNotEmpty) {
+        await attachmentRepository.saveAll(mappedAttachments);
+        debugPrint(
+          'VoucherClaim [$voucherIdStr]: saved ${mappedAttachments.length} attachment record(s) with keys.',
+        );
+      }
+    }
+
     // 8. Reciprocal Matching (Conflict Detection)
     // We always create a notification for a new claim, but customize it if it's a conflict.
     final reciprocalResult = await voucherRepository.findReciprocalMatch(
@@ -560,20 +594,26 @@ class SyncPayloadProcessor {
         id: AttachmentId(map['id'] as String? ?? const Uuid().v4()),
         voucherId: voucherId,
         fileName: map['file_name'] as String? ?? 'attachment.jpg',
-        storagePath: '', // Will be updated after blob download
-        encryptedBlobHash: map['blob_hash'] as String? ?? '',
+        storagePath: '', // populated after blob download
+        encryptedBlobHash: map['encrypted_blob_hash'] as String?
+            ?? map['blob_hash'] as String? ?? '',
         mimeType: map['mime_type'] as String? ?? 'image/jpeg',
         byteSize: map['byte_size'] as int? ?? 0,
         sourceType: AttachmentSourceType.gallery,
         createdAt: DateTime.now(),
+        // §5.E: per-attachment AES key sent inside the E2EE payload.
+        attachmentKeyHex: map['attachment_key_hex'] as String?,
       );
     }).toList();
 
     if (mappedAttachments.isNotEmpty) {
       await attachmentRepository.saveAll(mappedAttachments);
+      debugPrint(
+        'AttachmentSync [$voucherIdStr]: saved ${mappedAttachments.length} attachment record(s) with keys.',
+      );
     }
 
-    // Blob downloading would happen here via a background queue.
+    // Blob downloading happens via on-demand decryption in AttachmentFileOpener.
   }
 
   Future<void> _inboundCollateralSync(Map<String, dynamic> payload) async {
@@ -625,6 +665,33 @@ class SyncPayloadProcessor {
       await collateralRepository.update(collateral);
     } else {
       await collateralRepository.save(collateral);
+    }
+
+    // §5.E: Extract and persist collateral image refs + per-image AES keys.
+    final imageRefsList = collateralData['image_refs'] as List<dynamic>?;
+    if (imageRefsList != null && imageRefsList.isNotEmpty) {
+      final voucherId = VoucherId(voucherIdStr);
+      final imageAttachments = imageRefsList.map((dynamic img) {
+        final map = img as Map<String, dynamic>;
+        return VoucherAttachment(
+          id: AttachmentId(map['id'] as String? ?? const Uuid().v4()),
+          voucherId: voucherId,
+          fileName: 'collateral_${map['id']}.jpg',
+          storagePath: '', // not downloaded yet
+          encryptedBlobHash: map['encrypted_blob_hash'] as String? ?? '',
+          mimeType: map['mime_type'] as String? ?? 'image/jpeg',
+          byteSize: map['byte_size'] as int? ?? 0,
+          sourceType: AttachmentSourceType.gallery,
+          createdAt: DateTime.now(),
+          // §5.E: per-image decryption key from the sender's payload.
+          attachmentKeyHex: map['attachment_key_hex'] as String?,
+        );
+      }).toList();
+
+      await attachmentRepository.saveAll(imageAttachments);
+      debugPrint(
+        'CollateralSync [$voucherIdStr]: saved ${imageAttachments.length} image record(s) with keys.',
+      );
     }
   }
 

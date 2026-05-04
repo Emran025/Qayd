@@ -403,6 +403,10 @@ class CreateVoucherUseCase {
 
           // 2. Attempt image processing — if this fails the collateral
           //    record is still safely stored (just without images).
+          // §5.E: collateralWithImages is promoted to outer scope so the
+          // dispatch step can include imageRefs + AES key in the sync payload.
+          Collateral? collateralWithImages;
+
           if (collInput.imagePaths.isNotEmpty && saveResult.isSuccess) {
             try {
               final stored = await Future.wait(
@@ -422,7 +426,7 @@ class CreateVoucherUseCase {
                   .toList();
 
               // 3. Update the collateral record with image refs
-              final collateralWithImages = Collateral(
+              collateralWithImages = Collateral(
                 id: collateralId,
                 voucherId: voucherId,
                 description: collInput.description,
@@ -451,11 +455,15 @@ class CreateVoucherUseCase {
           }
 
           // 4. Dispatch sync event for collateral
+          // §5.E: Use collateralWithImages when available so that imageRefs
+          // and AES key are included in the sync payload for the counterparty.
+          // Falls back to collateralWithoutImages if image processing failed.
           if (input.confirm &&
               _syncEventDispatcher != null &&
               saveResult.isSuccess) {
+            final collateralToSync = collateralWithImages ?? collateralWithoutImages;
             _syncEventDispatcher!
-                .dispatchCollateralSync(voucher, collateralWithoutImages)
+                .dispatchCollateralSync(voucher, collateralToSync)
                 .ignore();
           }
         } catch (e) {

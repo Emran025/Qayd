@@ -80,6 +80,7 @@ final class PublicKeyLookupResult {
     required this.name,
     this.syncBlocked = false,
     this.isRegistered = true,
+    this.serverId,
   });
 
   final String phone;
@@ -101,9 +102,14 @@ final class PublicKeyLookupResult {
   /// Whether the user has an account on the platform.
   final bool isRegistered;
 
+  /// Numeric server-side user ID (when returned by server — used as primary routing hint).
+  /// This is the fastest routing path: avoids phone/key lookup on the server.
+  final int? serverId;
+
   /// All keys authorized to sign for this identity.
   List<String> get allAuthorizedKeys => [
         if (publicKeyHex != null) publicKeyHex!,
         ...previousPublicKeysHex
       ];
 }
+
