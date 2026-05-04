@@ -3,10 +3,11 @@ import 'package:excel/excel.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_line_dto.dart';
 import 'package:qayd/application/reports/dtos/trial_balance_output.dart';
 import 'package:qayd/application/reports/dtos/balance_sheet_output.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
-
+import 'package:qayd/presentation/utils/qayd_header_config.dart';
 
 /// Professional Excel generator for financial reports.
 ///
@@ -23,6 +24,9 @@ final class ExcelReportGenerator {
     final excel = Excel.createExcel();
     final Sheet sheet = excel[AppStrings.trialBalance];
     excel.delete('Sheet1');
+
+    final branding =
+        QaydHeaderConfig.resolve(InjectionContainer.sharedPreferences);
 
     // ── Styles ──────────────────────────────────────────────────────────
     final titleStyle = CellStyle(
@@ -61,7 +65,7 @@ final class ExcelReportGenerator {
 
     // ── Title row ───────────────────────────────────────────────────────
     sheet.appendRow([
-      TextCellValue('${report.companyName} — ${report.title}'),
+      TextCellValue('${branding.title} — ${branding.subtitle}'),
       TextCellValue(''),
       TextCellValue(''),
       TextCellValue(''),
@@ -79,8 +83,8 @@ final class ExcelReportGenerator {
 
     // ── Column headers ──────────────────────────────────────────────────
     sheet.appendRow([
-      TextCellValue(AppStrings.theAccount),
-      TextCellValue(AppStrings.currency),
+      TextCellValue(InjectionContainer.sharedPreferences.getString('pdf_col_account') ?? AppStrings.theAccount),
+      TextCellValue(InjectionContainer.sharedPreferences.getString('pdf_col_currency') ?? AppStrings.currency),
       TextCellValue(AppStrings.myEditorialIsIndebted),
       TextCellValue(AppStrings.creditOpening),
       TextCellValue(AppStrings.madianMovement),
@@ -117,7 +121,8 @@ final class ExcelReportGenerator {
         final divisor = _divisor(line.currencyDigits);
         sheet.appendRow([
           TextCellValue(i == 0 ? accountRepresentation : ''),
-          TextCellValue(CurrencyUtil.getLocalizedName(line.currencyCode).replaceAll('﷼', AppStrings.sar)),
+          TextCellValue(CurrencyUtil.getLocalizedName(line.currencyCode)
+              .replaceAll('﷼', AppStrings.sar)),
           DoubleCellValue(line.openingDebitMinorUnits / divisor),
           DoubleCellValue(line.openingCreditMinorUnits / divisor),
           DoubleCellValue(line.periodDebitMinorUnits / divisor),
@@ -148,7 +153,8 @@ final class ExcelReportGenerator {
       final divisor = _divisor(section.currencyDigits);
       sheet.appendRow([
         TextCellValue(AppStrings.total),
-        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode).replaceAll('﷼', AppStrings.sar)),
+        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode)
+            .replaceAll('﷼', AppStrings.sar)),
         DoubleCellValue(section.openingDebitMinorUnits / divisor),
         DoubleCellValue(section.openingCreditMinorUnits / divisor),
         DoubleCellValue(section.periodDebitMinorUnits / divisor),
@@ -176,6 +182,9 @@ final class ExcelReportGenerator {
     final excel = Excel.createExcel();
     final Sheet sheet = excel[AppStrings.balanceSheet];
     excel.delete('Sheet1');
+
+    final branding =
+        QaydHeaderConfig.resolve(InjectionContainer.sharedPreferences);
 
     // ── Styles ──────────────────────────────────────────────────────────
     final titleStyle = CellStyle(
@@ -221,7 +230,7 @@ final class ExcelReportGenerator {
 
     // ── Title row ───────────────────────────────────────────────────────
     sheet.appendRow([
-      TextCellValue('${report.companyName} — ${report.title}'),
+      TextCellValue('${branding.title} — ${branding.subtitle}'),
       TextCellValue(''),
       TextCellValue(''),
     ]);
@@ -234,9 +243,9 @@ final class ExcelReportGenerator {
 
     // ── Column headers ──────────────────────────────────────────────────
     sheet.appendRow([
-      TextCellValue(AppStrings.theAccount),
-      TextCellValue(AppStrings.currency),
-      TextCellValue(AppStrings.balance),
+      TextCellValue(InjectionContainer.sharedPreferences.getString('pdf_col_account') ?? AppStrings.theAccount),
+      TextCellValue(InjectionContainer.sharedPreferences.getString('pdf_col_currency') ?? AppStrings.currency),
+      TextCellValue(InjectionContainer.sharedPreferences.getString('pdf_col_balance') ?? AppStrings.balance),
     ]);
     for (var i = 0; i < 3; i++) {
       sheet
@@ -281,7 +290,8 @@ final class ExcelReportGenerator {
       final assetsRowIdx = sheet.maxRows;
       sheet.appendRow([
         TextCellValue(AppStrings.totalAssets),
-        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode).replaceAll('﷼', AppStrings.sar)),
+        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode)
+            .replaceAll('﷼', AppStrings.sar)),
         DoubleCellValue(section.totalAssetsMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -295,7 +305,8 @@ final class ExcelReportGenerator {
       final liabRowIdx = sheet.maxRows;
       sheet.appendRow([
         TextCellValue(AppStrings.totalLiabilities),
-        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode).replaceAll('﷼', AppStrings.sar)),
+        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode)
+            .replaceAll('﷼', AppStrings.sar)),
         DoubleCellValue(section.totalLiabilitiesMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -309,7 +320,8 @@ final class ExcelReportGenerator {
       final eqRowIdx = sheet.maxRows;
       sheet.appendRow([
         TextCellValue(AppStrings.propertyRights),
-        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode).replaceAll('﷼', AppStrings.sar)),
+        TextCellValue(CurrencyUtil.getLocalizedName(section.currencyCode)
+            .replaceAll('﷼', AppStrings.sar)),
         DoubleCellValue(section.totalEquityMinorUnits / divisor),
       ]);
       for (var i = 0; i < 3; i++) {
@@ -378,7 +390,8 @@ final class ExcelReportGenerator {
         final divisor = _divisor(line.currencyDigits);
         sheet.appendRow([
           TextCellValue(i == 0 ? accountRepresentation : ''),
-          TextCellValue(CurrencyUtil.getLocalizedName(line.currencyCode).replaceAll('﷼', AppStrings.sar)),
+          TextCellValue(CurrencyUtil.getLocalizedName(line.currencyCode)
+              .replaceAll('﷼', AppStrings.sar)),
           DoubleCellValue(line.balanceMinorUnits / divisor),
         ]);
 

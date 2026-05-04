@@ -12,6 +12,8 @@ import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/l10n/app_strings_en.dart';
+import 'package:qayd/presentation/utils/qayd_header_config.dart';
+import 'package:qayd/di/injection_container.dart';
 
 /// Professional PDF generator for Trial Balance reports.
 ///
@@ -25,7 +27,6 @@ final class TrialBalancePdfGenerator {
 
   // ── Brand palette ──────────────────────────────────────────────────────
   static final PdfColor _navy = PdfColor.fromInt(0xFF0F2741);
-  static final PdfColor _gold = PdfColor.fromInt(0xFFC9A227);
   static final PdfColor _muted = PdfColor.fromInt(0xFF64748B);
   static bool get isArabic => AppStrings.i is! AppStringsEn;
 
@@ -44,7 +45,16 @@ final class TrialBalancePdfGenerator {
       // Fallback to text badge if logo unavailable
     }
 
-    // ── 2. Offload heavy PDF build to a background Isolate ─────────────
+    // ── 2. Resolve branding ───────────────────────────────────────────
+    final prefs = InjectionContainer.sharedPreferences;
+    final headerConfig = QaydHeaderConfig.resolve(prefs);
+    
+    final colAccount = prefs.getString('pdf_col_account') ?? AppStrings.theAccount;
+    final colCurrency = prefs.getString('pdf_col_currency') ?? AppStrings.currency;
+    final colDebit = prefs.getString('pdf_col_debit') ?? AppStrings.debtor;
+    final colCredit = prefs.getString('pdf_col_credit') ?? AppStrings.creditor;
+
+    // ── 3. Offload heavy PDF build to a background Isolate ─────────────
     return Isolate.run(() async {
       final font = pw.Font.ttf(fontBytes.buffer.asByteData());
 
@@ -63,13 +73,27 @@ final class TrialBalancePdfGenerator {
           textDirection:
               !isArabic ? pw.TextDirection.ltr : pw.TextDirection.rtl,
           margin: const pw.EdgeInsets.all(28),
-          header: (context) => _buildHeader(font, report, logoImage),
+          header: (context) =>
+              _buildHeader(font, report, logoImage, headerConfig),
           footer: (context) => _buildFooter(font, context, report),
           build: (context) => [
             pw.SizedBox(height: 12),
+            // ── Document Title ──────────────────────────────────────────
+            pw.Center(
+              child: pw.Text(
+                report.title,
+                style: pw.TextStyle(
+                  font: font,
+                  fontSize: 14,
+                  color: _navy,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 8),
             _buildInfoSection(font, report),
             pw.SizedBox(height: 14),
-            _buildTable(font, report),
+            _buildTable(font, report, colAccount, colCurrency, colDebit, colCredit),
             pw.SizedBox(height: 14),
             _buildSummaryCards(font, report),
           ],
@@ -88,11 +112,12 @@ final class TrialBalancePdfGenerator {
     pw.Font font,
     TrialBalanceOutput report,
     pw.ImageProvider? logoImage,
+    QaydHeaderConfig config,
   ) {
     return pw.Container(
-      decoration: pw.BoxDecoration(
+      decoration: const pw.BoxDecoration(
         color: PdfColor.fromInt(0xFFE8EDF3),
-        borderRadius: const pw.BorderRadius.only(
+        borderRadius: pw.BorderRadius.only(
           topLeft: pw.Radius.circular(8),
           topRight: pw.Radius.circular(8),
         ),
@@ -108,10 +133,10 @@ final class TrialBalancePdfGenerator {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  report.title,
+                  config.title,
                   style: pw.TextStyle(
                     font: font,
-                    fontSize: 15,
+                    fontSize: 12,
                     color: _navy,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -119,10 +144,10 @@ final class TrialBalancePdfGenerator {
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  AppStrings.trialBalanceCryptocurrencySystem,
+                  config.subtitle,
                   style: pw.TextStyle(
                     font: font,
-                    fontSize: 7,
+                    fontSize: 8,
                     color: _muted,
                   ),
                   textAlign: pw.TextAlign.right,
@@ -147,25 +172,7 @@ final class TrialBalancePdfGenerator {
               ),
             )
           else
-            pw.Container(
-              width: 52,
-              height: 52,
-              decoration: pw.BoxDecoration(
-                color: PdfColor.fromInt(0xFF1E3D6B),
-                shape: pw.BoxShape.circle,
-              ),
-              child: pw.Center(
-                child: pw.Text(
-                  AppStrings.restriction,
-                  style: pw.TextStyle(
-                    font: font,
-                    fontSize: 14,
-                    color: _gold,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            pw.SizedBox(width: 52, height: 52),
 
           pw.SizedBox(width: 16),
 
@@ -175,7 +182,7 @@ final class TrialBalancePdfGenerator {
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 pw.Text(
-                  'Qayd — Personal Accounting',
+                  config.englishTitle,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 9,
@@ -185,7 +192,7 @@ final class TrialBalancePdfGenerator {
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  'Encrypted Financial Voucher System',
+                  config.englishSubtitle,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 7,
@@ -291,7 +298,14 @@ final class TrialBalancePdfGenerator {
   // ── MAIN DATA TABLE ────────────────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildTable(pw.Font font, TrialBalanceOutput report) {
+  pw.Widget _buildTable(
+    pw.Font font,
+    TrialBalanceOutput report,
+    String colAccount,
+    String colCurrency,
+    String colDebit,
+    String colCredit,
+  ) {
     // Grouping lines by accountId
     final groups = <String, List<TrialBalanceLineDto>>{};
     for (final line in report.lines) {
@@ -317,14 +331,20 @@ final class TrialBalancePdfGenerator {
           decoration: const pw.BoxDecoration(
               color: PdfColor.fromInt(0xFF0F2741)), // _navy
           children: [
-            _headerCell(font, AppStrings.theAccount),
-            _headerCell(font, AppStrings.currency),
-            _headerCell(font, AppStrings.openingBalances,
-                subHeaders: [AppStrings.debtor, AppStrings.creditor]),
-            _headerCell(font, AppStrings.periodMovement,
-                subHeaders: [AppStrings.debtor, AppStrings.creditor]),
-            _headerCell(font, AppStrings.closingBalances,
-                subHeaders: [AppStrings.debtor, AppStrings.creditor]),
+            _headerCell(font, colAccount),
+            _headerCell(font, colCurrency),
+            _headerCell(font, AppStrings.openingBalances, subHeaders: [
+              colDebit,
+              colCredit
+            ]),
+            _headerCell(font, AppStrings.periodMovement, subHeaders: [
+              colDebit,
+              colCredit
+            ]),
+            _headerCell(font, AppStrings.closingBalances, subHeaders: [
+              colDebit,
+              colCredit
+            ]),
           ],
         ),
         // ── Data rows ───────────────────────────────────────────────────

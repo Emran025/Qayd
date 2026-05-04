@@ -118,7 +118,11 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                       finalBalanceByCurrency: chatState.finalBalanceByCurrency,
                     );
                   } else {
-                    shareAccountStatementAsPdf(context, accountId: summary.id);
+                    shareAccountStatementChatAsPdf(
+                      context,
+                      accountId: summary.id,
+                      accountName: summary.name,
+                    );
                   }
                   break;
                 case _IncomeMenuAction.exportExcel:
@@ -132,6 +136,12 @@ class _IncomeStreamDetailBody extends StatelessWidget {
                       broughtForwardByCurrency:
                           chatState.broughtForwardByCurrency,
                       currencyDigits: chatState.currencyDigits,
+                    );
+                  } else {
+                    shareAccountStatementChatAsExcel(
+                      context,
+                      accountId: summary.id,
+                      accountName: summary.name,
                     );
                   }
                   break;

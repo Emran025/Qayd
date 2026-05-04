@@ -25,6 +25,16 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     'pdf_label_description': AppStrings.detailedStatement,
     'pdf_footer_text': AppStrings.sourceQaidPersonalAccounting,
     'pdf_mediator_name': AppStrings.alnasserExchangeAndTransfers,
+    
+    // Reports Columns
+    'pdf_col_date': AppStrings.theDate,
+    'pdf_col_statement': AppStrings.statement1,
+    'pdf_col_currency': AppStrings.currency,
+    'pdf_col_ref': AppStrings.bondNumber,
+    'pdf_col_debit': AppStrings.debtor,
+    'pdf_col_credit': AppStrings.creditor,
+    'pdf_col_balance': AppStrings.balance,
+    'pdf_col_account': AppStrings.theAccount,
   };
 
   String? _selectedKey;
@@ -77,6 +87,14 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       'pdf_label_description' => AppStrings.statementFieldName,
       'pdf_footer_text' => AppStrings.footerRightsText,
       'pdf_mediator_name' => AppStrings.nameOfTheFinancial,
+      'pdf_col_date' => AppStrings.theDate,
+      'pdf_col_statement' => AppStrings.statement1,
+      'pdf_col_currency' => AppStrings.currency,
+      'pdf_col_ref' => AppStrings.bondNumber,
+      'pdf_col_debit' => AppStrings.debtor,
+      'pdf_col_credit' => AppStrings.creditor,
+      'pdf_col_balance' => AppStrings.balance,
+      'pdf_col_account' => AppStrings.theAccount,
       _ => key,
     };
   }
@@ -91,7 +109,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     final gold = theme.extension<QaydCustomColors>()!.goldAccent;
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         backgroundColor: theme.colorScheme.surfaceContainerHighest,
         appBar: QaydAppBar(
@@ -100,6 +118,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             tabs: [
               Tab(text: AppStrings.regularbilateralBond),
               Tab(text: AppStrings.tripleConversion),
+              Tab(text: AppStrings.navReportsTab),
             ],
             indicatorColor: gold,
             labelColor: gold,
@@ -114,6 +133,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                   _buildPreviewTab(isTripartite: false),
                   // Tab 2: Tripartite Layout
                   _buildPreviewTab(isTripartite: true),
+                  // Tab 3: Reports Layout
+                  _buildReportsPreviewTab(),
                 ],
               ),
             ),
@@ -214,6 +235,161 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildReportsPreviewTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      child: Column(
+        children: [
+          QaydText(
+            AppStrings.clickAnyColoredText,
+            slot: QaydTextStyleSlot.labelSmall,
+          ),
+          SizedBox(height: 24),
+          Center(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Container(
+                width: 550,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Directionality(
+                  textDirection: Directionality.of(context),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Center(
+                          child: Opacity(
+                            opacity: 0.05,
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 250,
+                              height: 250,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildExactHeader(),
+                          SizedBox(height: 12),
+                          _directText(
+                            AppStrings.accountStatement,
+                            13,
+                            Color(0xFF0F2741),
+                            bold: true,
+                            align: TextAlign.center,
+                          ),
+                          SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _buildExactReportsTable(),
+                          ),
+                          SizedBox(height: 12),
+                          _buildExactFooter(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExactReportsTable() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFCBD5E1)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        children: [
+          // Header Row
+          Container(
+            color: const Color(0xFF0F2741), // _navy
+            child: Row(
+              children: [
+                Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_date')),
+                Expanded(flex: 3, child: _reportsHeaderCell('pdf_col_statement')),
+                Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_account')),
+                Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_debit')),
+                Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_credit')),
+                Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_balance')),
+              ],
+            ),
+          ),
+          // Sample Data Row 1
+          Row(
+            children: [
+              Expanded(flex: 2, child: _reportsDataCell('2026-04-09')),
+              Expanded(flex: 3, child: _reportsDataCell(AppStrings.referenceNumber1)),
+              Expanded(flex: 2, child: _reportsDataCell(AppStrings.companyName)),
+              Expanded(flex: 2, child: _reportsDataCell('1,500')),
+              Expanded(flex: 2, child: _reportsDataCell('—')),
+              Expanded(flex: 2, child: _reportsDataCell('1,500')),
+            ],
+          ),
+          // Sample Data Row 2
+          Container(
+            color: const Color(0xFFF1F5F9),
+            child: Row(
+              children: [
+                Expanded(flex: 2, child: _reportsDataCell('2026-04-10')),
+                Expanded(flex: 3, child: _reportsDataCell(AppStrings.periodMovement)),
+                Expanded(flex: 2, child: _reportsDataCell(AppStrings.myAccountBroker)),
+                Expanded(flex: 2, child: _reportsDataCell('—')),
+                Expanded(flex: 2, child: _reportsDataCell('500')),
+                Expanded(flex: 2, child: _reportsDataCell('1,000')),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _reportsHeaderCell(String key) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+      decoration: const BoxDecoration(
+        border: Border(left: BorderSide(color: Color(0xFFCBD5E1), width: 0.5)),
+      ),
+      alignment: Alignment.center,
+      child: _selectableText(key, 9, Colors.white, bold: true, align: TextAlign.center),
+    );
+  }
+
+  Widget _reportsDataCell(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      decoration: const BoxDecoration(
+        border: Border(
+          left: BorderSide(color: Color(0xFFCBD5E1), width: 0.5),
+          top: BorderSide(color: Color(0xFFCBD5E1), width: 0.5),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: _directText(text, 8, const Color(0xFF0F2741), align: TextAlign.center),
     );
   }
 

@@ -68,7 +68,7 @@ class _TrialBalancePageState extends State<TrialBalancePage>
           bottom: TabBar(
             controller: _tabController,
             indicatorColor: gold,
-            tabs:  [
+            tabs: [
               Tab(text: AppStrings.trialBalance),
               Tab(text: AppStrings.balanceSheet),
             ],
@@ -96,7 +96,7 @@ class _TrialBalancePageState extends State<TrialBalancePage>
                   }
                 },
                 itemBuilder: (context) => [
-                   PopupMenuItem(
+                  PopupMenuItem(
                     value: 'pdf',
                     child: Row(
                       children: [
@@ -106,7 +106,7 @@ class _TrialBalancePageState extends State<TrialBalancePage>
                       ],
                     ),
                   ),
-                   PopupMenuItem(
+                  PopupMenuItem(
                     value: 'excel',
                     child: Row(
                       children: [
@@ -146,8 +146,7 @@ class _TrialBalanceTab extends StatelessWidget {
       builder: (context, state) {
         return switch (state) {
           TrialBalanceInitial() => const SizedBox.shrink(),
-          TrialBalanceLoading() =>
-            Center(child: CircularProgressIndicator()),
+          TrialBalanceLoading() => Center(child: CircularProgressIndicator()),
           TrialBalanceFailure(:final failure) => Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -282,7 +281,7 @@ class _TrialBalanceLedgerState extends State<_TrialBalanceLedger> {
     final qayd = Theme.of(context).extension<QaydCustomColors>()!;
 
     if (widget.output.lines.isEmpty) {
-      return  QaydEmptyState(
+      return QaydEmptyState(
         icon: Icons.analytics_outlined,
         title: AppStrings.trialBalanceEmpty,
         description: AppStrings.noAccountBalancesWere,
@@ -621,7 +620,8 @@ class _AccountGroupWidget extends StatelessWidget {
                     _AccountCell(
                       code: group.accountCode,
                       name: group.accountName,
-                      currencyCode: null, // Always null to show in its own column
+                      currencyCode:
+                          null, // Always null to show in its own column
                       isBold: isBold,
                       isParent: group.isParent,
                       scheme: scheme,

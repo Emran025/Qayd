@@ -434,6 +434,53 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get automaticallyDetecting => 'Automatically detecting…';
   @override
+  String accountStatementShareText(String accountName, String format) =>
+      'Attached is the account statement for $accountName ($format).\n\nDigitally documented via Qayd system.';
+
+  @override
+  String voucherTripartiteShareText(
+          String sender, String receiver, String amount, String reference) =>
+      'Attached is a financial transfer notice from account $sender to account $receiver.\n'
+      'Amount: $amount\n'
+      'Reference: $reference\n';
+
+  @override
+  String voucherStandardShareText(
+          String voucherType, String counterpartyName, String amount) =>
+      'Attached is a $voucherType for client $counterpartyName.\n'
+      'Amount: $amount\n';
+
+  @override
+  String shareTextAccount(String name) => 'Account: $name\n';
+  @override
+  String shareTextDescription(String desc) => 'Statement: $desc\n';
+  @override
+  String shareTextNetBalance(String balance) => 'Net Balance: $balance\n';
+  @override
+  String shareTextReference(String ref) => 'Reference: $ref\n';
+  @override
+  String shareTextVerificationFingerprint(String fingerprint) =>
+      '\nVerification Fingerprint: $fingerprint';
+  @override
+  String voucherReceiptShareText(String reference) =>
+      'Attached is financial voucher receipt no. $reference.\n\nDigitally documented via Qayd system.';
+  @override
+  String get dateLabel => 'Date:';
+  @override
+  String get amountLabel => 'Amount:';
+  @override
+  String get clientLabel => 'Client:';
+  @override
+  String get senderLabel => 'Sender:';
+  @override
+  String get receiverLabel => 'Receiver:';
+  @override
+  String get mediatorLabel => 'Mediator:';
+  @override
+  String get signatureSenderLabel => '- Sender Signature:';
+  @override
+  String get signatureReceiverLabel => '- Receiver Signature:';
+  @override
   String get automaticallyExportedAndDigitally =>
       'Automatically exported and digitally documented via Qayd system';
   @override
@@ -4394,4 +4441,7 @@ class AppStringsEn extends AppStringsBase {
   @override
   String tripartiteCreditDesc(String receiver, String sender) =>
       'Amount added to $receiver account from $sender account via fund as a double transfer.';
+  @override
+  String couldNotShareReceiptAsImage(String error) =>
+      'Could not share receipt as image: $error';
 }

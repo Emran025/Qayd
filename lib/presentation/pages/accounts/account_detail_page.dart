@@ -112,9 +112,17 @@ class AccountDetailPage extends StatelessWidget {
                         );
                         break;
                       case 'export_pdf':
-                        shareAccountStatementAsPdf(
+                        shareAccountStatementChatAsPdf(
                           context,
                           accountId: state.data.accountId,
+                          accountName: state.data.name,
+                        );
+                        break;
+                      case 'export_excel':
+                        shareAccountStatementChatAsExcel(
+                          context,
+                          accountId: state.data.accountId,
+                          accountName: state.data.name,
                         );
                         break;
                       case 'refresh':
@@ -153,6 +161,12 @@ class AccountDetailPage extends StatelessWidget {
                         icon: Icons.picture_as_pdf_outlined,
                         label: AppStrings.accountStatementExportPdfTooltip,
                         iconColor: Colors.redAccent,
+                      ),
+                      _buildMenuItem(
+                        value: 'export_excel',
+                        icon: Icons.table_view_outlined,
+                        label: AppStrings.settingsExportStatementTitle,
+                        iconColor: Colors.green.shade700,
                       ),
                       const PopupMenuDivider(),
                       _buildMenuItem(

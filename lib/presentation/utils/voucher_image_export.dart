@@ -20,6 +20,7 @@ import 'package:qayd/application/accounts/dtos/get_account_details_input.dart';
 import 'package:qayd/data/messaging/messaging_intent_launcher.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/presentation/components/composite/qayd_report_header.dart';
 
 /// Shows a professional voucher overlay, captures it as a high-res PNG,
 /// then shares via [share_plus].
@@ -192,7 +193,6 @@ class VoucherImageCard extends StatelessWidget {
   static const _gold = Color(0xFFC9A227);
   static const _emerald = Color(0xFF047857);
   static const _muted = Color(0xFF64748B);
-  static const _headerBg = Color(0xFFE8EDF3);
   static const _border = Color(0xFFCBD5E1);
   static const _cardBg = Color(0xFFFFFFFF);
   static const _errorRed = Color(0xFFDC2626);
@@ -248,8 +248,26 @@ class VoucherImageCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _headerBar(),
-                _titleRow(titleAr, dateStr),
+                QaydReportHeader(
+                  type: QaydReportHeaderType.voucher,
+                  title: titleAr,
+                  extraSubtitle: _isTripartite
+                      ? (InjectionContainer.sharedPreferences
+                              .getString('pdf_mediator_name') ??
+                          InjectionContainer.sharedPreferences
+                              .getString('company_name') ??
+                          AppStrings.autostring3)
+                      : null,
+                  valueRight: data.id.substring(0, 8).toUpperCase(),
+                  labelRight: InjectionContainer.sharedPreferences
+                          .getString('pdf_label_voucher_no') ??
+                      AppStrings.bondNumber1,
+                  valueLeft: dateStr,
+                  labelLeft: InjectionContainer.sharedPreferences
+                          .getString('pdf_label_date') ??
+                      AppStrings.theDate1,
+                ),
+                SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
@@ -285,130 +303,8 @@ class VoucherImageCard extends StatelessWidget {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // HEADER
+  // ENTRY SECTION
   // ════════════════════════════════════════════════════════════════════════════
-
-  Widget _headerBar() {
-    final prefs = InjectionContainer.sharedPreferences;
-    return Container(
-      color: _headerBg,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          // Arabic info (right in RTL)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _text(
-                    prefs.getString('pdf_header_title') ??
-                        AppStrings.entryPersonalAccounting,
-                    12,
-                    _navy,
-                    bold: true),
-                SizedBox(height: 2),
-                _text(
-                    prefs.getString('pdf_header_subtitle') ??
-                        AppStrings.cryptocurrencySystem,
-                    8,
-                    _muted),
-              ],
-            ),
-          ),
-          SizedBox(width: 12),
-          // Logo
-          Container(
-            width: 52,
-            height: 52,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage('assets/images/logo.png'),
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-          SizedBox(width: 12),
-          // English info
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'Qayd — Personal Accounting',
-                  style: TextStyle(
-                      fontSize: 9, fontWeight: FontWeight.bold, color: _navy),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Encrypted Financial Voucher System',
-                  style: TextStyle(fontSize: 7, color: _muted),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // TITLE ROW
-  // ════════════════════════════════════════════════════════════════════════════
-
-  Widget _titleRow(String titleAr, String dateStr) {
-    final prefs = InjectionContainer.sharedPreferences;
-    final labelNo =
-        prefs.getString('pdf_label_voucher_no') ?? AppStrings.bondNumber1;
-    final labelDate = prefs.getString('pdf_label_date') ?? AppStrings.theDate1;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _borderedBox(labelNo, _shortId(data.id)),
-              _borderedBox(labelDate, dateStr),
-            ],
-          ),
-          SizedBox(height: 8),
-          _text(titleAr, 13, _navy, bold: true, align: TextAlign.center),
-          if (_isTripartite) ...[
-            SizedBox(height: 1),
-            _text(
-              prefs.getString('pdf_mediator_name') ??
-                  prefs.getString('company_name') ??
-                  AppStrings.autostring3,
-              8.5,
-              _muted,
-              align: TextAlign.center,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _borderedBox(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(color: _navy),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _text(label, 9, _navy, bold: true),
-          SizedBox(width: 4),
-          _text(value, 10, _navy, dir: TextDirection.ltr),
-        ],
-      ),
-    );
-  }
 
   // ════════════════════════════════════════════════════════════════════════════
   // ENTRY SECTION
@@ -445,7 +341,8 @@ class VoucherImageCard extends StatelessWidget {
             ? data.description
             : (data.isContingent
                 ? AppStrings.tripartiteNoticeDesc(senderName, receiverName)
-                : AppStrings.tripartiteDoubleTransferDesc(senderName, receiverName));
+                : AppStrings.tripartiteDoubleTransferDesc(
+                    senderName, receiverName));
         notesText = AppStrings.thisNoticeIsConsidered1;
       } else {
         sectionLabel = AppStrings.recordingDataCreditTo;
@@ -799,11 +696,6 @@ class VoucherImageCard extends StatelessWidget {
   String _buildTitle(GetVoucherDetailsOutput d, String typeAr) {
     if (!_isTripartite) return typeAr;
     return AppStrings.tripleTransferDeedNotice;
-  }
-
-  static String _shortId(String id) {
-    if (id.length <= 12) return id;
-    return '${id.substring(0, 6)}…${id.substring(id.length - 6)}';
   }
 
   static String _truncHex(String hex) {

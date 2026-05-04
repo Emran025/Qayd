@@ -2,6 +2,7 @@ import 'package:qayd/application/messaging/template_binding_maps.dart';
 import 'package:qayd/application/vouchers/dtos/get_tripartite_detail_output.dart';
 import 'package:qayd/application/vouchers/dtos/get_voucher_details_output.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/entities/message_template.dart';
 import 'package:qayd/domain/services/placeholder_resolver.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:qayd/core/result/result.dart';
@@ -18,8 +19,13 @@ Future<String?> resolveVoucherShareText(GetVoucherDetailsOutput data) async {
     final templates = tR.valueOrNull!;
     if (templates.isEmpty) return null;
 
-    // Choose the first / default template
-    final template = templates.first;
+    // Choose the first / default template based on language
+    final isEn = AppStrings.languageCode == 'en';
+    final template = templates.cast<MessageTemplate?>().firstWhere(
+          (t) => isEn ? t!.id.endsWith('_en') : !t!.id.endsWith('_en'),
+          orElse: () => templates.first,
+        )!;
+
     final bindings = TemplateBindingMaps.forVoucher(data);
     return PlaceholderResolver.resolve(template.body, bindings);
   } catch (_) {
@@ -40,34 +46,33 @@ Future<String> resolveVoucherShareTextWithFallback(
 
   String body;
   if (data.isTripartite) {
-    body =
-        'مرفق لكم إشعار تحويل مالي من حساب ${bindings['sender_party']} إلى حساب ${bindings['receiver_party']}.\n'
-        'المبلغ: ${bindings['amount']}\n'
-        'المرجع: $reference\n';
-    AppStrings.nautomaticallyExportedAndDigitally;
+    body = AppStrings.voucherTripartiteShareText(
+        bindings['sender_party'] ?? '',
+        bindings['receiver_party'] ?? '',
+        bindings['amount'] ?? '',
+        reference);
   } else {
     final voucherType = data.typeCode == 'receipt'
         ? AppStrings.receiptNotice
         : AppStrings.disbursementNotice;
-    body = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
-        'المبلغ: ${bindings['amount']}\n';
+    body = AppStrings.voucherStandardShareText(
+        voucherType, data.counterpartyName, bindings['amount'] ?? '');
 
-    body += 'الحساب: ${data.affectedName}\n';
+    body += AppStrings.shareTextAccount(data.affectedName);
     if (data.description != null && data.description!.isNotEmpty) {
-      body += 'البيان: ${data.description}\n';
+      body += AppStrings.shareTextDescription(data.description!);
     }
 
     if (bindings['net_balance']?.isNotEmpty == true) {
-      body += 'الرصيد الإجمالي: ${bindings['net_balance']}\n';
+      body += AppStrings.shareTextNetBalance(bindings['net_balance']!);
     }
 
-    body += 'المرجع: $reference\n';
-    AppStrings.nautomaticallyExportedAndDigitally;
+    body += AppStrings.shareTextReference(reference);
   }
 
   if (data.senderSignatureHex != null || data.receiverSignatureHex != null) {
-    body +=
-        '\nبصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}';
+    body += AppStrings.shareTextVerificationFingerprint(
+        data.senderSignatureHex ?? data.receiverSignatureHex!);
   }
 
   return body;

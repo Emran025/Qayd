@@ -17,6 +17,7 @@ import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/l10n/app_strings_en.dart';
+import 'package:qayd/presentation/utils/qayd_header_config.dart';
 
 /// Professional financial voucher PDF matching the Galal Nasser Exchange format.
 ///
@@ -36,7 +37,6 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   static final _emerald = PdfColor.fromInt(0xFF047857);
   static final _muted = PdfColor.fromInt(0xFF64748B);
   static final _border = PdfColor.fromInt(0xFFCBD5E1);
-  static final _headerBg = PdfColor.fromInt(0xFFE8EDF3);
   static final _error = PdfColor.fromInt(0xFFDC2626);
   static bool get isArabic => AppStrings.i is! AppStringsEn;
 
@@ -53,12 +53,15 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
         logoBytes = logoData.buffer.asUint8List();
       } catch (_) {}
 
-      // 2. Fetch shared preferences values on main thread since SharedPreferences needs to be accessed here
+      // 2. Resolve header configuration
       final prefs = InjectionContainer.sharedPreferences;
-      final customHeaderTitle = prefs.getString('pdf_header_title') ??
-          AppStrings.entryPersonalAccounting;
-      final customHeaderSubtitle = prefs.getString('pdf_header_subtitle') ??
-          AppStrings.cryptocurrencySystem;
+      final headerConfig = QaydHeaderConfig.resolve(prefs);
+
+      final customHeaderTitle = headerConfig.title;
+      final customHeaderSubtitle = headerConfig.subtitle;
+      final customEngHeaderTitle = headerConfig.englishTitle;
+      final customEngHeaderSubtitle = headerConfig.englishSubtitle;
+
       final customFooterText = prefs.getString('pdf_footer_text') ??
           AppStrings.sourceQaidPersonalAccounting;
 
@@ -169,8 +172,13 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                     mainAxisSize: pw.MainAxisSize.min,
                     children: [
                       // ── HEADER BAR ──────────────────────────────────────────
-                      _buildHeaderBar(font, logoImage, customHeaderTitle,
-                          customHeaderSubtitle),
+                      _buildHeaderBar(
+                          font,
+                          logoImage,
+                          customHeaderTitle,
+                          customHeaderSubtitle,
+                          customEngHeaderTitle,
+                          customEngHeaderSubtitle),
 
                       // ── VOUCHER NUMBER + TITLE + DATE ───────────────────────
                       _buildTitleRow(font, report, titleAr, dateStr, accent,
@@ -247,12 +255,18 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
   // ── HEADER BAR (Company-style) ─────────────────────────────────────────
   // ══════════════════════════════════════════════════════════════════════════
 
-  pw.Widget _buildHeaderBar(pw.Font font, pw.ImageProvider? logoImage,
-      String title, String subtitle) {
+  pw.Widget _buildHeaderBar(
+    pw.Font font,
+    pw.ImageProvider? logoImage,
+    String title,
+    String subtitle,
+    String engTitle,
+    String engSubtitle,
+  ) {
     return pw.Container(
-      decoration: pw.BoxDecoration(
-        color: _headerBg,
-        borderRadius: const pw.BorderRadius.only(
+      decoration: const pw.BoxDecoration(
+        color: PdfColor.fromInt(0xFFE8EDF3),
+        borderRadius: pw.BorderRadius.only(
           topLeft: pw.Radius.circular(8),
           topRight: pw.Radius.circular(8),
         ),
@@ -261,7 +275,6 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        // mainAxisSize: pw.MainAxisSize.min,
         children: [
           // ── Right: Arabic info
           pw.Expanded(
@@ -272,7 +285,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                   title,
                   style: pw.TextStyle(
                     font: font,
-                    fontSize: 11,
+                    fontSize: 12,
                     color: _navy,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -299,14 +312,16 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
             pw.Container(
               width: 52,
               height: 52,
-              decoration: pw.BoxDecoration(
+              decoration: const pw.BoxDecoration(
                 color: PdfColors.white,
                 shape: pw.BoxShape.circle,
               ),
               child: pw.ClipOval(
                 child: pw.Image(logoImage, fit: pw.BoxFit.contain),
               ),
-            ),
+            )
+          else
+            pw.SizedBox(width: 52, height: 52),
 
           pw.SizedBox(width: 16),
 
@@ -316,7 +331,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 pw.Text(
-                  'Qayd — Personal Accounting',
+                  engTitle,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 9,
@@ -326,7 +341,7 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  'Encrypted Financial Voucher System',
+                  engSubtitle,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 7,
@@ -905,32 +920,18 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
         : report.counterpartyName;
 
     if (report.isTrueTripartite) {
-      if (isDebit) {
-        return report.description?.isNotEmpty == true
-            ? report.description!
-            : (isArabic
-                ? 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).'
-                : 'Tripartite Transfer Notice — from sender ($senderName) to receiver ($receiverName).');
-      } else {
-        return report.description?.isNotEmpty == true
-            ? report.description!
-            : (isArabic
-                ? 'إشعار سند تحويل ثلاثي — من المُرسِل ($senderName) إلى المُستلِم ($receiverName).'
-                : 'Tripartite Transfer Notice — from sender ($senderName) to receiver ($receiverName).');
-      }
+      return report.description?.isNotEmpty == true
+          ? report.description!
+          : AppStrings.i.tripartiteNoticeDesc(senderName, receiverName);
     } else {
       if (isDebit) {
         return report.description?.isNotEmpty == true
             ? report.description!
-            : (isArabic
-                ? 'تحويل مالي مزدوج عبر الصندوق — خصم من حساب $senderName وإضافة إلى حساب $receiverName.'
-                : 'Dual financial transfer via fund — debit from $senderName and credit to $receiverName.');
+            : AppStrings.i.tripartiteDoubleTransferDesc(senderName, receiverName);
       } else {
         return report.description?.isNotEmpty == true
             ? report.description!
-            : (isArabic
-                ? 'تمت إضافة المبلغ إلى حساب $receiverName من حساب $senderName عبر الصندوق كتحويل مزدوج.'
-                : 'Amount added to $receiverName from $senderName via fund as dual transfer.');
+            : AppStrings.i.tripartiteCreditDesc(receiverName, senderName);
       }
     }
   }

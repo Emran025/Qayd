@@ -224,6 +224,32 @@ class AppStrings {
   static String get automaticallyDetecting => i.automaticallyDetecting;
   static String get automaticallyExportedAndDigitally =>
       i.automaticallyExportedAndDigitally;
+  static String accountStatementShareText(String accountName, String format) =>
+      i.accountStatementShareText(accountName, format);
+  static String voucherTripartiteShareText(
+          String sender, String receiver, String amount, String reference) =>
+      i.voucherTripartiteShareText(sender, receiver, amount, reference);
+  static String voucherStandardShareText(
+          String voucherType, String counterpartyName, String amount) =>
+      i.voucherStandardShareText(voucherType, counterpartyName, amount);
+  static String shareTextAccount(String name) => i.shareTextAccount(name);
+  static String shareTextDescription(String desc) =>
+      i.shareTextDescription(desc);
+  static String shareTextNetBalance(String balance) =>
+      i.shareTextNetBalance(balance);
+  static String shareTextReference(String ref) => i.shareTextReference(ref);
+  static String shareTextVerificationFingerprint(String fingerprint) =>
+      i.shareTextVerificationFingerprint(fingerprint);
+  static String voucherReceiptShareText(String reference) =>
+      i.voucherReceiptShareText(reference);
+  static String get dateLabel => i.dateLabel;
+  static String get amountLabel => i.amountLabel;
+  static String get clientLabel => i.clientLabel;
+  static String get senderLabel => i.senderLabel;
+  static String get receiverLabel => i.receiverLabel;
+  static String get mediatorLabel => i.mediatorLabel;
+  static String get signatureSenderLabel => i.signatureSenderLabel;
+  static String get signatureReceiverLabel => i.signatureReceiverLabel;
   static String get autostring => i.autostring;
   static String get autostring1 => i.autostring1;
   static String get autostring2 => i.autostring2;
@@ -2226,4 +2252,6 @@ class AppStrings {
       i.tripartiteDoubleTransferDesc(sender, receiver);
   static String tripartiteCreditDesc(String receiver, String sender) =>
       i.tripartiteCreditDesc(receiver, sender);
+  static String couldNotShareReceiptAsImage(String error) =>
+      i.couldNotShareReceiptAsImage(error);
 }

@@ -126,22 +126,19 @@ Future<void> shareVoucherAsPdf(
             : data.counterpartyName;
 
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
-        shareText =
-            'مرفق لكم إشعار تحويل مالي من حساب $sender إلى حساب $receiver.\n'
-            'المبلغ: $amountTextFormatter\n'
-            'المرجع: ${data.referenceNumber ?? shortId}\n';
-        AppStrings.nautomaticallyExportedAndDigitally;
+        shareText = AppStrings.voucherTripartiteShareText(
+            sender, receiver, amountTextFormatter, data.referenceNumber ?? shortId);
       } else {
         final voucherType = data.typeCode == 'receipt'
             ? AppStrings.receiptNotice
             : AppStrings.disbursementNotice;
         final shortId = data.id.length > 8 ? data.id.substring(0, 8) : data.id;
-        shareText = 'مرفق لكم $voucherType للعميل ${data.counterpartyName}.\n'
-            'المبلغ: $amountTextFormatter\n';
+        shareText = AppStrings.voucherStandardShareText(
+            voucherType, data.counterpartyName, amountTextFormatter);
 
-        shareText += 'الحساب: ${data.affectedName}\n';
+        shareText += AppStrings.shareTextAccount(data.affectedName);
         if (data.description != null && data.description!.isNotEmpty) {
-          shareText += 'البيان: ${data.description}\n';
+          shareText += AppStrings.shareTextDescription(data.description!);
         }
 
         final balanceParts = data.counterpartyBalances.entries.map((e) {
@@ -161,16 +158,16 @@ Future<void> shareVoucherAsPdf(
               .trim();
         }).toList();
         if (balanceParts.isNotEmpty) {
-          shareText += 'الرصيد الإجمالي: ${balanceParts.join(", ")}\n';
+          shareText += AppStrings.shareTextNetBalance(balanceParts.join(", "));
         }
 
-        shareText += 'المرجع: ${data.referenceNumber ?? shortId}\n';
-        AppStrings.nautomaticallyExportedAndDigitally;
+        shareText +=
+            AppStrings.shareTextReference(data.referenceNumber ?? shortId);
       }
       if (data.senderSignatureHex != null ||
           data.receiverSignatureHex != null) {
-        shareText +=
-            '\nبصمة التحقق: ${data.senderSignatureHex ?? data.receiverSignatureHex}';
+        shareText += AppStrings.shareTextVerificationFingerprint(
+            data.senderSignatureHex ?? data.receiverSignatureHex!);
       }
     }
 

@@ -377,7 +377,8 @@ class _VoucherDetailBody extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
     final isReceipt = data.typeCode == 'receipt';
-    final dateStr = DateFormat.yMMMd(AppStrings.languageCode).format(DateTime.parse(data.dateIso));
+    final dateStr = DateFormat.yMMMd(AppStrings.languageCode)
+        .format(DateTime.parse(data.dateIso));
     final createdStr = DateFormat('hh:mm a  dd/MM/yyyy', 'en')
         .format(DateTime.parse(data.createdAtIso));
 
@@ -622,8 +623,9 @@ class _VoucherDetailBody extends StatelessWidget {
                 ),
                 SizedBox(width: SpacingTokens.sm),
                 QaydBadge(
-                    state: voucherStateFromCode(data.stateCode),
-                    context: context),
+                  state: voucherStateFromCode(data.stateCode),
+                  context: context,
+                ),
                 if (data.isContingent) ...[
                   SizedBox(width: SpacingTokens.sm),
                   Container(
@@ -645,7 +647,6 @@ class _VoucherDetailBody extends StatelessWidget {
               ],
             ),
             SizedBox(height: SpacingTokens.sm),
-
             // ── Agreement badges row ─────────────────────────────────────
             Wrap(
               spacing: SpacingTokens.xs,

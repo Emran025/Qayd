@@ -28,6 +28,7 @@ Future<void> shareStatementChatAsPdf(
   required List<AccountStatementChatMessageDto> messages,
   required Map<String, int> broughtForwardByCurrency,
   required Map<String, int> finalBalanceByCurrency,
+  String natureCode = 'credit',
   ShareMethod? shareMethod,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
@@ -91,16 +92,22 @@ Future<void> shareStatementChatAsPdf(
 
   final safeAccountName = TextSanitizer.sanitizeText(accountName);
 
+  // Resolve issuer name: use company name or mediator name from settings
+  final prefs = InjectionContainer.sharedPreferences;
+  final issuerName = prefs.getString('company_name') ??
+      prefs.getString('pdf_mediator_name') ??
+      AppStrings.entryPersonalAccounting;
+
   final dto = AccountStatementReportDto(
     accountId: accountId,
     accountName: safeAccountName,
-    natureCode:
-        'credit', // In chat context, usually context-dependent, but 'credit' is safe fallback
+    natureCode: natureCode,
     generatedAtIso: now,
     periodFromIso: filter.fromDate?.toIso8601String(),
     periodToIso: filter.toDate?.toIso8601String(),
     lines: lines,
     finalBalancesByCurrency: finalBalanceByCurrency,
+    issuerName: issuerName,
   );
 
   final pdfR = await InjectionContainer.accountStatementPdfGenerator
@@ -141,8 +148,7 @@ Future<void> shareStatementChatAsPdf(
             aR.valueOrNull!.whatsappNumber ?? aR.valueOrNull!.phoneNumber;
       }
 
-      final shareText =
-          'مرفق لكم كشف حساب $safeAccountName.\n\nموثق رقمياً عبر نظام قيد.';
+      final shareText = AppStrings.accountStatementShareText(safeAccountName, 'PDF');
 
       await MessagingIntentLauncher.shareToWhatsApp(
         flavor: flavor,
@@ -383,8 +389,7 @@ Future<void> shareStatementChatAsExcel(
 
       // Step 2: after the file intent fires and WhatsApp moves to foreground,
       // pre-fill the descriptive caption via wa.me URL.
-      final shareText =
-          'مرفق لكم كشف حساب $safeAccountName (Excel).\n\nموثق رقمياً عبر نظام قيد.';
+      final shareText = AppStrings.accountStatementShareText(safeAccountName, 'Excel');
       await Future.delayed(const Duration(milliseconds: 1500));
       await MessagingIntentLauncher.openWhatsAppTextOnly(
         flavor,

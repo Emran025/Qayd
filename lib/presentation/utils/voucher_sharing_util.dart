@@ -22,9 +22,8 @@ import 'package:qayd/core/result/result.dart';
 Future<void> shareVoucherAsText(
     BuildContext context, GetVoucherDetailsOutput data) async {
   final isReceipt = data.typeCode == 'receipt';
-  final type = isReceipt
-      ? AppStrings.voucherTypeReceipt
-      : AppStrings.voucherTypePayment;
+  final type =
+      isReceipt ? AppStrings.voucherTypeReceipt : AppStrings.voucherTypePayment;
   final dateFmt = DateFormat('dd/MM/yyyy', 'en');
   final date = dateFmt.format(DateTime.parse(data.dateIso));
   final amount = MoneyFormatter.formatWithSymbol(
@@ -39,11 +38,11 @@ Future<void> shareVoucherAsText(
   if (shareText == null || shareText.isEmpty) {
     final buffer = StringBuffer();
     buffer.writeln('إشعار $type');
-    buffer.writeln('التاريخ: $date');
-    buffer.writeln('المبلغ: $amount');
+    buffer.writeln('${AppStrings.dateLabel} $date');
+    buffer.writeln('${AppStrings.amountLabel} $amount');
 
-    buffer.writeln('العميل: ${data.counterpartyName}');
-    buffer.writeln('الحساب: ${data.affectedName}');
+    buffer.writeln('${AppStrings.clientLabel} ${data.counterpartyName}');
+    buffer.writeln('${AppStrings.accountLabel} ${data.affectedName}');
     if (data.description != null && data.description!.isNotEmpty) {
       buffer.writeln('البيان: ${data.description}');
     }
@@ -65,15 +64,17 @@ Future<void> shareVoucherAsText(
           .trim();
     }).toList();
     if (balanceParts.isNotEmpty) {
-      buffer.writeln('الرصيد الإجمالي: ${balanceParts.join(", ")}');
+      buffer.write(AppStrings.shareTextNetBalance(balanceParts.join(", ")));
     }
     buffer.writeln('\n--');
     buffer.writeln(AppStrings.automaticallyExportedAndDigitally);
     if (data.senderSignatureHex != null) {
-      buffer.write('\n- توقيع المرسل: ${data.senderSignatureHex}');
+      buffer.write(
+          '\n${AppStrings.signatureSenderLabel} ${data.senderSignatureHex}');
     }
     if (data.receiverSignatureHex != null) {
-      buffer.write('\n- توقيع المستلم: ${data.receiverSignatureHex}');
+      buffer.write(
+          '\n${AppStrings.signatureReceiverLabel} ${data.receiverSignatureHex}');
     }
     shareText = buffer.toString();
   }
@@ -128,21 +129,21 @@ Future<void> shareTripartiteAsText(
   if (shareText == null || shareText.isEmpty) {
     final buffer = StringBuffer();
     buffer.writeln(AppStrings.brokerTransferNotice);
-    buffer.writeln('التاريخ: $date');
-    buffer.writeln('المبلغ: $amount');
-    buffer.writeln('المرسل: ${data.sourceName}');
-    buffer.writeln('المستلم: ${data.destinationName}');
-    buffer.writeln('الوسيط: ${data.mediatorName}');
+    buffer.writeln('${AppStrings.dateLabel} $date');
+    buffer.writeln('${AppStrings.amountLabel} $amount');
+    buffer.writeln('${AppStrings.senderLabel} ${data.sourceName}');
+    buffer.writeln('${AppStrings.receiverLabel} ${data.destinationName}');
+    buffer.writeln('${AppStrings.mediatorLabel} ${data.mediatorName}');
     if (data.description != null && data.description!.isNotEmpty) {
-      buffer.writeln('البيان: ${data.description}');
+      buffer.write(AppStrings.shareTextDescription(data.description!));
     }
     buffer.writeln('\n--');
     buffer.writeln(AppStrings.automaticallyExportedAndDigitally);
     if (data.senderSignatureHex != null) {
-      buffer.write('\n- توقيع المرسل: ${data.senderSignatureHex}');
+      buffer.write('\n${AppStrings.signatureSenderLabel} ${data.senderSignatureHex}');
     }
     if (data.receiverSignatureHex != null) {
-      buffer.write('\n- توقيع المستلم: ${data.receiverSignatureHex}');
+      buffer.write('\n${AppStrings.signatureReceiverLabel} ${data.receiverSignatureHex}');
     }
     shareText = buffer.toString();
   }
@@ -174,8 +175,8 @@ Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey,
 
     var shareText = await resolveVoucherShareText(data);
     if (shareText == null || shareText.isEmpty) {
-      shareText =
-          'مرفق لكم إيصال قيد مالي رقم ${data.referenceNumber ?? data.id.substring(0, 8)}.\n\nموثق رقمياً عبر نظام قيد.';
+      shareText = AppStrings.voucherReceiptShareText(
+          data.referenceNumber ?? data.id.substring(0, 8));
     }
 
     // Preview and edit Step
@@ -218,7 +219,8 @@ Future<void> shareVoucherAsImage(BuildContext context, GlobalKey boundaryKey,
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تعذر مشاركة الإيصال كصورة: $e')),
+      SnackBar(
+          content: Text(AppStrings.couldNotShareReceiptAsImage(e.toString()))),
     );
   }
 }

@@ -2338,4 +2338,47 @@ abstract class AppStringsBase {
   /// Fallback description for tripartite voucher — credit leg added amount.
   String tripartiteCreditDesc(String receiver, String sender) =>
       'تمت إضافة المبلغ إلى حساب $receiver من حساب $sender عبر الصندوق كتحويل مزدوج.';
+
+  /// Share text for account statement (PDF/Excel).
+  String accountStatementShareText(String accountName, String format) =>
+      'مرفق لكم كشف حساب $accountName ($format).\n\nموثق رقمياً عبر نظام قيد.';
+
+  /// Share text for tripartite voucher notice.
+  String voucherTripartiteShareText(
+          String sender, String receiver, String amount, String reference) =>
+      'مرفق لكم إشعار تحويل مالي من حساب $sender إلى حساب $receiver.\n'
+      'المبلغ: $amount\n'
+      'المرجع: $reference\n';
+
+  /// Share text for standard receipt/disbursement voucher.
+  String voucherStandardShareText(
+          String voucherType, String counterpartyName, String amount) =>
+      'مرفق لكم $voucherType للعميل $counterpartyName.\n'
+      'المبلغ: $amount\n';
+
+  /// Field labels for share text.
+  String shareTextAccount(String name) => 'الحساب: $name\n';
+  String shareTextDescription(String desc) => 'البيان: $desc\n';
+  String shareTextNetBalance(String balance) => 'الرصيد الإجمالي: $balance\n';
+  String shareTextReference(String ref) => 'المرجع: $ref\n';
+  String shareTextVerificationFingerprint(String fingerprint) =>
+      '\nبصمة التحقق: $fingerprint';
+
+  /// Share text for voucher as image.
+  String voucherReceiptShareText(String reference) =>
+      'مرفق لكم إيصال قيد مالي رقم $reference.\n\nموثق رقمياً عبر نظام قيد.';
+
+  /// Field labels for text sharing.
+  String get dateLabel => 'التاريخ:';
+  String get amountLabel => 'المبلغ:';
+  String get clientLabel => 'العميل:';
+  String get senderLabel => 'المرسل:';
+  String get receiverLabel => 'المستلم:';
+  String get mediatorLabel => 'الوسيط:';
+  String get signatureSenderLabel => '- توقيع المرسل:';
+  String get signatureReceiverLabel => '- توقيع المستلم:';
+
+  /// Error message when image sharing fails.
+  String couldNotShareReceiptAsImage(String error) =>
+      'تعذر مشاركة الإيصال كصورة: $error';
 }

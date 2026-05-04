@@ -1,100 +1,135 @@
 import 'package:flutter/material.dart';
-import 'package:qayd/application/accounts/dtos/get_account_statement_input.dart';
-import 'package:qayd/core/result/result.dart';
-import 'package:qayd/data/dtos/account_statement_report_dto.dart';
+import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
+import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/presentation/l10n/app_strings.dart';
-import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
-import 'package:qayd/core/utils/text_sanitizer.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
+import 'package:qayd/presentation/utils/statement_chat_export.dart';
+import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
+import 'package:qayd/core/result/result.dart';
 
-/// Exports full account statement (all movements) as PDF and opens the share sheet.
-Future<void> shareAccountStatementAsPdf(
+/// Fetches statement data in "Chat" style and shares it as PDF.
+Future<void> shareAccountStatementChatAsPdf(
   BuildContext context, {
   required String accountId,
+  required String accountName,
 }) async {
-  final messenger = ScaffoldMessenger.of(context);
-  showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (ctx) => Center(
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: CircularProgressIndicator(),
-        ),
-      ),
+  final data = await _fetchChatData(accountId, accountName);
+  if (data == null || !context.mounted) return;
+
+  await shareStatementChatAsPdf(
+    context,
+    accountId: accountId,
+    accountName: data.accountName,
+    filter: data.filter,
+    messages: data.messages,
+    broughtForwardByCurrency: data.broughtForwardByCurrency,
+    finalBalanceByCurrency: data.finalBalanceByCurrency,
+    natureCode: data.natureCode,
+  );
+}
+
+/// Fetches statement data in "Chat" style and shares it as Excel.
+Future<void> shareAccountStatementChatAsExcel(
+  BuildContext context, {
+  required String accountId,
+  required String accountName,
+}) async {
+  final data = await _fetchChatData(accountId, accountName);
+  if (data == null || !context.mounted) return;
+
+  // Infer currency digits from first message or default to 2
+  int digits = 2;
+  if (data.messages.isNotEmpty) {
+    digits = data.messages.first.currencyDigits;
+  }
+
+  await shareStatementChatAsExcel(
+    context,
+    accountId: accountId,
+    accountName: data.accountName,
+    filter: data.filter,
+    messages: data.messages,
+    broughtForwardByCurrency: data.broughtForwardByCurrency,
+    currencyDigits: digits,
+  );
+}
+
+/// Helper to fetch the "Chat" style data by replicating StatementChatCubit logic.
+Future<_ChatStatementData?> _fetchChatData(
+  String counterpartyAccountId,
+  String initialAccountName,
+) async {
+  final accountsR = await InjectionContainer.listAccountsUseCase.call(
+    const ListAccountsInput(activeOnly: false),
+  );
+  if (accountsR.isFailure) return null;
+
+  final accounts = accountsR.valueOrNull!.accounts;
+  final cpIndex = accounts.indexWhere((a) => a.id == counterpartyAccountId);
+
+  String accountName = initialAccountName;
+  bool isUnified = false;
+  String natureCode = 'credit';
+
+  if (cpIndex != -1) {
+    final cp = accounts[cpIndex];
+    accountName = cp.name;
+    isUnified = cp.standardClassificationKind ==
+        StandardAccountClassificationKind.liquidAssets.name;
+    natureCode = cp.natureCode;
+  } else {
+    isUnified =
+        true; // Assume unified for non-account entities (like cost centers)
+  }
+
+  // Pick the "my" account (Fund account)
+  final fundAccount = accounts.firstWhere(
+    (a) =>
+        a.standardClassificationKind ==
+            StandardAccountClassificationKind.liquidAssets.name &&
+        a.id != counterpartyAccountId,
+    orElse: () => accounts.firstWhere(
+      (a) => a.id != counterpartyAccountId,
+      orElse: () => accounts.first,
     ),
   );
+  final myAccountId = fundAccount.id;
 
-  final stmtR = await InjectionContainer.getAccountStatementUseCase(
-    GetAccountStatementInput(accountId: accountId),
+  final filter = StatementChatFilterInput.empty;
+  final result = await InjectionContainer.listAccountStatementChatUseCase.call(
+    myAccountId: myAccountId,
+    counterpartyAccountId: counterpartyAccountId,
+    filter: filter,
+    isUnified: isUnified,
   );
 
-  if (!context.mounted) {
-    return;
-  }
-  Navigator.of(context, rootNavigator: true).pop();
+  if (result.isFailure) return null;
+  final out = result.valueOrNull!;
 
-  if (stmtR.isFailure) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(stmtR.failureOrNull!.messageAr)),
-    );
-    return;
-  }
-
-  final stmt = stmtR.valueOrNull!;
-  final now = DateTime.now().toIso8601String();
-
-  // Resolve issuer name: use company name or mediator name from settings
-  final prefs = InjectionContainer.sharedPreferences;
-  final issuerName = prefs.getString('company_name') ??
-      prefs.getString('pdf_mediator_name') ??
-      AppStrings.entryPersonalAccounting;
-
-  final dto = AccountStatementReportDto(
-    accountId: stmt.accountId,
-    accountName: TextSanitizer.sanitizeText(stmt.accountName),
-    natureCode: stmt.natureCode,
-    generatedAtIso: now,
-    issuerName: issuerName,
-    lines: stmt.lines
-        .map(
-          (l) => AccountStatementLineReportDto(
-            dateIso: l.dateIso,
-            description: TextSanitizer.sanitizeText(l.description),
-            debitMinorUnits: l.debitMinorUnits,
-            creditMinorUnits: l.creditMinorUnits,
-            balanceMinorUnits: l.balanceMinorUnits,
-            voucherId: l.voucherId,
-            currencyCode: l.currencyCode,
-            currencySymbol: l.currencySymbol,
-            currencyDigits: l.currencyDigits,
-          ),
-        )
-        .toList(growable: false),
+  return _ChatStatementData(
+    accountName: accountName,
+    messages: out.messages,
+    broughtForwardByCurrency: out.broughtForwardByCurrency,
+    finalBalanceByCurrency: out.finalBalanceByCurrency,
+    filter: filter,
+    natureCode: natureCode,
   );
+}
 
-  final pdfR =
-      await InjectionContainer.accountStatementPdfGenerator.buildStatementPdf(
-    dto,
-  );
+class _ChatStatementData {
+  final String accountName;
+  final List<AccountStatementChatMessageDto> messages;
+  final Map<String, int> broughtForwardByCurrency;
+  final Map<String, int> finalBalanceByCurrency;
+  final StatementChatFilterInput filter;
+  final String natureCode;
 
-  if (!context.mounted) {
-    return;
-  }
-
-  if (pdfR.isFailure) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(pdfR.failureOrNull!.messageAr)),
-    );
-    return;
-  }
-  try {
-    final safeName = 'qayd_statement_${stmt.accountId}.pdf';
-    await sharePdfBytes(pdfR.valueOrNull!, safeName);
-  } catch (_) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(AppStrings.exportPdfShareError)),
-    );
-  }
+  _ChatStatementData({
+    required this.accountName,
+    required this.messages,
+    required this.broughtForwardByCurrency,
+    required this.finalBalanceByCurrency,
+    required this.filter,
+    required this.natureCode,
+  });
 }

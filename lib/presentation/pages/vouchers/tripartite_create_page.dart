@@ -5,6 +5,7 @@ import 'package:qayd/core/result/result.dart';
 import 'package:intl/intl.dart';
 
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
@@ -115,11 +116,22 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
   }
 
   Future<void> _pickAccount(int fieldIndex) async {
+    final excludedClasses = [
+      StandardAccountClassificationKind.liquidAssets.name,
+      StandardAccountClassificationKind.fixedDepreciableAssets.name,
+      StandardAccountClassificationKind.fixedProfitableAssets.name,
+      StandardAccountClassificationKind.clearingRemittances.name,
+      StandardAccountClassificationKind.remittanceFees.name,
+    ];
+    final allowedClasses = StandardAccountClassificationKind.values
+        .map((k) => k.name)
+        .where((n) => !excludedClasses.contains(n))
+        .toList();
     final res = await showAccountPickerSheet(
       context,
       listAccounts: InjectionContainer.listAccountsUseCase,
       requireNoRoot: true,
-      allowedClassifications: const ['receivables', 'payables'],
+      allowedClassifications: allowedClasses,
     );
     if (res != null) {
       setState(() {
@@ -139,15 +151,18 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
           .call(const ListAccountsInput());
       if (accountsRes.isSuccess) {
         final accounts = accountsRes.valueOrNull?.accounts ?? [];
-        if (accounts.where((a) => a.name == AppStrings.clearingAccountName).firstOrNull ==
+        if (accounts
+                .where((a) => a.name == AppStrings.clearingAccountName)
+                .firstOrNull ==
             null) {
           messenger.showSnackBar(
             SnackBar(content: Text(AppStrings.tripartiteNoClearingAccount)),
           );
           return;
         }
-        _affected =
-            accounts.where((a) => a.name == AppStrings.clearingAccountName).firstOrNull;
+        _affected = accounts
+            .where((a) => a.name == AppStrings.clearingAccountName)
+            .firstOrNull;
       }
     }
 

@@ -19,7 +19,6 @@ import 'package:qayd/presentation/pages/messaging/notification_preview_state.dar
 import 'package:qayd/presentation/utils/voucher_share_text_resolver.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
-
 class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
   NotificationPreviewCubit({
     required this.mode,
@@ -119,7 +118,15 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     required GetAccountDetailsOutput? account,
     required Map<String, String> bindings,
   }) async {
-    final first = templates.isEmpty ? null : templates.first;
+    final isEn = AppStrings.languageCode == 'en';
+    MessageTemplate? first;
+    if (templates.isNotEmpty) {
+      first = templates.cast<MessageTemplate?>().firstWhere(
+            (t) => isEn ? t!.id.endsWith('_en') : !t!.id.endsWith('_en'),
+            orElse: () => templates.first,
+          );
+    }
+
     final selectedId = first?.id;
 
     String body;

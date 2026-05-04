@@ -13,9 +13,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/data/pdf/pdf_numerical_styling.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/l10n/app_strings_en.dart';
-
+import 'package:qayd/presentation/utils/qayd_header_config.dart';
 
 abstract interface class AccountStatementPdfGenerator {
   Future<Result<Uint8List>> buildStatementPdf(AccountStatementReportDto report);
@@ -35,9 +36,7 @@ final class CairoAccountStatementPdfGenerator
 
   // ── Brand palette ──────────────────────────────────────────────────────
   static final PdfColor _navy = PdfColor.fromInt(0xFF0F2741);
-  static final PdfColor _gold = PdfColor.fromInt(0xFFC9A227);
   static final PdfColor _muted = PdfColor.fromInt(0xFF64748B);
-  static final PdfColor _headerBlue = PdfColor.fromInt(0xFF8FAADC);
   static final PdfColor _headerBg = PdfColor.fromInt(0xFFE8EDF3);
   static final PdfColor _slate50 = PdfColor.fromInt(0xFFF8FAFC);
   static final PdfColor _slate100 = PdfColor.fromInt(0xFFF1F5F9);
@@ -61,7 +60,18 @@ final class CairoAccountStatementPdfGenerator
         // Logo not available, we'll use text fallback
       }
 
-      // 2. Run PDF generation in an Isolate to prevent UI freeze on large files
+      // 2. Resolve branding
+      final prefs = InjectionContainer.sharedPreferences;
+      final headerConfig = QaydHeaderConfig.resolve(prefs);
+      
+      final colDate = prefs.getString('pdf_col_date') ?? AppStrings.theDate;
+      final colStatement = prefs.getString('pdf_col_statement') ?? AppStrings.statement1;
+      final colCurrency = prefs.getString('pdf_col_currency') ?? AppStrings.currency;
+      final colRef = prefs.getString('pdf_col_ref') ?? AppStrings.bondNumber;
+      final colCredit = prefs.getString('pdf_col_credit') ?? AppStrings.creditor;
+      final colDebit = prefs.getString('pdf_col_debit') ?? AppStrings.debtor;
+
+      // 3. Run PDF generation in an Isolate to prevent UI freeze on large files
       return await Isolate.run(() async {
         final font = pw.Font.ttf(fontBytes.buffer.asByteData());
         final theme = pw.ThemeData.withFont(base: font, bold: font);
@@ -84,7 +94,9 @@ final class CairoAccountStatementPdfGenerator
           periodLabel = '$a — $b';
         }
 
-        final natureAr = report.natureCode == 'debit' ? AppStrings.creditor : AppStrings.debtor;
+        final natureAr = report.natureCode == 'debit'
+            ? AppStrings.creditor
+            : AppStrings.debtor;
 
         // Calculate totals
         int totalDebit = 0;
@@ -102,9 +114,8 @@ final class CairoAccountStatementPdfGenerator
           pw.MultiPage(
             pageTheme: pw.PageTheme(
               pageFormat: PdfPageFormat.a4,
-              textDirection: isArabic
-                  ? pw.TextDirection.rtl
-                  : pw.TextDirection.ltr,
+              textDirection:
+                  isArabic ? pw.TextDirection.rtl : pw.TextDirection.ltr,
               theme: theme,
               margin: const pw.EdgeInsets.all(32),
               buildBackground: (context) {
@@ -127,21 +138,36 @@ final class CairoAccountStatementPdfGenerator
                 return pw.SizedBox();
               },
             ),
-            header: (context) => _buildHeader(font, report, genAt, logoImage),
+            header: (context) =>
+                _buildHeader(font, report, genAt, logoImage, headerConfig),
             footer: (context) => _buildFooter(font, report, context),
             build: (context) => [
               pw.SizedBox(height: 12),
-              
+
+              // ── Document Title ──────────────────────────────────────────
+              pw.Center(
+                child: pw.Text(
+                  AppStrings.accountStatement,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 14,
+                    color: _navy,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 8),
+
               // ── Info Section (إلى / من) ──────────────────────────────────
               _buildInfoSection(font, report, genAt, natureAr, periodLabel),
-              
+
               pw.SizedBox(height: 14),
-              
+
               // ── Main Transaction Table ───────────────────────────────────
-              _buildTransactionTable(font, report, dateFmt),
-              
+              _buildTransactionTable(font, report, dateFmt, colDate, colStatement, colCurrency, colRef, colCredit, colDebit),
+
               pw.SizedBox(height: 14),
-              
+
               // ── Bottom Section: Notes + Totals ───────────────────────────
               _buildBottomSection(
                 font,
@@ -161,8 +187,8 @@ final class CairoAccountStatementPdfGenerator
       print('PDF Generation Error: $e');
       // ignore: avoid_print
       print('Stack Trace: $stackTrace');
-      
-      return  FailureResult(
+
+      return FailureResult(
         UnexpectedFailure(messageAr: AppStrings.unableToCreateAccount),
       );
     }
@@ -177,12 +203,12 @@ final class CairoAccountStatementPdfGenerator
     AccountStatementReportDto report,
     String genAt,
     pw.ImageProvider? logoImage,
+    QaydHeaderConfig config,
   ) {
-    // Custom brand text from SharedPreferences (same as voucher header)
     return pw.Container(
-      decoration: pw.BoxDecoration(
-        color: _headerBg,
-        borderRadius: const pw.BorderRadius.only(
+      decoration: const pw.BoxDecoration(
+        color: PdfColor.fromInt(0xFFE8EDF3),
+        borderRadius: pw.BorderRadius.only(
           topLeft: pw.Radius.circular(8),
           topRight: pw.Radius.circular(8),
         ),
@@ -192,16 +218,16 @@ final class CairoAccountStatementPdfGenerator
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          // ── Right: Arabic info (company name + doc title)
+          // ── Right: Arabic info
           pw.Expanded(
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  AppStrings.accountStatement,
+                  config.title,
                   style: pw.TextStyle(
                     font: font,
-                    fontSize: 15,
+                    fontSize: 12,
                     color: _navy,
                     fontWeight: pw.FontWeight.bold,
                   ),
@@ -209,10 +235,10 @@ final class CairoAccountStatementPdfGenerator
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  AppStrings.accountStatementASystem,
+                  config.subtitle,
                   style: pw.TextStyle(
                     font: font,
-                    fontSize: 7,
+                    fontSize: 8,
                     color: _muted,
                   ),
                   textAlign: pw.TextAlign.right,
@@ -223,7 +249,7 @@ final class CairoAccountStatementPdfGenerator
 
           pw.SizedBox(width: 16),
 
-          // ── Center: Logo badge (same as voucher)
+          // ── Center: Logo badge
           if (logoImage != null)
             pw.Container(
               width: 52,
@@ -237,25 +263,7 @@ final class CairoAccountStatementPdfGenerator
               ),
             )
           else
-            pw.Container(
-              width: 52,
-              height: 52,
-              decoration: pw.BoxDecoration(
-                color: PdfColor.fromInt(0xFF1E3D6B),
-                shape: pw.BoxShape.circle,
-              ),
-              child: pw.Center(
-                child: pw.Text(
-                  AppStrings.restriction,
-                  style: pw.TextStyle(
-                    font: font,
-                    fontSize: 14,
-                    color: _gold,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+            pw.SizedBox(width: 52, height: 52),
 
           pw.SizedBox(width: 16),
 
@@ -265,7 +273,7 @@ final class CairoAccountStatementPdfGenerator
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 pw.Text(
-                  'Qayd — Personal Accounting',
+                  config.englishTitle,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 9,
@@ -275,7 +283,7 @@ final class CairoAccountStatementPdfGenerator
                 ),
                 pw.SizedBox(height: 2),
                 pw.Text(
-                  'Encrypted Financial Voucher System',
+                  config.englishSubtitle,
                   style: pw.TextStyle(
                     font: font,
                     fontSize: 7,
@@ -318,7 +326,8 @@ final class CairoAccountStatementPdfGenerator
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    _infoLine(font, AppStrings.accountName1, report.accountName),
+                    _infoLine(
+                        font, AppStrings.accountName1, report.accountName),
                     pw.SizedBox(height: 4),
                     _infoLine(font, AppStrings.natureOfAccount, natureAr),
                     pw.SizedBox(height: 4),
@@ -414,12 +423,18 @@ final class CairoAccountStatementPdfGenerator
     pw.Font font,
     AccountStatementReportDto report,
     DateFormat dateFmt,
+    String colDate,
+    String colStatement,
+    String colCurrency,
+    String colRef,
+    String colCredit,
+    String colDebit,
   ) {
     final headerStyle = pw.TextStyle(
       font: font,
-      fontSize: 8,
+      fontSize: 9,
       fontWeight: pw.FontWeight.bold,
-      color: PdfColor.fromInt(0xFF000000),
+      color: PdfColors.white,
     );
     final cellStyle = pw.TextStyle(
       font: font,
@@ -430,7 +445,7 @@ final class CairoAccountStatementPdfGenerator
     return pw.TableHelper.fromTextArray(
       context: null,
       border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-      headerDecoration: pw.BoxDecoration(color: _headerBlue),
+      headerDecoration: pw.BoxDecoration(color: _navy),
       headerStyle: headerStyle,
       headerAlignment: pw.Alignment.center,
       cellAlignment: pw.Alignment.center,
@@ -446,12 +461,12 @@ final class CairoAccountStatementPdfGenerator
         5: const pw.FlexColumnWidth(1.8), // دائن
       },
       headers: [
-        AppStrings.theDate,
-        AppStrings.statement1,
-        AppStrings.currency,
-        AppStrings.bondNumber,
-        AppStrings.creditor,
-        AppStrings.debtor
+        colDate,
+        colStatement,
+        colCurrency,
+        colRef,
+        colCredit,
+        colDebit
       ],
       data: [
         ...report.lines.map((l) {
@@ -572,7 +587,8 @@ final class CairoAccountStatementPdfGenerator
                     ),
                     pw.SizedBox(width: 4),
                     pw.Text(
-                      CurrencyUtil.getLocalizedName(e.key).replaceAll('﷼', AppStrings.sar),
+                      CurrencyUtil.getLocalizedName(e.key)
+                          .replaceAll('﷼', AppStrings.sar),
                       style:
                           pw.TextStyle(font: font, fontSize: 10, color: _muted),
                     ),
@@ -633,7 +649,8 @@ final class CairoAccountStatementPdfGenerator
           if (issuer != null && issuer.trim().isNotEmpty) ...[
             pw.SizedBox(height: 3),
             pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding:
+                  const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: pw.BoxDecoration(
                 color: _headerBg,
                 borderRadius: pw.BorderRadius.circular(4),
