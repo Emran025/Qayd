@@ -153,6 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _passwordCtrl,
                     hint: AppStrings.vaultPasswordHint,
                     obscureText: _obscurePassword,
+                    isPassword: true,
                     suffixIcon: PasswordToggleIcon(
                       obscure: _obscurePassword,
                       onToggle: () =>

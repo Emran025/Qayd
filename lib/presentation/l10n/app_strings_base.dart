@@ -489,7 +489,7 @@ abstract class AppStringsBase {
   String get dbStartFreshConfirmBody =>
       'سيتم حذف جميع البيانات المالية المخزنة على هذا الجهاز نهائياً.\n\n'
       'لا يمكن التراجع عن هذا الإجراء. هل أنت متأكد؟';
-  String get dbStartFreshConfirmTitle => 'تأكيد الحذف والبدء من جديد';
+  String get dbStartFreshConfirmTitle => 'تأكيد الحذف';
   String get dbUnlockAction => 'فتح القاعدة';
   String get de => 'د.إ';
   String get dearCustomer => 'عزيزي {{customer}}';

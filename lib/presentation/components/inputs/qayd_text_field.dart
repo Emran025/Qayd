@@ -28,6 +28,7 @@ class QaydTextField extends StatelessWidget {
     this.inputFormatters,
     this.autovalidateMode,
     this.obscureText = false,
+    this.isPassword = false,
   });
 
   final TextEditingController? controller;
@@ -52,6 +53,7 @@ class QaydTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final AutovalidateMode? autovalidateMode;
   final bool obscureText;
+  final bool isPassword;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +89,7 @@ class QaydTextField extends StatelessWidget {
       ),
     );
 
-    final isLtrType = obscureText ||
+    final isLtrType = obscureText || isPassword ||
         keyboardType == TextInputType.number ||
         keyboardType == const TextInputType.numberWithOptions(decimal: true) ||
         keyboardType == const TextInputType.numberWithOptions(signed: true) ||
@@ -95,13 +97,9 @@ class QaydTextField extends StatelessWidget {
         keyboardType == TextInputType.emailAddress ||
         keyboardType == TextInputType.url;
 
-    if (isLtrType) {
-      return Directionality(
-        textDirection: TextDirection.ltr,
-        child: field,
-      );
-    }
-
-    return field;
+    return Directionality(
+      textDirection: isLtrType ? TextDirection.ltr : Directionality.of(context),
+      child: field,
+    );
   }
 }

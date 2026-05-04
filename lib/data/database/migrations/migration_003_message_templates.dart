@@ -1,4 +1,5 @@
 import 'package:qayd/data/database/migrations/schema_migration.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 
@@ -52,8 +53,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_receipt',
   'receipt',
-  AppStrings.catchDefaultTemplate,
-  AppStrings.dearCustomernweWouldLike1,
+  '${AppStrings.catchDefaultTemplate}',
+  '${AppStrings.dearCustomernweWouldLike1}',
   1,
   0,
   '$t',
@@ -66,8 +67,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_payment',
   'payment',
-  AppStrings.exchangeDefaultTemplate,
-  AppStrings.dearCustomernweWouldLike,
+  '${AppStrings.exchangeDefaultTemplate}',
+  '${AppStrings.dearCustomernweWouldLike}',
   1,
   0,
   '$t',
@@ -80,8 +81,8 @@ INSERT INTO message_templates (id, kind, name, body, is_system, sort_order, crea
 VALUES (
   'tpl_sys_account',
   'account_balance',
-  AppStrings.accountBalanceDefaultTemplate,
-  AppStrings.accountDetailsAccountnamencurrentBalance,
+  '${AppStrings.accountBalanceDefaultTemplate}',
+  '${AppStrings.accountDetailsAccountnamencurrentBalance}',
   1,
   0,
   '$t',

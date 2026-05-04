@@ -189,6 +189,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: _passwordCtrl,
                         hint: AppStrings.vaultPasswordHint,
                         obscureText: _obscurePassword,
+                        isPassword: true,
                         accentColor: ColorTokens.goldAccent,
                         suffixIcon: PasswordToggleIcon(
                           obscure: _obscurePassword,
@@ -210,6 +211,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: _confirmCtrl,
                         hint: AppStrings.confirmPasswordHint,
                         obscureText: _obscureConfirm,
+                        isPassword: true,
                         accentColor: ColorTokens.goldAccent,
                         suffixIcon: PasswordToggleIcon(
                           obscure: _obscureConfirm,

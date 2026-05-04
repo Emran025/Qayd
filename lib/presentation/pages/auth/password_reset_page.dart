@@ -421,6 +421,7 @@ class _Step1Form extends StatelessWidget {
           controller: passwordCtrl,
           hint: AppStrings.passwordResetNewPassword,
           obscureText: obscurePassword,
+          isPassword: true,
           suffixIcon: PasswordToggleIcon(
               obscure: obscurePassword, onToggle: onTogglePassword),
           validator: (v) {
@@ -438,6 +439,7 @@ class _Step1Form extends StatelessWidget {
           controller: confirmCtrl,
           hint: AppStrings.confirmPasswordHint,
           obscureText: obscureConfirm,
+          isPassword: true,
           suffixIcon: PasswordToggleIcon(
               obscure: obscureConfirm, onToggle: onToggleConfirm),
           validator: (v) =>

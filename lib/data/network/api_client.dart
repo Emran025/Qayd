@@ -70,12 +70,16 @@ final class ApiClient {
     Map<String, dynamic>? body,
     Options? options,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      path,
-      data: body,
-      options: options,
-    );
-    return _extractData(response);
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        path,
+        data: body,
+        options: options,
+      );
+      return _extractData(response);
+    } on DioException catch (e) {
+      throw e.toAuthException();
+    }
   }
 
   /// Performs a multipart/form-data POST request for file uploads.
@@ -84,15 +88,19 @@ final class ApiClient {
     required Map<String, dynamic> body,
     Options? options,
   }) async {
-    final formData = FormData.fromMap(body);
-    final response = await _dio.post<Map<String, dynamic>>(
-      path,
-      data: formData,
-      options: (options ?? Options()).copyWith(
-        contentType: 'multipart/form-data',
-      ),
-    );
-    return _extractData(response);
+    try {
+      final formData = FormData.fromMap(body);
+      final response = await _dio.post<Map<String, dynamic>>(
+        path,
+        data: formData,
+        options: (options ?? Options()).copyWith(
+          contentType: 'multipart/form-data',
+        ),
+      );
+      return _extractData(response);
+    } on DioException catch (e) {
+      throw e.toAuthException();
+    }
   }
 
   /// Performs a GET request to [path].
@@ -104,12 +112,16 @@ final class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      path,
-      queryParameters: queryParameters,
-      options: options,
-    );
-    return _extractData(response);
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      );
+      return _extractData(response);
+    } on DioException catch (e) {
+      throw e.toAuthException();
+    }
   }
 
   /// Performs a PUT request to [path] with optional [body].
@@ -118,12 +130,16 @@ final class ApiClient {
     Map<String, dynamic>? body,
     Options? options,
   }) async {
-    final response = await _dio.put<Map<String, dynamic>>(
-      path,
-      data: body,
-      options: options,
-    );
-    return _extractData(response);
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        path,
+        data: body,
+        options: options,
+      );
+      return _extractData(response);
+    } on DioException catch (e) {
+      throw e.toAuthException();
+    }
   }
 
   /// Performs a DELETE request to [path] with optional [body].
@@ -132,12 +148,16 @@ final class ApiClient {
     Map<String, dynamic>? body,
     Options? options,
   }) async {
-    final response = await _dio.delete<Map<String, dynamic>>(
-      path,
-      data: body,
-      options: options,
-    );
-    return _extractData(response);
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        path,
+        data: body,
+        options: options,
+      );
+      return _extractData(response);
+    } on DioException catch (e) {
+      throw e.toAuthException();
+    }
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

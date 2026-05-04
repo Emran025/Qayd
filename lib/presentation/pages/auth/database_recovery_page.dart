@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 
@@ -91,7 +92,7 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                       icon: Icon(Icons.key, color: Colors.white),
                       label: Text(
                         AppStrings.dbEnterPrimaryKeyAction,
-                        style:  TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
@@ -162,8 +163,7 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                       onPressed: _processing
                           ? null
                           : () => _confirmStartFresh(context),
-                      icon: Icon(Icons.delete_forever,
-                          color: Colors.redAccent),
+                      icon: Icon(Icons.delete_forever, color: Colors.redAccent),
                       label: Text(
                         AppStrings.dbStartFreshAction,
                         style: const TextStyle(color: Colors.redAccent),
@@ -180,29 +180,20 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
   }
 
   void _confirmStartFresh(BuildContext ctx) {
-    showDialog(
+    QaydDialog.show(
       context: ctx,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(AppStrings.dbStartFreshConfirmTitle),
-        content: Text(AppStrings.dbStartFreshConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: Text(AppStrings.actionCancel),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () {
-              Navigator.pop(dialogCtx);
-              widget.onStartFresh();
-            },
-            child: Text(
-              AppStrings.dbStartFreshConfirmAction,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+      icon: Icons.warning_rounded,
+      iconColor: Colors.redAccent,
+      title: AppStrings.dbStartFreshConfirmTitle,
+      content: AppStrings.dbStartFreshConfirmBody,
+      secondaryActionLabel: AppStrings.actionCancel,
+      onSecondaryAction: () => Navigator.pop(ctx),
+      primaryActionLabel: AppStrings.dbStartFreshConfirmTitle,
+      isDestructive: true,
+      onPrimaryAction: () {
+        Navigator.pop(ctx);
+        widget.onStartFresh();
+      },
     );
   }
 }

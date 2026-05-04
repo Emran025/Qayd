@@ -597,10 +597,7 @@ abstract final class InjectionContainer {
   /// Used when the user chooses to "start fresh" after a key mismatch.
   static Future<DatabaseOpenResult> resetDatabaseAndInit() async {
     final dbPath = await DatabaseProvider.databaseFilePath();
-    final file = File(dbPath);
-    if (file.existsSync()) {
-      await file.delete();
-    }
+    await deleteDatabase(dbPath);
     return initDatabase();
   }
 
@@ -625,10 +622,7 @@ abstract final class InjectionContainer {
     await closeDatabaseForRestore();
 
     final dbPath = await DatabaseProvider.databaseFilePath();
-    final file = File(dbPath);
-    if (file.existsSync()) {
-      await file.delete();
-    }
+    await deleteDatabase(dbPath);
 
     await mnemonicVault.deleteAll();
     await appPinStorage.clearPinAndLock();

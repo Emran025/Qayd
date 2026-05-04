@@ -35,7 +35,7 @@ abstract final class TextSanitizer {
     msg = msg.replaceAll(RegExp(r'DioException:?\s*'), '');
 
     // Remove specific keywords requested by user
-    msg = msg.replaceAll(RegExp(r'(?i)bad\s*response'), '');
+    msg = msg.replaceAll(RegExp(r'bad\s*response', caseSensitive: false), '');
 
     // Clean up any leftover punctuation or spaces at the start
     msg = msg.replaceFirst(RegExp(r'^[\s:]+'), '');

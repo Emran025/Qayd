@@ -20,6 +20,7 @@ class QaydDialog extends StatelessWidget {
     this.onSecondaryAction,
     this.tertiaryActionLabel,
     this.onTertiaryAction,
+    this.isDestructive = false,
   });
 
   /// The icon displayed at the top of the dialog.
@@ -53,6 +54,9 @@ class QaydDialog extends StatelessWidget {
   /// Callback for the tertiary action.
   final VoidCallback? onTertiaryAction;
 
+  /// If true, styles the primary action as destructive (using error color).
+  final bool isDestructive;
+
   /// Helper method to show this dialog.
   static Future<T?> show<T>({
     required BuildContext context,
@@ -66,6 +70,7 @@ class QaydDialog extends StatelessWidget {
     VoidCallback? onSecondaryAction,
     String? tertiaryActionLabel,
     VoidCallback? onTertiaryAction,
+    bool isDestructive = false,
   }) {
     return showDialog<T>(
       context: context,
@@ -80,6 +85,7 @@ class QaydDialog extends StatelessWidget {
         onSecondaryAction: onSecondaryAction,
         tertiaryActionLabel: tertiaryActionLabel,
         onTertiaryAction: onTertiaryAction,
+        isDestructive: isDestructive,
       ),
     );
   }
@@ -170,8 +176,8 @@ class QaydDialog extends StatelessWidget {
                       child: FilledButton(
                         onPressed: onPrimaryAction,
                         style: FilledButton.styleFrom(
-                          backgroundColor: scheme.primary,
-                          foregroundColor: scheme.onPrimary,
+                          backgroundColor: isDestructive ? scheme.error : scheme.primary,
+                          foregroundColor: isDestructive ? scheme.onError : scheme.onPrimary,
                           padding: const EdgeInsets.symmetric(
                             vertical: SpacingTokens.sm,
                           ),
@@ -183,7 +189,7 @@ class QaydDialog extends StatelessWidget {
                         child: QaydText(
                           primaryActionLabel!,
                           slot: QaydTextStyleSlot.labelLarge,
-                          color: scheme.onPrimary,
+                          color: isDestructive ? scheme.onError : scheme.onPrimary,
                         ),
                       ),
                     ),

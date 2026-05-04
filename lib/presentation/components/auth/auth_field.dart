@@ -11,6 +11,7 @@ class AuthField extends StatelessWidget {
     required this.hint,
     this.keyboardType,
     this.obscureText = false,
+    this.isPassword = false,
     this.suffixIcon,
     this.validator,
     this.accentColor,
@@ -20,6 +21,7 @@ class AuthField extends StatelessWidget {
   final String hint;
   final TextInputType? keyboardType;
   final bool obscureText;
+  final bool isPassword;
   final Widget? suffixIcon;
   final FormFieldValidator<String>? validator;
 
@@ -63,7 +65,7 @@ class AuthField extends StatelessWidget {
       ),
     );
 
-    final isLtrType = obscureText ||
+    final isLtrType = obscureText || isPassword ||
         keyboardType == TextInputType.number ||
         keyboardType == const TextInputType.numberWithOptions(decimal: true) ||
         keyboardType == const TextInputType.numberWithOptions(signed: true) ||
@@ -71,13 +73,10 @@ class AuthField extends StatelessWidget {
         keyboardType == TextInputType.emailAddress ||
         keyboardType == TextInputType.url;
 
-    if (isLtrType) {
-      return Directionality(
-        textDirection: TextDirection.ltr,
-        child: field,
-      );
-    }
-    return field;
+    return Directionality(
+      textDirection: isLtrType ? TextDirection.ltr : Directionality.of(context),
+      child: field,
+    );
   }
 
   OutlineInputBorder _border(Color color, {double width = 1.0}) =>
