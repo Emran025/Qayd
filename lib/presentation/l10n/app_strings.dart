@@ -1084,7 +1084,6 @@ class AppStrings {
   static String get netClosingBalances => i.netClosingBalances;
   static String get netLiabilitiesAndEquityLabel =>
       i.netLiabilitiesAndEquityLabel;
-  static String get netLiabilitiesAndOwnership => i.netLiabilitiesAndOwnership;
   static String get neutral => i.neutral;
   static String get newAccount => i.newAccount;
   static String get newBond => i.newBond;

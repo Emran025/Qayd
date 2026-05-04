@@ -631,7 +631,7 @@ final class BalanceSheetPdfGenerator {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(
-                        AppStrings.netLiabilitiesAndOwnership,
+                        AppStrings.netLiabilitiesAndEquityLabel,
                         style: pw.TextStyle(
                           font: font,
                           fontSize: 10,

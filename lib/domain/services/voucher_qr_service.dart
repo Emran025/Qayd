@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:qayd/domain/entities/collateral.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
@@ -10,7 +11,8 @@ class VoucherQrService {
   ///
   /// v2 format includes digital signature fields when present.
   /// v3 format includes tripartite transfer metadata fields.
-  String generateQrData(Voucher voucher, [String? ownerPhone]) {
+  String generateQrData(Voucher voucher,
+      {String? ownerPhone, String? ownerName, Collateral? collateral}) {
     final map = <String, dynamic>{
       // v3 includes tripartite support, v2 includes signature support.
       'v': voucher.tripartiteMeta != null ? 3 : (voucher.hasSignature ? 2 : 1),
@@ -19,16 +21,30 @@ class VoucherQrService {
       'c': voucher.currency.code,
       'd': voucher.date.toIso8601String().split('T')[0],
       'm': voucher.description,
+      'o': voucher.notes, // Notes
       'r': voucher.referenceNumber,
       'id': voucher.id.value,
       if (ownerPhone != null && ownerPhone.isNotEmpty) 'p': ownerPhone,
+      if (ownerName != null && ownerName.isNotEmpty) 'n': ownerName,
+
+      // Collateral fields
+      if (collateral != null) ...{
+        'cd': collateral.description,
+        'cv': collateral.estimatedValue.minorUnits,
+        'cc': collateral.currency.code,
+        if (collateral.expiryDate != null)
+          'ce': collateral.expiryDate!.toIso8601String().split('T')[0],
+      },
+
       // v2 signature fields (sender/creator's signature).
       if (voucher.senderSignatureHex != null) 'sig': voucher.senderSignatureHex,
       if (voucher.senderPublicKeyHex != null) 'pk': voucher.senderPublicKeyHex,
       if (voucher.signerPhone != null) 'sp': voucher.signerPhone,
       // Additional signature fields (receiver).
-      if (voucher.receiverSignatureHex != null) 'rsig': voucher.receiverSignatureHex,
-      if (voucher.receiverPublicKeyHex != null) 'rpk': voucher.receiverPublicKeyHex,
+      if (voucher.receiverSignatureHex != null)
+        'rsig': voucher.receiverSignatureHex,
+      if (voucher.receiverPublicKeyHex != null)
+        'rpk': voucher.receiverPublicKeyHex,
       // v3 tripartite fields.
       if (voucher.tripartiteMeta != null) ...{
         'tgid': voucher.tripartiteMeta!.transferGroupId,
@@ -66,9 +82,19 @@ class VoucherQrService {
         'currencyCode': map['c'] as String,
         'date': DateTime.parse(map['d'] as String),
         'description': map['m'] as String?,
+        'notes': map['o'] as String?,
         'referenceNumber': map['r'] as String?,
         'counterpartyPhone': map['p'] as String?,
+        'counterpartyName': map['n'] as String?,
         'receiptUuid': map['id'] as String?,
+
+        // Collateral
+        'collateralDescription': map['cd'] as String?,
+        'collateralAmountMinorUnits': map['cv'] as int?,
+        'collateralCurrencyCode': map['cc'] as String?,
+        'collateralExpiryDate': map['ce'] != null
+            ? DateTime.parse(map['ce'] as String)
+            : null,
       };
 
       // v2: include signed receipt data.

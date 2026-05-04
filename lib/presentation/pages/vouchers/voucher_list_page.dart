@@ -32,6 +32,11 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/voucher_state_codec.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
+import 'package:qayd/application/accounts/dtos/create_account_input.dart';
+import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
+import 'package:qayd/domain/value_objects/voucher_id.dart';
 
 class VoucherListPage extends StatefulWidget {
   const VoucherListPage({super.key, this.isActive = true});
@@ -139,25 +144,66 @@ class _VoucherListViewState extends State<_VoucherListView> {
     );
 
     if (data != null && context.mounted) {
-      final phone = data['counterpartyPhone'] as String?;
+      final phone = (data['counterpartyPhone'] ?? data['signerPhone']) as String?;
       if (phone != null && phone.isNotEmpty) {
         final findResult =
             await InjectionContainer.findAccountByPhoneUseCase.call(phone);
-        if (findResult.isSuccess) {
-          final accId = findResult.valueOrNull!;
+        final accId = findResult.valueOrNull;
+        if (findResult.isSuccess && accId != null) {
           data['counterpartyAccountId'] = accId;
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppStrings.thereIsNoAccount,
-              ),
-              behavior: SnackBarBehavior.floating,
-            ),
+          final counterpartyName = data['counterpartyName'] as String? ?? phone;
+          final confirmed = await QaydDialog.show<bool>(
+            context: context,
+            icon: Icons.person_add_rounded,
+            title: AppStrings.thereIsNoAccount,
+            content:
+                '${AppStrings.theCodeDoesNot} ($counterpartyName). ${AppStrings.confirmSelection}؟',
+            primaryActionLabel: AppStrings.confirmSelection,
+            secondaryActionLabel: AppStrings.actionCancel,
+            onPrimaryAction: () => Navigator.of(context).pop(true),
           );
-          return;
+
+          if (confirmed == true && context.mounted) {
+            // Find a suitable parent (Receivables)
+            final rootsR = await InjectionContainer.listAccountsUseCase
+                .call(const ListAccountsInput(activeOnly: true));
+            final receivablesRoot = rootsR.valueOrNull?.accounts
+                .where((a) =>
+                    a.isRoot &&
+                    a.standardClassificationKind ==
+                        StandardAccountClassificationKind.receivables.name)
+                .firstOrNull;
+
+            final createResult =
+                await InjectionContainer.createAccountUseCase.call(
+              CreateAccountInput(
+                name: counterpartyName,
+                phoneNumber: phone,
+                parentAccountId: receivablesRoot?.id,
+                rootStandardKind: receivablesRoot == null
+                    ? StandardAccountClassificationKind.receivables
+                    : null,
+              ),
+            );
+
+            if (createResult.isSuccess) {
+              data['counterpartyAccountId'] =
+                  createResult.valueOrNull!.accountId;
+            } else {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(createResult.failureOrNull!.messageAr)),
+                );
+              }
+              return;
+            }
+          } else {
+            return;
+          }
         }
-      } else {
+      } else if (data['receiptUuid'] == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -170,9 +216,16 @@ class _VoucherListViewState extends State<_VoucherListView> {
       }
 
       // Smart Navigation: If this QR belongs to an existing voucher, go to Detail directly.
-      if (data['id'] != null) {
-        await _openDetail(context, data['id'] as String);
-        return;
+      final existingId = data['receiptUuid'] as String?;
+      if (existingId != null) {
+        final check = await InjectionContainer.voucherRepository
+            .getById(VoucherId(existingId));
+        if (check.isSuccess) {
+          if (context.mounted) {
+            await _openDetail(context, existingId);
+          }
+          return;
+        }
       }
 
       final newId = await Navigator.of(context).push<String?>(
@@ -514,7 +567,8 @@ class _VoucherTile extends StatelessWidget {
     final isReceipt = dto.typeCode == 'receipt';
     final icon =
         isReceipt ? Icons.south_west_rounded : Icons.north_east_rounded;
-    final dateStr = DateFormat.yMMMd(AppStrings.languageCode).format(DateTime.parse(dto.dateIso));
+    final dateStr = DateFormat.yMMMd(AppStrings.languageCode)
+        .format(DateTime.parse(dto.dateIso));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: SpacingTokens.sm),

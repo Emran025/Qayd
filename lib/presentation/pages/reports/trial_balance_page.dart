@@ -1021,7 +1021,7 @@ class _CurrencySectionFooter extends StatelessWidget {
                   '${AppStrings.trialBalanceGrandTotal} — ${CurrencyUtil.getLocalizedName(section.currencyCode).replaceAll('﷼', AppStrings.sar)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
-                    fontSize: 14,
+                    fontSize: 12,
                     color: ColorTokens.navy900,
                   ),
                 ),

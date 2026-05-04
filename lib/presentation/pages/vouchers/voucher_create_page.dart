@@ -130,6 +130,18 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     if (data['description'] != null) {
       _descriptionController.text = data['description'] as String;
     }
+    if (data['notes'] != null) {
+      // If we have notes in QR, we can append to description or keep as hidden notes
+      // but for now let's just make sure they are available if needed.
+    }
+    if (data['collateralDescription'] != null) {
+      _collateralInput = CollateralInput(
+        description: data['collateralDescription'] as String,
+        estimatedValueMinor: data['collateralAmountMinorUnits'] as int? ?? 0,
+        expiryDate: data['collateralExpiryDate'] as DateTime?,
+        imagePaths: [], // Media is explicitly excluded
+      );
+    }
     if (data['counterpartyAccountId'] != null) {
       final accId = data['counterpartyAccountId'].toString();
       _loadAccountSummaryForCounterparty(accId);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/domain/entities/collateral.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/services/receipt_sharing_service.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
@@ -13,12 +14,14 @@ class ReceiptShareSheet extends StatelessWidget {
     required this.sharingService,
     required this.qrService,
     this.ownerPhone,
+    this.collateral,
   });
 
   final Voucher receipt;
   final ReceiptSharingService sharingService;
   final VoucherQrService qrService;
   final String? ownerPhone;
+  final Collateral? collateral;
 
   static void show(
     BuildContext context, {
@@ -26,6 +29,7 @@ class ReceiptShareSheet extends StatelessWidget {
     required ReceiptSharingService sharingService,
     required VoucherQrService qrService,
     String? ownerPhone,
+    Collateral? collateral,
   }) {
     showModalBottomSheet(
       context: context,
@@ -35,6 +39,7 @@ class ReceiptShareSheet extends StatelessWidget {
         sharingService: sharingService,
         qrService: qrService,
         ownerPhone: ownerPhone,
+        collateral: collateral,
       ),
     );
   }
@@ -42,7 +47,11 @@ class ReceiptShareSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final qrData = qrService.generateQrData(receipt, ownerPhone);
+    final qrData = qrService.generateQrData(
+      receipt,
+      ownerPhone: ownerPhone,
+      collateral: collateral,
+    );
 
     return SafeArea(
       child: Column(

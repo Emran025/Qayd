@@ -1071,7 +1071,6 @@ abstract class AppStringsBase {
   String get netBalance => 'الرصيد الصافي';
   String get netClosingBalances => 'صافي الأرصدة الختامية';
   String get netLiabilitiesAndEquityLabel => 'صافي الخصوم والملكية';
-  String get netLiabilitiesAndOwnership => 'صافي الخصوم والملكية';
   String get neutral => 'متعادل';
   String get newAccount => 'حساب جديد';
   String get newBond => 'سند جديد';

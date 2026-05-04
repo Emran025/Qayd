@@ -2119,8 +2119,6 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get netLiabilitiesAndEquityLabel => 'Net Liabilities and Equity';
   @override
-  String get netLiabilitiesAndOwnership => 'Net Liabilities and Equity';
-  @override
   String get neutral => 'Neutral';
   @override
   String get newAccount => 'New Account';

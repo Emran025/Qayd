@@ -122,7 +122,7 @@ void main() {
     when(() => mockVoucherRepo.getByOriginVoucherId(VoucherId('v-1')))
         .thenAnswer((_) async => const Success([]));
 
-    when(() => mockQrService.generateQrData(voucher, '12345'))
+    when(() => mockQrService.generateQrData(voucher, ownerPhone: '12345'))
         .thenReturn('qr-data');
 
     when(() => mockCostCenterRepo.getCostCenterIdsForVoucher('v-1'))

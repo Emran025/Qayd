@@ -66,6 +66,8 @@ class GetVoucherDetailsUseCase {
       final licenseData = await _licenseVault.readLicenseData() ?? {};
       final ownerPhone =
           (licenseData['user']?['phone'] ?? licenseData['phone']) as String?;
+      final ownerName =
+          (licenseData['user']?['name'] ?? licenseData['name']) as String?;
 
       String? linkedPartyName;
       if (v.tripartiteMeta?.linkedPartyId != null) {
@@ -99,8 +101,8 @@ class GetVoucherDetailsUseCase {
       List<String> collateralSettlementVoucherIds = [];
 
       final collR = await _collateralRepository.getByVoucherId(v.id);
-      if (collR.isSuccess && collR.valueOrNull != null) {
-        final coll = collR.valueOrNull!;
+      final coll = collR.valueOrNull;
+      if (collR.isSuccess && coll != null) {
         hasCollateral = true;
         collateralDescription = coll.description;
         collateralStatusCode = coll.status.name;
@@ -282,7 +284,12 @@ class GetVoucherDetailsUseCase {
           referenceNumber: v.referenceNumber,
           description: v.description,
           notes: v.notes,
-          qrData: _qrService.generateQrData(v, ownerPhone),
+          qrData: _qrService.generateQrData(
+            v,
+            ownerPhone: ownerPhone,
+            ownerName: ownerName,
+            collateral: coll,
+          ),
           createdAtIso: v.createdAt.toIso8601String(),
           confirmedAtIso: v.confirmedAt?.toIso8601String(),
           settledAtIso: v.settledAt?.toIso8601String(),

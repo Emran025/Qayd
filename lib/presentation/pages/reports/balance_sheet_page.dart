@@ -908,7 +908,7 @@ class _SummaryRow extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: isBold ? 14 : 13,
+              fontSize: isBold ? 12 : 12,
               fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
               color: color,
             ),
