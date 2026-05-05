@@ -23,6 +23,12 @@ enum LicenseStatus {
 
   /// Hardware ID mismatch — device is not the bound device.
   deviceUnbound,
+
+  /// Account has been banned for policy violation.
+  banned,
+
+  /// App version is too old and needs update.
+  updateRequired,
 }
 
 /// Monotonic clock integrity status.
@@ -41,6 +47,8 @@ class SecurityState {
     this.trialDaysRemaining,
     this.ownerAccountNumber,
     this.paymentInstructionsAr,
+    this.updateUrl,
+    this.banReason,
   });
 
   final LicenseStatus licenseStatus;
@@ -53,6 +61,12 @@ class SecurityState {
   /// Optional server-provided payment instructions.
   final String? paymentInstructionsAr;
 
+  /// URL for app update (e.g. Play Store).
+  final String? updateUrl;
+
+  /// Reason for account ban.
+  final String? banReason;
+
   /// True when PIN lock screen should be shown.
   bool get isLocked => this is SecurityLocked;
 
@@ -61,7 +75,9 @@ class SecurityState {
       clockStatus == ClockStatus.tampered ||
       licenseStatus == LicenseStatus.trialExpired ||
       licenseStatus == LicenseStatus.revoked ||
-      licenseStatus == LicenseStatus.deviceUnbound;
+      licenseStatus == LicenseStatus.deviceUnbound ||
+      licenseStatus == LicenseStatus.banned ||
+      licenseStatus == LicenseStatus.updateRequired;
 
   /// True when any form of blocking overlay must be shown.
   bool get requiresOverlay => isLocked || isHardBlocked;
@@ -74,6 +90,8 @@ class SecurityUnlocked extends SecurityState {
     super.trialDaysRemaining,
     super.ownerAccountNumber,
     super.paymentInstructionsAr,
+    super.updateUrl,
+    super.banReason,
   });
 }
 
@@ -84,5 +102,7 @@ class SecurityLocked extends SecurityState {
     super.trialDaysRemaining,
     super.ownerAccountNumber,
     super.paymentInstructionsAr,
+    super.updateUrl,
+    super.banReason,
   });
 }

@@ -4651,4 +4651,17 @@ class AppStringsEn extends AppStringsBase {
   String get auditFilterSeverity => 'Filter by Severity';
   @override
   String get auditNoMatchesForFilter => 'No results for current filter';
+
+  @override
+  String get vaultBannedTitle => 'Account Banned';
+  @override
+  String get vaultBannedBody =>
+      'Your account has been banned for violating our policies. Please contact support for more information.';
+  @override
+  String get vaultUpdateRequiredTitle => 'Mandatory Update';
+  @override
+  String get vaultUpdateRequiredBody =>
+      'A new version of the app is available with critical security and privacy updates. Please update to continue.';
+  @override
+  String get vaultUpdateAction => 'Update Now';
 }

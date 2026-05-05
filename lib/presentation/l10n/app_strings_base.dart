@@ -2510,4 +2510,11 @@ abstract class AppStringsBase {
   String get auditSearchHint => 'ابحث عن كيان أو معرّف...';
   String get auditFilterSeverity => 'تصفية حسب الأهمية';
   String get auditNoMatchesForFilter => 'لا توجد نتائج للتصفية الحالية';
+
+  // App Lock Screens (Banned / Update Required)
+  String get vaultBannedTitle => 'تم حظر الحساب';
+  String get vaultBannedBody => 'لقد تم حظر حسابك بسبب انتهاك سياسات الاستخدام. يرجى التواصل مع الدعم الفني لمزيد من المعلومات.';
+  String get vaultUpdateRequiredTitle => 'تحديث إلزامي';
+  String get vaultUpdateRequiredBody => 'يتوفر إصدار جديد من التطبيق يحتوي على تحسينات أمنية وخصوصية هامة. يرجى التحديث للمتابعة.';
+  String get vaultUpdateAction => 'تحديث الآن';
 }

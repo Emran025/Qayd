@@ -2364,4 +2364,10 @@ class AppStrings {
   static String get auditSearchHint => i.auditSearchHint;
   static String get auditFilterSeverity => i.auditFilterSeverity;
   static String get auditNoMatchesForFilter => i.auditNoMatchesForFilter;
+
+  static String get vaultBannedTitle => i.vaultBannedTitle;
+  static String get vaultBannedBody => i.vaultBannedBody;
+  static String get vaultUpdateRequiredTitle => i.vaultUpdateRequiredTitle;
+  static String get vaultUpdateRequiredBody => i.vaultUpdateRequiredBody;
+  static String get vaultUpdateAction => i.vaultUpdateAction;
 }

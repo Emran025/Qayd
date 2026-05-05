@@ -6,6 +6,7 @@ import 'package:qayd/presentation/security/security_state.dart';
 import 'package:flutter/services.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// App-wide vault overlay.
 ///
@@ -138,6 +139,11 @@ class _VaultScreen extends StatelessWidget {
                 SizedBox(height: SpacingTokens.xl),
                 if (config.showProvisioningButton)
                   _ProvisioningButton(config: config),
+                if (config.updateUrl != null) ...[
+                  if (config.showProvisioningButton)
+                    SizedBox(height: SpacingTokens.md),
+                  _UpdateAppButton(url: config.updateUrl!),
+                ],
                 if (config.showRefreshButton) const _RefreshStatusButton(),
                 if (config.showContactButton) ...[
                   if (config.showRefreshButton || config.showProvisioningButton)
@@ -222,6 +228,30 @@ class _VaultScreen extends StatelessWidget {
           bodyAr: AppStrings.vaultDeviceUnboundBody,
           showContactButton: true,
           contactAr: AppStrings.vaultContactSupport,
+          trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
+        );
+      case LicenseStatus.banned:
+        return _OverlayConfig(
+          icon: Icons.gavel_rounded,
+          iconColor: const Color(0xFFDC2626),
+          titleAr: AppStrings.vaultBannedTitle,
+          bodyAr: state.banReason ?? AppStrings.vaultBannedBody,
+          showContactButton: true,
+          contactAr: AppStrings.vaultContactSupport,
+          trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
+        );
+      case LicenseStatus.updateRequired:
+        return _OverlayConfig(
+          icon: Icons.system_update_rounded,
+          iconColor: ColorTokens.emerald500,
+          titleAr: AppStrings.vaultUpdateRequiredTitle,
+          bodyAr: AppStrings.vaultUpdateRequiredBody,
+          showRefreshButton: true,
+          updateUrl: state.updateUrl,
           trialDaysRemaining: state.trialDaysRemaining,
           ownerAccountNumber: state.ownerAccountNumber,
           paymentInstructionsAr: state.paymentInstructionsAr,
@@ -603,6 +633,39 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
   }
 }
 
+class _UpdateAppButton extends StatelessWidget {
+  const _UpdateAppButton({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: FilledButton.icon(
+        style: FilledButton.styleFrom(
+          backgroundColor: ColorTokens.emerald500,
+          foregroundColor: Colors.black87,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        onPressed: () => launchUrl(Uri.parse(url)),
+        icon: const Icon(Icons.download_rounded),
+        label: Text(
+          AppStrings.vaultUpdateAction,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PaymentCard extends StatelessWidget {
   const _PaymentCard({
     required this.accountNumber,
@@ -749,6 +812,7 @@ class _OverlayConfig {
     this.contactAr,
     this.ownerAccountNumber,
     this.paymentInstructionsAr,
+    this.updateUrl,
   });
 
   final IconData icon;
@@ -762,4 +826,5 @@ class _OverlayConfig {
   final String? contactAr;
   final String? ownerAccountNumber;
   final String? paymentInstructionsAr;
+  final String? updateUrl;
 }

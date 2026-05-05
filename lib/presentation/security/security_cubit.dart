@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:qayd/core/error/exceptions.dart';
 import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/data/security/hardware_id_service.dart';
@@ -76,7 +77,8 @@ class SecurityCubit extends Cubit<SecurityState> {
     }
 
     // 2. License check (Returns persisted settings from the vault).
-    final (licenseStatus, ownerAcc, payInstr) = await _resolveLicenseStatus();
+    final (licenseStatus, ownerAcc, payInstr, updUrl, bReason) =
+        await _resolveLicenseStatus();
     final trialDays = await trialDaysRemaining();
 
     // 3. If FORCE_REVOKE — wipe immediately.
@@ -89,6 +91,8 @@ class SecurityCubit extends Cubit<SecurityState> {
           trialDaysRemaining: trialDays,
           ownerAccountNumber: ownerAcc,
           paymentInstructionsAr: payInstr,
+          updateUrl: updUrl,
+          banReason: bReason,
         ),
       );
       return;
@@ -115,25 +119,30 @@ class SecurityCubit extends Cubit<SecurityState> {
               trialDaysRemaining: trialDays,
               ownerAccountNumber: ownerAcc,
               paymentInstructionsAr: payInstr,
+              updateUrl: updUrl,
+              banReason: bReason,
             )
           : SecurityUnlocked(
               licenseStatus: licenseStatus,
               trialDaysRemaining: trialDays,
               ownerAccountNumber: ownerAcc,
               paymentInstructionsAr: payInstr,
+              updateUrl: updUrl,
+              banReason: bReason,
             ),
     );
   }
 
-  Future<(LicenseStatus, String?, String?)> _resolveLicenseStatus() async {
+  Future<(LicenseStatus, String?, String?, String?, String?)>
+      _resolveLicenseStatus() async {
     final provisioned = await _licenseVault.isProvisioned();
-    if (!provisioned) return (LicenseStatus.pending, null, null);
+    if (!provisioned) return (LicenseStatus.pending, null, null, null, null);
 
     // Verify hardware binding.
     final currentHwId = await _hardwareIdService.obtainHardwareId();
     final boundHwId = await _licenseVault.readProvisionedHardwareId();
     if (boundHwId != null && boundHwId.isNotEmpty && boundHwId != currentHwId) {
-      return (LicenseStatus.deviceUnbound, null, null);
+      return (LicenseStatus.deviceUnbound, null, null, null, null);
     }
 
     // Read license data.
@@ -144,35 +153,76 @@ class SecurityCubit extends Cubit<SecurityState> {
     if (data != null) {
       final status = data['status'] as String? ?? '';
       final hasFormalLicense = data['has_formal_license'] as bool? ?? false;
-      final accountClosed = data['account_closed'] as bool? ?? false;
       final isActive = data['is_active'] as bool? ?? true;
+      final accountClosed = data['account_closed'] as bool? ?? false;
 
       // Extract payment details from nested settings (attached to license)
       final settings = data['settings'] as Map<String, dynamic>?;
+      String? updateUrl;
+      String? banReason;
+
       if (settings != null) {
         ownerAcc = settings['owner_payment_account'] as String?;
         payInstr = settings['support_message_ar'] as String?;
+        updateUrl = settings['app_update_url'] as String?;
+
+        // ── App Version Check ────────────────────────────────────────────────
+        final minVer = settings['min_android_version'] as String?;
+        final forceUpd = settings['force_update']?.toString() == '1';
+
+        if (minVer != null) {
+          final packageInfo = await PackageInfo.fromPlatform();
+          final currentVer = packageInfo.version;
+          if (_isUpdateRequired(currentVer, minVer) && forceUpd) {
+            return (
+              LicenseStatus.updateRequired,
+              ownerAcc,
+              payInstr,
+              updateUrl,
+              null
+            );
+          }
+        }
+      }
+
+      // ── Ban Check ──────────────────────────────────────────────────────────
+      final isBanned = data['is_banned'] as bool? ?? false;
+      banReason = data['ban_reason'] as String?;
+      if (isBanned) {
+        return (LicenseStatus.banned, ownerAcc, payInstr, updateUrl, banReason);
       }
 
       // Hard admin revoke (FORCE_REVOKE) or deactivated account → panic wipe.
       if (status == 'FORCE_REVOKE' || status == 'revoked') {
-        return (LicenseStatus.revoked, ownerAcc, payInstr);
+        return (LicenseStatus.revoked, ownerAcc, payInstr, updateUrl, banReason);
       }
       // Admin deactivated the user account (not a payment issue) → revoke.
       if (!isActive) {
-        return (LicenseStatus.revoked, ownerAcc, payInstr);
+        return (LicenseStatus.revoked, ownerAcc, payInstr, updateUrl, banReason);
       }
       // Trial ended without a formal license → hard lock (NO panic wipe).
       if (accountClosed) {
-        return (LicenseStatus.trialExpired, ownerAcc, payInstr);
+        return (
+          LicenseStatus.trialExpired,
+          ownerAcc,
+          payInstr,
+          updateUrl,
+          banReason
+        );
       }
       // Full active license or server confirmed active status.
       if (hasFormalLicense || status == 'active') {
-        return (LicenseStatus.active, ownerAcc, payInstr);
+        return (LicenseStatus.active, ownerAcc, payInstr, updateUrl, banReason);
       }
       // Admin-suspended → read-only.
       if (status == 'suspended') {
-        return (LicenseStatus.suspended, ownerAcc, payInstr);
+        return (
+          LicenseStatus.suspended,
+          ownerAcc,
+          payInstr,
+          updateUrl,
+          banReason
+        );
       }
     }
 
@@ -180,12 +230,30 @@ class SecurityCubit extends Cubit<SecurityState> {
     final trialStart = await _licenseVault.readTrialStart();
     if (trialStart == null) {
       await _licenseVault.writeTrialStart(DateTime.now().toUtc());
-      return (LicenseStatus.trial, ownerAcc, payInstr);
+      return (LicenseStatus.trial, null, null, null, null);
     }
     if (_licenseVault.isTrialExpired(trialStart)) {
-      return (LicenseStatus.trialExpired, ownerAcc, payInstr);
+      return (LicenseStatus.trialExpired, null, null, null, null);
     }
-    return (LicenseStatus.trial, ownerAcc, payInstr);
+    return (LicenseStatus.trial, null, null, null, null);
+  }
+
+  /// Semver comparison helper. Returns true if current < required.
+  bool _isUpdateRequired(String current, String required) {
+    try {
+      final curParts = current.split('.').map(int.parse).toList();
+      final reqParts = required.split('.').map(int.parse).toList();
+
+      for (var i = 0; i < reqParts.length; i++) {
+        final cur = i < curParts.length ? curParts[i] : 0;
+        final req = reqParts[i];
+        if (cur < req) return true;
+        if (cur > req) return false;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Refreshes the license state from the server and updates the lock state.
@@ -213,21 +281,29 @@ class SecurityCubit extends Cubit<SecurityState> {
       if (newData.containsKey('settings')) {
         existingData['settings'] = newData['settings'];
       }
+      if (newData.containsKey('is_banned')) {
+        existingData['is_banned'] = newData['is_banned'];
+      }
+      if (newData.containsKey('ban_reason')) {
+        existingData['ban_reason'] = newData['ban_reason'];
+      }
 
       await _licenseVault.writeLicenseData(existingData);
 
-      final (ls, ownerAcc, payInstr) = await _resolveLicenseStatus();
+      final (ls, ownerAcc, payInstr, updUrl, bReason) = await _resolveLicenseStatus();
       final trialDays = _licenseVault.daysRemainingInTrial(
         await _licenseVault.readTrialStart() ?? DateTime.now(),
       );
 
-      if (state is SecurityLocked) {
+      if (ls != LicenseStatus.active && ls != LicenseStatus.trial) {
         emit(SecurityLocked(
           licenseStatus: ls,
           clockStatus: state.clockStatus,
           trialDaysRemaining: trialDays,
           ownerAccountNumber: ownerAcc,
           paymentInstructionsAr: payInstr,
+          updateUrl: updUrl,
+          banReason: bReason,
         ));
       } else {
         emit(SecurityUnlocked(
@@ -236,6 +312,8 @@ class SecurityCubit extends Cubit<SecurityState> {
           trialDaysRemaining: trialDays,
           ownerAccountNumber: ownerAcc,
           paymentInstructionsAr: payInstr,
+          updateUrl: updUrl,
+          banReason: bReason,
         ));
       }
 
@@ -486,7 +564,7 @@ class SecurityCubit extends Cubit<SecurityState> {
       }
 
       if (!emailUnverified) {
-        final (licenseStatus, ownerAcc, payInstr) =
+        final (licenseStatus, ownerAcc, payInstr, updUrl, bReason) =
             await _resolveLicenseStatus();
         final trialDays = await trialDaysRemaining();
         emit(
@@ -495,6 +573,8 @@ class SecurityCubit extends Cubit<SecurityState> {
             trialDaysRemaining: trialDays,
             ownerAccountNumber: ownerAcc,
             paymentInstructionsAr: payInstr,
+            updateUrl: updUrl,
+            banReason: bReason,
           ),
         );
       }
@@ -518,7 +598,7 @@ class SecurityCubit extends Cubit<SecurityState> {
     try {
       final success = await _authRepository.verifyEmailOtp(code);
       if (success) {
-        final (licenseStatus, ownerAcc, payInstr) =
+        final (licenseStatus, ownerAcc, payInstr, updUrl, bReason) =
             await _resolveLicenseStatus();
         final trialDays = await trialDaysRemaining();
         emit(
@@ -527,6 +607,8 @@ class SecurityCubit extends Cubit<SecurityState> {
             trialDaysRemaining: trialDays,
             ownerAccountNumber: ownerAcc,
             paymentInstructionsAr: payInstr,
+            updateUrl: updUrl,
+            banReason: bReason,
           ),
         );
       }
@@ -620,6 +702,8 @@ class SecurityCubit extends Cubit<SecurityState> {
       trialDaysRemaining: trialDaysRemaining ?? state.trialDaysRemaining,
       ownerAccountNumber: state.ownerAccountNumber,
       paymentInstructionsAr: state.paymentInstructionsAr,
+      updateUrl: state.updateUrl,
+      banReason: state.banReason,
     );
   }
 
@@ -629,6 +713,8 @@ class SecurityCubit extends Cubit<SecurityState> {
     int? trialDaysRemaining,
     String? ownerAccountNumber,
     String? paymentInstructionsAr,
+    String? updateUrl,
+    String? banReason,
   }) {
     return SecurityUnlocked(
       licenseStatus: licenseStatus,
@@ -637,6 +723,8 @@ class SecurityCubit extends Cubit<SecurityState> {
       ownerAccountNumber: ownerAccountNumber ?? state.ownerAccountNumber,
       paymentInstructionsAr:
           paymentInstructionsAr ?? state.paymentInstructionsAr,
+      updateUrl: updateUrl ?? state.updateUrl,
+      banReason: banReason ?? state.banReason,
     );
   }
 }
