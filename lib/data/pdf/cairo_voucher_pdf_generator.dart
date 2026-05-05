@@ -77,6 +77,9 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
       final mediatorName = prefs.getString('pdf_mediator_name') ??
           prefs.getString('company_name') ??
           AppStrings.autostring3;
+          
+      final showBalance = prefs.getString('pdf_show_balance') != 'false';
+      final labelBalance = prefs.getString('pdf_label_balance') ?? AppStrings.totalBalance2;
 
       // 3. Run PDF generation in an Isolate
       return await Isolate.run(() async {
@@ -200,6 +203,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                               accent: accent,
                               labelFrom: labelFrom,
                               labelDescription: labelDescription,
+                              showBalance: showBalance,
+                              labelBalance: labelBalance,
                             ),
 
                             pw.SizedBox(height: 8),
@@ -214,6 +219,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
                                 accent: accent,
                                 labelFrom: labelFrom,
                                 labelDescription: labelDescription,
+                                showBalance: showBalance,
+                                labelBalance: labelBalance,
                               ),
 
                             pw.SizedBox(height: 14),
@@ -466,6 +473,8 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
     required PdfColor accent,
     required String labelFrom,
     required String labelDescription,
+    required bool showBalance,
+    required String labelBalance,
   }) {
     final isDebit = sectionType == 'debit';
     final isReceipt = report.typeCode == 'receipt';
@@ -563,13 +572,13 @@ final class CairoVoucherPdfGenerator implements VoucherPdfGenerator {
 
                   // Total Balance display
                   if (report.counterpartyBalances.isNotEmpty &&
-                      !report.isTripartite) ...[
+                      !report.isTripartite && showBalance) ...[
                     pw.SizedBox(height: 2),
                     pw.RichText(
                       text: pw.TextSpan(
                         children: [
                           pw.TextSpan(
-                            text: AppStrings.totalBalance,
+                            text: '$labelBalance ',
                             style: pw.TextStyle(
                               font: font,
                               fontSize: 9,

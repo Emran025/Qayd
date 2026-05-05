@@ -5,7 +5,6 @@ import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
-
 class PdfTemplateSettingsPage extends StatefulWidget {
   const PdfTemplateSettingsPage({super.key});
 
@@ -25,7 +24,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     'pdf_label_description': AppStrings.detailedStatement,
     'pdf_footer_text': AppStrings.sourceQaidPersonalAccounting,
     'pdf_mediator_name': AppStrings.alnasserExchangeAndTransfers,
-    
+
     // Reports Columns
     'pdf_col_date': AppStrings.theDate,
     'pdf_col_statement': AppStrings.statement1,
@@ -35,6 +34,10 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     'pdf_col_credit': AppStrings.creditor,
     'pdf_col_balance': AppStrings.balance,
     'pdf_col_account': AppStrings.theAccount,
+
+    // Visibilities & dynamic labels
+    'pdf_label_balance': AppStrings.totalBalance2,
+    'pdf_show_balance': 'true',
   };
 
   String? _selectedKey;
@@ -95,6 +98,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       'pdf_col_credit' => AppStrings.creditor,
       'pdf_col_balance' => AppStrings.balance,
       'pdf_col_account' => AppStrings.theAccount,
+      'pdf_label_balance' => AppStrings.totalBalance2,
+      'pdf_show_balance' => 'إظهار/إخفاء الرصيد',
       _ => key,
     };
   }
@@ -147,12 +152,21 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
     );
   }
 
+  void _toggleVisibility(String key) async {
+    final current = _config[key] == 'true';
+    final newValue = current ? 'false' : 'true';
+    await InjectionContainer.sharedPreferences.setString(key, newValue);
+    setState(() {
+      _config[key] = newValue;
+    });
+  }
+
   Widget _buildPreviewTab({required bool isTripartite}) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
       child: Column(
         children: [
-           QaydText(
+          QaydText(
             AppStrings.clickAnyColoredText,
             slot: QaydTextStyleSlot.labelSmall,
           ),
@@ -330,7 +344,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             child: Row(
               children: [
                 Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_date')),
-                Expanded(flex: 3, child: _reportsHeaderCell('pdf_col_statement')),
+                Expanded(
+                    flex: 3, child: _reportsHeaderCell('pdf_col_statement')),
                 Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_account')),
                 Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_debit')),
                 Expanded(flex: 2, child: _reportsHeaderCell('pdf_col_credit')),
@@ -342,8 +357,11 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           Row(
             children: [
               Expanded(flex: 2, child: _reportsDataCell('2026-04-09')),
-              Expanded(flex: 3, child: _reportsDataCell(AppStrings.referenceNumber1)),
-              Expanded(flex: 2, child: _reportsDataCell(AppStrings.companyName)),
+              Expanded(
+                  flex: 3,
+                  child: _reportsDataCell(AppStrings.referenceNumber1)),
+              Expanded(
+                  flex: 2, child: _reportsDataCell(AppStrings.companyName)),
               Expanded(flex: 2, child: _reportsDataCell('1,500')),
               Expanded(flex: 2, child: _reportsDataCell('—')),
               Expanded(flex: 2, child: _reportsDataCell('1,500')),
@@ -355,8 +373,12 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             child: Row(
               children: [
                 Expanded(flex: 2, child: _reportsDataCell('2026-04-10')),
-                Expanded(flex: 3, child: _reportsDataCell(AppStrings.periodMovement)),
-                Expanded(flex: 2, child: _reportsDataCell(AppStrings.myAccountBroker)),
+                Expanded(
+                    flex: 3,
+                    child: _reportsDataCell(AppStrings.periodMovement)),
+                Expanded(
+                    flex: 2,
+                    child: _reportsDataCell(AppStrings.myAccountBroker)),
                 Expanded(flex: 2, child: _reportsDataCell('—')),
                 Expanded(flex: 2, child: _reportsDataCell('500')),
                 Expanded(flex: 2, child: _reportsDataCell('1,000')),
@@ -375,7 +397,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
         border: Border(left: BorderSide(color: Color(0xFFCBD5E1), width: 0.5)),
       ),
       alignment: Alignment.center,
-      child: _selectableText(key, 9, Colors.white, bold: true, align: TextAlign.center),
+      child: _selectableText(key, 9, Colors.white,
+          bold: true, align: TextAlign.center),
     );
   }
 
@@ -389,7 +412,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
         ),
       ),
       alignment: Alignment.center,
-      child: _directText(text, 8, const Color(0xFF0F2741), align: TextAlign.center),
+      child: _directText(text, 8, const Color(0xFF0F2741),
+          align: TextAlign.center),
     );
   }
 
@@ -436,39 +460,48 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                   ],
                 ),
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: TextField(
-                  controller: _editController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: AppStrings.enterNewTextHere,
-                    filled: true,
-                    fillColor: theme.colorScheme.surfaceContainerLow,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none),
-                    suffixIcon: Container(
-                      margin: const EdgeInsets.all(6),
-                      child: ElevatedButton(
-                        onPressed: _saveCurrent,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: gold,
-                          foregroundColor: const Color(0xFF0F2741),
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(60, 40),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
+              if (!(_selectedKey!.startsWith('pdf_show_')))
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: TextField(
+                    controller: _editController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: AppStrings.enterNewTextHere,
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceContainerLow,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                      suffixIcon: Container(
+                        margin: const EdgeInsets.all(6),
+                        child: ElevatedButton(
+                          onPressed: _saveCurrent,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: gold,
+                            foregroundColor: const Color(0xFF0F2741),
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(60, 40),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: Text(AppStrings.save),
                         ),
-                        child:  Text(AppStrings.save),
                       ),
                     ),
+                    onSubmitted: (_) => _saveCurrent(),
                   ),
-                  onSubmitted: (_) => _saveCurrent(),
                 ),
-              ),
               SizedBox(height: 12),
+              // Visibility toggles if applicable
+              if (_selectedKey == 'pdf_label_balance' ||
+                  _selectedKey == 'pdf_show_balance')
+                _buildVisibilityToggle(
+                  theme,
+                  AppStrings.totalBalance2,
+                  'pdf_show_balance',
+                ),
             ] else
               Padding(
                 padding: const EdgeInsets.all(24),
@@ -477,7 +510,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                   children: [
                     Icon(Icons.touch_app_rounded, color: gold, size: 24),
                     SizedBox(width: 12),
-                     QaydText(
+                    QaydText(
                       AppStrings.selectAnyTextIn,
                       slot: QaydTextStyleSlot.bodyMedium,
                     ),
@@ -486,6 +519,29 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVisibilityToggle(
+      ThemeData theme, String label, String configKey) {
+    final isVisible = _config[configKey] == 'true';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          QaydText(
+            'إظهار $label في السندات',
+            slot: QaydTextStyleSlot.bodyMedium,
+            color: theme.colorScheme.onSurface,
+          ),
+          Switch(
+            value: isVisible,
+            activeColor: theme.extension<QaydCustomColors>()!.goldAccent,
+            onChanged: (val) => _toggleVisibility(configKey),
+          ),
+        ],
       ),
     );
   }
@@ -557,7 +613,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           ),
           SizedBox(height: 8),
           _directText(
-              AppStrings.financialReceiptVoucherPreview, 13,  Color(0xFF0F2741),
+              AppStrings.financialReceiptVoucherPreview, 13, Color(0xFF0F2741),
               bold: true, align: TextAlign.center),
           if (isTripartite) ...[
             SizedBox(height: 1),
@@ -579,7 +635,9 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
         : 'pdf_label_from';
 
     final name = isTripartite
-        ? (isDebit ? AppStrings.ahmedKamalAlNasser : AppStrings.khaledWalidAlamiri)
+        ? (isDebit
+            ? AppStrings.ahmedKamalAlNasser
+            : AppStrings.khaledWalidAlamiri)
         : AppStrings.ahmedKamalAlNasser;
 
     return Container(
@@ -622,6 +680,22 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                                 ? AppStrings.noticeOfDeductionFrom
                                 : AppStrings.noticeOfAdditionTo)
                             : AppStrings.makeAPaymentOn),
+                    if (!isTripartite) ...[
+                      SizedBox(height: 2),
+                      Row(
+                        children: [
+                          _selectableText(
+                              'pdf_label_balance', 8.5, const Color(0xFF64748B),
+                              bold: true),
+                          SizedBox(width: 4),
+                          _directText(
+                              '1,500 ${AppStrings.sar} ${AppStrings.onYou}',
+                              8.5,
+                              const Color(0xFF0F2741),
+                              bold: true),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -681,9 +755,9 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _directText(AppStrings.signatureStatus, 7,  Color(0xFF64748B)),
+                _directText(AppStrings.signatureStatus, 7, Color(0xFF64748B)),
                 SizedBox(height: 3),
-                _directText(AppStrings.acceptedAndSigned, 8,  Color(0xFF047857),
+                _directText(AppStrings.acceptedAndSigned, 8, Color(0xFF047857),
                     bold: true, align: TextAlign.center),
               ],
             ),
@@ -715,8 +789,7 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
             ),
           ),
           SizedBox(width: 12),
-          Icon(Icons.qr_code_2_rounded,
-              size: 56, color: Color(0xFF0F2741)),
+          Icon(Icons.qr_code_2_rounded, size: 56, color: Color(0xFF0F2741)),
         ],
       ),
     );
@@ -827,7 +900,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
           if (hasSig)
             Expanded(
               child: Center(
-                child: _directText(AppStrings.digitallySigned, 9,  Color(0xFF047857),
+                child: _directText(
+                    AppStrings.digitallySigned, 9, Color(0xFF047857),
                     bold: true),
               ),
             ),

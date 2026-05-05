@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
@@ -42,6 +45,30 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
   bool _loading = false;
 
   Future<void> _confirmDelete() async {
+    setState(() => _loading = true);
+    bool hasInternet = false;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        hasInternet = true;
+      }
+    } catch (_) {
+      hasInternet = false;
+    }
+    setState(() => _loading = false);
+
+    if (!hasInternet) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppStrings.internetConnectionFailedPlease),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
     bool confirmed = false;
     await showDialog<void>(
       context: context,
@@ -62,10 +89,11 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
             onSecondaryAction: () => Navigator.pop(ctx),
             content: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   AppStrings.profileDeleteAccountWarningBody,
-                  textAlign: TextAlign.center,
+                  textAlign: TextAlign.start,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
@@ -73,6 +101,7 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
                 SizedBox(height: SpacingTokens.md),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
                   title: Text(
                     AppStrings.profileDeleteAccountConfirmLabel,
                     style: Theme.of(context).textTheme.bodySmall,
@@ -98,19 +127,25 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
       setState(() => _loading = false);
 
       if (result.isSuccess) {
+        // Clean up security state
+        await context.read<SecurityCubit>().logout();
+
+        // Navigate to the root (which should now show Login/Onboarding as data is wiped)
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true)
+              .pushNamedAndRemoveUntil('/', (route) => false);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppStrings.profileDeleteAccountSuccess),
             backgroundColor: Colors.green,
           ),
         );
-        // Navigate to the root (which should now show Login/Onboarding as data is wiped)
-        Navigator.of(context, rootNavigator: true)
-            .pushNamedAndRemoveUntil('/', (route) => false);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.failureOrNull?.messageAr ?? AppStrings.anErrorOccurred),
+            content: Text(
+                result.failureOrNull?.messageAr ?? AppStrings.anErrorOccurred),
             backgroundColor: Colors.red,
           ),
         );

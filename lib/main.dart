@@ -44,6 +44,7 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
   bool _databaseReady = false;
   bool _keyMismatch = false;
   bool _initializingDb = false;
+  bool _checkingProvisioning = true;
   String? _dbErrorMessage;
 
   @override
@@ -56,7 +57,14 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
 
   Future<void> _checkAndInitDatabase() async {
     final provisioned = await InjectionContainer.licenseVault.isProvisioned();
-    if (provisioned) await _openDatabase();
+    if (!mounted) return;
+    if (provisioned) {
+      await _openDatabase();
+    } else {
+      setState(() {
+        _checkingProvisioning = false;
+      });
+    }
   }
 
   Future<void> _onProvisioningComplete() async => _openDatabase();
@@ -65,6 +73,7 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
     if (_initializingDb) return;
     setState(() {
       _initializingDb = true;
+      _checkingProvisioning = false;
       _keyMismatch = false;
       _dbErrorMessage = null;
     });
@@ -230,7 +239,7 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
   }
 
   Widget _buildPreAuthBody(BuildContext context) {
-    if (_initializingDb) return _bootSplash(context);
+    if (_checkingProvisioning || _initializingDb) return _bootSplash(context);
     if (_keyMismatch) {
       return DatabaseRecoveryPage(
         errorMessage: _dbErrorMessage ?? '',
@@ -254,14 +263,16 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
             Image.asset('assets/images/logo.png', width: 150, height: 150),
             SizedBox(height: 24),
             CircularProgressIndicator(color: theme.colorScheme.primary),
-            SizedBox(height: 16),
-            Text(
-              AppStrings.dbOpeningProgress,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontSize: 13,
+            if (_initializingDb) ...[
+              SizedBox(height: 16),
+              Text(
+                AppStrings.dbOpeningProgress,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -355,7 +366,6 @@ class _QaydAppState extends State<QaydApp> {
       builder: (context, appearanceState) {
         AppStrings.setLocale(appearanceState.languageCode);
         final locale = Locale(appearanceState.languageCode);
-        final theme = Theme.of(context);
         return MaterialApp(
           title: AppStrings.appTitle,
           scrollBehavior: const NoStretchScrollBehavior(),
@@ -415,6 +425,7 @@ class _QaydAppState extends State<QaydApp> {
             },
             buildWhen: (prev, next) => prev.licenseStatus != next.licenseStatus,
             builder: (context, state) {
+              final theme = Theme.of(context);
               if (state.licenseStatus == LicenseStatus.booting) {
                 return Scaffold(
                   body: Center(

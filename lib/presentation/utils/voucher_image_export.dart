@@ -402,11 +402,16 @@ class VoucherImageCard extends StatelessWidget {
                           context),
                     ],
                     if (data.counterpartyBalances.isNotEmpty &&
-                        !_isTripartite) ...[
+                        !_isTripartite && 
+                        InjectionContainer.sharedPreferences.getString('pdf_show_balance') != 'false') ...[
                       SizedBox(height: 2),
                       Row(
                         children: [
-                          _text(AppStrings.totalBalance2, 8.5, _muted,
+                          _text(
+                              InjectionContainer.sharedPreferences.getString('pdf_label_balance') ??
+                                  AppStrings.totalBalance2,
+                              8.5,
+                              _muted,
                               bold: true),
                           SizedBox(width: 4),
                           _text(
