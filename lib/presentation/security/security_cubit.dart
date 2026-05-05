@@ -13,7 +13,6 @@ import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use
 import 'package:qayd/presentation/security/security_state.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
-
 /// Unified security cubit.
 ///
 /// Responsibilities (Phase 7):
@@ -76,8 +75,8 @@ class SecurityCubit extends Cubit<SecurityState> {
       return;
     }
 
-    // 2. License check.
-    final licenseStatus = await _resolveLicenseStatus();
+    // 2. License check (Returns persisted settings from the vault).
+    final (licenseStatus, ownerAcc, payInstr) = await _resolveLicenseStatus();
     final trialDays = await trialDaysRemaining();
 
     // 3. If FORCE_REVOKE — wipe immediately.
@@ -88,6 +87,8 @@ class SecurityCubit extends Cubit<SecurityState> {
           licenseStatus: LicenseStatus.revoked,
           clockStatus: ClockStatus.clean,
           trialDaysRemaining: trialDays,
+          ownerAccountNumber: ownerAcc,
+          paymentInstructionsAr: payInstr,
         ),
       );
       return;
@@ -112,59 +113,79 @@ class SecurityCubit extends Cubit<SecurityState> {
           ? SecurityLocked(
               licenseStatus: licenseStatus,
               trialDaysRemaining: trialDays,
+              ownerAccountNumber: ownerAcc,
+              paymentInstructionsAr: payInstr,
             )
           : SecurityUnlocked(
               licenseStatus: licenseStatus,
               trialDaysRemaining: trialDays,
+              ownerAccountNumber: ownerAcc,
+              paymentInstructionsAr: payInstr,
             ),
     );
   }
 
-  Future<LicenseStatus> _resolveLicenseStatus() async {
+  Future<(LicenseStatus, String?, String?)> _resolveLicenseStatus() async {
     final provisioned = await _licenseVault.isProvisioned();
-    if (!provisioned) return LicenseStatus.pending;
+    if (!provisioned) return (LicenseStatus.pending, null, null);
 
     // Verify hardware binding.
     final currentHwId = await _hardwareIdService.obtainHardwareId();
     final boundHwId = await _licenseVault.readProvisionedHardwareId();
     if (boundHwId != null && boundHwId.isNotEmpty && boundHwId != currentHwId) {
-      return LicenseStatus.deviceUnbound;
+      return (LicenseStatus.deviceUnbound, null, null);
     }
 
     // Read license data.
     final data = await _licenseVault.readLicenseData();
+    String? ownerAcc;
+    String? payInstr;
+
     if (data != null) {
       final status = data['status'] as String? ?? '';
       final hasFormalLicense = data['has_formal_license'] as bool? ?? false;
       final accountClosed = data['account_closed'] as bool? ?? false;
       final isActive = data['is_active'] as bool? ?? true;
 
+      // Extract payment details from nested settings (attached to license)
+      final settings = data['settings'] as Map<String, dynamic>?;
+      if (settings != null) {
+        ownerAcc = settings['owner_payment_account'] as String?;
+        payInstr = settings['support_message_ar'] as String?;
+      }
+
       // Hard admin revoke (FORCE_REVOKE) or deactivated account → panic wipe.
       if (status == 'FORCE_REVOKE' || status == 'revoked') {
-        return LicenseStatus.revoked;
+        return (LicenseStatus.revoked, ownerAcc, payInstr);
       }
       // Admin deactivated the user account (not a payment issue) → revoke.
       if (!isActive) {
-        return LicenseStatus.revoked;
+        return (LicenseStatus.revoked, ownerAcc, payInstr);
       }
       // Trial ended without a formal license → hard lock (NO panic wipe).
-      if (accountClosed) return LicenseStatus.trialExpired;
+      if (accountClosed) {
+        return (LicenseStatus.trialExpired, ownerAcc, payInstr);
+      }
       // Full active license or server confirmed active status.
-      if (hasFormalLicense || status == 'active') return LicenseStatus.active;
+      if (hasFormalLicense || status == 'active') {
+        return (LicenseStatus.active, ownerAcc, payInstr);
+      }
       // Admin-suspended → read-only.
-      if (status == 'suspended') return LicenseStatus.suspended;
+      if (status == 'suspended') {
+        return (LicenseStatus.suspended, ownerAcc, payInstr);
+      }
     }
 
     // Fall back to trial clock.
     final trialStart = await _licenseVault.readTrialStart();
     if (trialStart == null) {
       await _licenseVault.writeTrialStart(DateTime.now().toUtc());
-      return LicenseStatus.trial;
+      return (LicenseStatus.trial, ownerAcc, payInstr);
     }
     if (_licenseVault.isTrialExpired(trialStart)) {
-      return LicenseStatus.trialExpired;
+      return (LicenseStatus.trialExpired, ownerAcc, payInstr);
     }
-    return LicenseStatus.trial;
+    return (LicenseStatus.trial, ownerAcc, payInstr);
   }
 
   /// Refreshes the license state from the server and updates the lock state.
@@ -172,19 +193,30 @@ class SecurityCubit extends Cubit<SecurityState> {
   Future<({bool success, String? errorAr})> refreshLicenseStatus() async {
     try {
       final newData = await _authRepository.refreshLicense();
-      
+
       // Merge new status fields into the existing license data
       final existingData = await _licenseVault.readLicenseData() ?? {};
-      
+
       // Keys matching what the backend's /license/refresh returns
-      if (newData.containsKey('status')) existingData['status'] = newData['status'];
-      if (newData.containsKey('is_active')) existingData['is_active'] = newData['is_active'];
-      if (newData.containsKey('has_formal_license')) existingData['has_formal_license'] = newData['has_formal_license'];
-      if (newData.containsKey('account_closed')) existingData['account_closed'] = newData['account_closed'];
+      if (newData.containsKey('status')) {
+        existingData['status'] = newData['status'];
+      }
+      if (newData.containsKey('is_active')) {
+        existingData['is_active'] = newData['is_active'];
+      }
+      if (newData.containsKey('has_formal_license')) {
+        existingData['has_formal_license'] = newData['has_formal_license'];
+      }
+      if (newData.containsKey('account_closed')) {
+        existingData['account_closed'] = newData['account_closed'];
+      }
+      if (newData.containsKey('settings')) {
+        existingData['settings'] = newData['settings'];
+      }
 
       await _licenseVault.writeLicenseData(existingData);
 
-      final ls = await _resolveLicenseStatus();
+      final (ls, ownerAcc, payInstr) = await _resolveLicenseStatus();
       final trialDays = _licenseVault.daysRemainingInTrial(
         await _licenseVault.readTrialStart() ?? DateTime.now(),
       );
@@ -194,12 +226,16 @@ class SecurityCubit extends Cubit<SecurityState> {
           licenseStatus: ls,
           clockStatus: state.clockStatus,
           trialDaysRemaining: trialDays,
+          ownerAccountNumber: ownerAcc,
+          paymentInstructionsAr: payInstr,
         ));
       } else {
         emit(SecurityUnlocked(
           licenseStatus: ls,
           clockStatus: state.clockStatus,
           trialDaysRemaining: trialDays,
+          ownerAccountNumber: ownerAcc,
+          paymentInstructionsAr: payInstr,
         ));
       }
 
@@ -222,6 +258,8 @@ class SecurityCubit extends Cubit<SecurityState> {
           licenseStatus: ls,
           clockStatus: cs,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         ),
       );
     }
@@ -253,6 +291,8 @@ class SecurityCubit extends Cubit<SecurityState> {
           licenseStatus: state.licenseStatus,
           clockStatus: state.clockStatus,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         ),
       );
     }
@@ -269,6 +309,8 @@ class SecurityCubit extends Cubit<SecurityState> {
           licenseStatus: state.licenseStatus,
           clockStatus: state.clockStatus,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         ),
       );
     }
@@ -291,6 +333,8 @@ class SecurityCubit extends Cubit<SecurityState> {
             licenseStatus: state.licenseStatus,
             clockStatus: state.clockStatus,
             trialDaysRemaining: state.trialDaysRemaining,
+            ownerAccountNumber: state.ownerAccountNumber,
+            paymentInstructionsAr: state.paymentInstructionsAr,
           ),
         );
       }
@@ -442,12 +486,15 @@ class SecurityCubit extends Cubit<SecurityState> {
       }
 
       if (!emailUnverified) {
-        final licenseStatus = await _resolveLicenseStatus();
+        final (licenseStatus, ownerAcc, payInstr) =
+            await _resolveLicenseStatus();
         final trialDays = await trialDaysRemaining();
         emit(
           SecurityUnlocked(
             licenseStatus: licenseStatus,
             trialDaysRemaining: trialDays,
+            ownerAccountNumber: ownerAcc,
+            paymentInstructionsAr: payInstr,
           ),
         );
       }
@@ -471,12 +518,15 @@ class SecurityCubit extends Cubit<SecurityState> {
     try {
       final success = await _authRepository.verifyEmailOtp(code);
       if (success) {
-        final licenseStatus = await _resolveLicenseStatus();
+        final (licenseStatus, ownerAcc, payInstr) =
+            await _resolveLicenseStatus();
         final trialDays = await trialDaysRemaining();
         emit(
           SecurityUnlocked(
             licenseStatus: licenseStatus,
             trialDaysRemaining: trialDays,
+            ownerAccountNumber: ownerAcc,
+            paymentInstructionsAr: payInstr,
           ),
         );
       }
@@ -568,6 +618,8 @@ class SecurityCubit extends Cubit<SecurityState> {
       licenseStatus: state.licenseStatus,
       clockStatus: cs,
       trialDaysRemaining: trialDaysRemaining ?? state.trialDaysRemaining,
+      ownerAccountNumber: state.ownerAccountNumber,
+      paymentInstructionsAr: state.paymentInstructionsAr,
     );
   }
 
@@ -575,11 +627,16 @@ class SecurityCubit extends Cubit<SecurityState> {
     required LicenseStatus licenseStatus,
     required ClockStatus clockStatus,
     int? trialDaysRemaining,
+    String? ownerAccountNumber,
+    String? paymentInstructionsAr,
   }) {
     return SecurityUnlocked(
       licenseStatus: licenseStatus,
       clockStatus: clockStatus,
       trialDaysRemaining: trialDaysRemaining ?? state.trialDaysRemaining,
+      ownerAccountNumber: ownerAccountNumber ?? state.ownerAccountNumber,
+      paymentInstructionsAr:
+          paymentInstructionsAr ?? state.paymentInstructionsAr,
     );
   }
 }

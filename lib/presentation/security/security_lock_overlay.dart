@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
 import 'package:qayd/presentation/security/security_state.dart';
+import 'package:flutter/services.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -142,7 +143,14 @@ class _VaultScreen extends StatelessWidget {
                   if (config.showRefreshButton || config.showProvisioningButton)
                     SizedBox(height: SpacingTokens.md),
                   _ContactBadge(messageAr: config.contactAr ?? ''),
-                ]
+                ],
+                if (config.ownerAccountNumber != null) ...[
+                  SizedBox(height: SpacingTokens.xl),
+                  _PaymentCard(
+                    accountNumber: config.ownerAccountNumber!,
+                    instructions: config.paymentInstructionsAr,
+                  ),
+                ],
               ],
             ),
           ),
@@ -164,6 +172,8 @@ class _VaultScreen extends StatelessWidget {
         showContactButton: true,
         contactAr: AppStrings.vaultContactSupport,
         trialDaysRemaining: state.trialDaysRemaining,
+        ownerAccountNumber: state.ownerAccountNumber,
+        paymentInstructionsAr: state.paymentInstructionsAr,
       );
     }
 
@@ -176,6 +186,8 @@ class _VaultScreen extends StatelessWidget {
           bodyAr: AppStrings.vaultPendingBody,
           showProvisioningButton: true,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         );
       case LicenseStatus.trialExpired:
         return _OverlayConfig(
@@ -187,6 +199,8 @@ class _VaultScreen extends StatelessWidget {
           showContactButton: true,
           contactAr: AppStrings.vaultContactSupport,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         );
       case LicenseStatus.revoked:
         return _OverlayConfig(
@@ -197,6 +211,8 @@ class _VaultScreen extends StatelessWidget {
           showContactButton: true,
           contactAr: AppStrings.vaultContactSupport,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         );
       case LicenseStatus.deviceUnbound:
         return _OverlayConfig(
@@ -207,6 +223,8 @@ class _VaultScreen extends StatelessWidget {
           showContactButton: true,
           contactAr: AppStrings.vaultContactSupport,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         );
       default:
         return _OverlayConfig(
@@ -215,6 +233,8 @@ class _VaultScreen extends StatelessWidget {
           titleAr: AppStrings.lockScreenTitle,
           bodyAr: AppStrings.lockScreenSubtitle,
           trialDaysRemaining: state.trialDaysRemaining,
+          ownerAccountNumber: state.ownerAccountNumber,
+          paymentInstructionsAr: state.paymentInstructionsAr,
         );
     }
   }
@@ -583,6 +603,139 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
   }
 }
 
+class _PaymentCard extends StatelessWidget {
+  const _PaymentCard({
+    required this.accountNumber,
+    this.instructions,
+  });
+
+  final String accountNumber;
+  final String? instructions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(SpacingTokens.lg),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: ColorTokens.emerald500.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_rounded,
+                  color: ColorTokens.emerald400,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: SpacingTokens.md),
+              Expanded(
+                child: Text(
+                  AppStrings.governancePaymentInstruction,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: ColorTokens.slate50,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: SpacingTokens.lg),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: SpacingTokens.md,
+              vertical: SpacingTokens.sm,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppStrings
+                            .alnasserExchangeAndTransfers, // Placeholder for "Al-Kuraimي Bank" or similar if not specified
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 11,
+                          color: ColorTokens.slate400,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        accountNumber,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: ColorTokens.emerald400,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: accountNumber));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(AppStrings.bankInfoCopied),
+                        backgroundColor: ColorTokens.slate800,
+                        behavior: SnackBarBehavior.floating,
+                        width: 200,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_rounded,
+                      color: ColorTokens.slate400),
+                  tooltip: AppStrings.actionCopy,
+                ),
+              ],
+            ),
+          ),
+          if (instructions != null && instructions!.isNotEmpty) ...[
+            const SizedBox(height: SpacingTokens.md),
+            Text(
+              instructions!,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 12,
+                color: ColorTokens.slate400,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _OverlayConfig {
   const _OverlayConfig({
     required this.icon,
@@ -594,6 +747,8 @@ class _OverlayConfig {
     this.showRefreshButton = false,
     this.showContactButton = false,
     this.contactAr,
+    this.ownerAccountNumber,
+    this.paymentInstructionsAr,
   });
 
   final IconData icon;
@@ -605,4 +760,6 @@ class _OverlayConfig {
   final bool showRefreshButton;
   final bool showContactButton;
   final String? contactAr;
+  final String? ownerAccountNumber;
+  final String? paymentInstructionsAr;
 }

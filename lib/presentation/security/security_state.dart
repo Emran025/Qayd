@@ -39,11 +39,19 @@ class SecurityState {
     this.licenseStatus = LicenseStatus.active,
     this.clockStatus = ClockStatus.clean,
     this.trialDaysRemaining,
+    this.ownerAccountNumber,
+    this.paymentInstructionsAr,
   });
 
   final LicenseStatus licenseStatus;
   final ClockStatus clockStatus;
   final int? trialDaysRemaining;
+
+  /// Optional account number for payment (Kuraimi etc).
+  final String? ownerAccountNumber;
+
+  /// Optional server-provided payment instructions.
+  final String? paymentInstructionsAr;
 
   /// True when PIN lock screen should be shown.
   bool get isLocked => this is SecurityLocked;
@@ -64,6 +72,8 @@ class SecurityUnlocked extends SecurityState {
     super.licenseStatus = LicenseStatus.active,
     super.clockStatus = ClockStatus.clean,
     super.trialDaysRemaining,
+    super.ownerAccountNumber,
+    super.paymentInstructionsAr,
   });
 }
 
@@ -72,5 +82,7 @@ class SecurityLocked extends SecurityState {
     super.licenseStatus = LicenseStatus.active,
     super.clockStatus = ClockStatus.clean,
     super.trialDaysRemaining,
+    super.ownerAccountNumber,
+    super.paymentInstructionsAr,
   });
 }

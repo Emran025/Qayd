@@ -406,7 +406,6 @@ abstract final class InjectionContainer {
       tokenProvider: () => licenseVault.readJwt(),
     );
 
-    // Initialize appConfigRepository early before other services might need it
     appConfigRepository = ApiAppConfigRepository(
       apiClient: apiClient,
       sharedPreferences: sharedPreferences,

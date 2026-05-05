@@ -150,12 +150,20 @@ final class RemoteAuthRepository implements AuthRepository {
       _parseProvisioningResponse(Map<String, dynamic> data) {
     final token = data['token'] as String? ?? '';
     if (token.isEmpty) {
-      throw  AuthException(AppStrings.invalidResponseNoAuthentication);
+      throw AuthException(AppStrings.invalidResponseNoAuthentication);
     }
+
+    final licenseMap =
+        (data['user'] as Map<String, dynamic>?) ?? <String, dynamic>{};
+
+    // Attach system settings to the license data for offline persistence
+    if (data.containsKey('settings')) {
+      licenseMap['settings'] = data['settings'];
+    }
+
     return (
       jwt: token,
-      licenseData:
-          (data['user'] as Map<String, dynamic>?) ?? <String, dynamic>{},
+      licenseData: licenseMap,
       serverSalt: data['salt'] as String? ?? '',
     );
   }
