@@ -393,6 +393,10 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get assetWizardPossessionTitle => 'Add Personal Possession';
   @override
+  String get attachment => 'Attachment';
+  @override
+  String get attachments => 'Attachments';
+  @override
   String get assets => 'Assets';
   @override
   String get assets1 => 'Assets — Assets';
@@ -708,6 +712,10 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get classificationOther => 'Other Classification';
   @override
+  String get collateral => 'Collateral';
+  @override
+  String get collaterals => 'Collaterals';
+  @override
   String get classificationSectionTitle => 'Root Account Classification';
   @override
   String get clearingAccountName => 'Transfers Clearing';
@@ -749,6 +757,8 @@ class AppStringsEn extends AppStringsBase {
   String get confirmFiltering => 'Confirm Filtering';
   @override
   String get confirmPasswordHint => 'Confirm Password';
+  @override
+  String get confirmRedoOperations => 'Confirm Restoration Operations';
   @override
   String get confirmRollback => 'Confirm Rollback';
   @override
@@ -1164,6 +1174,8 @@ class AppStringsEn extends AppStringsBase {
   String get elSalvador => 'El Salvador';
   @override
   String get electronicSignature => 'Electronic Signature';
+  @override
+  String get counterparty => 'Counterparty';
   @override
   String get emailIsAlreadyRegistered => 'Email is already registered.';
   @override
@@ -1786,6 +1798,10 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get january => 'January';
   @override
+  String get inactive => 'Inactive';
+  @override
+  String get deactivated => 'Deactivated';
+  @override
   String get japan => 'Japan';
   @override
   String get jersey => 'Jersey';
@@ -1842,6 +1858,10 @@ class AppStringsEn extends AppStringsBase {
   String get ledgerEntriesCouldNot => 'Could not save ledger entries.';
   @override
   String get ledgerMovement => 'Ledger Movement';
+  @override
+  String get ledgerEntries => 'Ledger Entries';
+  @override
+  String get ledgerEntry => 'Ledger Entry';
   @override
   String get lesotho => 'Lesotho';
   @override
@@ -2012,6 +2032,8 @@ class AppStringsEn extends AppStringsBase {
   String get messagingTemplatesTab => 'Templates';
   @override
   String get mexico => 'Mexico';
+  @override
+  String get modificationDate => 'Modification Date';
   @override
   String get micronesia => 'Micronesia';
   @override
@@ -2189,6 +2211,8 @@ class AppStringsEn extends AppStringsBase {
   String get northKorea => 'North Korea';
   @override
   String get northernMarianaIslands => 'Northern Mariana Islands';
+  @override
+  String get notesLabel => 'Notes';
   @override
   String get norway => 'Norway';
   @override
@@ -3106,6 +3130,16 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get smartSuggestionsTitle => 'Smart Suggestions';
   @override
+  String get statusDraft => 'Draft';
+  @override
+  String get statusConfirmed => 'Confirmed';
+  @override
+  String get statusSettled => 'Settled';
+  @override
+  String get statusVoided => 'Voided';
+  @override
+  String get statusPending => 'Pending';
+  @override
   String get snapsync => 'Snap-Sync';
   @override
   String get solomonIslands => 'Solomon Islands';
@@ -3269,6 +3303,12 @@ class AppStringsEn extends AppStringsBase {
       'Syncing via direct QR barcode scan is considered explicit consent and bypasses these settings.';
   @override
   String get syria => 'Syria';
+  @override
+  String get systematicRedoExplainer =>
+      'The system will sequentially apply (Redo) for all previously undone transactions until we reach this point to become the current point.';
+  @override
+  String get systematicReversalExplainer =>
+      'The system will sequentially roll back all transactions preceding this point until it reaches it, making it the Current Head.';
   @override
   String get taiwan => 'Taiwan';
   @override

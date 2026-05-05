@@ -40,4 +40,39 @@ abstract final class CurrencyUtil {
   static String formatCurrency(String code) {
     return getLocalizedName(code);
   }
+
+  static String getSymbol(String code) {
+    switch (code.toUpperCase()) {
+      case 'SAR':
+        return '﷼';
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'YER':
+        return '﷼.ي';
+      case 'AED':
+        return AppStrings.de;
+      case 'KWD':
+        return AppStrings.kwd;
+      case 'BHD':
+        return AppStrings.bear;
+      case 'OMR':
+        return '﷼';
+      case 'QAR':
+        return '﷼';
+      case 'EGP':
+        return AppStrings.jm;
+      case 'JOD':
+        return AppStrings.da;
+      case 'XAU':
+        return AppStrings.cD;
+      case 'XAG':
+        return AppStrings.dry;
+      default:
+        return code;
+    }
+  }
 }

@@ -207,6 +207,8 @@ class AppStrings {
   static String get assetsEmptyList => i.assetsEmptyList;
   static String get assetsLabel => i.assetsLabel;
   static String get attachPhotos => i.attachPhotos;
+  static String get attachment => i.attachment;
+  static String get attachments => i.attachments;
   static String get auditLogTitle => i.auditLogTitle;
   static String get august => i.august;
   static String get australia => i.australia;
@@ -364,6 +366,8 @@ class AppStrings {
       i.classificationOfEconomicAsset;
   static String get classificationOther => i.classificationOther;
   static String get classificationSectionTitle => i.classificationSectionTitle;
+  static String get collateral => i.collateral;
+  static String get collaterals => i.collaterals;
   static String get clearingAccountName => i.clearingAccountName;
   static String get clickAnyColoredText => i.clickAnyColoredText;
   static String get clickToChooseThe => i.clickToChooseThe;
@@ -384,8 +388,12 @@ class AppStrings {
   static String get confirmFiltering => i.confirmFiltering;
   static String get confirmPasswordHint => i.confirmPasswordHint;
   static String get confirmRollback => i.confirmRollback;
+  static String get confirmRedoOperations => i.confirmRedoOperations;
   static String get confirmSelection => i.confirmSelection;
   static String get confirmSystematicReversal => i.confirmSystematicReversal;
+  static String get systematicReversalExplainer =>
+      i.systematicReversalExplainer;
+  static String get systematicRedoExplainer => i.systematicRedoExplainer;
   static String get confirmationDate => i.confirmationDate;
   static String get congo => i.congo;
   static String get contactTechnicalSupport => i.contactTechnicalSupport;
@@ -394,6 +402,7 @@ class AppStrings {
   static String get copyFromGoogleDrive => i.copyFromGoogleDrive;
   static String get correctionAndRedirection => i.correctionAndRedirection;
   static String get costCenter => i.costCenter;
+  static String get costCenters => i.costCenters;
   static String get costCenterActivateAction => i.costCenterActivateAction;
   static String get costCenterActivateConfirmTitle =>
       i.costCenterActivateConfirmTitle;
@@ -477,6 +486,7 @@ class AppStrings {
   static String get couldNotOpenThe => i.couldNotOpenThe;
   static String get couldNotUpdateThe => i.couldNotUpdateThe;
   static String get counterpartySection => i.counterpartySection;
+  static String get counterparty => i.counterparty;
   static String get createANewIdentity => i.createANewIdentity;
   static String get createAccount => i.createAccount;
   static String get createNew => i.createNew;
@@ -809,6 +819,8 @@ class AppStrings {
       i.identityViewSeedWarningTitle;
   static String get ignoreIncomingDuplicate => i.ignoreIncomingDuplicate;
   static String get image => i.image;
+  static String get inactive => i.inactive;
+  static String get deactivated => i.deactivated;
   static String get implementationInProgress => i.implementationInProgress;
   static String get importAccountsAndFinancial => i.importAccountsAndFinancial;
   static String get importAndFormat => i.importAndFormat;
@@ -940,6 +952,8 @@ class AppStrings {
   static String get latvia => i.latvia;
   static String get lebanon => i.lebanon;
   static String get ledgerEntriesCouldNot => i.ledgerEntriesCouldNot;
+  static String get ledgerEntries => i.ledgerEntries;
+  static String get ledgerEntry => i.ledgerEntry;
   static String get ledgerMovement => i.ledgerMovement;
   static String get lesotho => i.lesotho;
   static String get liabilities => i.liabilities;
@@ -1033,6 +1047,7 @@ class AppStrings {
   static String get missingBondInformationIn => i.missingBondInformationIn;
   static String get missingValidity => i.missingValidity;
   static String get modelLabel => i.modelLabel;
+  static String get modificationDate => i.modificationDate;
   static String get modifyingTheClassificationOr =>
       i.modifyingTheClassificationOr;
   static String get moldova => i.moldova;
@@ -1123,6 +1138,7 @@ class AppStrings {
   static String get notRegistered => i.notRegistered;
   static String get notes => i.notes;
   static String get notes1 => i.notes1;
+  static String get notesLabel => i.notesLabel;
   static String get noticeOfAdditionTo => i.noticeOfAdditionTo;
   static String get noticeOfDeductionFrom => i.noticeOfDeductionFrom;
   static String get notifDirectCategories => i.notifDirectCategories;
@@ -1568,6 +1584,11 @@ class AppStrings {
   static String get smartSuggestionDate => i.smartSuggestionDate;
   static String get smartSuggestionType => i.smartSuggestionType;
   static String get smartSuggestionsTitle => i.smartSuggestionsTitle;
+  static String get statusDraft => i.statusDraft;
+  static String get statusConfirmed => i.statusConfirmed;
+  static String get statusSettled => i.statusSettled;
+  static String get statusVoided => i.statusVoided;
+  static String get statusPending => i.statusPending;
   static String get snapsync => i.snapsync;
   static String get solomonIslands => i.solomonIslands;
   static String get somalia => i.somalia;

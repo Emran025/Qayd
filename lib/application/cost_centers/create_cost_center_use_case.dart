@@ -9,11 +9,19 @@ import 'package:qayd/domain/value_objects/cost_center_type.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
+
 final class CreateCostCenterUseCase {
-  const CreateCostCenterUseCase(this._repository, this._idGenerator);
+  const CreateCostCenterUseCase(
+    this._repository,
+    this._idGenerator, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
 
   final CostCenterRepository _repository;
   final IdGenerator _idGenerator;
+  final AuditLogService? _auditLogService;
 
   Future<Result<CostCenter>> call({
     required String name,
@@ -60,6 +68,20 @@ final class CreateCostCenterUseCase {
       );
       await _repository.saveDimension(dim);
     }
+
+    await _auditLogService?.log(
+      entityType: 'cost_center',
+      entityId: center.id,
+      action: AuditAction.create,
+      newData: {
+        'id': center.id,
+        'name': center.name,
+        'type': center.type.name,
+        'currency_code': center.currencyCode,
+        'budget_minor_units': center.budgetMinorUnits,
+        'is_active': center.isActive,
+      },
+    );
 
     return Success(center);
   }

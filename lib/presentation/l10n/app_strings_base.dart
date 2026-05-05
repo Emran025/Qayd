@@ -195,6 +195,8 @@ abstract class AppStringsBase {
   String get assetWizardIncomeSourceLabel => 'هل يدر دخلاً دورياً؟';
   String get assetWizardInvestmentTitle => 'إضافة أصل استثماري';
   String get assetWizardPossessionTitle => 'إضافة مقتنى شخصي';
+  String get attachment => 'مرفق';
+  String get attachments => 'مرفقات';
   String get assets => 'الأصول';
   String get assets1 => 'الأصول — Assets';
   String get assetsEmptyList => 'لا تملك أي أصول مسجلة حالياً.';
@@ -333,6 +335,8 @@ abstract class AppStringsBase {
   String get classificationLabel => 'التصنيف';
   String get classificationOfEconomicAsset => 'تصنيف الأصل الاقتصادي';
   String get classificationOther => 'تصنيف آخر';
+  String get collateral => 'رهن';
+  String get collaterals => 'رهونات';
   String get classificationSectionTitle => 'تصنيف الحساب الجذر';
   String get clearingAccountName => 'مقاصة الحوالات';
   String get clickAnyColoredText =>
@@ -354,6 +358,7 @@ abstract class AppStringsBase {
   String get confirmDeletionTitle => 'تأكيد الحذف';
   String get confirmFiltering => 'تأكيد التصفية';
   String get confirmPasswordHint => 'تأكيد كلمة المرور';
+  String get confirmRedoOperations => 'تأكيد استعادة العمليات';
   String get confirmRollback => 'تأكيد التراجع';
   String get confirmSelection => 'تأكيد الاختيار';
   String get confirmSystematicReversal => 'تأكيد التراجع النظامي';
@@ -431,11 +436,13 @@ abstract class AppStringsBase {
   String get costCenterViewMoreVouchers => 'عرض السجل كاملاً';
   String get costCenterViewVouchers => 'عرض السندات والنشاط';
   String get costCenterVoucherCountLabel => 'عدد السندات';
+  String get costCenters => 'مراكز تكلفة';
   String get costCentersEmpty => 'لا توجد مراكز تكلفة بعد. أضف مركزاً جديداً.';
   String get costCentersTitle => 'مراكز التكلفة والربح';
   String get costaRica => 'كوستاريكا';
   String get couldNotOpenThe => 'تعذر فتح تطبيق الرسائل.';
   String get couldNotUpdateThe => 'تعذّر تحديث القائمة.';
+  String get counterparty => 'الطرف الآخر';
   String get counterpartySection => 'الطرف المقابل';
   String get createANewIdentity => 'إنشاء هوية جديدة';
   String get createAccount => 'إنشاء حساب جديد';
@@ -891,6 +898,8 @@ abstract class AppStringsBase {
   String get issued => 'صادر';
   String get itAllowsAnyoneWith =>
       'يسمح لأي شخص لديه رقمك بمزامنة السندات معك.';
+  String get inactive => 'غير نشط';
+  String get deactivated => 'معطل';
   String get itIsNotPossible =>
       'لا يمكن إجراء عمليات حسابية بين عملتين مختلفتين.';
   String get itPreventsEveryoneFrom => 'يمنع الجميع من المزامنة معك بشكل كامل.';
@@ -929,6 +938,8 @@ abstract class AppStringsBase {
   String get lebanon => 'لبنان';
   String get ledgerEntriesCouldNot => 'تعذر حفظ قيود دفتر الأستاذ.';
   String get ledgerMovement => 'حركة السجل (Ledger)';
+  String get ledgerEntries => 'قيود محاسبية';
+  String get ledgerEntry => 'قيد محاسبي';
   String get lesotho => 'ليسوتو';
   String get liabilities => 'الخصوم — Liabilities';
   String get liabilitiesLabel => 'الخصوم';
@@ -1016,6 +1027,7 @@ abstract class AppStringsBase {
   String get messagingInboxTab => 'البريد الوارد';
   String get messagingTemplatesTab => 'القوالب';
   String get mexico => 'المكسيك';
+  String get modificationDate => 'تاريخ التعديل';
   String get micronesia => 'ميكرونيزيا';
   String get missingBondInformationIn => 'بيانات السند المفقودة في الإشعار.';
   String get missingValidity => 'صلاحية مفقودة';
@@ -1110,6 +1122,7 @@ abstract class AppStringsBase {
   String get norfolkIsland => 'جزيرة نورفولك';
   String get northKorea => 'كوريا الشمالية';
   String get northernMarianaIslands => 'جزر ماريانا الشمالية';
+  String get notesLabel => 'ملاحظات';
   String get norway => 'النرويج';
   String get notRegistered => 'غير مسجل';
   String get notes => 'الملاحظات:';
@@ -1584,6 +1597,11 @@ abstract class AppStringsBase {
   String get smartSuggestionDate => 'التاريخ';
   String get smartSuggestionType => 'النوع';
   String get smartSuggestionsTitle => 'مقترحات ذكية';
+  String get statusDraft => 'مسودة';
+  String get statusConfirmed => 'مؤكد';
+  String get statusSettled => 'تمت التسوية';
+  String get statusVoided => 'ملغى';
+  String get statusPending => 'قيد الانتظار';
   String get snapsync => 'مزامنة Snap-Sync';
   String get solomonIslands => 'جزر سليمان';
   String get somalia => 'الصومال';
@@ -1666,6 +1684,10 @@ abstract class AppStringsBase {
   String get syncingViaDirectQr =>
       'المزامنة عبر مسح باركود QR مباشرة تعتبر موافقة صريحة وتتجاوز هذه الإعدادات.';
   String get syria => 'سوريا';
+  String get systematicRedoExplainer =>
+      'سيقوم النظام بتطبيق (Redo) لجميع العمليات التي تم التراجع عنها سابقاً بشكل متسلسل حتى نصل إلى هذه النقطة لتصبح هي النقطة الحالية.';
+  String get systematicReversalExplainer =>
+      'سيقوم النظام بالتراجع بشكل متسلسل عن جميع العمليات التي تسبق هذه النقطة حتى يصل إليها، مما يجعلها النقطة الحالية (Current Head).';
   String get taiwan => 'تايوان';
   String get tajikistan => 'طاجيكستان';
   String get tanzania => 'تانزانيا';

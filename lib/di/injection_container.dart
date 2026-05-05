@@ -769,8 +769,7 @@ abstract final class InjectionContainer {
     auditLogRepository = SqliteAuditLogRepository(database);
     auditLogService = AuditLogService(
       auditRepo: auditLogRepository,
-      accountRepo: accountRepository,
-      voucherRepo: voucherRepository,
+      database: database,
     );
 
     transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(

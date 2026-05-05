@@ -28,6 +28,8 @@ import 'package:qayd/data/database/migrations/migration_027_gold_silver_currenci
 import 'package:qayd/data/database/migrations/migration_028_canonical_phones.dart';
 import 'package:qayd/data/database/migrations/migration_029_outbox_routing_headers.dart';
 import 'package:qayd/data/database/migrations/migration_030_attachment_key.dart';
+import 'package:qayd/data/database/migrations/migration_031_audit_log_enhancements.dart';
+import 'package:qayd/data/database/migrations/migration_032_audit_log_severity_and_indexes.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -66,6 +68,8 @@ final class MigrationRegistry {
     Migration028CanonicalPhones(),
     Migration029OutboxRoutingHeaders(),
     Migration030AttachmentKey(),
+    Migration031AuditLogEnhancements(),
+    Migration032AuditLogSeverityAndIndexes(),
   ];
 
   static List<SchemaMigration> get ordered {
