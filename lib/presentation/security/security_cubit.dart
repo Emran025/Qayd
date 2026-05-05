@@ -79,7 +79,11 @@ class SecurityCubit extends Cubit<SecurityState> {
     // 2. License check (Returns persisted settings from the vault).
     final (licenseStatus, ownerAcc, payInstr, updUrl, bReason) =
         await _resolveLicenseStatus();
-    final trialDays = await trialDaysRemaining();
+    
+    // Only show trial days if we are actually in a trial state.
+    final trialDays = (licenseStatus == LicenseStatus.trial || licenseStatus == LicenseStatus.trialExpired)
+        ? await trialDaysRemaining()
+        : null;
 
     // 3. If FORCE_REVOKE — wipe immediately.
     if (licenseStatus == LicenseStatus.revoked) {
@@ -256,9 +260,13 @@ class SecurityCubit extends Cubit<SecurityState> {
     }
   }
 
+  bool _isRefreshing = false;
+
   /// Refreshes the license state from the server and updates the lock state.
   /// Used primarily when the user is locked out and waiting for admin approval.
   Future<({bool success, String? errorAr})> refreshLicenseStatus() async {
+    if (_isRefreshing) return (success: true, errorAr: null);
+    _isRefreshing = true;
     try {
       final newData = await _authRepository.refreshLicense();
 
@@ -291,9 +299,13 @@ class SecurityCubit extends Cubit<SecurityState> {
       await _licenseVault.writeLicenseData(existingData);
 
       final (ls, ownerAcc, payInstr, updUrl, bReason) = await _resolveLicenseStatus();
-      final trialDays = _licenseVault.daysRemainingInTrial(
-        await _licenseVault.readTrialStart() ?? DateTime.now(),
-      );
+      
+      // Only show trial days if we are actually in a trial state.
+      final trialDays = (ls == LicenseStatus.trial || ls == LicenseStatus.trialExpired)
+          ? _licenseVault.daysRemainingInTrial(
+              await _licenseVault.readTrialStart() ?? DateTime.now(),
+            )
+          : null;
 
       if (ls != LicenseStatus.active && ls != LicenseStatus.trial) {
         emit(SecurityLocked(
@@ -306,20 +318,36 @@ class SecurityCubit extends Cubit<SecurityState> {
           banReason: bReason,
         ));
       } else {
-        emit(SecurityUnlocked(
-          licenseStatus: ls,
-          clockStatus: state.clockStatus,
-          trialDaysRemaining: trialDays,
-          ownerAccountNumber: ownerAcc,
-          paymentInstructionsAr: payInstr,
-          updateUrl: updUrl,
-          banReason: bReason,
-        ));
+        // If the license is active/trial, we return to the previous PIN lock state
+        // (either SecurityLocked or SecurityUnlocked) instead of forcing Unlocked.
+        if (state is SecurityLocked) {
+          emit(SecurityLocked(
+            licenseStatus: ls,
+            clockStatus: state.clockStatus,
+            trialDaysRemaining: trialDays,
+            ownerAccountNumber: ownerAcc,
+            paymentInstructionsAr: payInstr,
+            updateUrl: updUrl,
+            banReason: bReason,
+          ));
+        } else {
+          emit(SecurityUnlocked(
+            licenseStatus: ls,
+            clockStatus: state.clockStatus,
+            trialDaysRemaining: trialDays,
+            ownerAccountNumber: ownerAcc,
+            paymentInstructionsAr: payInstr,
+            updateUrl: updUrl,
+            banReason: bReason,
+          ));
+        }
       }
 
       return (success: true, errorAr: null);
     } catch (e) {
       return (success: false, errorAr: AppStrings.failedToUpdateLicense);
+    } finally {
+      _isRefreshing = false;
     }
   }
 
@@ -354,6 +382,11 @@ class SecurityCubit extends Cubit<SecurityState> {
     }
     if (lifecycle == AppLifecycleState.resumed) {
       _maybeLockOnResume();
+      // Proactively refresh license status on resume to catch bans or payment updates.
+      if (InjectionContainer.isDatabaseReady &&
+          state.licenseStatus != LicenseStatus.pending) {
+        refreshLicenseStatus().ignore();
+      }
     }
   }
 

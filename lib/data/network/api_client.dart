@@ -21,12 +21,13 @@ final class ApiClient {
   ApiClient({
     required String baseUrl,
     Future<String?> Function()? tokenProvider,
+    void Function()? onSecurityError,
     Dio? dio,
   }) : _dio = dio ?? _buildDio(baseUrl) {
     if (tokenProvider != null) {
       _dio.interceptors.add(AuthInterceptor(tokenProvider));
     }
-    _dio.interceptors.add(_ErrorInterceptor());
+    _dio.interceptors.add(_ErrorInterceptor(onSecurityError));
   }
 
   final Dio _dio;
@@ -194,8 +195,21 @@ final class AuthInterceptor extends Interceptor {
 
 /// Converts Dio errors into structured [AuthException] with Arabic messages.
 final class _ErrorInterceptor extends Interceptor {
+  const _ErrorInterceptor(this.onSecurityError);
+
+  final void Function()? onSecurityError;
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    final statusCode = err.response?.statusCode;
+    final serverCode = err.response?.data?['code'] as String?;
+
+    // If we get a 403 with a security-related error code, notify the app 
+    // to refresh its license/ban state immediately.
+    if (statusCode == 403 || serverCode == 'ACCOUNT_BANNED' || serverCode == 'ACCOUNT_CLOSED') {
+      onSecurityError?.call();
+    }
+
     final arabicMessage = _resolveArabicMessage(err);
     handler.reject(
       DioException(

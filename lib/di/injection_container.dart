@@ -404,6 +404,11 @@ abstract final class InjectionContainer {
     final apiClient = ApiClient(
       baseUrl: ApiEndpoints.baseUrl,
       tokenProvider: () => licenseVault.readJwt(),
+      onSecurityError: () {
+        // As soon as any API call returns a 403 (Banned/Closed), 
+        // we force the security cubit to refresh its state and lock the UI.
+        securityCubit.refreshLicenseStatus().ignore();
+      },
     );
 
     appConfigRepository = ApiAppConfigRepository(

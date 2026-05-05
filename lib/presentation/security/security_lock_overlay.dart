@@ -214,11 +214,12 @@ class _VaultScreen extends StatelessWidget {
           iconColor: const Color(0xFFDC2626),
           titleAr: AppStrings.vaultRevokedTitle,
           bodyAr: AppStrings.vaultRevokedBody,
+          showRefreshButton: true,
           showContactButton: true,
           contactAr: AppStrings.vaultContactSupport,
-          trialDaysRemaining: state.trialDaysRemaining,
-          ownerAccountNumber: state.ownerAccountNumber,
-          paymentInstructionsAr: state.paymentInstructionsAr,
+          trialDaysRemaining: null,
+          ownerAccountNumber: null,
+          paymentInstructionsAr: null,
         );
       case LicenseStatus.deviceUnbound:
         return _OverlayConfig(
@@ -226,11 +227,12 @@ class _VaultScreen extends StatelessWidget {
           iconColor: const Color(0xFFDC2626),
           titleAr: AppStrings.vaultDeviceUnboundTitle,
           bodyAr: AppStrings.vaultDeviceUnboundBody,
+          showRefreshButton: true,
           showContactButton: true,
           contactAr: AppStrings.vaultContactSupport,
-          trialDaysRemaining: state.trialDaysRemaining,
-          ownerAccountNumber: state.ownerAccountNumber,
-          paymentInstructionsAr: state.paymentInstructionsAr,
+          trialDaysRemaining: null,
+          ownerAccountNumber: null,
+          paymentInstructionsAr: null,
         );
       case LicenseStatus.banned:
         return _OverlayConfig(
@@ -238,11 +240,12 @@ class _VaultScreen extends StatelessWidget {
           iconColor: const Color(0xFFDC2626),
           titleAr: AppStrings.vaultBannedTitle,
           bodyAr: state.banReason ?? AppStrings.vaultBannedBody,
+          showRefreshButton: true,
           showContactButton: true,
           contactAr: AppStrings.vaultContactSupport,
-          trialDaysRemaining: state.trialDaysRemaining,
-          ownerAccountNumber: state.ownerAccountNumber,
-          paymentInstructionsAr: state.paymentInstructionsAr,
+          trialDaysRemaining: null, // Hide trial days on ban
+          ownerAccountNumber: null, // Hide payment info on ban
+          paymentInstructionsAr: null, // Hide payment info on ban
         );
       case LicenseStatus.updateRequired:
         return _OverlayConfig(
