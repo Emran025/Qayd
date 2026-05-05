@@ -150,6 +150,84 @@ class AuditLogService {
     }
   }
 
+  // ── Single-entry revert (new) ─────────────────────────────────────────────────
+
+  /// Returns the list of **active** (non-undone) entries that are **newer** than
+  /// the entry with [auditEntryId] and share the same [entityId] or reference it
+  /// in their data — i.e., entries that would be implicitly broken if
+  /// [auditEntryId] were independently reverted.
+  ///
+  /// This is used by the UI to warn the user before committing to a revert.
+  Future<List<AuditEntry>> getEntriesAffectedByRevert(
+      String auditEntryId) async {
+    final all = await auditRepo.listAll(); // Newest first
+    final targetIndex = all.indexWhere((e) => e.id == auditEntryId);
+    if (targetIndex == -1) return [];
+
+    final target = all[targetIndex];
+
+    // All active entries that are *newer* than the target (index < targetIndex).
+    final newer = all.sublist(0, targetIndex).where((e) => !e.isUndone);
+
+    // An entry is "affected" if it touches the same entity or references the
+    // target entity's ID in its data payload.
+    final entityId = target.entityId;
+    return newer.where((e) {
+      if (e.entityId == entityId) return true;
+      // Check if the newer entry's data references the target entity ID.
+      final dataStr = [
+        e.oldData?.toString() ?? '',
+        e.newData?.toString() ?? '',
+      ].join();
+      return dataStr.contains(entityId);
+    }).toList();
+  }
+
+  /// Reverts **only** the single entry identified by [auditEntryId], without
+  /// touching any other entries on the timeline.
+  ///
+  /// The entry is marked `isUndone = true` after the DB-level revert is applied.
+  /// Callers should use [getEntriesAffectedByRevert] first to warn the user
+  /// if dependent entries exist.
+  Future<void> revertSingleEntry(String auditEntryId) async {
+    final all = await auditRepo.listAll();
+    final entry = all.firstWhere(
+      (e) => e.id == auditEntryId,
+      orElse: () => throw StateError(
+          '[AuditLog] revertSingleEntry: $auditEntryId not found.'),
+    );
+
+    if (entry.isUndone) {
+      _debugLog('[AuditLog] revertSingleEntry: $auditEntryId already undone.');
+      return;
+    }
+
+    _debugLog(
+        '[AuditLog] ✂️ Reverting single ${entry.action.label} ${entry.entityType}/${entry.entityId}');
+    final enriched = await _revertSingle(entry);
+    await auditRepo.update(enriched.copyWith(isUndone: true));
+  }
+
+  /// Re-applies a previously reverted single entry (redo for a single entry).
+  Future<void> redoSingleEntry(String auditEntryId) async {
+    final all = await auditRepo.listAll();
+    final entry = all.firstWhere(
+      (e) => e.id == auditEntryId,
+      orElse: () => throw StateError(
+          '[AuditLog] redoSingleEntry: $auditEntryId not found.'),
+    );
+
+    if (!entry.isUndone) {
+      _debugLog('[AuditLog] redoSingleEntry: $auditEntryId is not undone.');
+      return;
+    }
+
+    _debugLog(
+        '[AuditLog] ▶️ Re-applying single ${entry.action.label} ${entry.entityType}/${entry.entityId}');
+    await _applySingle(entry);
+    await auditRepo.update(entry.copyWith(isUndone: false));
+  }
+
   /// Undoes all entries belonging to [batchId] (newest-first).
   Future<void> undoBatch(String batchId) async {
     final entries = await auditRepo.getByBatchId(batchId); // Newest first

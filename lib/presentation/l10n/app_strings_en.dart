@@ -4503,4 +4503,152 @@ class AppStringsEn extends AppStringsBase {
 
   @override
   String errorOpeningFile(String error) => 'An error occurred while opening the file: $error';
+
+  // ---------------------------------------------------------------------------
+  // Audit Log — Entity Names (missing entities)
+  // ---------------------------------------------------------------------------
+  @override
+  String get auditEntityCurrency => 'Currency';
+  @override
+  String get auditEntityCurrencies => 'Currencies';
+  @override
+  String get auditEntityAccrual => 'Financial Commitment';
+  @override
+  String get auditEntityAccruals => 'Financial Commitments';
+  @override
+  String get auditEntityMessageTemplate => 'Message Template';
+  @override
+  String get auditEntityMessageTemplates => 'Message Templates';
+
+  // ---------------------------------------------------------------------------
+  // Audit Log — Field (Key) Translations
+  // ---------------------------------------------------------------------------
+
+  // Currency fields
+  @override
+  String get auditFieldCode => 'Currency Code';
+  @override
+  String get auditFieldSymbol => 'Symbol';
+  @override
+  String get auditFieldDecimalPlaces => 'Decimal Places';
+  @override
+  String get auditFieldExchangeRate => 'Exchange Rate';
+  @override
+  String get auditFieldIsBase => 'Base Currency';
+  @override
+  String get auditFieldIsActive => 'Active';
+
+  // Accrual / commitment fields
+  @override
+  String get auditFieldTotalAmountMinor => 'Estimated Amount';
+  @override
+  String get auditFieldFrequency => 'Commitment Frequency';
+  @override
+  String get auditFieldStartDate => 'Start Date';
+  @override
+  String get auditFieldNextDueDate => 'Next Due Date';
+  @override
+  String get auditFieldSourceAccountId => 'Payment Account';
+  @override
+  String get auditFieldDestinationAccountId => 'Accrual Account';
+  @override
+  String get auditFieldCategoryId => 'Life Dimension';
+  @override
+  String get auditFieldCostCenterId => 'Cost Center';
+
+  // Message template fields
+  @override
+  String get auditFieldKind => 'Kind';
+  @override
+  String get auditFieldBody => 'Message Body';
+  @override
+  String get auditFieldIsSystem => 'System Template';
+  @override
+  String get auditFieldSortOrder => 'Display Order';
+
+  // Collateral fields
+  @override
+  String get auditFieldCollateralValueMinor => 'Collateral Value';
+  @override
+  String get auditFieldRevaluationDate => 'Revaluation Date';
+  @override
+  String get auditFieldVoucherId => 'Linked Voucher';
+  @override
+  String get auditFieldSettledAt => 'Settlement Date';
+  @override
+  String get auditFieldDueDate => 'Due Date';
+  @override
+  String get auditFieldCollateralType => 'Collateral Type';
+
+  // Cost center fields
+  @override
+  String get auditFieldBudgetMinorUnits => 'Allocated Budget';
+  @override
+  String get auditFieldCenterType => 'Center Type';
+
+  // Ledger entry fields
+  @override
+  String get auditFieldDebitMinor => 'Debit Amount';
+  @override
+  String get auditFieldCreditMinor => 'Credit Amount';
+  @override
+  String get auditFieldLedgerId => 'Ledger ID';
+  @override
+  String get auditFieldEntryDate => 'Entry Date';
+  @override
+  String get auditFieldVoucherEntryId => 'Voucher Entry ID';
+
+  // Accrual frequency value translations
+  @override
+  String get auditFrequencyDaily => 'Daily';
+  @override
+  String get auditFrequencyWeekly => 'Weekly';
+  @override
+  String get auditFrequencyMonthly => 'Monthly';
+  @override
+  String get auditFrequencyQuarterly => 'Quarterly';
+  @override
+  String get auditFrequencySemiAnnually => 'Semi-Annually';
+  @override
+  String get auditFrequencyYearly => 'Annually';
+  @override
+  String get auditFrequencyOnce => 'Once';
+
+  // Revert single entry
+  @override
+  String get auditRevertSingle => 'Revert This Entry Only';
+  @override
+  String get auditRevertSingleTitle => 'Confirm Entry Revert';
+  @override
+  String get auditRevertSingleBody =>
+      'Do you want to revert only this specific entry? The data will be restored to its state immediately before this operation.';
+  @override
+  String get auditRevertSingleConfirm => 'Yes, Revert';
+
+  // Impact warning
+  @override
+  String get auditImpactWarningTitle => 'Warning: Dependent Operations';
+  @override
+  String get auditImpactWarningBody =>
+      'Reverting this entry will affect the following operations that depend on it:';
+  @override
+  String get auditImpactWarningProceed => 'Proceed Anyway';
+  @override
+  String get auditImpactAffectedCount => 'operations will be cancelled';
+
+  // Severity badge labels
+  @override
+  String get auditSeverityInfo => 'Info';
+  @override
+  String get auditSeverityWarning => 'Warning';
+  @override
+  String get auditSeverityCritical => 'Critical';
+
+  // Search & filter
+  @override
+  String get auditSearchHint => 'Search by entity or ID...';
+  @override
+  String get auditFilterSeverity => 'Filter by Severity';
+  @override
+  String get auditNoMatchesForFilter => 'No results for current filter';
 }

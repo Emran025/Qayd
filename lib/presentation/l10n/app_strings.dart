@@ -2288,4 +2288,80 @@ class AppStrings {
   static String get attachmentNotDownloadedYet => i.attachmentNotDownloadedYet;
 
   static String errorOpeningFile(String error) => i.errorOpeningFile(error);
+
+  // ---------------------------------------------------------------------------
+  // Audit Log — Entity Names (missing entities)
+  // ---------------------------------------------------------------------------
+  static String get auditEntityCurrency => i.auditEntityCurrency;
+  static String get auditEntityCurrencies => i.auditEntityCurrencies;
+  static String get auditEntityAccrual => i.auditEntityAccrual;
+  static String get auditEntityAccruals => i.auditEntityAccruals;
+  static String get auditEntityMessageTemplate => i.auditEntityMessageTemplate;
+  static String get auditEntityMessageTemplates => i.auditEntityMessageTemplates;
+
+  // ---------------------------------------------------------------------------
+  // Audit Log — Field (Key) Translations
+  // ---------------------------------------------------------------------------
+  static String get auditFieldCode => i.auditFieldCode;
+  static String get auditFieldSymbol => i.auditFieldSymbol;
+  static String get auditFieldDecimalPlaces => i.auditFieldDecimalPlaces;
+  static String get auditFieldExchangeRate => i.auditFieldExchangeRate;
+  static String get auditFieldIsBase => i.auditFieldIsBase;
+  static String get auditFieldIsActive => i.auditFieldIsActive;
+  static String get auditFieldTotalAmountMinor => i.auditFieldTotalAmountMinor;
+  static String get auditFieldFrequency => i.auditFieldFrequency;
+  static String get auditFieldStartDate => i.auditFieldStartDate;
+  static String get auditFieldNextDueDate => i.auditFieldNextDueDate;
+  static String get auditFieldSourceAccountId => i.auditFieldSourceAccountId;
+  static String get auditFieldDestinationAccountId =>
+      i.auditFieldDestinationAccountId;
+  static String get auditFieldCategoryId => i.auditFieldCategoryId;
+  static String get auditFieldCostCenterId => i.auditFieldCostCenterId;
+  static String get auditFieldKind => i.auditFieldKind;
+  static String get auditFieldBody => i.auditFieldBody;
+  static String get auditFieldIsSystem => i.auditFieldIsSystem;
+  static String get auditFieldSortOrder => i.auditFieldSortOrder;
+  static String get auditFieldCollateralValueMinor =>
+      i.auditFieldCollateralValueMinor;
+  static String get auditFieldRevaluationDate => i.auditFieldRevaluationDate;
+  static String get auditFieldVoucherId => i.auditFieldVoucherId;
+  static String get auditFieldSettledAt => i.auditFieldSettledAt;
+  static String get auditFieldDueDate => i.auditFieldDueDate;
+  static String get auditFieldCollateralType => i.auditFieldCollateralType;
+  static String get auditFieldBudgetMinorUnits => i.auditFieldBudgetMinorUnits;
+  static String get auditFieldCenterType => i.auditFieldCenterType;
+  static String get auditFieldDebitMinor => i.auditFieldDebitMinor;
+  static String get auditFieldCreditMinor => i.auditFieldCreditMinor;
+  static String get auditFieldLedgerId => i.auditFieldLedgerId;
+  static String get auditFieldEntryDate => i.auditFieldEntryDate;
+  static String get auditFieldVoucherEntryId => i.auditFieldVoucherEntryId;
+  static String get auditFrequencyDaily => i.auditFrequencyDaily;
+  static String get auditFrequencyWeekly => i.auditFrequencyWeekly;
+  static String get auditFrequencyMonthly => i.auditFrequencyMonthly;
+  static String get auditFrequencyQuarterly => i.auditFrequencyQuarterly;
+  static String get auditFrequencySemiAnnually => i.auditFrequencySemiAnnually;
+  static String get auditFrequencyYearly => i.auditFrequencyYearly;
+  static String get auditFrequencyOnce => i.auditFrequencyOnce;
+
+  // Revert single
+  static String get auditRevertSingle => i.auditRevertSingle;
+  static String get auditRevertSingleTitle => i.auditRevertSingleTitle;
+  static String get auditRevertSingleBody => i.auditRevertSingleBody;
+  static String get auditRevertSingleConfirm => i.auditRevertSingleConfirm;
+
+  // Impact warning
+  static String get auditImpactWarningTitle => i.auditImpactWarningTitle;
+  static String get auditImpactWarningBody => i.auditImpactWarningBody;
+  static String get auditImpactWarningProceed => i.auditImpactWarningProceed;
+  static String get auditImpactAffectedCount => i.auditImpactAffectedCount;
+
+  // Severity
+  static String get auditSeverityInfo => i.auditSeverityInfo;
+  static String get auditSeverityWarning => i.auditSeverityWarning;
+  static String get auditSeverityCritical => i.auditSeverityCritical;
+
+  // Search & filter
+  static String get auditSearchHint => i.auditSearchHint;
+  static String get auditFilterSeverity => i.auditFilterSeverity;
+  static String get auditNoMatchesForFilter => i.auditNoMatchesForFilter;
 }

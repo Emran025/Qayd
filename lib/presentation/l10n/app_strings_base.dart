@@ -2419,4 +2419,95 @@ abstract class AppStringsBase {
 
   /// Error message when opening a file fails.
   String errorOpeningFile(String error) => 'حدث خطأ أثناء فتح الملف: $error';
+
+  // ---------------------------------------------------------------------------
+  // Audit Log — Entity Names (missing entities)
+  // ---------------------------------------------------------------------------
+  String get auditEntityCurrency => 'عملة';
+  String get auditEntityCurrencies => 'عملات';
+  String get auditEntityAccrual => 'التزام مالي';
+  String get auditEntityAccruals => 'الالتزامات المالية';
+  String get auditEntityMessageTemplate => 'قالب رسالة';
+  String get auditEntityMessageTemplates => 'قوالب الرسائل';
+
+  // ---------------------------------------------------------------------------
+  // Audit Log — Field (Key) Translations
+  // ---------------------------------------------------------------------------
+
+  // Currency fields
+  String get auditFieldCode => 'رمز العملة';
+  String get auditFieldSymbol => 'رمز الرمز';
+  String get auditFieldDecimalPlaces => 'الخانات العشرية';
+  String get auditFieldExchangeRate => 'سعر الصرف';
+  String get auditFieldIsBase => 'عملة أساسية';
+  String get auditFieldIsActive => 'نشط';
+
+  // Accrual / commitment fields
+  String get auditFieldTotalAmountMinor => 'المبلغ التقديري';
+  String get auditFieldFrequency => 'تكرار الالتزام';
+  String get auditFieldStartDate => 'تاريخ البدء';
+  String get auditFieldNextDueDate => 'الاستحقاق القادم';
+  String get auditFieldSourceAccountId => 'حساب الدفع';
+  String get auditFieldDestinationAccountId => 'حساب الاستحقاق';
+  String get auditFieldCategoryId => 'البُعد الحياتي';
+  String get auditFieldCostCenterId => 'مركز التكلفة';
+
+  // Message template fields
+  String get auditFieldKind => 'النوع';
+  String get auditFieldBody => 'نص الرسالة';
+  String get auditFieldIsSystem => 'قالب نظام';
+  String get auditFieldSortOrder => 'ترتيب العرض';
+
+  // Collateral fields
+  String get auditFieldCollateralValueMinor => 'قيمة الرهن';
+  String get auditFieldRevaluationDate => 'تاريخ إعادة التقييم';
+  String get auditFieldVoucherId => 'رقم السند المرتبط';
+  String get auditFieldSettledAt => 'تاريخ التسوية';
+  String get auditFieldDueDate => 'تاريخ الاستحقاق';
+  String get auditFieldCollateralType => 'نوع الضمان';
+
+  // Cost center fields
+  String get auditFieldBudgetMinorUnits => 'الميزانية المخصصة';
+  String get auditFieldCenterType => 'نوع المركز';
+
+  // Ledger entry fields
+  String get auditFieldDebitMinor => 'المبلغ المدين';
+  String get auditFieldCreditMinor => 'المبلغ الدائن';
+  String get auditFieldLedgerId => 'معرّف الدفتر';
+  String get auditFieldEntryDate => 'تاريخ القيد';
+  String get auditFieldVoucherEntryId => 'معرّف قيد السند';
+
+  // Accrual value translations
+  String get auditFrequencyDaily => 'يومياً';
+  String get auditFrequencyWeekly => 'أسبوعياً';
+  String get auditFrequencyMonthly => 'شهرياً';
+  String get auditFrequencyQuarterly => 'ربع سنوياً';
+  String get auditFrequencySemiAnnually => 'نصف سنوياً';
+  String get auditFrequencyYearly => 'سنوياً';
+  String get auditFrequencyOnce => 'مرة واحدة';
+
+  // Revert single entry
+  String get auditRevertSingle => 'تراجع عن هذه العملية فقط';
+  String get auditRevertSingleTitle => 'تأكيد التراجع عن العملية';
+  String get auditRevertSingleBody =>
+      'هل تريد التراجع عن هذه العملية تحديداً؟ ستُعاد البيانات كما كانت قبلها مباشرة.';
+  String get auditRevertSingleConfirm => 'نعم، تراجع';
+
+  // Impact warning
+  String get auditImpactWarningTitle => 'تحذير: عمليات مرتبطة';
+  String get auditImpactWarningBody =>
+      'التراجع عن هذه العملية سيؤثر على العمليات التالية التي تعتمد عليها:';
+  String get auditImpactWarningProceed => 'متابعة على أي حال';
+  String get auditImpactAffectedCount =>
+      'عمليات ستُلغى';
+
+  // Severity badge labels
+  String get auditSeverityInfo => 'معلوماتي';
+  String get auditSeverityWarning => 'تحذيري';
+  String get auditSeverityCritical => 'حرج';
+
+  // Search & filter
+  String get auditSearchHint => 'ابحث عن كيان أو معرّف...';
+  String get auditFilterSeverity => 'تصفية حسب الأهمية';
+  String get auditNoMatchesForFilter => 'لا توجد نتائج للتصفية الحالية';
 }
