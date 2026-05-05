@@ -2517,4 +2517,5 @@ abstract class AppStringsBase {
   String get vaultUpdateRequiredTitle => 'تحديث إلزامي';
   String get vaultUpdateRequiredBody => 'يتوفر إصدار جديد من التطبيق يحتوي على تحسينات أمنية وخصوصية هامة. يرجى التحديث للمتابعة.';
   String get vaultUpdateAction => 'تحديث الآن';
+  String get pleaseWaitAFewMinutes => 'يرجى الانتظار قليلاً قبل المحاولة مرة أخرى.';
 }

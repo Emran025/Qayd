@@ -261,14 +261,46 @@ class SecurityCubit extends Cubit<SecurityState> {
   }
 
   bool _isRefreshing = false;
+  DateTime? _lastRefreshAt;
 
   /// Refreshes the license state from the server and updates the lock state.
-  /// Used primarily when the user is locked out and waiting for admin approval.
-  Future<({bool success, String? errorAr})> refreshLicenseStatus() async {
+  ///
+  /// [isManual] indicates a user-initiated refresh (cooldown: 30s).
+  /// [isForced] indicates a system-triggered refresh (e.g. 403 Interceptor) which bypasses all timers.
+  Future<({bool success, String? errorAr})> refreshLicenseStatus({
+    bool isManual = false,
+    bool isForced = false,
+  }) async {
     if (_isRefreshing) return (success: true, errorAr: null);
+
+    final now = DateTime.now();
+
+    // ── Throttling Logic ─────────────────────────────────────────────────────
+    if (!isForced) {
+      if (isManual) {
+        // Manual refresh cooldown: 30 seconds to prevent spamming.
+        if (_lastRefreshAt != null &&
+            now.difference(_lastRefreshAt!) < const Duration(seconds: 30)) {
+          return (
+            success: false,
+            errorAr: AppStrings.pleaseWaitAFewMinutes, // Generic "wait" message
+          );
+        }
+      } else {
+        // Automatic refresh (on resume) cooldown: 1 hour.
+        // We only poll automatically if enough time has passed.
+        if (_lastRefreshAt != null &&
+            now.difference(_lastRefreshAt!) < const Duration(hours: 1)) {
+          return (success: true, errorAr: null);
+        }
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
     _isRefreshing = true;
     try {
       final newData = await _authRepository.refreshLicense();
+      _lastRefreshAt = DateTime.now();
 
       // Merge new status fields into the existing license data
       final existingData = await _licenseVault.readLicenseData() ?? {};

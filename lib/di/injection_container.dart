@@ -407,7 +407,8 @@ abstract final class InjectionContainer {
       onSecurityError: () {
         // As soon as any API call returns a 403 (Banned/Closed), 
         // we force the security cubit to refresh its state and lock the UI.
-        securityCubit.refreshLicenseStatus().ignore();
+        // We use isForced: true to bypass the refresh throttling.
+        securityCubit.refreshLicenseStatus(isForced: true).ignore();
       },
     );
 

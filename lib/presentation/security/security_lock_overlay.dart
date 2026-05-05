@@ -563,7 +563,8 @@ class _RefreshStatusButtonState extends State<_RefreshStatusButton> {
       _errorAr = null;
     });
 
-    final result = await context.read<SecurityCubit>().refreshLicenseStatus();
+    final result =
+        await context.read<SecurityCubit>().refreshLicenseStatus(isManual: true);
 
     if (!mounted) return;
     setState(() => _loading = false);

@@ -65,21 +65,22 @@ class ApiAppConfigRepository implements AppConfigRepository {
       final response = await apiClient.get(ApiEndpoints.documents);
       debugPrint('AppConfig: Raw documents response: $response');
 
-      if (response != null && response is Map<String, dynamic>) {
-        final data = response;
+      if (response != null && (response is Map<String, dynamic> || (response is List && response.isEmpty))) {
         final documents = <String, AppDocument>{};
         final cacheMap = <String, dynamic>{};
 
-        data.forEach((key, value) {
-          try {
-            debugPrint('AppConfig: Parsing document key: $key');
-            final doc = AppDocument.fromJson(value as Map<String, dynamic>);
-            documents[key] = doc;
-            cacheMap[key] = doc.toJson();
-          } catch (e) {
-            debugPrint('AppConfig: Error parsing document $key: $e');
-          }
-        });
+        if (response is Map<String, dynamic>) {
+          response.forEach((key, value) {
+            try {
+              debugPrint('AppConfig: Parsing document key: $key');
+              final doc = AppDocument.fromJson(value as Map<String, dynamic>);
+              documents[key] = doc;
+              cacheMap[key] = doc.toJson();
+            } catch (e) {
+              debugPrint('AppConfig: Error parsing document $key: $e');
+            }
+          });
+        }
 
         debugPrint(
             'AppConfig: Successfully parsed ${documents.length} documents. Keys: ${documents.keys.toList()}');
@@ -89,10 +90,13 @@ class ApiAppConfigRepository implements AppConfigRepository {
             _documentsCacheKey,
             json.encode(cacheMap),
           );
+        } else {
+          // Clear cache if server says we have nothing (and we forced a refresh or background fetch)
+          await sharedPreferences.remove(_documentsCacheKey);
         }
         return documents;
       } else {
-        debugPrint('AppConfig: Response is null or not a Map: $response');
+        debugPrint('AppConfig: Response is invalid (not a Map or empty List): $response');
       }
     } catch (e) {
       debugPrint('AppConfig: Global fetch error: $e');

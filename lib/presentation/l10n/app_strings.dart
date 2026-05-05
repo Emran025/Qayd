@@ -2370,4 +2370,5 @@ class AppStrings {
   static String get vaultUpdateRequiredTitle => i.vaultUpdateRequiredTitle;
   static String get vaultUpdateRequiredBody => i.vaultUpdateRequiredBody;
   static String get vaultUpdateAction => i.vaultUpdateAction;
+  static String get pleaseWaitAFewMinutes => i.pleaseWaitAFewMinutes;
 }

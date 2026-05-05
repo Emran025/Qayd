@@ -4494,7 +4494,8 @@ class AppStringsEn extends AppStringsBase {
       'Could not share receipt as image: $error';
 
   @override
-  String couldNotLoadAttachment(String error) => 'Could not load attachment: $error';
+  String couldNotLoadAttachment(String error) =>
+      'Could not load attachment: $error';
 
   @override
   String get attachmentNotDownloadedYet =>
@@ -4502,7 +4503,8 @@ class AppStringsEn extends AppStringsBase {
       'Wait for sync to complete or try again later.';
 
   @override
-  String errorOpeningFile(String error) => 'An error occurred while opening the file: $error';
+  String errorOpeningFile(String error) =>
+      'An error occurred while opening the file: $error';
 
   // ---------------------------------------------------------------------------
   // Audit Log — Entity Names (missing entities)
@@ -4664,4 +4666,7 @@ class AppStringsEn extends AppStringsBase {
       'A new version of the app is available with critical security and privacy updates. Please update to continue.';
   @override
   String get vaultUpdateAction => 'Update Now';
+  @override
+  String get pleaseWaitAFewMinutes =>
+      'Please wait a few minutes before trying again.';
 }
