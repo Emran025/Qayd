@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/accruals/process_accrual_use_case.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
@@ -161,6 +162,7 @@ import 'package:qayd/data/repositories/sqlite_audit_log_repository.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/application/management/seed_expense_accounts_use_case.dart';
 import 'package:qayd/application/identity/delete_account_use_case.dart';
+import 'package:qayd/observability/sentry_dio_observer.dart';
 
 /// Result of attempting to open the encrypted database.
 enum DatabaseOpenResult {
@@ -404,6 +406,9 @@ abstract final class InjectionContainer {
     final apiClient = ApiClient(
       baseUrl: ApiEndpoints.baseUrl,
       tokenProvider: () => licenseVault.readJwt(),
+      interceptors: <Interceptor>[
+        SentryDioObserver(),
+      ],
       onSecurityError: () {
         // As soon as any API call returns a 403 (Banned/Closed), 
         // we force the security cubit to refresh its state and lock the UI.

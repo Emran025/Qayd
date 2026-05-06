@@ -22,8 +22,10 @@ final class ApiClient {
     required String baseUrl,
     Future<String?> Function()? tokenProvider,
     void Function()? onSecurityError,
+    List<Interceptor> interceptors = const <Interceptor>[],
     Dio? dio,
   }) : _dio = dio ?? _buildDio(baseUrl) {
+    _dio.interceptors.addAll(interceptors);
     if (tokenProvider != null) {
       _dio.interceptors.add(AuthInterceptor(tokenProvider));
     }

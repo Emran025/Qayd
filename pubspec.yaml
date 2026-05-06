@@ -74,6 +74,7 @@ dependencies:
   flutter_native_contact_picker: ^0.0.11
   flutter_contacts: ^1.1.9
   archive: ^3.6.1
+  sentry_flutter: ^9.7.0
 
   equatable: any
 dev_dependencies:

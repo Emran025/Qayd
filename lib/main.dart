@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/observability/observability.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
@@ -19,11 +22,12 @@ import 'package:qayd/presentation/theme/app_theme.dart';
 import 'package:qayd/presentation/utils/no_stretch_scroll_behavior.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Phase A: only lightweight services (no database).
-  await InjectionContainer.initPreAuth();
-
-  runApp(const QaydAppBootstrapper());
+  await AppObservability.bootstrap(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    // Phase A: only lightweight services (no database).
+    await InjectionContainer.initPreAuth();
+    runApp(const QaydAppBootstrapper());
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -216,6 +220,9 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
             title: AppStrings.appTitle,
             scrollBehavior: const NoStretchScrollBehavior(),
             debugShowCheckedModeBanner: false,
+            navigatorObservers: <NavigatorObserver>[
+              AppObservability.navigatorObserver,
+            ],
             locale: locale,
             supportedLocales: const [Locale('ar'), Locale('en')],
             localizationsDelegates: const [
@@ -370,6 +377,9 @@ class _QaydAppState extends State<QaydApp> {
           title: AppStrings.appTitle,
           scrollBehavior: const NoStretchScrollBehavior(),
           debugShowCheckedModeBanner: false,
+          navigatorObservers: <NavigatorObserver>[
+            AppObservability.navigatorObserver,
+          ],
           locale: locale,
           supportedLocales: const [Locale('ar'), Locale('en')],
           localizationsDelegates: const [
