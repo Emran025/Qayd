@@ -58,6 +58,7 @@ class DevicePairingCubit extends ChangeNotifier {
   Future<void> load() async {
     _emit(_state.copyWith(isLoading: true, clearError: true));
     try {
+      await _pairingService.refreshSessionsFromServer();
       final sessions = await _sessionRepository.listAll();
       _emit(_state.copyWith(isLoading: false, sessions: sessions));
     } catch (_) {
@@ -101,7 +102,11 @@ class DevicePairingCubit extends ChangeNotifier {
   }
 
   Future<void> revoke(String deviceId) async {
-    await _sessionRepository.setActive(deviceId, false);
-    await load();
+    try {
+      await _pairingService.revokeDevice(deviceId);
+      await load();
+    } catch (_) {
+      _emit(_state.copyWith(error: 'Unable to revoke device.'));
+    }
   }
 }

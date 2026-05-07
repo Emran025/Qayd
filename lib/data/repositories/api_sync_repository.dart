@@ -5,16 +5,20 @@ import 'package:qayd/domain/entities/sync_node.dart';
 import 'package:qayd/domain/repositories/sync_repository.dart';
 
 class ApiSyncRepository implements SyncRepository {
-  const ApiSyncRepository(this._apiClient);
+  const ApiSyncRepository(
+    this._apiClient, {
+    required this.currentDeviceId,
+  });
 
   final ApiClient _apiClient;
+  final String currentDeviceId;
 
   @override
   Future<List<SyncNode>> pullNodes({String? since}) async {
     try {
       final endpoint = since != null
-          ? '${ApiEndpoints.syncPull}?since=$since'
-          : ApiEndpoints.syncPull;
+          ? '${ApiEndpoints.syncPull}?since=$since&device_id=$currentDeviceId'
+          : '${ApiEndpoints.syncPull}?device_id=$currentDeviceId';
       final response = await _apiClient.get(endpoint);
       if (response is List) {
         return response
@@ -50,6 +54,7 @@ class ApiSyncRepository implements SyncRepository {
         body: {
           'node_ids': nodeIds,
           'state': state,
+          'device_id': currentDeviceId,
         },
       );
     } catch (e) {

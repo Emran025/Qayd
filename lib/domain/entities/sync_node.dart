@@ -50,6 +50,9 @@ class SyncNode {
     this.receiverWhatsapp,
     this.receiverPublicKey,
     this.clientTimestamp,
+    this.senderDeviceId,
+    this.targetDeviceId,
+    this.signature,
   });
 
   /// Unique client-generated UUID for this node (used for idempotency)
@@ -80,6 +83,9 @@ class SyncNode {
   final String syncState;
 
   final DateTime? clientTimestamp;
+  final String? senderDeviceId;
+  final String? targetDeviceId;
+  final String? signature;
 
   factory SyncNode.fromJson(Map<String, dynamic> json) {
     return SyncNode(
@@ -97,6 +103,9 @@ class SyncNode {
       clientTimestamp: json['client_timestamp'] != null
           ? DateTime.tryParse(json['client_timestamp'])
           : null,
+      senderDeviceId: json['sender_device_id'] as String?,
+      targetDeviceId: json['target_device_id'] as String?,
+      signature: json['signature'] as String?,
     );
   }
 
@@ -112,6 +121,9 @@ class SyncNode {
       'encrypted_payload': encryptedPayload,
       'sync_state': syncState,
       'client_timestamp': clientTimestamp?.toIso8601String(),
+      if (senderDeviceId != null) 'sender_device_id': senderDeviceId,
+      if (targetDeviceId != null) 'target_device_id': targetDeviceId,
+      if (signature != null) 'signature': signature,
     };
   }
 

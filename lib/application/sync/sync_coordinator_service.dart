@@ -35,6 +35,7 @@ class SyncCoordinatorService {
     required this.currentUserId,
     required this.voucherRepository,
     required this.syncEventDispatcher,
+    required this.currentDeviceId,
     this.collateralExpiryChecker,
     this.syncInterval = const Duration(minutes: 10),
   });
@@ -51,6 +52,7 @@ class SyncCoordinatorService {
   final int currentUserId;
   final VoucherRepository voucherRepository;
   final SyncEventDispatcher syncEventDispatcher;
+  final String currentDeviceId;
   final CollateralExpiryChecker? collateralExpiryChecker;
   final Duration syncInterval;
 
@@ -73,6 +75,10 @@ class SyncCoordinatorService {
     // 2. Connect the active WebSocket listener
     socketService.connect(currentUserId);
     _socketSubscription = socketService.incomingNodes.listen((node) async {
+      if (node.targetDeviceId != null &&
+          node.targetDeviceId != currentDeviceId) {
+        return;
+      }
       // Pass the encrypted wrapper into the Crypto Engine for authentication/decryption
       await payloadProcessor.processIncomingNodes([node]);
 
@@ -184,11 +190,15 @@ class SyncCoordinatorService {
 
       // 3. Pull new nodes since last watermark
       final nodes = await syncRepository.pullNodes(since: lastSync);
-      if (nodes.isNotEmpty) {
+      final targetNodes = nodes
+          .where((n) =>
+              n.targetDeviceId == null || n.targetDeviceId == currentDeviceId)
+          .toList();
+      if (targetNodes.isNotEmpty) {
         // Feed caught-up nodes firmly into local verification pipelines
-        await payloadProcessor.processIncomingNodes(nodes);
+        await payloadProcessor.processIncomingNodes(targetNodes);
 
-        final ids = nodes.map((e) => e.id).toList();
+        final ids = targetNodes.map((e) => e.id).toList();
         await _acknowledge(ids, 'delivered');
       }
     } catch (e) {
@@ -205,11 +215,14 @@ class SyncCoordinatorService {
         final node = SyncNode(
           id: entry.id,
           senderId: currentUserId,
-          receiverPublicKey: entry.targetDeviceId,
+          receiverPublicKey: null,
           eventType: SyncEventType.auditBatch,
           encryptedPayload: entry.encryptedPayload,
           syncState: 'pending',
           clientTimestamp: entry.createdAt,
+          senderDeviceId: currentDeviceId,
+          targetDeviceId: entry.targetDeviceId,
+          signature: entry.signature,
         );
         await syncRepository.pushNode(node);
         await deviceSyncOutboxDao.markSent(entry.id);

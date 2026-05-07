@@ -118,9 +118,11 @@ import 'package:qayd/domain/services/native_notification_service.dart';
 import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/data/services/local_notification_service_impl.dart';
 import 'package:qayd/data/repositories/api_sync_repository.dart';
+import 'package:qayd/data/repositories/api_device_registry_repository.dart';
 import 'package:qayd/data/security/e2ee_encryption_service_impl.dart';
 import 'package:qayd/domain/services/e2ee_encryption_service.dart';
 import 'package:qayd/domain/repositories/sync_repository.dart';
+import 'package:qayd/domain/repositories/device_registry_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
@@ -215,6 +217,7 @@ abstract final class InjectionContainer {
   static late final AppPinStorage appPinStorage;
   static late final LicenseVault licenseVault;
   static late final HardwareIdService hardwareIdService;
+  static late String currentDeviceId;
   static late final MonotonicClockGuard clockGuard;
   static late final PanicWipeService panicWipeService;
   static late final AuthRepository authRepository;
@@ -314,6 +317,7 @@ abstract final class InjectionContainer {
   static late final SyncSocketService syncSocketService;
   static late SyncPayloadProcessor syncPayloadProcessor;
   static late final SyncRepository syncRepository;
+  static late final DeviceRegistryRepository deviceRegistryRepository;
   static late final E2EEEncryptionService e2eeService;
 
   // ── App Settings & Info ────────────────────────────────────────────────
@@ -406,6 +410,7 @@ abstract final class InjectionContainer {
     clockGuard = MonotonicClockGuard();
 
     final hwId = await hardwareIdService.obtainHardwareId();
+    currentDeviceId = hwId;
     identityFileStorage = IdentityFileStorage(hardwareId: hwId);
 
     panicWipeService = PanicWipeService(
@@ -455,7 +460,14 @@ abstract final class InjectionContainer {
     notificationFilterService = NotificationFilterService(sharedPreferences);
     e2eeService = const E2EEEncryptionServiceImpl();
     counterpartyQrService = const CounterpartyQrService();
-    syncRepository = ApiSyncRepository(apiClient);
+    syncRepository = ApiSyncRepository(
+      apiClient,
+      currentDeviceId: currentDeviceId,
+    );
+    deviceRegistryRepository = ApiDeviceRegistryRepository(
+      apiClient: apiClient,
+      currentDeviceId: currentDeviceId,
+    );
     deviceContactsService = const DeviceContactsService();
 
     // ── Cryptographic identity ─────────────────────────────────────────────
@@ -726,6 +738,7 @@ abstract final class InjectionContainer {
       watermarkDao: syncWatermarkDao,
       voucherRepository: voucherRepository,
       syncEventDispatcher: syncEventDispatcher,
+      currentDeviceId: currentDeviceId,
     );
 
     if (userId > 0) {
@@ -806,8 +819,10 @@ abstract final class InjectionContainer {
     );
     devicePairingService = DevicePairingService(
       deviceSessionRepository: deviceSessionRepository,
+      deviceRegistryRepository: deviceRegistryRepository,
       auditLogRepository: auditLogRepository,
       auditSyncDispatcher: auditSyncDispatcher,
+      getCurrentKeyPair: () => setupIdentityUseCase.getKeyPair(),
     );
 
     transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(

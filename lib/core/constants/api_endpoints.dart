@@ -50,6 +50,9 @@ abstract final class ApiEndpoints {
   static const String syncPush = '$v1/sync/push';
   static const String syncPull = '$v1/sync/pull';
   static const String syncAcknowledge = '$v1/sync/acknowledge';
+  static const String devicesPair = '$v1/devices/pair';
+  static const String devicesList = '$v1/devices';
+  static String deviceRevoke(String deviceId) => '$v1/devices/$deviceId/revoke';
 
   // ── Support & Documents ─────────────────────────────────────────────────
   static const String documents = '$v1/documents';
