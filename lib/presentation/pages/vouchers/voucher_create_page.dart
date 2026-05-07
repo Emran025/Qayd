@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
-import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
+// import 'package:qayd/application/suggestions/scored_suggestion_dto.dart';
 import 'package:qayd/application/vouchers/dtos/create_voucher_input.dart';
 import 'package:qayd/presentation/widgets/attachment_picker_sheet.dart';
 import 'package:qayd/presentation/widgets/collateral_entry_sheet.dart';
@@ -57,6 +57,8 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   String? _hiddenTripartiteRole;
   String? _hiddenLinkedPartyId;
   bool _hiddenIsContingent = false;
+
+  bool _canPickAffectedAccount = true;
 
   // Signature fields from QR
   String? _qrSenderSignatureHex;
@@ -112,11 +114,12 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     final qrMinor = widget.initialQrData!['amountMinorUnits'] as int? ?? 0;
 
     final amountMatches = currentMinor == qrMinor;
-    final currencyMatches = _currencyCode == widget.initialQrData!['currencyCode'];
-    final dateMatches = _date.year ==
-            (widget.initialQrData!['date'] as DateTime).year &&
-        _date.month == (widget.initialQrData!['date'] as DateTime).month &&
-        _date.day == (widget.initialQrData!['date'] as DateTime).day;
+    final currencyMatches =
+        _currencyCode == widget.initialQrData!['currencyCode'];
+    final dateMatches =
+        _date.year == (widget.initialQrData!['date'] as DateTime).year &&
+            _date.month == (widget.initialQrData!['date'] as DateTime).month &&
+            _date.day == (widget.initialQrData!['date'] as DateTime).day;
 
     final isValid = amountMatches && currencyMatches && dateMatches;
 
@@ -142,9 +145,17 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                   .firstOrNull ??
               accounts.firstOrNull;
 
-      if (fund != null && _affected == null) {
-        setState(() => _affected = fund);
-      }
+      final selectableCount = accounts
+          .where((a) =>
+              a.standardClassificationKind == 'liquidAssets' && !a.isRoot)
+          .length;
+
+      setState(() {
+        if (fund != null && _affected == null) {
+          _affected = fund;
+        }
+        _canPickAffectedAccount = selectableCount > 1;
+      });
     }
   }
 
@@ -434,7 +445,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
           primaryActionLabel: AppStrings.actionProceedAndConfirm,
           onPrimaryAction: () => Navigator.pop(context, true),
         );
-        
+
         if (proceed != true) return;
       }
     }
@@ -478,9 +489,9 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     await context.read<VoucherCreateCubit>().submit(input);
   }
 
-  String _typeLabel(VoucherType t) => t == VoucherType.receipt
-      ? AppStrings.voucherTypeReceipt
-      : AppStrings.voucherTypePayment;
+  // String _typeLabel(VoucherType t) => t == VoucherType.receipt
+  //     ? AppStrings.voucherTypeReceipt
+  //     : AppStrings.voucherTypePayment;
 
   @override
   Widget build(BuildContext context) {
@@ -541,11 +552,11 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
               child: Form(
                 key: _formKey,
                 child: ListView(
-                  padding:  EdgeInsets.all(SpacingTokens.lg),
+                  padding: EdgeInsets.all(SpacingTokens.lg),
                   children: [
                     // ── Standard mode ─────────────────────────────────
                     SegmentedButton<VoucherType>(
-                      segments:  [
+                      segments: [
                         ButtonSegment<VoucherType>(
                           value: VoucherType.receipt,
                           label: Text(AppStrings.voucherTypeReceipt),
@@ -562,7 +573,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                         setState(() => _type = s.first);
                       },
                     ),
-                    SizedBox(height: SpacingTokens.lg),
+                    SizedBox(height: SpacingTokens.md),
                     _buildDateTile(gold),
                     const Divider(),
                     _buildCurrencyTile(gold),
@@ -586,27 +597,31 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                       trailing: Icon(Icons.chevron_left_rounded, color: gold),
                       onTap: _pickCounterparty,
                     ),
-                    const Divider(),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: QaydText(
-                        _type == VoucherType.payment
-                            ? AppStrings.voucherAffectedAccountPaymentTitle
-                            : AppStrings.voucherAffectedAccountReceiptTitle,
-                        slot: QaydTextStyleSlot.labelLarge,
+
+                    if (_canPickAffectedAccount || _affected == null) ...[
+                      const Divider(),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: QaydText(
+                          _type == VoucherType.payment
+                              ? AppStrings.voucherAffectedAccountPaymentTitle
+                              : AppStrings.voucherAffectedAccountReceiptTitle,
+                          slot: QaydTextStyleSlot.labelLarge,
+                        ),
+                        subtitle: QaydText(
+                          _affected?.name ??
+                              AppStrings.voucherAffectedAccountHint,
+                          slot: QaydTextStyleSlot.bodyLarge,
+                          color: _affected == null
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : null,
+                        ),
+                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
+                        onTap: _pickAffectedAccount,
                       ),
-                      subtitle: QaydText(
-                        _affected?.name ??
-                            AppStrings.voucherAffectedAccountHint,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        color: _affected == null
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
-                            : null,
-                      ),
-                      trailing: Icon(Icons.chevron_left_rounded, color: gold),
-                      onTap: _pickAffectedAccount,
-                    ),
-                    if (_counterparty != null) _buildSuggestionsStrip(context),
+                    ],
+
+                    // if (_counterparty != null) _buildSuggestionsStrip(context),
                     SizedBox(height: SpacingTokens.md),
                     SlideTransition(
                       position: _slideOffset,
@@ -817,8 +832,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                                             color: Colors.black,
                                           ),
                                         )
-                                      : Text(
-                                          AppStrings.voucherConfirmAndSend),
+                                      : Text(AppStrings.voucherConfirmAndSend),
                                 ),
                               ),
                             ],
@@ -864,69 +878,6 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
         onTap: _pickCurrency,
       );
 
-  Widget _buildSuggestionsStrip(BuildContext context) {
-    return BlocBuilder<VoucherSuggestionsCubit, VoucherSuggestionsState>(
-      builder: (context, sug) {
-        if (sug is VoucherSuggestionsLoading) {
-          return Padding(
-            padding: const EdgeInsets.only(top: SpacingTokens.md),
-            child: AnimatedOpacity(
-              opacity: 0.45,
-              duration: const Duration(milliseconds: 280),
-              child: Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
-          );
-        }
-        if (sug is! VoucherSuggestionsReady || sug.suggestions.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        return Padding(
-          padding: const EdgeInsets.only(top: SpacingTokens.md),
-          child: AnimatedOpacity(
-            opacity: 1,
-            duration: const Duration(milliseconds: 420),
-            curve: Curves.easeOut,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                QaydText(
-                  AppStrings.smartSuggestionsTitle,
-                  slot: QaydTextStyleSlot.titleSmall,
-                ),
-                SizedBox(height: SpacingTokens.sm),
-                SizedBox(
-                  height: 140,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: sug.suggestions.length,
-                    separatorBuilder: (_, __) =>
-                        SizedBox(width: SpacingTokens.sm),
-                    itemBuilder: (context, i) {
-                      final s = sug.suggestions[i];
-                      return _SuggestionCard(
-                        suggestion: s,
-                        typeLabel: _typeLabel,
-                        onAccept: () => context
-                            .read<VoucherSuggestionsCubit>()
-                            .acceptAndMarkProcessed(s),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildSignatureStatusBanner(Color gold) {
     return Container(
       padding: const EdgeInsets.all(SpacingTokens.md),
@@ -968,70 +919,133 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   }
 }
 
+  // Widget _buildSuggestionsStrip(BuildContext context) {
+  //   return BlocBuilder<VoucherSuggestionsCubit, VoucherSuggestionsState>(
+  //     builder: (context, sug) {
+  //       if (sug is VoucherSuggestionsLoading) {
+  //         return Padding(
+  //           padding: const EdgeInsets.only(top: SpacingTokens.md),
+  //           child: AnimatedOpacity(
+  //             opacity: 0.45,
+  //             duration: const Duration(milliseconds: 280),
+  //             child: Center(
+  //               child: SizedBox(
+  //                 width: 22,
+  //                 height: 22,
+  //                 child: CircularProgressIndicator(strokeWidth: 2),
+  //               ),
+  //             ),
+  //           ),
+  //         );
+  //       }
+  //       if (sug is! VoucherSuggestionsReady || sug.suggestions.isEmpty) {
+  //         return const SizedBox.shrink();
+  //       }
+  //       return Padding(
+  //         padding: const EdgeInsets.only(top: SpacingTokens.md),
+  //         child: AnimatedOpacity(
+  //           opacity: 1,
+  //           duration: const Duration(milliseconds: 420),
+  //           curve: Curves.easeOut,
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               QaydText(
+  //                 AppStrings.smartSuggestionsTitle,
+  //                 slot: QaydTextStyleSlot.titleSmall,
+  //               ),
+  //               SizedBox(height: SpacingTokens.sm),
+  //               SizedBox(
+  //                 height: 140,
+  //                 child: ListView.separated(
+  //                   scrollDirection: Axis.horizontal,
+  //                   itemCount: sug.suggestions.length,
+  //                   separatorBuilder: (_, __) =>
+  //                       SizedBox(width: SpacingTokens.sm),
+  //                   itemBuilder: (context, i) {
+  //                     final s = sug.suggestions[i];
+  //                     return _SuggestionCard(
+  //                       suggestion: s,
+  //                       typeLabel: _typeLabel,
+  //                       onAccept: () => context
+  //                           .read<VoucherSuggestionsCubit>()
+  //                           .acceptAndMarkProcessed(s),
+  //                     );
+  //                   },
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
 // ── Suggestion card (unchanged) ──────────────────────────────────────────────
 
-class _SuggestionCard extends StatelessWidget {
-  const _SuggestionCard({
-    required this.suggestion,
-    required this.typeLabel,
-    required this.onAccept,
-  });
+// class _SuggestionCard extends StatelessWidget {
+//   const _SuggestionCard({
+//     required this.suggestion,
+//     required this.typeLabel,
+//     required this.onAccept,
+//   });
 
-  final ScoredSuggestionDto suggestion;
-  final String Function(VoucherType) typeLabel;
-  final VoidCallback onAccept;
+//   final ScoredSuggestionDto suggestion;
+//   final String Function(VoucherType) typeLabel;
+//   final VoidCallback onAccept;
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final amt = suggestion.amountMinorUnits != null
-        ? formatMinorAmountForField(suggestion.amountMinorUnits!)
-        : '—';
-    final dateStr = suggestion.date != null
-        ? DateFormat.yMMMd('ar').format(suggestion.date!)
-        : '—';
-    final typeStr = suggestion.type != null ? typeLabel(suggestion.type!) : '—';
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
+//     final amt = suggestion.amountMinorUnits != null
+//         ? formatMinorAmountForField(suggestion.amountMinorUnits!)
+//         : '—';
+//     final dateStr = suggestion.date != null
+//         ? DateFormat.yMMMd('ar').format(suggestion.date!)
+//         : '—';
+//     final typeStr = suggestion.type != null ? typeLabel(suggestion.type!) : '—';
 
-    return Material(
-      color: ColorTokens.navy800.withValues(alpha: 0.35),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.all(SpacingTokens.md),
-        child: SizedBox(
-          width: 168,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${AppStrings.smartSuggestionAmount}: $amt',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
-              ),
-              Text(
-                '${AppStrings.smartSuggestionDate}: $dateStr',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
-              ),
-              Text(
-                '${AppStrings.smartSuggestionType}: $typeStr',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
-              ),
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: FilledButton.tonal(
-                  onPressed: onAccept,
-                  child: Text(AppStrings.smartSuggestionAccept),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+//     return Material(
+//       color: ColorTokens.navy800.withValues(alpha: 0.35),
+//       borderRadius: BorderRadius.circular(12),
+//       child: Padding(
+//         padding: const EdgeInsets.all(SpacingTokens.md),
+//         child: SizedBox(
+//           width: 168,
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               Text(
+//                 '${AppStrings.smartSuggestionAmount}: $amt',
+//                 maxLines: 1,
+//                 overflow: TextOverflow.ellipsis,
+//                 style: theme.textTheme.bodySmall,
+//               ),
+//               Text(
+//                 '${AppStrings.smartSuggestionDate}: $dateStr',
+//                 maxLines: 1,
+//                 overflow: TextOverflow.ellipsis,
+//                 style: theme.textTheme.bodySmall,
+//               ),
+//               Text(
+//                 '${AppStrings.smartSuggestionType}: $typeStr',
+//                 maxLines: 1,
+//                 overflow: TextOverflow.ellipsis,
+//                 style: theme.textTheme.bodySmall,
+//               ),
+//               Align(
+//                 alignment: AlignmentDirectional.centerEnd,
+//                 child: FilledButton.tonal(
+//                   onPressed: onAccept,
+//                   child: Text(AppStrings.smartSuggestionAccept),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

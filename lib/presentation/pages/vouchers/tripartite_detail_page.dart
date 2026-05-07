@@ -204,8 +204,10 @@ class _TripartiteDetailBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
-    final dateStr = DateFormat.yMMMd('en').format(DateTime.parse(data.dateIso));
-    final createdStr = DateFormat('hh:mm a  dd/MM/yyyy', 'en')
+    final locale = Localizations.localeOf(context).languageCode;
+    final dateStr =
+        DateFormat.yMMMd(locale).format(DateTime.parse(data.dateIso));
+    final createdStr = DateFormat('hh:mm a  dd/MM/yyyy', locale)
         .format(DateTime.parse(data.createdAtIso));
 
     return ListView(
@@ -345,7 +347,7 @@ class _TripartiteDetailBody extends StatelessWidget {
                               size: 14, color: scheme.onSurfaceVariant),
                           SizedBox(width: 4),
                           QaydText(
-                            'رسوم التحويل: ${MoneyFormatter.formatWithSymbol(
+                            '${AppStrings.transferFeeLabelWithColon}${MoneyFormatter.formatWithSymbol(
                               data.feeAmountMinorUnits! / 100,
                               data.currencySymbol,
                               fractionalDigits: data.currencyDigits,
@@ -405,7 +407,7 @@ class _TripartiteDetailBody extends StatelessWidget {
               SizedBox(width: SpacingTokens.sm),
               Expanded(
                 child: QaydText(
-                  'معرف المجموعة: ${data.transferGroupId.substring(0, 8)}…',
+                  '${AppStrings.transferGroupIdLabelWithColon}${data.transferGroupId.substring(0, 8)}…',
                   slot: QaydTextStyleSlot.labelSmall,
                   color: scheme.onSurfaceVariant,
                 ),

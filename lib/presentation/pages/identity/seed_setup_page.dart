@@ -103,7 +103,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
     return AuthGradientScaffold(
       child: SafeArea(
         child: SingleChildScrollView(
-          padding:  EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: SpacingTokens.lg,
             vertical: SpacingTokens.xl,
           ),
@@ -118,19 +118,18 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                 title: AppStrings.seedSetupTitle,
                 subtitle: AppStrings.seedSetupBody,
               ),
-              SizedBox(height: SpacingTokens.xl),
+              SizedBox(height: SpacingTokens.md),
               if (_mnemonic == null) ...[
                 _buildIntroSection(context),
               ] else ...[
                 // ── Warning Banner (Professional Style) ─────────────────────────
                 _buildWarningBanner(context),
-                SizedBox(height: SpacingTokens.xl),
+                SizedBox(height: SpacingTokens.md),
 
                 // ── Seed Words Grid (Professional Style) ────────────────────────
                 _buildSectionLabel(context, AppStrings.identityViewSeed),
                 SizedBox(height: SpacingTokens.sm),
                 Container(
-                  padding: const EdgeInsets.all(SpacingTokens.md),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.3),
@@ -139,8 +138,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
                         color: theme.dividerColor.withValues(alpha: 0.05)),
                   ),
                   child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 4,
+                    runSpacing: 4,
                     children: words.asMap().entries.map((entry) {
                       return _buildWordCard(
                           context, entry.key + 1, entry.value);
@@ -237,7 +236,8 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   Widget _buildSectionLabel(BuildContext context, String title) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsetsDirectional.only(bottom: SpacingTokens.sm, end: 4),
+      padding:
+          const EdgeInsetsDirectional.only(bottom: SpacingTokens.sm, end: 4),
       child: Align(
         alignment: AlignmentDirectional.centerStart,
         child: Text(
@@ -316,7 +316,7 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   Widget _buildWordCard(BuildContext context, int index, String word) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),

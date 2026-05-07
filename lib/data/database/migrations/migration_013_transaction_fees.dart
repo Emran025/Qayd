@@ -11,7 +11,6 @@ class Migration013TransactionFees implements SchemaMigration {
       CREATE TABLE transaction_fees (
         id TEXT PRIMARY KEY NOT NULL,
         amount_minor_units INTEGER NOT NULL,
-        currency_code TEXT NOT NULL,
         is_active INTEGER NOT NULL DEFAULT 1,
         created_at TEXT NOT NULL
       )

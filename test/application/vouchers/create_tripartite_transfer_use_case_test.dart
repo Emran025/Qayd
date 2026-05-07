@@ -8,6 +8,7 @@ import 'package:qayd/application/settings/get_active_transaction_fee_use_case.da
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
+import 'package:qayd/domain/entities/fee_calculation_type.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
@@ -177,8 +178,8 @@ void main() {
     test('should create fee voucher when transaction fee is active', () async {
       // Arrange
       final feeSetting = MockTransactionFeeSetting();
-      when(() => feeSetting.amountMinorUnits).thenReturn(100);
-      when(() => feeSetting.currencyCode).thenReturn('SAR');
+      when(() => feeSetting.value).thenReturn(100);
+      when(() => feeSetting.calculationType).thenReturn(FeeCalculationType.fixed);
 
       when(() => mockWriteGuard.assertWritesPermitted())
           .thenAnswer((_) async => const Success(null));

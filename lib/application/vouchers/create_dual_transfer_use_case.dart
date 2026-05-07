@@ -24,7 +24,6 @@ import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
-
 /// Creates a dual transfer (two standard vouchers through the fund/cashbox).
 ///
 /// Unlike the tripartite transfer which acts as a bridge (fund not affected),
@@ -89,7 +88,7 @@ class CreateDualTransferUseCase {
       final fundId = AccountId(input.fundAccountId);
 
       if (senderId == receiverId) {
-        return  FailureResult(
+        return FailureResult(
           ValidationFailure(
             messageAr: AppStrings.theSenderAndRecipient,
             code: 'dual_same_sender_receiver',
@@ -97,7 +96,7 @@ class CreateDualTransferUseCase {
         );
       }
       if (senderId == fundId || receiverId == fundId) {
-        return  FailureResult(
+        return FailureResult(
           ValidationFailure(
             messageAr: AppStrings.theFundAccountMust,
             code: 'dual_fund_conflict',
@@ -116,13 +115,34 @@ class CreateDualTransferUseCase {
       final now = DateTime.now();
       final amount = Money.positiveAmount(input.amountMinorUnits, currency);
 
+      // 5.5 Handle Fee Deduction
+      final feeMinor = input.feeAmountMinorUnits ?? 0;
+      final netAmountMinor = input.amountMinorUnits - feeMinor;
+
+      if (netAmountMinor <= 0 && feeMinor > 0) {
+        return FailureResult(
+          ValidationFailure(
+            messageAr:
+                'مبلغ الرسوم لا يمكن أن يكون أكبر من أو يساوي مبلغ التحويل.',
+            code: 'fee_exceeds_amount',
+          ),
+        );
+      }
+
+      final netAmount = Money.positiveAmount(netAmountMinor, currency);
+
       // Build description text
-      final senderDesc = input.description != null && input.description!.isNotEmpty
-          ? '${input.description} — خصم من حساب $senderName'
-          : 'خصم مبلغ من حساب $senderName (تحويل مزدوج)';
-      final receiverDesc = input.description != null && input.description!.isNotEmpty
-          ? '${input.description} — إضافة إلى حساب $receiverName'
-          : 'إضافة مبلغ إلى حساب $receiverName (تحويل مزدوج)';
+      final feeDesc = feeMinor > 0 ? ' (رسوم: ${feeMinor / 100})' : '';
+
+      final senderDesc =
+          input.description != null && input.description!.isNotEmpty
+              ? '${input.description} — خصم من حساب $senderName$feeDesc'
+              : 'خصم مبلغ من حساب $senderName (تحويل مزدوج)$feeDesc';
+
+      final receiverDesc =
+          input.description != null && input.description!.isNotEmpty
+              ? '${input.description} — إضافة إلى حساب $receiverName'
+              : 'إضافة مبلغ إلى حساب $receiverName (تحويل مزدوج)';
 
       // 6. Create Receipt Voucher (Sender → Fund)
       // counterparty = Sender, affectedAccount = Fund
@@ -154,7 +174,7 @@ class CreateDualTransferUseCase {
         id: paymentId,
         type: VoucherType.payment,
         date: input.date,
-        amount: amount,
+        amount: netAmount,
         currency: currency,
         counterpartyId: receiverId,
         affectedAccountId: fundId,
@@ -167,6 +187,8 @@ class CreateDualTransferUseCase {
           linkedPartyId: senderId,
           mediatorAccountId: fundId,
           isContingent: false,
+          feeAmount:
+              feeMinor > 0 ? Money.positiveAmount(feeMinor, currency) : null,
         ),
       );
 
@@ -186,7 +208,7 @@ class CreateDualTransferUseCase {
         // Automatically confirm and sign as "The Box" (Internal signature)
         // We only sign for the box (creator) and leave the counterparty as Under Request
         final confirmedReceipt = receiptVoucher.confirm(now).attachSignature(
-              signatureHex: 'internal_box_sig', 
+              signatureHex: 'internal_box_sig',
               publicKeyHex: 'system',
               isSender: true, // The box is the creator (sender of the document)
               status: AgreementStatus.accepted,
@@ -194,7 +216,7 @@ class CreateDualTransferUseCase {
 
         // Payment is signed by the box (sender) only
         final confirmedPayment = paymentVoucher.confirm(now).attachSignature(
-              signatureHex: 'internal_box_sig', 
+              signatureHex: 'internal_box_sig',
               publicKeyHex: 'system',
               isSender: true,
               status: AgreementStatus.accepted,
@@ -219,7 +241,8 @@ class CreateDualTransferUseCase {
           ledgerCreatedAt: now,
         );
 
-        saveResult = await _voucherRepository.saveTripartitePairWithLedgerEntries(
+        saveResult =
+            await _voucherRepository.saveTripartitePairWithLedgerEntries(
           receiptVoucher: confirmedReceipt,
           receiptEntries: rEntries,
           paymentVoucher: confirmedPayment,
@@ -227,9 +250,13 @@ class CreateDualTransferUseCase {
         );
 
         if (saveResult.isSuccess) {
-           if (_syncEventDispatcher != null) {
-            _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedReceipt).ignore();
-            _syncEventDispatcher!.dispatchVoucherAcceptance(confirmedPayment).ignore();
+          if (_syncEventDispatcher != null) {
+            _syncEventDispatcher!
+                .dispatchVoucherAcceptance(confirmedReceipt)
+                .ignore();
+            _syncEventDispatcher!
+                .dispatchVoucherAcceptance(confirmedPayment)
+                .ignore();
           }
         }
       } else {

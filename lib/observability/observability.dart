@@ -110,7 +110,7 @@ abstract final class AppObservability {
   static void _installFlutterErrorWidgetFallback() {
     ErrorWidget.builder = (FlutterErrorDetails details) {
       FlutterError.reportError(details);
-      return const _FriendlyErrorFallback();
+      return _FriendlyErrorFallback(errorDetails: details);
     };
   }
 
@@ -126,14 +126,16 @@ abstract final class AppObservability {
 }
 
 class _FriendlyErrorFallback extends StatelessWidget {
-  const _FriendlyErrorFallback();
+  const _FriendlyErrorFallback({this.errorDetails});
+
+  final FlutterErrorDetails? errorDetails;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -145,6 +147,24 @@ class _FriendlyErrorFallback extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
+              if (kDebugMode && errorDetails != null) ...[
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    errorDetails!.exceptionAsString(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onErrorContainer,
+                          fontFamily: 'monospace',
+                        ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

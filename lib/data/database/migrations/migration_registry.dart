@@ -30,6 +30,7 @@ import 'package:qayd/data/database/migrations/migration_029_outbox_routing_heade
 import 'package:qayd/data/database/migrations/migration_030_attachment_key.dart';
 import 'package:qayd/data/database/migrations/migration_031_audit_log_enhancements.dart';
 import 'package:qayd/data/database/migrations/migration_032_audit_log_severity_and_indexes.dart';
+import 'package:qayd/data/database/migrations/migration_033_add_fee_type.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -70,6 +71,7 @@ final class MigrationRegistry {
     Migration030AttachmentKey(),
     Migration031AuditLogEnhancements(),
     Migration032AuditLogSeverityAndIndexes(),
+    Migration033AddFeeType(),
   ];
 
   static List<SchemaMigration> get ordered {

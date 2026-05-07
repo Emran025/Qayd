@@ -1,27 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/entities/fee_calculation_type.dart';
+import 'package:qayd/domain/entities/transaction_fee_type.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
-import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
+import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/utils/amount_parser.dart';
 
-class TransferFeesSettingsSection extends StatefulWidget {
+class TransferFeesSettingsSection extends StatelessWidget {
   const TransferFeesSettingsSection({super.key});
 
   @override
-  State<TransferFeesSettingsSection> createState() =>
-      _TransferFeesSettingsSectionState();
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _FeeTypeSection(
+          type: TransactionFeeType.dual,
+          title: AppStrings.transferFeeBoxMediatedTitle,
+          subtitle: AppStrings.transferFeeBoxMediatedSubtitle,
+        ),
+        const Divider(height: SpacingTokens.xl),
+        _FeeTypeSection(
+          type: TransactionFeeType.tripartite,
+          title: AppStrings.transferFeeTripartiteTitle,
+          subtitle: AppStrings.transferFeeTripartiteSubtitle,
+        ),
+      ],
+    );
+  }
 }
 
-class _TransferFeesSettingsSectionState
-    extends State<TransferFeesSettingsSection> {
-  final _amountController = TextEditingController();
-  bool _enabled = false;
-  String? _currencyCode;
-  bool _loading = true;
+class _FeeTypeSection extends StatefulWidget {
+  const _FeeTypeSection({
+    required this.type,
+    required this.title,
+    required this.subtitle,
+  });
 
+  final TransactionFeeType type;
+  final String title;
+  final String subtitle;
+
+  @override
+  State<_FeeTypeSection> createState() => _FeeTypeSectionState();
+}
+
+class _FeeTypeSectionState extends State<_FeeTypeSection> {
+  final _valueController = TextEditingController();
+  bool _enabled = false;
+  FeeCalculationType _calculationType = FeeCalculationType.fixed;
+  bool _loading = true;
   bool _isEditing = false;
 
   @override
@@ -31,21 +62,22 @@ class _TransferFeesSettingsSectionState
   }
 
   Future<void> _load() async {
-    final res = await InjectionContainer.getActiveTransactionFeeUseCase();
-    final baseCurrencyRes = await InjectionContainer.getBaseCurrencyUseCase();
+    final res =
+        await InjectionContainer.getActiveTransactionFeeUseCase(widget.type);
 
     if (mounted) {
       setState(() {
         if (res.isSuccess && res.valueOrNull != null) {
           final fee = res.valueOrNull!;
           _enabled = true;
-          _amountController.text =
-              formatMinorAmountForField(fee.amountMinorUnits);
-          _currencyCode = fee.currencyCode;
+          _calculationType = fee.calculationType;
+          _valueController.text = _calculationType == FeeCalculationType.fixed
+              ? formatMinorAmountForField(fee.value)
+              : (fee.value / 100).toString();
         } else {
           _enabled = false;
-          _currencyCode = baseCurrencyRes.valueOrNull;
-          _amountController.clear();
+          _calculationType = FeeCalculationType.fixed;
+          _valueController.clear();
         }
         _loading = false;
       });
@@ -54,12 +86,15 @@ class _TransferFeesSettingsSectionState
 
   Future<void> _save() async {
     if (_enabled) {
-      final minor = parsePositiveMinorUnits(_amountController.text) ?? 0;
-      if (minor < 0 || _currencyCode == null) {
+      final valueRaw = _calculationType == FeeCalculationType.fixed
+          ? (parsePositiveMinorUnits(_valueController.text) ?? 0)
+          : ((double.tryParse(_valueController.text) ?? 0) * 100).round();
+
+      if (valueRaw < 0) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppStrings.transferFeeErrorInvalidAmount),
+              content: Text(AppStrings.transferFeeValidationPositiveValue),
               backgroundColor: Colors.red,
             ),
           );
@@ -68,13 +103,35 @@ class _TransferFeesSettingsSectionState
       }
 
       setState(() => _loading = true);
-      await InjectionContainer.manageTransactionFeeUseCase.enableFee(
-        amountMinorUnits: minor,
-        currencyCode: _currencyCode!,
+      final res =
+          await InjectionContainer.manageTransactionFeeUseCase.enableFee(
+        value: valueRaw,
+        calculationType: _calculationType,
+        type: widget.type,
       );
+
+      if (res.isFailure) {
+        debugPrint('FEE_SAVE_ERROR: ${res.failureOrNull?.messageAr}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  '${AppStrings.transferFeeSaveFailure}${res.failureOrNull?.messageAr}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        setState(() => _loading = false);
+        return;
+      }
     } else {
       setState(() => _loading = true);
-      await InjectionContainer.manageTransactionFeeUseCase.disableFee();
+      final res = await InjectionContainer.manageTransactionFeeUseCase
+          .disableFee(widget.type);
+
+      if (res.isFailure) {
+        debugPrint('FEE_DISABLE_ERROR: ${res.failureOrNull?.messageAr}');
+      }
     }
 
     await _load();
@@ -90,41 +147,41 @@ class _TransferFeesSettingsSectionState
     }
   }
 
-  Future<void> _pickCurrency() async {
-    if (!_isEditing) return;
-
-    final c =
-        await CurrencyPickerSheet.show(context, selectedCode: _currencyCode);
-    if (c != null) {
-      setState(() => _currencyCode = c.code);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
       return SizedBox(
-          height: 200, child: Center(child: CircularProgressIndicator()));
+          height: 100,
+          child: Center(
+              child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: SpacingTokens.sm),
+              Text(AppStrings.transferFeeLoading,
+                  style: Theme.of(context).textTheme.bodySmall),
+            ],
+          )));
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SwitchListTile(
-          title: Text(AppStrings.transferFeeToggleTitle),
-          subtitle: Text(AppStrings.transferFeeToggleSubtitle),
+          title: QaydText(widget.title, slot: QaydTextStyleSlot.titleMedium),
+          subtitle:
+              QaydText(widget.subtitle, slot: QaydTextStyleSlot.bodySmall),
           value: _enabled,
           onChanged: (val) {
             setState(() {
               _enabled = val;
-              if (val && _amountController.text.isEmpty) {
-                _isEditing =
-                    true; // Force editing if enabling for the first time
+              if (val && _valueController.text.isEmpty) {
+                _isEditing = true;
               }
             });
 
             if (!val) {
-              _save(); // Immediate disable
+              _save();
             }
           },
         ),
@@ -134,29 +191,51 @@ class _TransferFeesSettingsSectionState
             child: Row(
               children: [
                 Expanded(
-                  child: QaydAmountField(
-                    controller: _amountController,
-                    label: AppStrings.transferFeeAmountLabel,
-                    enabled: _isEditing,
+                  flex: 2,
+                  child: DropdownButtonFormField<FeeCalculationType>(
+                    value: _calculationType,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: AppStrings.transferFeeCalculationTypeLabel,
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: FeeCalculationType.fixed,
+                        child: Text(
+                          AppStrings.transferFeeFixedOption,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: FeeCalculationType.percentage,
+                        child: Text(
+                          AppStrings.transferFeePercentageOption,
+                          style: Theme.of(context).textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                    onChanged: _isEditing
+                        ? (val) {
+                            if (val != null)
+                              setState(() => _calculationType = val);
+                          }
+                        : null,
                   ),
                 ),
-                SizedBox(width: SpacingTokens.md),
-                InkWell(
-                  onTap: _isEditing ? _pickCurrency : null,
-                  child: Opacity(
-                    opacity: _isEditing ? 1.0 : 0.6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: SpacingTokens.md,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border:
-                            Border.all(color: Theme.of(context).dividerColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(_currencyCode ?? AppStrings.currencyLabel),
-                    ),
+                const SizedBox(width: SpacingTokens.md),
+                Expanded(
+                  flex: 3,
+                  child: QaydAmountField(
+                    controller: _valueController,
+                    label: _calculationType == FeeCalculationType.fixed
+                        ? AppStrings.transferFeeAmountLabel
+                        : AppStrings.transferFeePercentageLabel,
+                    enabled: _isEditing,
                   ),
                 ),
               ],
@@ -176,7 +255,7 @@ class _TransferFeesSettingsSectionState
                           child: Text(AppStrings.actionCancel),
                         ),
                       ),
-                      SizedBox(width: SpacingTokens.md),
+                      const SizedBox(width: SpacingTokens.md),
                       Expanded(
                         child: FilledButton(
                           onPressed: _save,
@@ -187,7 +266,7 @@ class _TransferFeesSettingsSectionState
                   )
                 : OutlinedButton.icon(
                     onPressed: () => setState(() => _isEditing = true),
-                    icon: Icon(Icons.edit_outlined, size: 18),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
                     label: Text(AppStrings.transferFeeActionEdit),
                   ),
           ),

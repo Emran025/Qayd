@@ -2265,6 +2265,33 @@ class AppStrings {
       i.settingsCsvPreviewBody(rowCount);
   static String syncAcceptanceInboxBody(String shortId) =>
       i.syncAcceptanceInboxBody(shortId);
+  static String get transferFeeBoxMediatedTitle =>
+      i.transferFeeBoxMediatedTitle;
+  static String get transferFeeBoxMediatedSubtitle =>
+      i.transferFeeBoxMediatedSubtitle;
+  static String get transferFeeTripartiteTitle => i.transferFeeTripartiteTitle;
+  static String get transferFeeTripartiteSubtitle =>
+      i.transferFeeTripartiteSubtitle;
+  static String get transferFeeValidationPositiveValue =>
+      i.transferFeeValidationPositiveValue;
+  static String get transferFeeSaveFailure => i.transferFeeSaveFailure;
+  static String get transferFeeCalculationTypeLabel =>
+      i.transferFeeCalculationTypeLabel;
+  static String get transferFeeFixedOption => i.transferFeeFixedOption;
+  static String get transferFeePercentageOption =>
+      i.transferFeePercentageOption;
+  static String get transferFeePercentageLabel => i.transferFeePercentageLabel;
+  static String get transferFeeLabelWithColon => i.transferFeeLabelWithColon;
+  static String get transferGroupIdLabelWithColon =>
+      i.transferGroupIdLabelWithColon;
+  static String get transferFeeLoading => i.transferFeeLoading;
+
+  static String get transferFeesLabel => i.transferFeesLabel;
+  static String get transferFeeNetToRecipient => i.transferFeeNetToRecipient;
+  static String get transferFeeEditAmountTitle => i.transferFeeEditAmountTitle;
+  static String get transferFeeEditPercentageTitle =>
+      i.transferFeeEditPercentageTitle;
+
   static String tripartiteRequestFor(String name) =>
       i.tripartiteRequestFor(name);
   static String voucherAttachmentCountLabel(int count) =>
@@ -2297,7 +2324,8 @@ class AppStrings {
   static String get auditEntityAccrual => i.auditEntityAccrual;
   static String get auditEntityAccruals => i.auditEntityAccruals;
   static String get auditEntityMessageTemplate => i.auditEntityMessageTemplate;
-  static String get auditEntityMessageTemplates => i.auditEntityMessageTemplates;
+  static String get auditEntityMessageTemplates =>
+      i.auditEntityMessageTemplates;
 
   // ---------------------------------------------------------------------------
   // Audit Log — Field (Key) Translations

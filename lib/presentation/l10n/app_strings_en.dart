@@ -3885,6 +3885,45 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get tripartiteRequestFunds => 'Request Transfer';
   @override
+  String get transferFeeBoxMediatedTitle => 'Box-Mediated Transfer Fees';
+  @override
+  String get transferFeeBoxMediatedSubtitle =>
+      'Applied when transferring between two parties via a mediator box';
+  @override
+  String get transferFeeTripartiteTitle => 'Tripartite Transfer Fees (No Box)';
+  @override
+  String get transferFeeTripartiteSubtitle =>
+      'Applied when transferring directly between parties via a mediator';
+  @override
+  String get transferFeeValidationPositiveValue =>
+      'Please enter a valid positive value';
+  @override
+  String get transferFeeSaveFailure => 'Save failed: ';
+  @override
+  String get transferFeeCalculationTypeLabel => 'Fee Type';
+  @override
+  String get transferFeeFixedOption => 'Fixed Amount';
+  @override
+  String get transferFeePercentageOption => 'Percentage %';
+  @override
+  String get transferFeePercentageLabel => 'Percentage %';
+  @override
+  String get transferFeeLabelWithColon => 'Transfer Fee: ';
+  @override
+  String get transferGroupIdLabelWithColon => 'Group ID: ';
+  @override
+  String get transferFeeLoading => 'Loading...';
+
+  @override
+  String get transferFeesLabel => 'Transfer Fees';
+  @override
+  String get transferFeeNetToRecipient => 'Net to Recipient:';
+  @override
+  String get transferFeeEditAmountTitle => 'Edit Fee Amount';
+  @override
+  String get transferFeeEditPercentageTitle => 'Edit Fee Percentage';
+
+  @override
   String get tripartiteSelectAccountHint => 'Select Account';
   @override
   String get tripartiteSelectAccounts => 'Please select accounts';

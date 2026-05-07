@@ -12,9 +12,11 @@ import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/tripartite_meta.dart';
-import 'package:qayd/domain/value_objects/tripartite_role.dart';
+import 'package:qayd/domain/entities/fee_calculation_type.dart';
+import 'package:qayd/domain/entities/transaction_fee_type.dart';
 import 'package:qayd/application/settings/get_active_transaction_fee_use_case.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
@@ -25,7 +27,6 @@ import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
-
 
 /// Creates a tripartite intermediary transfer (A → Me → B).
 ///
@@ -86,7 +87,7 @@ class CreateTripartiteTransferUseCase {
       final affectedId = AccountId(input.affectedAccountId);
 
       if (sourceId == destId) {
-        return  FailureResult(
+        return FailureResult(
           ValidationFailure(
             messageAr: AppStrings.theSourceAndDestination,
             code: 'tripartite_same_source_dest',
@@ -94,7 +95,7 @@ class CreateTripartiteTransferUseCase {
         );
       }
       if (sourceId == affectedId || destId == affectedId) {
-        return  FailureResult(
+        return FailureResult(
           ValidationFailure(
             messageAr: AppStrings.theIntermediateAccountMust,
             code: 'tripartite_affected_conflict',
@@ -110,7 +111,17 @@ class CreateTripartiteTransferUseCase {
       final amount = Money.positiveAmount(input.amountMinorUnits, currency);
 
       // Handle fee calculation up-front
-      final feeRes = await _getActiveFee();
+      final feeRes = await _getActiveFee(TransactionFeeType.tripartite);
+      int? calculatedFeeMinor;
+      if (feeRes.isSuccess && feeRes.valueOrNull != null) {
+        final feeSetting = feeRes.valueOrNull!;
+        if (feeSetting.calculationType == FeeCalculationType.fixed) {
+          calculatedFeeMinor = feeSetting.value;
+        } else {
+          calculatedFeeMinor =
+              (input.amountMinorUnits * (feeSetting.value / 10000)).round();
+        }
+      }
 
       // 5. Create Receipt Voucher (A → C)
       // counterparty = Source (A), affectedAccount = MyAccount (C)
@@ -156,9 +167,8 @@ class CreateTripartiteTransferUseCase {
           linkedPartyId: sourceId, // A is the linked party on the payment
           isContingent: true, // locked until receipt is confirmed
           mediatorAccountId: affectedId,
-          feeAmount: feeRes.valueOrNull != null
-              ? Money.positiveAmount(
-                  feeRes.valueOrNull!.amountMinorUnits, currency)
+          feeAmount: calculatedFeeMinor != null
+              ? Money.positiveAmount(calculatedFeeMinor, currency)
               : null,
         ),
       );
@@ -166,8 +176,6 @@ class CreateTripartiteTransferUseCase {
       // 7. Handle Transaction Fee (Scenario 2)
       Voucher? feeVoucher;
       if (feeRes.isSuccess && feeRes.valueOrNull != null) {
-        final feeSetting = feeRes.valueOrNull!;
-
         // Lookup or create 'Transaction Fees' revenue account
         final accountsRes = await _accountRepository.getAll(
           excludeArchived: true,
@@ -207,33 +215,25 @@ class CreateTripartiteTransferUseCase {
         }
 
         if (feeAccount != null) {
-          final feeCurrencyRes = await _currencyRepository.getByCode(
-            feeSetting.currencyCode,
+          final feeAmount = Money.positiveAmount(
+            calculatedFeeMinor!,
+            currency,
           );
-          if (feeCurrencyRes.isSuccess && feeCurrencyRes.valueOrNull != null) {
-            final feeCurrency = feeCurrencyRes.valueOrNull!;
-            final feeAmount = Money.positiveAmount(
-              feeSetting.amountMinorUnits,
-              feeCurrency,
-            );
-            final feeVoucherId = VoucherId(_idGenerator.next());
+          final feeVoucherId = VoucherId(_idGenerator.next());
 
-            feeVoucher = Voucher.draft(
-              id: feeVoucherId,
-              type: VoucherType.receipt,
-              date: input.date,
-              amount: feeAmount,
-              currency: feeCurrency,
-              counterpartyId:
-                  affectedId, // Fee is from the mediator (transfers account)
-              affectedAccountId: feeAccount.id,
-              createdAt: now,
-              description:
-                  'رسوم تحويل من ${input.description ?? ""} — مقابل عملية تحويل من المرسل إلى المستلم',
-              // No TripartiteMeta — fee is an independent internal accounting entry
-              // and should NOT appear in the transfers list.
-            );
-          }
+          feeVoucher = Voucher.draft(
+            id: feeVoucherId,
+            type: VoucherType.receipt,
+            date: input.date,
+            amount: feeAmount,
+            currency: currency,
+            counterpartyId:
+                affectedId, // Fee is from the mediator (transfers account)
+            affectedAccountId: feeAccount.id,
+            createdAt: now,
+            description:
+                'رسوم تحويل من ${input.description ?? ""} — مقابل عملية تحويل من المرسل إلى المستلم',
+          );
         }
       }
 

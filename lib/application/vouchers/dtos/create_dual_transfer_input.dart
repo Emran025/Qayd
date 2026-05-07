@@ -9,6 +9,7 @@ class CreateDualTransferInput {
     required this.date,
     this.description,
     this.notes,
+    this.feeAmountMinorUnits,
     this.confirm = false,
   });
 
@@ -22,6 +23,11 @@ class CreateDualTransferInput {
   final String fundAccountId;
 
   final int amountMinorUnits;
+
+  /// Optional fee amount in minor units.
+  /// This will be deducted from the receiver's payment.
+  final int? feeAmountMinorUnits;
+
   final String currencyCode;
   final DateTime date;
   final String? description;

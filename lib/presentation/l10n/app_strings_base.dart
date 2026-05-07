@@ -1999,6 +1999,27 @@ abstract class AppStringsBase {
   String get tripartiteReleasedInfo =>
       'تم تحرير سند الصرف — يمكنك الآن مشاركته وتوقيعه.';
   String get tripartiteRequestFunds => 'طلب حوالة';
+  String get transferFeeBoxMediatedTitle => 'رسوم التحويلات عبر الصندوق';
+  String get transferFeeBoxMediatedSubtitle =>
+      'تطبق عند التحويل بين طرفين عبر صندوق وسيط';
+  String get transferFeeTripartiteTitle => 'رسوم التحويلات الثلاثية (بدون صندوق)';
+  String get transferFeeTripartiteSubtitle =>
+      'تطبق عند التحويل المباشر بين الأطراف عبر وسيط';
+  String get transferFeeValidationPositiveValue => 'يرجى إدخال قيمة صحيحة';
+  String get transferFeeSaveFailure => 'فشل الحفظ: ';
+  String get transferFeeCalculationTypeLabel => 'نوع الرسوم';
+  String get transferFeeFixedOption => 'مبلغ ثابت';
+  String get transferFeePercentageOption => 'نسبة مئوية %';
+  String get transferFeePercentageLabel => 'النسبة %';
+  String get transferFeeLabelWithColon => 'رسوم التحويل: ';
+  String get transferGroupIdLabelWithColon => 'معرف المجموعة: ';
+  String get transferFeeLoading => 'جاري التحميل...';
+
+  String get transferFeesLabel => 'رسوم التحويل';
+  String get transferFeeNetToRecipient => 'الصافي للمستلم:';
+  String get transferFeeEditAmountTitle => 'تعديل مبلغ الرسوم';
+  String get transferFeeEditPercentageTitle => 'تعديل نسبة الرسوم';
+
   String get tripartiteSelectAccountHint => 'اختر الحساب';
   String get tripartiteSelectAccounts => 'الرجاء اختيار الحسابات';
   String get tripartiteSourceLabel => 'الحساب المُرْسِل (مَدين)';

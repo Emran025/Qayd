@@ -5,8 +5,11 @@ import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/vouchers/dtos/create_dual_transfer_input.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/domain/entities/fee_calculation_type.dart';
+import 'package:qayd/domain/entities/transaction_fee_type.dart';
 import 'package:qayd/domain/value_objects/predefined_currencies.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/components/inputs/qayd_amount_field.dart';
 import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
@@ -39,19 +42,39 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _notesController = TextEditingController();
+  final _feeController = TextEditingController();
 
   DateTime _date = DateTime.now();
   String _currencyCode = PredefinedCurrencies.sar.code;
+  bool _applyFee = false;
+  FeeCalculationType _feeCalculationType = FeeCalculationType.fixed;
+  int _feeValue = 0; // The raw value from settings
 
   AccountSummaryDto? _sender;
   AccountSummaryDto? _receiver;
   AccountSummaryDto? _fund; // auto-detected
 
+  bool _isFeeManuallyEdited = false;
+
   @override
   void initState() {
     super.initState();
+    _amountController.addListener(_onAmountChanged);
     _loadBaseCurrency();
     _autoDetectFund();
+    _loadDefaultFee();
+  }
+
+  void _onAmountChanged() {
+    if (_applyFee &&
+        !_isFeeManuallyEdited &&
+        _feeCalculationType == FeeCalculationType.percentage) {
+      final amountMinor = parsePositiveMinorUnits(_amountController.text) ?? 0;
+      final calculatedFeeMinor = (amountMinor * (_feeValue / 10000)).round();
+      setState(() {
+        _feeController.text = formatMinorAmountForField(calculatedFeeMinor);
+      });
+    }
   }
 
   @override
@@ -59,7 +82,29 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
     _amountController.dispose();
     _descriptionController.dispose();
     _notesController.dispose();
+    _feeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDefaultFee() async {
+    final res = await InjectionContainer.getActiveTransactionFeeUseCase(
+        TransactionFeeType.dual);
+    if (res.isSuccess && res.valueOrNull != null && mounted) {
+      final fee = res.valueOrNull!;
+      setState(() {
+        _applyFee = true;
+        _feeCalculationType = fee.calculationType;
+        _feeValue = fee.value;
+        _isFeeManuallyEdited = false;
+
+        if (_feeCalculationType == FeeCalculationType.fixed) {
+          _feeController.text = formatMinorAmountForField(_feeValue);
+        } else {
+          // Calculation will happen via listener when amount is entered
+          _onAmountChanged();
+        }
+      });
+    }
   }
 
   Future<void> _loadBaseCurrency() async {
@@ -127,39 +172,43 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
 
     if (_fund == null) {
       messenger.showSnackBar(
-        SnackBar(
-            content: Text(AppStrings.theFundAccountWas)),
+        SnackBar(content: Text(AppStrings.theFundAccountWas)),
       );
       return;
     }
 
     if (_sender!.id == _receiver!.id) {
       messenger.showSnackBar(
-        SnackBar(
-            content: Text(AppStrings.theSenderAndRecipient1)),
+        SnackBar(content: Text(AppStrings.theSenderAndRecipient1)),
       );
       return;
     }
 
-    final minor = parsePositiveMinorUnits(_amountController.text);
-    if (minor == null || minor <= 0) {
+    final amountMinor = parsePositiveMinorUnits(_amountController.text);
+    if (amountMinor == null || amountMinor <= 0) {
       messenger.showSnackBar(
         SnackBar(content: Text(AppStrings.voucherAmountRequired)),
       );
       return;
     }
 
+    int calculatedFeeMinor = 0;
+    if (_applyFee) {
+      calculatedFeeMinor = parsePositiveMinorUnits(_feeController.text) ?? 0;
+    }
+
     final input = CreateDualTransferInput(
       senderAccountId: _sender!.id,
       receiverAccountId: _receiver!.id,
       fundAccountId: _fund!.id,
-      amountMinorUnits: minor,
+      amountMinorUnits: amountMinor,
       currencyCode: _currencyCode,
       date: _date,
       description: _descriptionController.text.trim(),
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
+      feeAmountMinorUnits: _applyFee ? calculatedFeeMinor : null,
     );
 
     await context.read<VoucherCreateCubit>().submitDualTransfer(input);
@@ -274,7 +323,12 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
                   QaydAmountField(
                     controller: _amountController,
                     label: AppStrings.voucherAmountLabel,
+                    onChanged: (_) => setState(() {}),
                   ),
+                  SizedBox(height: SpacingTokens.md),
+
+                  // ── Fees Section ──────────────────────────────────
+                  _buildFeesSection(gold, scheme),
                   SizedBox(height: SpacingTokens.md),
                   QaydTextField(
                     controller: _descriptionController,
@@ -316,7 +370,8 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
           slot: QaydTextStyleSlot.labelLarge,
         ),
         subtitle: QaydText(
-          DateFormat.yMMMd('ar').format(_date),
+          DateFormat.yMMMd(Localizations.localeOf(context).languageCode)
+              .format(_date),
           slot: QaydTextStyleSlot.bodyLarge,
         ),
         trailing: Icon(Icons.calendar_today_rounded, color: gold, size: 20),
@@ -361,4 +416,111 @@ class _DualTransferCreatePageState extends State<DualTransferCreatePage> {
         trailing: Icon(Icons.chevron_left_rounded, color: gold),
         onTap: onTap,
       );
+
+  Widget _buildFeesSection(Color gold, ColorScheme scheme) {
+    final amountMinor = parsePositiveMinorUnits(_amountController.text) ?? 0;
+    final calculatedFeeMinor =
+        _applyFee ? (parsePositiveMinorUnits(_feeController.text) ?? 0) : 0;
+
+    final netMinor = amountMinor - calculatedFeeMinor;
+
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.md),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.percent_rounded, color: gold, size: 20),
+              SizedBox(width: SpacingTokens.sm),
+              Expanded(
+                child: QaydText(
+                  AppStrings.transferFeesLabel,
+                  slot: QaydTextStyleSlot.labelLarge,
+                ),
+              ),
+              Switch.adaptive(
+                value: _applyFee,
+                onChanged: (val) => setState(() => _applyFee = val),
+                activeColor: gold,
+              ),
+            ],
+          ),
+          if (_applyFee) ...[
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: QaydText(
+                AppStrings.transferFeeAmountLabel,
+                slot: QaydTextStyleSlot.bodyMedium,
+                color: scheme.onSurfaceVariant,
+              ),
+              subtitle: QaydText(
+                _feeController.text.isEmpty ? '0.00' : _feeController.text,
+                slot: QaydTextStyleSlot.headlineSmall,
+              ),
+              trailing: IconButton(
+                icon: Icon(Icons.edit_note_rounded, color: gold),
+                onPressed: _showEditFeeDialog,
+              ),
+            ),
+            if (amountMinor > 0) ...[
+              const SizedBox(height: SpacingTokens.xs),
+              Container(
+                padding: const EdgeInsets.all(SpacingTokens.sm),
+                decoration: BoxDecoration(
+                  color: gold.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    QaydText(
+                      AppStrings.transferFeeNetToRecipient,
+                      slot: QaydTextStyleSlot.bodySmall,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    QaydText(
+                      formatMinorAmountForField(netMinor),
+                      slot: QaydTextStyleSlot.labelLarge,
+                      color: gold,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showEditFeeDialog() async {
+    final controller = TextEditingController(text: _feeController.text);
+    final res = await showDialog<String>(
+      context: context,
+      builder: (ctx) => QaydDialog(
+        title: AppStrings.transferFeeEditAmountTitle,
+        content: QaydAmountField(
+          controller: controller,
+          label: AppStrings.transferFeeAmountLabel,
+        ),
+        secondaryActionLabel: AppStrings.actionCancel,
+        primaryActionLabel: AppStrings.actionConfirm,
+        onPrimaryAction: () {
+          setState(() => _isFeeManuallyEdited = true);
+          Navigator.pop(ctx, controller.text);
+        },
+      ),
+    );
+
+    if (res != null) {
+      setState(() => _feeController.text = res);
+    }
+  }
 }
