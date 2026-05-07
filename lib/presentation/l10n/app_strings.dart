@@ -2429,4 +2429,18 @@ class AppStrings {
   static String get devicePairingDialogTitle => i.devicePairingDialogTitle;
   static String get deviceDefaultName => i.deviceDefaultName;
   static String get deviceManagementSubtitle => i.deviceManagementSubtitle;
+
+  static String get companionBootstrapSentSuccess =>
+      i.companionBootstrapSentSuccess;
+  static String get companionBootstrapSentError =>
+      i.companionBootstrapSentError;
+  static String get companionCredentialsFailed => i.companionCredentialsFailed;
+  static String get linkAsCompanionDevice => i.linkAsCompanionDevice;
+  static String get scanCompanionQrInstruction => i.scanCompanionQrInstruction;
+  static String get linkNewCompanionDevicePrompt =>
+      i.linkNewCompanionDevicePrompt;
+  static String get linkNewCompanionDeviceDesc => i.linkNewCompanionDeviceDesc;
+  static String get scanCompanionQr => i.scanCompanionQr;
+  static String get companionDeviceRestriction => i.companionDeviceRestriction;
+  static String get actionApprove => i.actionApprove;
 }

@@ -4761,4 +4761,26 @@ class AppStringsEn extends AppStringsBase {
   String get deviceDefaultName => 'My Device';
   @override
   String get deviceManagementSubtitle => 'Pair and revoke trusted devices';
+
+  // Companion Link UI Strings
+  @override
+  String get companionBootstrapSentSuccess => 'Companion bootstrap sent successfully.';
+  @override
+  String get companionBootstrapSentError => 'Companion bootstrap failed.';
+  @override
+  String get companionCredentialsFailed => 'Failed to receive companion credentials.';
+  @override
+  String get linkAsCompanionDevice => 'Link as Companion Device';
+  @override
+  String get scanCompanionQrInstruction => 'Scan this QR from your main device to link instantly.';
+  @override
+  String get linkNewCompanionDevicePrompt => 'Link new companion device?';
+  @override
+  String get linkNewCompanionDeviceDesc => 'Approve to securely transfer encrypted login bootstrap credentials.';
+  @override
+  String get scanCompanionQr => 'Scan Companion QR';
+  @override
+  String get companionDeviceRestriction => 'This is a companion device. To link new devices, please use your primary device.';
+  @override
+  String get actionApprove => 'Approve';
 }

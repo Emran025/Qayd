@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/sync/device_pairing_facade.dart';
 import 'package:qayd/domain/entities/device_session.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 class DevicePairingState {
   const DevicePairingState({
@@ -123,12 +124,12 @@ class DevicePairingCubit extends ChangeNotifier {
       );
       _emit(_state.copyWith(
         isSaving: false,
-        success: 'Companion bootstrap sent successfully.',
+        success: AppStrings.companionBootstrapSentSuccess,
       ));
     } catch (_) {
       _emit(_state.copyWith(
         isSaving: false,
-        error: 'Companion bootstrap failed.',
+        error: AppStrings.companionBootstrapSentError,
       ));
     }
   }

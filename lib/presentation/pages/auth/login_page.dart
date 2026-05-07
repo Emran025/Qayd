@@ -216,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             );
                           },
-                    child: const Text('Link as companion device'),
+                    child: Text(AppStrings.linkAsCompanionDevice),
                   ),
 
                   // Register link

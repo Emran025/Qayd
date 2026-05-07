@@ -2572,4 +2572,16 @@ abstract class AppStringsBase {
   String get devicePairingDialogTitle => 'ربط هذا الجهاز عبر مسح QR';
   String get deviceDefaultName => 'جهازي';
   String get deviceManagementSubtitle => 'ربط وإلغاء صلاحية الأجهزة الموثوقة';
+
+  // Companion Link UI Strings
+  String get companionBootstrapSentSuccess => 'تم إرسال بيانات الدخول للجهاز بنجاح.';
+  String get companionBootstrapSentError => 'فشل في إرسال بيانات الدخول للجهاز المرتبط.';
+  String get companionCredentialsFailed => 'فشل في استلام بيانات الجهاز المرتبط.';
+  String get linkAsCompanionDevice => 'الدخول كجهاز مرتبط';
+  String get scanCompanionQrInstruction => 'امسح هذا الرمز من جهازك الرئيسي للربط فوراً.';
+  String get linkNewCompanionDevicePrompt => 'هل تريد ربط جهاز فرعي جديد؟';
+  String get linkNewCompanionDeviceDesc => 'وافق لنقل بيانات تسجيل الدخول المشفرة بشكل آمن وبدء الربط.';
+  String get scanCompanionQr => 'مسح QR لجهاز مرتبط';
+  String get companionDeviceRestriction => 'هذا جهاز مرتبط. لإضافة أجهزة جديدة الرجاء استخدام جهازك الرئيسي.';
+  String get actionApprove => 'موافقة';
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CompanionLinkPage extends StatefulWidget {
@@ -54,7 +55,7 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
       }
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Failed to receive companion credentials.');
+        setState(() => _error = AppStrings.companionCredentialsFailed);
       }
     }
   }
@@ -69,7 +70,7 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
   Widget build(BuildContext context) {
     final session = _session;
     return Scaffold(
-      appBar: AppBar(title: const Text('Link as Companion Device')),
+      appBar: AppBar(title: Text(AppStrings.linkAsCompanionDevice)),
       body: Center(
         child: _busy
             ? const CircularProgressIndicator()
@@ -78,8 +79,8 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Scan this QR from your main device to link instantly.',
+                    Text(
+                      AppStrings.scanCompanionQrInstruction,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),

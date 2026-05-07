@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
+import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/sync/device_pairing_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/sync/device_pairing_qr_scanner_page.dart';
@@ -71,24 +72,15 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
       scannedQr: scanned,
       approvalGate: () async {
         if (!mounted) return false;
-        final approved = await showDialog<bool>(
+        final approved = await QaydDialog.show<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Link new companion device?'),
-            content: const Text(
-              'Approve to securely transfer encrypted login bootstrap credentials.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Approve'),
-              ),
-            ],
-          ),
+          icon: Icons.link_rounded,
+          title: AppStrings.linkNewCompanionDevicePrompt,
+          content: AppStrings.linkNewCompanionDeviceDesc,
+          secondaryActionLabel: AppStrings.actionCancel,
+          onSecondaryAction: () => Navigator.of(context).pop(false),
+          primaryActionLabel: AppStrings.actionApprove,
+          onPrimaryAction: () => Navigator.of(context).pop(true),
         );
         return approved ?? false;
       },
@@ -141,11 +133,11 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                     OutlinedButton.icon(
                       onPressed: state.isSaving ? null : _scanAndLinkCompanion,
                       icon: const Icon(Icons.link_rounded),
-                      label: const Text('Scan Companion QR'),
+                      label: Text(AppStrings.scanCompanionQr),
                     )
                   else
                     Text(
-                      'This is a companion device. To link new devices, please use your primary device.',
+                      AppStrings.companionDeviceRestriction,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
