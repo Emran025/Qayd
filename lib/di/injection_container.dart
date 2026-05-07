@@ -111,7 +111,10 @@ import 'package:qayd/domain/services/crypto_identity_service.dart';
 import 'package:qayd/application/sync/sync_coordinator_service.dart';
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/application/sync/audit_sync_processor.dart';
+import 'package:qayd/application/sync/device_pairing_qr_service.dart';
 import 'package:qayd/application/sync/device_pairing_service.dart';
+import 'package:qayd/application/sync/device_pairing_facade.dart';
+import 'package:qayd/application/sync/sync_facade.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
@@ -352,6 +355,8 @@ abstract final class InjectionContainer {
   static late AuditSyncDispatcher auditSyncDispatcher;
   static late AuditSyncProcessor auditSyncProcessor;
   static late DevicePairingService devicePairingService;
+  static late DevicePairingFacade devicePairingFacade;
+  static late SyncFacade syncFacade;
   static late P2PSyncService p2pSyncService;
   static late SyncEventDispatcher syncEventDispatcher;
 
@@ -740,6 +745,7 @@ abstract final class InjectionContainer {
       syncEventDispatcher: syncEventDispatcher,
       currentDeviceId: currentDeviceId,
     );
+    syncFacade = SyncFacade(syncCoordinatorService);
 
     if (userId > 0) {
       syncCoordinatorService.start();
@@ -823,6 +829,14 @@ abstract final class InjectionContainer {
       auditLogRepository: auditLogRepository,
       auditSyncDispatcher: auditSyncDispatcher,
       getCurrentKeyPair: () => setupIdentityUseCase.getKeyPair(),
+      getCurrentDeviceId: () async => currentDeviceId,
+      qrService: const DevicePairingQrService(),
+      signingService: receiptSigningService,
+      cryptoService: cryptoIdentityService,
+    );
+    devicePairingFacade = DevicePairingFacade(
+      pairingService: devicePairingService,
+      sessionRepository: deviceSessionRepository,
     );
 
     transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(

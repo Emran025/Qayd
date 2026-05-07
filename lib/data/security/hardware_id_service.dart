@@ -42,11 +42,45 @@ final class HardwareIdService {
 
       if (defaultTargetPlatform == TargetPlatform.linux) {
         final info = await _plugin.linuxInfo;
-        return 'linux:${info.machineId ?? info.id}';
+        final machineId = info.machineId ?? info.id;
+        return 'linux:$machineId';
       }
     } catch (_) {
       // Defensive: never crash on ID retrieval
     }
     return _fallbackId;
+  }
+
+  /// Returns a human-friendly name for the device (e.g. "Pixel 6", "iPhone 13").
+  Future<String> obtainDeviceName() async {
+    try {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final info = await _plugin.androidInfo;
+        return '${info.manufacturer} ${info.model}';
+      }
+
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final info = await _plugin.iosInfo;
+        return info.name;
+      }
+
+      if (defaultTargetPlatform == TargetPlatform.windows) {
+        final info = await _plugin.windowsInfo;
+        return info.computerName;
+      }
+
+      if (defaultTargetPlatform == TargetPlatform.macOS) {
+        final info = await _plugin.macOsInfo;
+        return info.computerName;
+      }
+
+      if (defaultTargetPlatform == TargetPlatform.linux) {
+        final info = await _plugin.linuxInfo;
+        return info.name;
+      }
+    } catch (_) {
+      // Fallback if info retrieval fails
+    }
+    return 'Unknown Device';
   }
 }

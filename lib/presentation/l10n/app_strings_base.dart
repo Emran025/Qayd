@@ -1736,7 +1736,8 @@ abstract class AppStringsBase {
   String get theAssetHasBeen =>
       'تم تسجيل الأصل وربطه بالدائرة الاقتصادية بنجاح.';
   String get theAttachmentDoesNot => 'المرفق غير موجود في قاعدة البيانات.';
-  String get theAttachmentNotDownloaded => 'لم يتم تحميل ملف المرفق بعد. يُرجى الانتظار حتى اكتمال المزامنة.';
+  String get theAttachmentNotDownloaded =>
+      'لم يتم تحميل ملف المرفق بعد. يُرجى الانتظار حتى اكتمال المزامنة.';
   String get theAutomaticBackupCould =>
       'تعذر إنشاء النسخة الاحتياطية التلقائية.';
   String get theBackupCouldNot =>
@@ -2002,7 +2003,8 @@ abstract class AppStringsBase {
   String get transferFeeBoxMediatedTitle => 'رسوم التحويلات عبر الصندوق';
   String get transferFeeBoxMediatedSubtitle =>
       'تطبق عند التحويل بين طرفين عبر صندوق وسيط';
-  String get transferFeeTripartiteTitle => 'رسوم التحويلات الثلاثية (بدون صندوق)';
+  String get transferFeeTripartiteTitle =>
+      'رسوم التحويلات الثلاثية (بدون صندوق)';
   String get transferFeeTripartiteSubtitle =>
       'تطبق عند التحويل المباشر بين الأطراف عبر وسيط';
   String get transferFeeValidationPositiveValue => 'يرجى إدخال قيمة صحيحة';
@@ -2248,11 +2250,11 @@ abstract class AppStringsBase {
   String get voucherSettledAtLabel => 'تاريخ التسوية';
   String get voucherSettlementIndicator => ' تسوية';
   String get voucherSignatureStatusLabel => 'حالة التوقيعات';
-  String get voucherSignatureMatchesData => 'توقيع الطرف الآخر مطابق للبيانات الحالية';
+  String get voucherSignatureMatchesData =>
+      'توقيع الطرف الآخر مطابق للبيانات الحالية';
   String get voucherSignatureMismatchData =>
       'التوقيع المرفق لا يطابق المبلغ أو البيانات المعدلة';
-  String get voucherSignaturePendingCounterparty =>
-      'بانتظار توقيع الطرف الآخر';
+  String get voucherSignaturePendingCounterparty => 'بانتظار توقيع الطرف الآخر';
   String get voucherStateConfirmed => 'مؤكد (على الحساب)';
   String get voucherStateDraft => 'مسودة';
   String get voucherStateSent => 'مرسل مجهول';
@@ -2528,8 +2530,7 @@ abstract class AppStringsBase {
   String get auditImpactWarningBody =>
       'التراجع عن هذه العملية سيؤثر على العمليات التالية التي تعتمد عليها:';
   String get auditImpactWarningProceed => 'متابعة على أي حال';
-  String get auditImpactAffectedCount =>
-      'عمليات ستُلغى';
+  String get auditImpactAffectedCount => 'عمليات ستُلغى';
 
   // Severity badge labels
   String get auditSeverityInfo => 'معلوماتي';
@@ -2543,9 +2544,32 @@ abstract class AppStringsBase {
 
   // App Lock Screens (Banned / Update Required)
   String get vaultBannedTitle => 'تم حظر الحساب';
-  String get vaultBannedBody => 'لقد تم حظر حسابك بسبب انتهاك سياسات الاستخدام. يرجى التواصل مع الدعم الفني لمزيد من المعلومات.';
+  String get vaultBannedBody =>
+      'لقد تم حظر حسابك بسبب انتهاك سياسات الاستخدام. يرجى التواصل مع الدعم الفني لمزيد من المعلومات.';
   String get vaultUpdateRequiredTitle => 'تحديث إلزامي';
-  String get vaultUpdateRequiredBody => 'يتوفر إصدار جديد من التطبيق يحتوي على تحسينات أمنية وخصوصية هامة. يرجى التحديث للمتابعة.';
+  String get vaultUpdateRequiredBody =>
+      'يتوفر إصدار جديد من التطبيق يحتوي على تحسينات أمنية وخصوصية هامة. يرجى التحديث للمتابعة.';
   String get vaultUpdateAction => 'تحديث الآن';
-  String get pleaseWaitAFewMinutes => 'يرجى الانتظار قليلاً قبل المحاولة مرة أخرى.';
+  String get pleaseWaitAFewMinutes =>
+      'يرجى الانتظار قليلاً قبل المحاولة مرة أخرى.';
+  String get deviceManagement => 'إدارة الأجهزة';
+  String get pairedDevices => 'الأجهزة المرتبطة';
+  String get lastSyncSeq => 'آخر تسلسل مزامنة';
+  String get revoke => 'إلغاء الصلاحية';
+  String get revoked => 'ملغي';
+
+  String get devicePairingQrOnlyTitle => 'ربط الأجهزة عبر QR فقط';
+  String get devicePairingQrOnlyDesc =>
+      'لا حاجة لإدخال معرف الجهاز أو المفتاح العام يدوياً. افتح الرمز على جهاز وامسحه من الجهاز الآخر.';
+  String get devicePairingShowMyQr => 'إظهار رمز الربط الخاص بي';
+  String get devicePairingScanQr => 'مسح رمز الربط';
+  String get devicePairingRefresh => 'تحديث';
+  String get devicePairingPublicKeysAuto =>
+      'يتم التعامل مع المفاتيح العامة تلقائياً عبر ربط QR';
+  String get devicePairingNoDevicesYet =>
+      'لا توجد أجهزة مرتبطة بعد. ابدأ بإظهار رمز QR الخاص بك.';
+  String get devicePairingThisDeviceSuffix => ' • هذا الجهاز';
+  String get devicePairingDialogTitle => 'ربط هذا الجهاز عبر مسح QR';
+  String get deviceDefaultName => 'جهازي';
+  String get deviceManagementSubtitle => 'ربط وإلغاء صلاحية الأجهزة الموثوقة';
 }

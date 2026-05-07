@@ -4726,4 +4726,39 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get pleaseWaitAFewMinutes =>
       'Please wait a few minutes before trying again.';
+  @override
+  String get deviceManagement => 'Device Management';
+  @override
+  String get pairedDevices => 'Paired Devices';
+  @override
+  String get lastSyncSeq => 'Last sync sequence';
+  @override
+  String get revoke => 'Revoke';
+  @override
+  String get revoked => 'Revoked';
+  @override
+  String get devicePairingQrOnlyTitle => 'Pair devices by QR only';
+  @override
+  String get devicePairingQrOnlyDesc =>
+      'No manual device ID or public key entry is required. Open your QR on one device and scan from the other.';
+  @override
+  String get devicePairingShowMyQr => 'Show My Pairing QR';
+  @override
+  String get devicePairingScanQr => 'Scan Pairing QR';
+  @override
+  String get devicePairingRefresh => 'Refresh';
+  @override
+  String get devicePairingPublicKeysAuto =>
+      'Public keys are handled automatically by QR pairing';
+  @override
+  String get devicePairingNoDevicesYet =>
+      'No paired devices yet. Start by showing your QR code.';
+  @override
+  String get devicePairingThisDeviceSuffix => ' • This device';
+  @override
+  String get devicePairingDialogTitle => 'Pair this device by scanning QR';
+  @override
+  String get deviceDefaultName => 'My Device';
+  @override
+  String get deviceManagementSubtitle => 'Pair and revoke trusted devices';
 }

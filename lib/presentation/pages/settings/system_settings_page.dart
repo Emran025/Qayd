@@ -45,8 +45,8 @@ class SystemSettingsPage extends StatelessWidget {
           _buildSettingsTile(
             context,
             icon: Icons.devices_outlined,
-            title: 'Device Management',
-            subtitle: 'Pair and revoke trusted devices',
+            title: AppStrings.deviceManagement,
+            subtitle: AppStrings.deviceManagementSubtitle,
             onTap: () => _navTo(context, const DeviceManagementPage()),
           ),
           SizedBox(height: SpacingTokens.md),

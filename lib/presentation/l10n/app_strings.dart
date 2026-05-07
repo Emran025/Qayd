@@ -2410,4 +2410,23 @@ class AppStrings {
   static String get vaultUpdateRequiredBody => i.vaultUpdateRequiredBody;
   static String get vaultUpdateAction => i.vaultUpdateAction;
   static String get pleaseWaitAFewMinutes => i.pleaseWaitAFewMinutes;
+  static String get deviceManagement => i.deviceManagement;
+  static String get pairedDevices => i.pairedDevices;
+  static String get lastSyncSeq => i.lastSyncSeq;
+  static String get revoke => i.revoke;
+  static String get revoked => i.revoked;
+
+  static String get devicePairingQrOnlyTitle => i.devicePairingQrOnlyTitle;
+  static String get devicePairingQrOnlyDesc => i.devicePairingQrOnlyDesc;
+  static String get devicePairingShowMyQr => i.devicePairingShowMyQr;
+  static String get devicePairingScanQr => i.devicePairingScanQr;
+  static String get devicePairingRefresh => i.devicePairingRefresh;
+  static String get devicePairingPublicKeysAuto =>
+      i.devicePairingPublicKeysAuto;
+  static String get devicePairingNoDevicesYet => i.devicePairingNoDevicesYet;
+  static String get devicePairingThisDeviceSuffix =>
+      i.devicePairingThisDeviceSuffix;
+  static String get devicePairingDialogTitle => i.devicePairingDialogTitle;
+  static String get deviceDefaultName => i.deviceDefaultName;
+  static String get deviceManagementSubtitle => i.deviceManagementSubtitle;
 }

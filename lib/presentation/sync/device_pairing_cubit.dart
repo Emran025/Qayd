@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:qayd/application/sync/device_pairing_service.dart';
+import 'package:qayd/application/sync/device_pairing_facade.dart';
 import 'package:qayd/domain/entities/device_session.dart';
-import 'package:qayd/domain/repositories/device_session_repository.dart';
 
 class DevicePairingState {
   const DevicePairingState({
@@ -39,13 +38,10 @@ class DevicePairingState {
 
 class DevicePairingCubit extends ChangeNotifier {
   DevicePairingCubit({
-    required DeviceSessionRepository sessionRepository,
-    required DevicePairingService pairingService,
-  })  : _sessionRepository = sessionRepository,
-        _pairingService = pairingService;
+    required DevicePairingFacade facade,
+  }) : _facade = facade;
 
-  final DeviceSessionRepository _sessionRepository;
-  final DevicePairingService _pairingService;
+  final DevicePairingFacade _facade;
 
   DevicePairingState _state = const DevicePairingState();
   DevicePairingState get state => _state;
@@ -58,8 +54,7 @@ class DevicePairingCubit extends ChangeNotifier {
   Future<void> load() async {
     _emit(_state.copyWith(isLoading: true, clearError: true));
     try {
-      await _pairingService.refreshSessionsFromServer();
-      final sessions = await _sessionRepository.listAll();
+      final sessions = await _facade.loadSessions();
       _emit(_state.copyWith(isLoading: false, sessions: sessions));
     } catch (_) {
       _emit(_state.copyWith(
@@ -80,14 +75,12 @@ class DevicePairingCubit extends ChangeNotifier {
       clearSuccess: true,
     ));
     try {
-      await _pairingService.pairDevice(
+      final sessions = await _facade.pairDevice(
         deviceId: deviceId,
         deviceName: deviceName,
         publicKeyHex: publicKeyHex,
         isCurrent: false,
       );
-      await _pairingService.dispatchInitialSnapshot(deviceId);
-      final sessions = await _sessionRepository.listAll();
       _emit(_state.copyWith(
         isSaving: false,
         sessions: sessions,
@@ -101,10 +94,45 @@ class DevicePairingCubit extends ChangeNotifier {
     }
   }
 
+  Future<String?> buildMyPairingQr({required String deviceName}) {
+    return _facade.buildMyPairingQr(deviceName: deviceName);
+  }
+
+  Future<void> pairFromQr({
+    required String scannedQr,
+    required String localDeviceName,
+  }) async {
+    _emit(_state.copyWith(
+      isSaving: true,
+      clearError: true,
+      clearSuccess: true,
+    ));
+    try {
+      final sessions = await _facade.pairFromQr(
+        scannedQr: scannedQr,
+        localDeviceName: localDeviceName,
+      );
+      _emit(_state.copyWith(
+        isSaving: false,
+        sessions: sessions,
+        success: 'Device paired via QR successfully.',
+      ));
+    } catch (_) {
+      _emit(_state.copyWith(
+        isSaving: false,
+        error: 'QR pairing failed.',
+      ));
+    }
+  }
+
   Future<void> revoke(String deviceId) async {
     try {
-      await _pairingService.revokeDevice(deviceId);
-      await load();
+      final sessions = await _facade.revokeDevice(deviceId);
+      _emit(_state.copyWith(
+        sessions: sessions,
+        success: 'Device revoked successfully.',
+        clearError: true,
+      ));
     } catch (_) {
       _emit(_state.copyWith(error: 'Unable to revoke device.'));
     }
