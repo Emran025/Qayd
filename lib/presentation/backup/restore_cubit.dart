@@ -155,6 +155,7 @@ class RestoreCubit extends Cubit<RestoreState> {
         try {
           final phrase = MnemonicPhrase.fromPhrase(mnemonicPhrase);
           await InjectionContainer.setupIdentityUseCase.recoverFromMnemonic(phrase);
+          await InjectionContainer.licenseVault.setIsCompanionDevice(false);
         } catch (e) {
           // Fallback just in case
           await _mnemonicVault

@@ -15,6 +15,7 @@ class DeviceManagementPage extends StatefulWidget {
 class _DeviceManagementPageState extends State<DeviceManagementPage> {
   late final DevicePairingCubit _cubit;
   String _deviceName = AppStrings.deviceDefaultName;
+  bool _isCompanionDevice = false;
 
   @override
   void initState() {
@@ -24,6 +25,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     )..load();
     _cubit.addListener(_onCubitChanged);
     _initDeviceName();
+    _loadDeviceRole();
   }
 
   Future<void> _initDeviceName() async {
@@ -31,6 +33,12 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     if (mounted) {
       setState(() => _deviceName = name);
     }
+  }
+
+  Future<void> _loadDeviceRole() async {
+    final isCompanion = await InjectionContainer.licenseVault.isCompanionDevice();
+    if (!mounted) return;
+    setState(() => _isCompanionDevice = isCompanion);
   }
 
   @override
@@ -129,11 +137,19 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: state.isSaving ? null : _scanAndLinkCompanion,
-                    icon: const Icon(Icons.link_rounded),
-                    label: const Text('Scan Companion QR'),
-                  ),
+                  if (!_isCompanionDevice)
+                    OutlinedButton.icon(
+                      onPressed: state.isSaving ? null : _scanAndLinkCompanion,
+                      icon: const Icon(Icons.link_rounded),
+                      label: const Text('Scan Companion QR'),
+                    )
+                  else
+                    Text(
+                      'This is a companion device. To link new devices, please use your primary device.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                 ],
               ),
             ),

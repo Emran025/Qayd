@@ -638,6 +638,7 @@ abstract final class InjectionContainer {
       try {
         final phrase = MnemonicPhrase.fromPhrase(mnemonic);
         await setupIdentityUseCase.recoverFromMnemonic(phrase);
+        await licenseVault.setIsCompanionDevice(false);
       } catch (e) {
         debugPrint('Failed to fully recover identity from mnemonic: $e');
       }
@@ -848,6 +849,7 @@ abstract final class InjectionContainer {
       auditLogRepository: auditLogRepository,
       auditSyncDispatcher: auditSyncDispatcher,
       companionLinkService: companionLinkService,
+      licenseVault: licenseVault,
     );
     devicePairingFacade = DevicePairingFacade(
       pairingService: devicePairingService,

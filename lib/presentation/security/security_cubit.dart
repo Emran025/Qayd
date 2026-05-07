@@ -603,6 +603,7 @@ class SecurityCubit extends Cubit<SecurityState> {
       await _licenseVault.writeJwt(result.jwt);
       await _licenseVault.writeLicenseData(result.licenseData);
       await _licenseVault.writeProvisionedHardwareId(hardwareId);
+      await _licenseVault.setIsCompanionDevice(false);
       if (result.serverSalt.isNotEmpty) {
         await _licenseVault.writeServerSalt(result.serverSalt);
       }

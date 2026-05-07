@@ -48,6 +48,7 @@ class _SeedRecoveryPageState extends State<SeedRecoveryPage> {
 
       final phrase = MnemonicPhrase.fromPhrase(text);
       await _setupUseCase.recoverFromMnemonic(phrase);
+      await InjectionContainer.licenseVault.setIsCompanionDevice(false);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

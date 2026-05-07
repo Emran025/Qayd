@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
+import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/entities/device_session.dart';
 import 'package:qayd/domain/repositories/audit_log_repository.dart';
@@ -15,6 +16,7 @@ class DevicePairingService {
     required this.auditLogRepository,
     required this.auditSyncDispatcher,
     required this.companionLinkService,
+    required this.licenseVault,
   });
 
   final DeviceSessionRepository deviceSessionRepository;
@@ -22,6 +24,7 @@ class DevicePairingService {
   final AuditLogRepository auditLogRepository;
   final AuditSyncDispatcher auditSyncDispatcher;
   final CompanionLinkService companionLinkService;
+  final LicenseVault licenseVault;
 
   Future<void> pairDevice({
     required String deviceId,
@@ -94,6 +97,11 @@ class DevicePairingService {
     required String scannedQr,
     required Future<bool> Function() approvalGate,
   }) async {
+    if (await licenseVault.isCompanionDevice()) {
+      throw StateError(
+        'Companion devices are not allowed to authorize new pairings.',
+      );
+    }
     final approved = await approvalGate();
     if (!approved) {
       throw StateError('Companion linking cancelled by user.');

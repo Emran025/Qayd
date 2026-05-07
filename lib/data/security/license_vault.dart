@@ -18,6 +18,7 @@ class LicenseVault {
   static const _kTrialStart = 'qayd_trial_start_epoch_v1';
   static const _kProvisionedHardwareId = 'qayd_provisioned_hw_id_v1';
   static const _kLocalDbSalt = 'qayd_local_db_salt_v1';
+  static const _kIsCompanionDevice = 'qayd_is_companion_device_v1';
 
   static const int trialDurationDays = 30;
 
@@ -87,6 +88,14 @@ class LicenseVault {
   Future<void> writeProvisionedHardwareId(String id) =>
       _storage.write(key: _kProvisionedHardwareId, value: id);
 
+  // ── Device role ───────────────────────────────────────────────────────────
+
+  Future<bool> isCompanionDevice() async =>
+      (await _storage.read(key: _kIsCompanionDevice)) == 'true';
+
+  Future<void> setIsCompanionDevice(bool isCompanion) =>
+      _storage.write(key: _kIsCompanionDevice, value: isCompanion.toString());
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   Future<bool> isProvisioned() async {
@@ -102,5 +111,6 @@ class LicenseVault {
     await _storage.delete(key: _kTrialStart);
     await _storage.delete(key: _kProvisionedHardwareId);
     await _storage.delete(key: _kLocalDbSalt);
+    await _storage.delete(key: _kIsCompanionDevice);
   }
 }

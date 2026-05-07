@@ -136,6 +136,7 @@ class CompanionLinkService {
   Future<CryptoKeyPair> _persistBootstrap(
       CredentialBootstrapPayload payload) async {
     await licenseVault.writeJwt(payload.jwt);
+    await licenseVault.setIsCompanionDevice(true);
     if (payload.licenseData != null) {
       await licenseVault.writeLicenseData(payload.licenseData!);
     }
