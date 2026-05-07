@@ -109,6 +109,9 @@ import 'package:qayd/data/security/mnemonic_vault.dart';
 import 'package:qayd/data/repositories/remote_identity_repository.dart';
 import 'package:qayd/domain/services/crypto_identity_service.dart';
 import 'package:qayd/application/sync/sync_coordinator_service.dart';
+import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
+import 'package:qayd/application/sync/audit_sync_processor.dart';
+import 'package:qayd/application/sync/device_pairing_service.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
 import 'package:qayd/domain/services/native_notification_service.dart';
@@ -139,7 +142,9 @@ import 'package:qayd/application/vouchers/create_reversal_voucher_use_case.dart'
 import 'package:qayd/application/vouchers/settle_voucher_use_case.dart';
 import 'package:qayd/application/sync/p2p_sync_service.dart';
 import 'package:qayd/data/repositories/outbox_dao.dart';
+import 'package:qayd/data/repositories/device_sync_outbox_dao.dart';
 import 'package:qayd/data/repositories/sync_watermark_dao.dart';
+import 'package:qayd/data/repositories/sqlite_device_session_repository.dart';
 import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
@@ -158,6 +163,7 @@ import 'package:qayd/application/cost_centers/suspend_cost_center_use_case.dart'
 import 'package:qayd/data/repositories/sqlite_cost_center_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/repositories/audit_log_repository.dart';
+import 'package:qayd/domain/repositories/device_session_repository.dart';
 import 'package:qayd/data/repositories/sqlite_audit_log_repository.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/application/management/seed_expense_accounts_use_case.dart';
@@ -336,7 +342,12 @@ abstract final class InjectionContainer {
   static late CreateReversalVoucherUseCase createReversalVoucherUseCase;
   static late SettleVoucherUseCase settleVoucherUseCase;
   static late OutboxDao outboxDao;
+  static late DeviceSyncOutboxDao deviceSyncOutboxDao;
   static late SyncWatermarkDao syncWatermarkDao;
+  static late DeviceSessionRepository deviceSessionRepository;
+  static late AuditSyncDispatcher auditSyncDispatcher;
+  static late AuditSyncProcessor auditSyncProcessor;
+  static late DevicePairingService devicePairingService;
   static late P2PSyncService p2pSyncService;
   static late SyncEventDispatcher syncEventDispatcher;
 
@@ -686,6 +697,7 @@ abstract final class InjectionContainer {
       notificationMessageRepository: notificationMessageRepository,
       notificationFilterService: notificationFilterService,
       auditLogService: auditLogService,
+      auditSyncProcessor: auditSyncProcessor,
       onDecryptionFailure: (nodeId) =>
           syncStatusCubit.reportDecryptionfailure(nodeId),
     );
@@ -710,6 +722,7 @@ abstract final class InjectionContainer {
       collateralExpiryChecker: collateralExpiryChecker,
       notificationMessageRepository: notificationMessageRepository,
       outboxDao: outboxDao,
+      deviceSyncOutboxDao: deviceSyncOutboxDao,
       watermarkDao: syncWatermarkDao,
       voucherRepository: voucherRepository,
       syncEventDispatcher: syncEventDispatcher,
@@ -741,7 +754,9 @@ abstract final class InjectionContainer {
 
   static void _registerSqliteStack() {
     outboxDao = OutboxDao(database);
+    deviceSyncOutboxDao = DeviceSyncOutboxDao(database);
     syncWatermarkDao = SyncWatermarkDao(database);
+    deviceSessionRepository = SqliteDeviceSessionRepository(database);
 
     syncEventDispatcher = SyncEventDispatcher(
       outboxDao: outboxDao,
@@ -781,6 +796,18 @@ abstract final class InjectionContainer {
     auditLogService = AuditLogService(
       auditRepo: auditLogRepository,
       database: database,
+    );
+    auditSyncProcessor =
+        AuditSyncProcessor(auditLogRepository: auditLogRepository);
+    auditSyncDispatcher = AuditSyncDispatcher(
+      outboxDao: deviceSyncOutboxDao,
+      e2eeService: e2eeService,
+      getCurrentKeyPair: () => setupIdentityUseCase.getKeyPair(),
+    );
+    devicePairingService = DevicePairingService(
+      deviceSessionRepository: deviceSessionRepository,
+      auditLogRepository: auditLogRepository,
+      auditSyncDispatcher: auditSyncDispatcher,
     );
 
     transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(

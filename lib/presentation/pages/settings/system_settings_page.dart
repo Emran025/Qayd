@@ -7,6 +7,7 @@ import 'package:qayd/presentation/pages/settings/groups/security_settings_page.d
 import 'package:qayd/presentation/pages/settings/groups/support_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/notification_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/device_management_page.dart';
 import 'package:qayd/presentation/pages/settings/sync_privacy_settings_section.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
@@ -40,6 +41,13 @@ class SystemSettingsPage extends StatelessWidget {
             title: AppStrings.settingsSyncPrivacyTitle,
             subtitle: AppStrings.settingsSyncPrivacySubtitle,
             onTap: () => _navTo(context, const SyncPrivacySettingsSection()),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.devices_outlined,
+            title: 'Device Management',
+            subtitle: 'Pair and revoke trusted devices',
+            onTap: () => _navTo(context, const DeviceManagementPage()),
           ),
           SizedBox(height: SpacingTokens.md),
           _buildSectionHeader(context, AppStrings.settingsSectionCustomization),

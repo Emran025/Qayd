@@ -9,6 +9,7 @@ import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/data/repositories/outbox_dao.dart';
+import 'package:qayd/data/repositories/device_sync_outbox_dao.dart';
 import 'package:qayd/data/repositories/sync_watermark_dao.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
@@ -29,6 +30,7 @@ class SyncCoordinatorService {
     required this.notificationFilterService,
     required this.notificationMessageRepository,
     required this.outboxDao,
+    required this.deviceSyncOutboxDao,
     required this.watermarkDao,
     required this.currentUserId,
     required this.voucherRepository,
@@ -44,6 +46,7 @@ class SyncCoordinatorService {
   final NotificationFilterService notificationFilterService;
   final NotificationMessageRepository notificationMessageRepository;
   final OutboxDao outboxDao;
+  final DeviceSyncOutboxDao deviceSyncOutboxDao;
   final SyncWatermarkDao watermarkDao;
   final int currentUserId;
   final VoucherRepository voucherRepository;
@@ -170,6 +173,7 @@ class SyncCoordinatorService {
 
       // 2. Flush local outbox to server
       await _flushOutbox();
+      await _flushDeviceSyncOutbox();
 
       // 2. Fetch server-side watermark or last sync time
       // Using a generic 'server' watermark here:
@@ -190,6 +194,31 @@ class SyncCoordinatorService {
     } catch (e) {
       debugPrint('Sync: ❌ Catch-Up error: $e');
     }
+  }
+
+  Future<void> _flushDeviceSyncOutbox() async {
+    final pending = await deviceSyncOutboxDao.listPending();
+    if (pending.isEmpty) return;
+
+    for (final entry in pending) {
+      try {
+        final node = SyncNode(
+          id: entry.id,
+          senderId: currentUserId,
+          receiverPublicKey: entry.targetDeviceId,
+          eventType: SyncEventType.auditBatch,
+          encryptedPayload: entry.encryptedPayload,
+          syncState: 'pending',
+          clientTimestamp: entry.createdAt,
+        );
+        await syncRepository.pushNode(node);
+        await deviceSyncOutboxDao.markSent(entry.id);
+      } catch (_) {
+        await deviceSyncOutboxDao.incrementRetry(entry.id);
+      }
+    }
+
+    await deviceSyncOutboxDao.purgeDelivered(days: 7);
   }
 
   /// Scans for confirmed vouchers that were never enqueued to the outbox

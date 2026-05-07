@@ -10,6 +10,7 @@ enum SyncEventType {
   collateralUpdate, // Re-evaluation event
   withdrawal, // Voucher withdrawn by creator
   settlement, // Settlement linked via originVoucherId
+  auditBatch, // Encrypted audit-log delta/snapshot payload
   p2pHandshake, // P2P bidirectional sync handshake
   tripartiteRequest, // Sender -> Mediator Request (A -> B)
   unknown;

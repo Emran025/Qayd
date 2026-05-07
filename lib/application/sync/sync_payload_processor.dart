@@ -36,8 +36,8 @@ import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:uuid/uuid.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/application/sync/audit_sync_processor.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
-
 
 /// Intercepts inbound [SyncNode] streams, enforces E2EE Cryptographic rules,
 /// decrypts the payloads, and mutates the local Drift databases securely.
@@ -57,6 +57,7 @@ class SyncPayloadProcessor {
     required this.notificationMessageRepository,
     required this.notificationFilterService,
     this.auditLogService,
+    this.auditSyncProcessor,
     this.onDecryptionFailure,
   });
 
@@ -74,6 +75,7 @@ class SyncPayloadProcessor {
   final VoucherKeyService voucherKeyService;
   final NotificationFilterService notificationFilterService;
   final AuditLogService? auditLogService;
+  final AuditSyncProcessor? auditSyncProcessor;
   final void Function(String nodeId)? onDecryptionFailure;
 
   /// Ingests a list of pushed/pulled encrypted sync nodes
@@ -175,6 +177,9 @@ class SyncPayloadProcessor {
             await _inboundVoucherSettlement(
                 decryptedRawPayload, node.id, node.senderId.toString());
             break;
+          case SyncEventType.auditBatch:
+            await _inboundAuditBatch(decryptedRawPayload);
+            break;
           case SyncEventType.p2pHandshake:
             // P2P handshake is handled at the transport layer, not here.
             debugPrint(
@@ -193,6 +198,19 @@ class SyncPayloadProcessor {
         debugPrint('Security Pipeline Failure for SyncNode [${node.id}]: $e');
       }
     }
+  }
+
+  Future<void> _inboundAuditBatch(Map<String, dynamic> payload) async {
+    final processor = auditSyncProcessor;
+    if (processor == null) return;
+
+    final entries = payload['entries'] as List<dynamic>? ?? const [];
+    final maps = entries
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    if (maps.isEmpty) return;
+    await processor.processBatch(maps);
   }
 
   Future<void> _inboundVoucherClaim(
@@ -279,8 +297,8 @@ class SyncPayloadProcessor {
       senderPublicKeyHex: payload['sender_public_key_hex'],
       signerPhone: payload['signer_phone'],
       // v2.1: record canonical phones when available from sync payload.
-      canonicalSenderPhone: payload['canonical_sender_phone'] as String?
-          ?? payload['signer_phone'] as String?,
+      canonicalSenderPhone: payload['canonical_sender_phone'] as String? ??
+          payload['signer_phone'] as String?,
       canonicalReceiverPhone: payload['canonical_receiver_phone'] as String?,
       originVoucherId: payload['origin_voucher_id'] != null
           ? VoucherId(payload['origin_voucher_id'])
@@ -521,8 +539,14 @@ class SyncPayloadProcessor {
         entityId: signedVoucher.id.value,
         action: AuditAction.update,
         severity: AuditSeverity.info,
-        oldData: {'id': draft.id.value, 'receiver_status': draft.receiverStatus.name},
-        newData: {'id': signedVoucher.id.value, 'receiver_status': signedVoucher.receiverStatus.name},
+        oldData: {
+          'id': draft.id.value,
+          'receiver_status': draft.receiverStatus.name
+        },
+        newData: {
+          'id': signedVoucher.id.value,
+          'receiver_status': signedVoucher.receiverStatus.name
+        },
       );
       debugPrint(
         'Voucher [$voucherIdStr] accepted — verified with key ${matchedKey.substring(0, 8)}…',
@@ -558,8 +582,14 @@ class SyncPayloadProcessor {
         entityId: suspendedVoucher.id.value,
         action: AuditAction.update,
         severity: AuditSeverity.warning,
-        oldData: {'id': draft.id.value, 'receiver_status': draft.receiverStatus.name},
-        newData: {'id': suspendedVoucher.id.value, 'receiver_status': suspendedVoucher.receiverStatus.name},
+        oldData: {
+          'id': draft.id.value,
+          'receiver_status': draft.receiverStatus.name
+        },
+        newData: {
+          'id': suspendedVoucher.id.value,
+          'receiver_status': suspendedVoucher.receiverStatus.name
+        },
       );
       debugPrint(
         'SECURITY: Voucher [$voucherIdStr] SUSPENDED — '
@@ -590,7 +620,10 @@ class SyncPayloadProcessor {
       entityId: rejectedVoucher.id.value,
       action: AuditAction.update,
       severity: AuditSeverity.warning,
-      newData: {'id': rejectedVoucher.id.value, 'receiver_status': rejectedVoucher.receiverStatus.name},
+      newData: {
+        'id': rejectedVoucher.id.value,
+        'receiver_status': rejectedVoucher.receiverStatus.name
+      },
     );
 
     // Create notification for rejection
@@ -637,8 +670,9 @@ class SyncPayloadProcessor {
         voucherId: voucherId,
         fileName: map['file_name'] as String? ?? 'attachment.jpg',
         storagePath: '', // populated after blob download
-        encryptedBlobHash: map['encrypted_blob_hash'] as String?
-            ?? map['blob_hash'] as String? ?? '',
+        encryptedBlobHash: map['encrypted_blob_hash'] as String? ??
+            map['blob_hash'] as String? ??
+            '',
         mimeType: map['mime_type'] as String? ?? 'image/jpeg',
         byteSize: map['byte_size'] as int? ?? 0,
         sourceType: AttachmentSourceType.gallery,
@@ -874,7 +908,8 @@ class SyncPayloadProcessor {
     }
 
     // Protocol §2.A: A withdrawal is only valid if we (the receiver) haven't accepted it yet.
-    if (voucher.state.isDraft && voucher.receiverStatus != AgreementStatus.accepted) {
+    if (voucher.state.isDraft &&
+        voucher.receiverStatus != AgreementStatus.accepted) {
       // Withdraw the local copy
       final withdrawn = voucher.withdraw(DateTime.now());
       await voucherRepository.save(withdrawn);

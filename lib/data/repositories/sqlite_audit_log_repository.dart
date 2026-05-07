@@ -4,6 +4,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 class SqliteAuditLogRepository implements AuditLogRepository {
   final Database _db;
+  bool? _hasSyncColumns;
 
   SqliteAuditLogRepository(this._db);
 
@@ -13,18 +14,33 @@ class SqliteAuditLogRepository implements AuditLogRepository {
 
   @override
   Future<void> save(AuditEntry entry) async {
+    await _ensureSyncColumns();
+    final map = entry.toMap();
+    if (_hasSyncColumns == true) {
+      final maxSeq = Sqflite.firstIntValue(
+            await _db.rawQuery('SELECT MAX(sync_seq) FROM $_table'),
+          ) ??
+          0;
+      map['sync_seq'] = maxSeq + 1;
+      map['device_id'] ??= _extractDeviceId(entry.actorId);
+    }
     await _db.insert(
       _table,
-      entry.toMap(),
+      map,
       conflictAlgorithm: ConflictAlgorithm.rollback,
     );
   }
 
   @override
   Future<void> update(AuditEntry entry) async {
+    await _ensureSyncColumns();
+    final map = entry.toMap();
+    if (_hasSyncColumns == true) {
+      map['device_id'] ??= _extractDeviceId(entry.actorId);
+    }
     await _db.update(
       _table,
-      entry.toMap(),
+      map,
       where: 'id = ?',
       whereArgs: [entry.id],
     );
@@ -72,6 +88,19 @@ class SqliteAuditLogRepository implements AuditLogRepository {
   }
 
   @override
+  Future<List<AuditEntry>> listSinceSeq(int seq) async {
+    await _ensureSyncColumns();
+    if (_hasSyncColumns != true) return <AuditEntry>[];
+    final rows = await _db.query(
+      _table,
+      where: 'sync_seq > ?',
+      whereArgs: [seq],
+      orderBy: 'sync_seq ASC',
+    );
+    return rows.map(AuditEntry.fromMap).toList();
+  }
+
+  @override
   Future<AuditEntry?> getLatest() async {
     final rows = await _db.query(
       _table,
@@ -113,5 +142,21 @@ class SqliteAuditLogRepository implements AuditLogRepository {
       where: 'created_at > ? AND is_undone = 1',
       whereArgs: [timestamp.toUtc().toIso8601String()],
     );
+  }
+
+  Future<void> _ensureSyncColumns() async {
+    if (_hasSyncColumns != null) return;
+    final columns = await _db.rawQuery('PRAGMA table_info($_table)');
+    final names = columns
+        .map((row) => row['name'] as String? ?? '')
+        .toSet();
+    _hasSyncColumns = names.contains('sync_seq') && names.contains('device_id');
+  }
+
+  String? _extractDeviceId(String? actorId) {
+    if (actorId == null || !actorId.startsWith('device:')) return null;
+    final parts = actorId.split(':');
+    if (parts.length < 2) return null;
+    return parts.sublist(1).join(':');
   }
 }

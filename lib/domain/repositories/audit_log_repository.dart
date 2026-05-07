@@ -25,6 +25,9 @@ abstract interface class AuditLogRepository {
   /// Returns entries that are currently active (not undone), ordered newest-first.
   Future<List<AuditEntry>> listActive();
 
+  /// Returns entries with sequence strictly greater than [seq], ascending.
+  Future<List<AuditEntry>> listSinceSeq(int seq);
+
   /// Returns the single newest active entry (the current HEAD), or `null`
   /// if the audit trail is empty or every entry is undone.
   Future<AuditEntry?> getLatest();
