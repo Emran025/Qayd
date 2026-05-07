@@ -62,6 +62,7 @@ class AuditEntry {
   final Map<String, dynamic>? newData;
   final bool isUndone;
   final DateTime createdAt;
+  final int? syncSeq;
 
   const AuditEntry({
     required this.id,
@@ -75,6 +76,7 @@ class AuditEntry {
     this.newData,
     this.isUndone = false,
     required this.createdAt,
+    this.syncSeq,
   });
 
   // ── Derived helpers ──────────────────────────────────────────────────────────
@@ -116,6 +118,7 @@ class AuditEntry {
       'new_data': newData != null ? jsonEncode(newData) : null,
       'is_undone': isUndone ? 1 : 0,
       'created_at': createdAt.toUtc().toIso8601String(),
+      'sync_seq': syncSeq,
     };
   }
 
@@ -132,6 +135,7 @@ class AuditEntry {
       newData: _decodeJsonColumn(map['new_data']),
       isUndone: (map['is_undone'] as int? ?? 0) == 1,
       createdAt: DateTime.parse(map['created_at'] as String).toLocal(),
+      syncSeq: map['sync_seq'] as int?,
     );
   }
 
@@ -149,6 +153,7 @@ class AuditEntry {
     Map<String, dynamic>? newData,
     bool? isUndone,
     DateTime? createdAt,
+    int? syncSeq,
   }) {
     return AuditEntry(
       id: id ?? this.id,
@@ -162,6 +167,7 @@ class AuditEntry {
       newData: newData ?? this.newData,
       isUndone: isUndone ?? this.isUndone,
       createdAt: createdAt ?? this.createdAt,
+      syncSeq: syncSeq ?? this.syncSeq,
     );
   }
 

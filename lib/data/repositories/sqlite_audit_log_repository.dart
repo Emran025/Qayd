@@ -17,11 +17,15 @@ class SqliteAuditLogRepository implements AuditLogRepository {
     await _ensureSyncColumns();
     final map = entry.toMap();
     if (_hasSyncColumns == true) {
-      final maxSeq = Sqflite.firstIntValue(
-            await _db.rawQuery('SELECT MAX(sync_seq) FROM $_table'),
-          ) ??
-          0;
-      map['sync_seq'] = maxSeq + 1;
+      if (entry.syncSeq != null) {
+        map['sync_seq'] = entry.syncSeq;
+      } else {
+        final maxSeq = Sqflite.firstIntValue(
+              await _db.rawQuery('SELECT MAX(sync_seq) FROM $_table'),
+            ) ??
+            0;
+        map['sync_seq'] = maxSeq + 1;
+      }
       map['device_id'] ??= _extractDeviceId(entry.actorId);
     }
     await _db.insert(
@@ -114,8 +118,7 @@ class SqliteAuditLogRepository implements AuditLogRepository {
 
   @override
   Future<int> countAll() async {
-    final result =
-        await _db.rawQuery('SELECT COUNT(*) as cnt FROM $_table');
+    final result = await _db.rawQuery('SELECT COUNT(*) as cnt FROM $_table');
     return (result.first['cnt'] as int?) ?? 0;
   }
 
@@ -147,9 +150,7 @@ class SqliteAuditLogRepository implements AuditLogRepository {
   Future<void> _ensureSyncColumns() async {
     if (_hasSyncColumns != null) return;
     final columns = await _db.rawQuery('PRAGMA table_info($_table)');
-    final names = columns
-        .map((row) => row['name'] as String? ?? '')
-        .toSet();
+    final names = columns.map((row) => row['name'] as String? ?? '').toSet();
     _hasSyncColumns = names.contains('sync_seq') && names.contains('device_id');
   }
 

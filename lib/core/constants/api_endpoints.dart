@@ -33,7 +33,8 @@ abstract final class ApiEndpoints {
   static const String passwordReset = '$v1/auth/password/reset';
 
   // ── Email verification ────────────────────────────────────────────────────
-  static const String verificationSend = '$v1/auth/email/verification-notification';
+  static const String verificationSend =
+      '$v1/auth/email/verification-notification';
   static const String verificationVerifyOtp = '$v1/auth/email/verify-otp';
 
   // ── License ───────────────────────────────────────────────────────────────
@@ -52,6 +53,9 @@ abstract final class ApiEndpoints {
   static const String syncAcknowledge = '$v1/sync/acknowledge';
   static const String devicesPair = '$v1/devices/pair';
   static const String devicesList = '$v1/devices';
+  static const String devicesCompanionBootstrap =
+      '$v1/devices/companion/bootstrap';
+  static const String devicesCompanionConsume = '$v1/devices/companion/consume';
   static String deviceRevoke(String deviceId) => '$v1/devices/$deviceId/revoke';
 
   // ── Support & Documents ─────────────────────────────────────────────────

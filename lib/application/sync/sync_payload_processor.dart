@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/core/result/result.dart';
@@ -180,6 +181,9 @@ class SyncPayloadProcessor {
           case SyncEventType.auditBatch:
             await _inboundAuditBatch(decryptedRawPayload);
             break;
+          case SyncEventType.credentialBootstrap:
+            // Bootstrap is consumed in pre-auth companion flow.
+            break;
           case SyncEventType.p2pHandshake:
             // P2P handshake is handled at the transport layer, not here.
             debugPrint(
@@ -204,11 +208,22 @@ class SyncPayloadProcessor {
     final processor = auditSyncProcessor;
     if (processor == null) return;
 
-    final entries = payload['entries'] as List<dynamic>? ?? const [];
-    final maps = entries
-        .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+    final encoding = payload['encoding'] as String?;
+    final maps = <Map<String, dynamic>>[];
+    if (encoding == 'gzip+base64') {
+      final encoded = payload['entries_gzip'] as String?;
+      if (encoded == null || encoded.isEmpty) return;
+      final unzipped = gzip.decode(base64Decode(encoded));
+      final decoded = jsonDecode(utf8.decode(unzipped)) as List<dynamic>;
+      maps.addAll(
+        decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)),
+      );
+    } else {
+      final entries = payload['entries'] as List<dynamic>? ?? const [];
+      maps.addAll(
+        entries.whereType<Map>().map((e) => Map<String, dynamic>.from(e)),
+      );
+    }
     if (maps.isEmpty) return;
     await processor.processBatch(maps);
   }

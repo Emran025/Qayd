@@ -33,19 +33,14 @@ class DevicePairingFacade {
     return _sessionRepository.listAll();
   }
 
-  Future<String?> buildMyPairingQr({required String deviceName}) {
-    return _pairingService.buildMyPairingQr(deviceName: deviceName);
-  }
-
-  Future<List<DeviceSession>> pairFromQr({
+  Future<void> sendCompanionBootstrap({
     required String scannedQr,
-    required String localDeviceName,
-  }) async {
-    await _pairingService.pairFromQr(
+    required Future<bool> Function() approvalGate,
+  }) {
+    return _pairingService.sendCompanionBootstrap(
       scannedQr: scannedQr,
-      localDeviceName: localDeviceName,
+      approvalGate: approvalGate,
     );
-    return _sessionRepository.listAll();
   }
 
   Future<List<DeviceSession>> revokeDevice(String deviceId) async {

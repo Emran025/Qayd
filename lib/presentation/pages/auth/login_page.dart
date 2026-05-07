@@ -12,6 +12,7 @@ import 'package:qayd/presentation/pages/auth/email_verification_otp_page.dart';
 import 'package:qayd/presentation/pages/auth/password_reset_page.dart';
 import 'package:qayd/presentation/pages/auth/register_page.dart';
 import 'package:qayd/presentation/security/security_cubit.dart';
+import 'package:qayd/presentation/sync/companion_link_page.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/di/injection_container.dart';
@@ -69,10 +70,11 @@ class _LoginPageState extends State<LoginPage> {
       final otpSuccess = await Navigator.push<bool>(
         context,
         MaterialPageRoute(
-          builder: (_) => EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
+          builder: (_) =>
+              EmailVerificationOtpPage(email: _emailCtrl.text.trim()),
         ),
       );
-      
+
       if (otpSuccess != true) {
         setState(() => _loading = false);
         return;
@@ -85,14 +87,16 @@ class _LoginPageState extends State<LoginPage> {
       if (widget.onProvisioningComplete != null) {
         await widget.onProvisioningComplete!();
       } else {
-        // If onProvisioningComplete is null, we are rendering LoginPage from within 
+        // If onProvisioningComplete is null, we are rendering LoginPage from within
         // QaydApp (after a logout). We need to reopen the database manually here.
         await InjectionContainer.reopenDatabaseAfterRestore();
-        
+
         // We must sync identity manually since SecurityCubit skipped it because DB wasn't ready.
-        InjectionContainer.syncIdentityToInternalAccountsUseCase.call().ignore();
+        InjectionContainer.syncIdentityToInternalAccountsUseCase
+            .call()
+            .ignore();
       }
-      
+
       if (!mounted) return;
       setState(() => _loading = false);
       return;
@@ -102,7 +106,6 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = false);
     if (!result.success) setState(() => _errorAr = result.errorAr);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -191,6 +194,29 @@ class _LoginPageState extends State<LoginPage> {
                       style: const TextStyle(
                           color: ColorTokens.emerald400, fontSize: 13),
                     ),
+                  ),
+                  SizedBox(height: SpacingTokens.xs),
+                  OutlinedButton(
+                    onPressed: _loading
+                        ? null
+                        : () async {
+                            await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CompanionLinkPage(
+                                  onProvisioningComplete: () async {
+                                    if (widget.onProvisioningComplete != null) {
+                                      await widget.onProvisioningComplete!();
+                                    } else {
+                                      await InjectionContainer
+                                          .reopenDatabaseAfterRestore();
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                    child: const Text('Link as companion device'),
                   ),
 
                   // Register link

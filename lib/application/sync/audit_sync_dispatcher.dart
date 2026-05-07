@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:qayd/data/repositories/device_sync_outbox_dao.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
@@ -22,12 +23,30 @@ class AuditSyncDispatcher {
     required String targetDeviceId,
     required String receiverPublicKeyHex,
   }) async {
+    await dispatchBatchToDevice(
+      entries: [entry],
+      targetDeviceId: targetDeviceId,
+      receiverPublicKeyHex: receiverPublicKeyHex,
+    );
+  }
+
+  Future<void> dispatchBatchToDevice({
+    required List<AuditEntry> entries,
+    required String targetDeviceId,
+    required String receiverPublicKeyHex,
+  }) async {
+    if (entries.isEmpty) return;
     final keyPair = await getCurrentKeyPair();
     if (keyPair == null) return;
 
+    final entriesJson =
+        utf8.encode(jsonEncode(entries.map((e) => e.toMap()).toList()));
+    final compressed = gzip.encode(entriesJson);
     final payload = {
       'kind': 'audit_batch',
-      'entries': [entry.toMap()],
+      'encoding': 'gzip+base64',
+      'entries_gzip': base64Encode(compressed),
+      'entry_count': entries.length,
     };
     final encrypted = await e2eeService.encryptPayload(
       rawPayload: payload,
@@ -40,7 +59,7 @@ class AuditSyncDispatcher {
     await outboxDao.enqueue(
       DeviceSyncOutboxEntry(
         id: const Uuid().v4(),
-        auditEntryId: entry.id,
+        auditEntryId: entries.first.id,
         targetDeviceId: targetDeviceId,
         encryptedPayload: encrypted,
         signature: signature,

@@ -111,6 +111,7 @@ import 'package:qayd/domain/services/crypto_identity_service.dart';
 import 'package:qayd/application/sync/sync_coordinator_service.dart';
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/application/sync/audit_sync_processor.dart';
+import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/application/sync/device_pairing_qr_service.dart';
 import 'package:qayd/application/sync/device_pairing_service.dart';
 import 'package:qayd/application/sync/device_pairing_facade.dart';
@@ -355,6 +356,7 @@ abstract final class InjectionContainer {
   static late AuditSyncDispatcher auditSyncDispatcher;
   static late AuditSyncProcessor auditSyncProcessor;
   static late DevicePairingService devicePairingService;
+  static late CompanionLinkService companionLinkService;
   static late DevicePairingFacade devicePairingFacade;
   static late SyncFacade syncFacade;
   static late P2PSyncService p2pSyncService;
@@ -404,7 +406,7 @@ abstract final class InjectionContainer {
   }) async {
     // Force SharedPreferences up early as Pigeon channels for it can be finicky after hot restarts
     sharedPreferences = await SharedPreferences.getInstance();
-    
+
     appearanceSettingsCubit = AppearanceSettingsCubit(sharedPreferences);
 
     // ── Phase 7: Security bootstrap ─────────────────────────────────────────
@@ -431,7 +433,7 @@ abstract final class InjectionContainer {
         SentryDioObserver(),
       ],
       onSecurityError: () {
-        // As soon as any API call returns a 403 (Banned/Closed), 
+        // As soon as any API call returns a 403 (Banned/Closed),
         // we force the security cubit to refresh its state and lock the UI.
         // We use isForced: true to bypass the refresh throttling.
         securityCubit.refreshLicenseStatus(isForced: true).ignore();
@@ -485,6 +487,18 @@ abstract final class InjectionContainer {
       mnemonicVault: mnemonicVault,
       identityRepository: identityRepository,
       identityFileStorage: identityFileStorage,
+    );
+    companionLinkService = CompanionLinkService(
+      qrService: const DevicePairingQrService(),
+      e2eeService: e2eeService,
+      apiClient: apiClient,
+      mnemonicVault: mnemonicVault,
+      licenseVault: licenseVault,
+      setupIdentityUseCase: setupIdentityUseCase,
+      getCurrentKeyPair: () => setupIdentityUseCase.getKeyPair(),
+      cryptoIdentityService: cryptoIdentityService,
+      deviceRegistryRepository: deviceRegistryRepository,
+      getCurrentDeviceId: () async => currentDeviceId,
     );
     updateProfileUseCase = UpdateProfileUseCase(
       identityRepository: identityRepository,
@@ -812,27 +826,28 @@ abstract final class InjectionContainer {
     // ── Cost and Profit Centers ───────────────────────────────────────────
     costCenterRepository = SqliteCostCenterRepository(database);
     auditLogRepository = SqliteAuditLogRepository(database);
-    auditLogService = AuditLogService(
-      auditRepo: auditLogRepository,
-      database: database,
-    );
-    auditSyncProcessor =
-        AuditSyncProcessor(auditLogRepository: auditLogRepository);
     auditSyncDispatcher = AuditSyncDispatcher(
       outboxDao: deviceSyncOutboxDao,
       e2eeService: e2eeService,
       getCurrentKeyPair: () => setupIdentityUseCase.getKeyPair(),
+    );
+    auditLogService = AuditLogService(
+      auditRepo: auditLogRepository,
+      database: database,
+      auditSyncDispatcher: auditSyncDispatcher,
+      deviceSessionRepository: deviceSessionRepository,
+      getCurrentDeviceId: () async => currentDeviceId,
+    );
+    auditSyncProcessor = AuditSyncProcessor(
+      auditLogRepository: auditLogRepository,
+      auditLogService: auditLogService,
     );
     devicePairingService = DevicePairingService(
       deviceSessionRepository: deviceSessionRepository,
       deviceRegistryRepository: deviceRegistryRepository,
       auditLogRepository: auditLogRepository,
       auditSyncDispatcher: auditSyncDispatcher,
-      getCurrentKeyPair: () => setupIdentityUseCase.getKeyPair(),
-      getCurrentDeviceId: () async => currentDeviceId,
-      qrService: const DevicePairingQrService(),
-      signingService: receiptSigningService,
-      cryptoService: cryptoIdentityService,
+      companionLinkService: companionLinkService,
     );
     devicePairingFacade = DevicePairingFacade(
       pairingService: devicePairingService,

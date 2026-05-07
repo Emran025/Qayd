@@ -3,7 +3,6 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/sync/device_pairing_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
-import 'package:qayd/presentation/sync/device_pairing_qr_dialog.dart';
 import 'package:qayd/presentation/sync/device_pairing_qr_scanner_page.dart';
 
 class DeviceManagementPage extends StatefulWidget {
@@ -55,20 +54,36 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     }
   }
 
-  Future<void> _showMyQr() async {
-    final qr = await _cubit.buildMyPairingQr(deviceName: _deviceName);
-    if (!mounted || qr == null) return;
-    await DevicePairingQrDialog.show(context, qrPayload: qr);
-  }
-
-  Future<void> _scanAndPair() async {
+  Future<void> _scanAndLinkCompanion() async {
     final scanned = await Navigator.of(context).push<String>(
       MaterialPageRoute(builder: (_) => const DevicePairingQrScannerPage()),
     );
     if (scanned == null || scanned.isEmpty) return;
-    await _cubit.pairFromQr(
+    await _cubit.sendCompanionBootstrap(
       scannedQr: scanned,
-      localDeviceName: _deviceName,
+      approvalGate: () async {
+        if (!mounted) return false;
+        final approved = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Link new companion device?'),
+            content: const Text(
+              'Approve to securely transfer encrypted login bootstrap credentials.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Approve'),
+              ),
+            ],
+          ),
+        );
+        return approved ?? false;
+      },
     );
   }
 
@@ -114,16 +129,10 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  FilledButton.icon(
-                    onPressed: state.isSaving ? null : _showMyQr,
-                    icon: const Icon(Icons.qr_code_2_rounded),
-                    label: Text(AppStrings.devicePairingShowMyQr),
-                  ),
-                  const SizedBox(height: 8),
-                  FilledButton.tonalIcon(
-                    onPressed: state.isSaving ? null : _scanAndPair,
-                    icon: const Icon(Icons.qr_code_scanner_rounded),
-                    label: Text(AppStrings.devicePairingScanQr),
+                  OutlinedButton.icon(
+                    onPressed: state.isSaving ? null : _scanAndLinkCompanion,
+                    icon: const Icon(Icons.link_rounded),
+                    label: const Text('Scan Companion QR'),
                   ),
                 ],
               ),

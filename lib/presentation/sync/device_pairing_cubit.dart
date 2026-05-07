@@ -94,37 +94,6 @@ class DevicePairingCubit extends ChangeNotifier {
     }
   }
 
-  Future<String?> buildMyPairingQr({required String deviceName}) {
-    return _facade.buildMyPairingQr(deviceName: deviceName);
-  }
-
-  Future<void> pairFromQr({
-    required String scannedQr,
-    required String localDeviceName,
-  }) async {
-    _emit(_state.copyWith(
-      isSaving: true,
-      clearError: true,
-      clearSuccess: true,
-    ));
-    try {
-      final sessions = await _facade.pairFromQr(
-        scannedQr: scannedQr,
-        localDeviceName: localDeviceName,
-      );
-      _emit(_state.copyWith(
-        isSaving: false,
-        sessions: sessions,
-        success: 'Device paired via QR successfully.',
-      ));
-    } catch (_) {
-      _emit(_state.copyWith(
-        isSaving: false,
-        error: 'QR pairing failed.',
-      ));
-    }
-  }
-
   Future<void> revoke(String deviceId) async {
     try {
       final sessions = await _facade.revokeDevice(deviceId);
@@ -135,6 +104,32 @@ class DevicePairingCubit extends ChangeNotifier {
       ));
     } catch (_) {
       _emit(_state.copyWith(error: 'Unable to revoke device.'));
+    }
+  }
+
+  Future<void> sendCompanionBootstrap({
+    required String scannedQr,
+    required Future<bool> Function() approvalGate,
+  }) async {
+    _emit(_state.copyWith(
+      isSaving: true,
+      clearError: true,
+      clearSuccess: true,
+    ));
+    try {
+      await _facade.sendCompanionBootstrap(
+        scannedQr: scannedQr,
+        approvalGate: approvalGate,
+      );
+      _emit(_state.copyWith(
+        isSaving: false,
+        success: 'Companion bootstrap sent successfully.',
+      ));
+    } catch (_) {
+      _emit(_state.copyWith(
+        isSaving: false,
+        error: 'Companion bootstrap failed.',
+      ));
     }
   }
 }

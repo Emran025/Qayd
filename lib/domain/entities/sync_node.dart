@@ -11,6 +11,7 @@ enum SyncEventType {
   withdrawal, // Voucher withdrawn by creator
   settlement, // Settlement linked via originVoucherId
   auditBatch, // Encrypted audit-log delta/snapshot payload
+  credentialBootstrap, // Companion bootstrap credentials relay
   p2pHandshake, // P2P bidirectional sync handshake
   tripartiteRequest, // Sender -> Mediator Request (A -> B)
   unknown;
@@ -52,6 +53,7 @@ class SyncNode {
     this.clientTimestamp,
     this.senderDeviceId,
     this.targetDeviceId,
+    this.socketSessionId,
     this.signature,
   });
 
@@ -85,6 +87,7 @@ class SyncNode {
   final DateTime? clientTimestamp;
   final String? senderDeviceId;
   final String? targetDeviceId;
+  final String? socketSessionId;
   final String? signature;
 
   factory SyncNode.fromJson(Map<String, dynamic> json) {
@@ -105,6 +108,7 @@ class SyncNode {
           : null,
       senderDeviceId: json['sender_device_id'] as String?,
       targetDeviceId: json['target_device_id'] as String?,
+      socketSessionId: json['socket_session_id'] as String?,
       signature: json['signature'] as String?,
     );
   }
@@ -123,6 +127,7 @@ class SyncNode {
       'client_timestamp': clientTimestamp?.toIso8601String(),
       if (senderDeviceId != null) 'sender_device_id': senderDeviceId,
       if (targetDeviceId != null) 'target_device_id': targetDeviceId,
+      if (socketSessionId != null) 'socket_session_id': socketSessionId,
       if (signature != null) 'signature': signature,
     };
   }

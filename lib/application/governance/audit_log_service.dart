@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/repositories/audit_log_repository.dart';
+import 'package:qayd/domain/repositories/device_session_repository.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
@@ -29,10 +31,16 @@ import 'package:uuid/uuid.dart';
 class AuditLogService {
   final AuditLogRepository auditRepo;
   final Database database;
+  final AuditSyncDispatcher? auditSyncDispatcher;
+  final DeviceSessionRepository? deviceSessionRepository;
+  final Future<String> Function()? getCurrentDeviceId;
 
   AuditLogService({
     required this.auditRepo,
     required this.database,
+    this.auditSyncDispatcher,
+    this.deviceSessionRepository,
+    this.getCurrentDeviceId,
   });
 
   // ── Schema cache ─────────────────────────────────────────────────────────────
@@ -90,7 +98,12 @@ class AuditLogService {
     );
 
     await auditRepo.save(entry);
+    await _dispatchLiveEntry(entry);
     _debugLog('[AuditLog] ✏️ ${action.label} $entityType/$entityId');
+  }
+
+  Future<void> replaySyncedEntry(AuditEntry entry) async {
+    await _applySingle(entry);
   }
 
   /// Returns all entries, newest-first.
@@ -353,8 +366,8 @@ class AuditLogService {
         bool inserted = false;
 
         if (entry.oldData != null && entry.oldData!.containsKey('_parent')) {
-          final parentRow = Map<String, dynamic>.from(
-              entry.oldData!['_parent'] as Map);
+          final parentRow =
+              Map<String, dynamic>.from(entry.oldData!['_parent'] as Map);
           final safe = await _filterColumns(table, parentRow);
           if (safe.isNotEmpty) {
             await _safeExecute(() => database.insert(
@@ -442,8 +455,7 @@ class AuditLogService {
 
     for (final table in tables) {
       // --- Column set ---
-      final colInfo =
-          await database.rawQuery("PRAGMA table_info('$table')");
+      final colInfo = await database.rawQuery("PRAGMA table_info('$table')");
       final columns = <String>{};
       for (final col in colInfo) {
         final name = col['name'] as String;
@@ -455,8 +467,7 @@ class AuditLogService {
       _columnCache![table] = columns;
 
       // --- Foreign key map ---
-      final fks = await database
-          .rawQuery("PRAGMA foreign_key_list('$table')");
+      final fks = await database.rawQuery("PRAGMA foreign_key_list('$table')");
       for (final fk in fks) {
         final parent = fk['table'] as String;
         final from = fk['from'] as String;
@@ -604,17 +615,22 @@ class AuditLogService {
       'cost_center' || 'cost_centers' => 'cost_centers',
       'currency' || 'currencies' => 'currencies',
       'attachment' || 'attachments' => 'attachments',
-      'accrual' || 'accruals' || 'accrual_component' || 'accrual_components' =>
+      'accrual' ||
+      'accruals' ||
+      'accrual_component' ||
+      'accrual_components' =>
         'accrual_components',
-      'cost_center_dimension' || 'cost_center_dimensions' => 'cost_center_dimensions',
+      'cost_center_dimension' ||
+      'cost_center_dimensions' =>
+        'cost_center_dimensions',
       'transaction_fee' ||
       'transaction_fees' ||
       'transaction_fee_setting' ||
-      'transaction_fee_settings' => 'transaction_fees',
+      'transaction_fee_settings' =>
+        'transaction_fees',
       'message_template' || 'message_templates' => 'message_templates',
       'party_details' => 'party_details',
-      final t when t.endsWith('y') =>
-        '${t.substring(0, t.length - 1)}ies',
+      final t when t.endsWith('y') => '${t.substring(0, t.length - 1)}ies',
       final t when !t.endsWith('s') => '${t}s',
       final t => t,
     };
@@ -648,5 +664,31 @@ class AuditLogService {
 
   static void _debugLog(String message) {
     if (kDebugMode) debugPrint(message);
+  }
+
+  Future<void> _dispatchLiveEntry(AuditEntry entry) async {
+    final dispatcher = auditSyncDispatcher;
+    final sessionsRepo = deviceSessionRepository;
+    if (dispatcher == null || sessionsRepo == null) return;
+    if (entry.actorId?.startsWith('sync:') ?? false) return;
+
+    final currentDeviceId = await getCurrentDeviceId?.call();
+    final sessions = await sessionsRepo.listActive();
+    for (final session in sessions) {
+      if (session.isCurrent) continue;
+      if (currentDeviceId != null && session.deviceId == currentDeviceId) {
+        continue;
+      }
+      try {
+        await dispatcher.dispatchEntryToDevice(
+          entry: entry,
+          targetDeviceId: session.deviceId,
+          receiverPublicKeyHex: session.publicKeyHex,
+        );
+      } catch (e) {
+        _debugLog(
+            '[AuditLog] ⚠️ live dispatch failed for ${session.deviceId}: $e');
+      }
+    }
   }
 }
