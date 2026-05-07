@@ -11,18 +11,22 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 
 class UpdateDraftVoucherUseCase {
   UpdateDraftVoucherUseCase(
     this._voucherRepository,
     this._currencyRepository,
-    this._writeGuard,
-  );
+    this._writeGuard, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final CurrencyRepository _currencyRepository;
   final GovernanceWriteGuard _writeGuard;
+  final AuditLogService? _auditLogService;
 
   Future<Result<UpdateDraftVoucherOutput>> call(
       UpdateDraftVoucherInput input) async {
@@ -37,6 +41,11 @@ class UpdateDraftVoucherUseCase {
         return FailureResult(loaded.failureOrNull!);
       }
       final current = loaded.valueOrNull!;
+      final oldState = {
+        'id': current.id.value,
+        'amount_minor': current.amount.minorUnits,
+        'description': current.description,
+      };
 
       CurrencyCode? currency;
       if (input.currencyCode != null) {
@@ -74,6 +83,20 @@ class UpdateDraftVoucherUseCase {
         notes: input.notes,
       );
       final saved = await _voucherRepository.save(updated);
+      if (saved.isSuccess) {
+        await _auditLogService?.log(
+          entityType: 'voucher',
+          entityId: updated.id.value,
+          action: AuditAction.update,
+          severity: AuditSeverity.info,
+          oldData: oldState,
+          newData: {
+            'id': updated.id.value,
+            'amount_minor': updated.amount.minorUnits,
+            'description': updated.description,
+          },
+        );
+      }
       return saved.fold(
         (f) => FailureResult(f),
         (_) => Success(

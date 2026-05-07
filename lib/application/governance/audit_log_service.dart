@@ -604,7 +604,15 @@ class AuditLogService {
       'cost_center' || 'cost_centers' => 'cost_centers',
       'currency' || 'currencies' => 'currencies',
       'attachment' || 'attachments' => 'attachments',
-      'accrual' || 'accruals' => 'accruals',
+      'accrual' || 'accruals' || 'accrual_component' || 'accrual_components' =>
+        'accrual_components',
+      'cost_center_dimension' || 'cost_center_dimensions' => 'cost_center_dimensions',
+      'transaction_fee' ||
+      'transaction_fees' ||
+      'transaction_fee_setting' ||
+      'transaction_fee_settings' => 'transaction_fees',
+      'message_template' || 'message_templates' => 'message_templates',
+      'party_details' => 'party_details',
       final t when t.endsWith('y') =>
         '${t.substring(0, t.length - 1)}ies',
       final t when !t.endsWith('s') => '${t}s',

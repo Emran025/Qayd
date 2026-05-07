@@ -1,6 +1,8 @@
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/entities/cost_center_dimension.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/value_objects/cost_center_dimension_category.dart';
@@ -8,10 +10,15 @@ import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class ManageDimensionsUseCase {
-  const ManageDimensionsUseCase(this._repository, this._idGenerator);
+  const ManageDimensionsUseCase(
+    this._repository,
+    this._idGenerator, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
 
   final CostCenterRepository _repository;
   final IdGenerator _idGenerator;
+  final AuditLogService? _auditLogService;
 
   Future<Result<CostCenterDimension>> addDimension({
     required String name,
@@ -39,11 +46,31 @@ final class ManageDimensionsUseCase {
     );
 
     final result = await _repository.saveDimension(dimension);
+    if (result.isSuccess) {
+      await _auditLogService?.log(
+        entityType: 'cost_center_dimension',
+        entityId: dimension.id,
+        action: AuditAction.create,
+        severity: AuditSeverity.info,
+        newData: {'id': dimension.id, 'name': dimension.name},
+      );
+    }
     return result.fold((f) => FailureResult(f), (_) => Success(dimension));
   }
 
-  Future<Result<void>> deleteDimension(String id) =>
-      _repository.deleteDimension(id);
+  Future<Result<void>> deleteDimension(String id) async {
+    final result = await _repository.deleteDimension(id);
+    if (result.isSuccess) {
+      await _auditLogService?.log(
+        entityType: 'cost_center_dimension',
+        entityId: id,
+        action: AuditAction.delete,
+        severity: AuditSeverity.warning,
+        oldData: {'id': id},
+      );
+    }
+    return result;
+  }
 
   Future<Result<List<CostCenterDimension>>> listDimensions({
     String? costCenterId,
@@ -79,6 +106,15 @@ final class ManageDimensionsUseCase {
     );
 
     final result = await _repository.saveCategory(category);
+    if (result.isSuccess) {
+      await _auditLogService?.log(
+        entityType: 'cost_center_dimension',
+        entityId: category.id,
+        action: AuditAction.create,
+        severity: AuditSeverity.info,
+        newData: {'id': category.id, 'name': category.name},
+      );
+    }
     return result.fold((f) => FailureResult(f), (_) => Success(category));
   }
 

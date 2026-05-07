@@ -15,6 +15,8 @@ import 'package:qayd/domain/value_objects/transaction_id.dart';
 import 'package:qayd/domain/value_objects/entry_id.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 
 /// Executed when the user taps "Accept" on an incoming pending claim.
@@ -35,6 +37,7 @@ class AcceptVoucherUseCase {
     required this.entryGenerator,
     required this.idGenerator,
     this.syncEventDispatcher,
+    this.auditLogService,
   });
 
   final VoucherRepository voucherRepository;
@@ -47,6 +50,7 @@ class AcceptVoucherUseCase {
 
   /// Optional — when provided the acceptance is propagated via E2EE outbox sync.
   final SyncEventDispatcher? syncEventDispatcher;
+  final AuditLogService? auditLogService;
 
   Future<Result<void>> call(String voucherId) async {
     try {
@@ -56,6 +60,11 @@ class AcceptVoucherUseCase {
             ValidationFailure(messageAr: AppStrings.theBondDoesNot));
       }
       final draft = loaded.valueOrNull!;
+      final oldVoucherState = {
+        'id': draft.id.value,
+        'state': draft.state.name,
+        'receiver_status': draft.receiverStatus.name,
+      };
 
       if (draft.receiverStatus == AgreementStatus.accepted) {
         return  FailureResult(
@@ -123,6 +132,36 @@ class AcceptVoucherUseCase {
         ledgerEntries: entries,
       );
       if (saveResult.isFailure) return saveResult;
+
+      await auditLogService?.log(
+        entityType: 'voucher',
+        entityId: signedVoucher.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.info,
+        oldData: oldVoucherState,
+        newData: {
+          'id': signedVoucher.id.value,
+          'state': signedVoucher.state.name,
+          'receiver_status': signedVoucher.receiverStatus.name,
+        },
+      );
+      for (final entry in entries) {
+        await auditLogService?.log(
+          entityType: 'ledger_entry',
+          entityId: entry.id.value,
+          action: AuditAction.create,
+          severity: AuditSeverity.info,
+          newData: {
+            'id': entry.id.value,
+            'transaction_id': entry.transactionId.value,
+            'account_id': entry.accountId.value,
+            'side': entry.side.name,
+            'voucher_id': entry.voucherId.value,
+            'amount_minor': entry.amount.minorUnits,
+            'currency_code': entry.currency.code,
+          },
+        );
+      }
 
       // §5.A — Dispatch acceptance via outbox (fire-and-forget, outbox-routed).
       // Using SyncEventDispatcher guarantees delivery across network outages

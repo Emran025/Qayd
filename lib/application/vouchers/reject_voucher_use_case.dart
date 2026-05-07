@@ -7,6 +7,8 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 
 /// \"Reject\" is represented by setting the voucher agreement status to `rejected`
@@ -22,6 +24,7 @@ class RejectVoucherUseCase {
     this._voucherRepository,
     this._writeGuard, {
     this.syncEventDispatcher,
+    this.auditLogService,
   });
 
   final VoucherRepository _voucherRepository;
@@ -30,6 +33,7 @@ class RejectVoucherUseCase {
   /// Optional — when provided the rejection is propagated via E2EE sync.
   /// Omitted in contexts that have no network dependency (e.g. unit tests).
   final SyncEventDispatcher? syncEventDispatcher;
+  final AuditLogService? auditLogService;
 
   Future<Result<void>> call({
     required String voucherId,
@@ -45,6 +49,10 @@ class RejectVoucherUseCase {
       );
       if (loaded.isFailure) return FailureResult(loaded.failureOrNull!);
       final v = loaded.valueOrNull!;
+      final oldState = {
+        'id': v.id.value,
+        'receiver_status': v.receiverStatus.name,
+      };
       if (!v.state.isDraft) {
         // Only drafts can be rejected in Phase-A.
         return FailureResult(
@@ -62,6 +70,19 @@ class RejectVoucherUseCase {
 
       final saved = await _voucherRepository.save(rejected);
       if (saved.isFailure) return saved;
+
+      await auditLogService?.log(
+        entityType: 'voucher',
+        entityId: rejected.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.warning,
+        oldData: oldState,
+        newData: {
+          'id': rejected.id.value,
+          'receiver_status': rejected.receiverStatus.name,
+          'receiver_rejection_reason': rejected.rejectionReason,
+        },
+      );
 
       // §5.A — Dispatch rejection E2EE event via outbox (fire-and-forget).
       // The outbox guarantees delivery even if the network is temporarily down.

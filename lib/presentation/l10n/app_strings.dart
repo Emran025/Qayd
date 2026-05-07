@@ -2326,6 +2326,13 @@ class AppStrings {
   static String get auditEntityMessageTemplate => i.auditEntityMessageTemplate;
   static String get auditEntityMessageTemplates =>
       i.auditEntityMessageTemplates;
+  static String get auditEntityCostCenterDimension =>
+      i.auditEntityCostCenterDimension;
+  static String get auditEntityCostCenterDimensions =>
+      i.auditEntityCostCenterDimensions;
+  static String get auditEntityTransactionFee => i.auditEntityTransactionFee;
+  static String get auditEntityTransactionFees => i.auditEntityTransactionFees;
+  static String get auditEntityPartyDetails => i.auditEntityPartyDetails;
 
   // ---------------------------------------------------------------------------
   // Audit Log — Field (Key) Translations
@@ -2363,6 +2370,8 @@ class AppStrings {
   static String get auditFieldLedgerId => i.auditFieldLedgerId;
   static String get auditFieldEntryDate => i.auditFieldEntryDate;
   static String get auditFieldVoucherEntryId => i.auditFieldVoucherEntryId;
+  static String get auditFieldValue => i.auditFieldValue;
+  static String get auditFieldCalculationType => i.auditFieldCalculationType;
   static String get auditFrequencyDaily => i.auditFrequencyDaily;
   static String get auditFrequencyWeekly => i.auditFrequencyWeekly;
   static String get auditFrequencyMonthly => i.auditFrequencyMonthly;
@@ -2370,6 +2379,8 @@ class AppStrings {
   static String get auditFrequencySemiAnnually => i.auditFrequencySemiAnnually;
   static String get auditFrequencyYearly => i.auditFrequencyYearly;
   static String get auditFrequencyOnce => i.auditFrequencyOnce;
+  static String get auditCalcTypeFixed => i.auditCalcTypeFixed;
+  static String get auditCalcTypePercentage => i.auditCalcTypePercentage;
 
   // Revert single
   static String get auditRevertSingle => i.auditRevertSingle;

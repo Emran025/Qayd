@@ -17,6 +17,8 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 
 /// Liquidates a collateral by generating automated settlement accounting entries.
@@ -40,6 +42,7 @@ class LiquidateCollateralUseCase {
     required this.balanceCalculator,
     required this.idGenerator,
     required this.governanceWriteGuard,
+    this.auditLogService,
   });
 
   final CollateralRepository collateralRepository;
@@ -50,6 +53,7 @@ class LiquidateCollateralUseCase {
   final BalanceCalculator balanceCalculator;
   final IdGenerator idGenerator;
   final GovernanceWriteGuard governanceWriteGuard;
+  final AuditLogService? auditLogService;
 
   /// [settlementType]: 'voucher' for single voucher, 'full_debt' for total balance
   /// [saleValueMinor]: The actual sale/liquidation value of the collateral
@@ -69,6 +73,10 @@ class LiquidateCollateralUseCase {
         return FailureResult(collateralResult.failureOrNull!);
       }
       final collateral = collateralResult.valueOrNull!;
+      final oldCollateral = {
+        'id': collateral.id.value,
+        'status': collateral.status.name,
+      };
 
       if (collateral.isTerminal) {
         return FailureResult(ValidationFailure(
@@ -133,6 +141,17 @@ class LiquidateCollateralUseCase {
       );
 
       await voucherRepository.save(settlementVoucher);
+      await auditLogService?.log(
+        entityType: 'voucher',
+        entityId: settlementVoucher.id.value,
+        action: AuditAction.create,
+        severity: AuditSeverity.critical,
+        newData: {
+          'id': settlementVoucher.id.value,
+          'type': settlementVoucher.type.name,
+          'amount_minor': settlementVoucher.amount.minorUnits,
+        },
+      );
 
       // 5. Handle surplus
       String? surplusReceiptId;
@@ -152,11 +171,33 @@ class LiquidateCollateralUseCase {
           description: AppStrings.mortgageLiquidationSurplusHeld,
         );
         await voucherRepository.save(surplusVoucher);
+        await auditLogService?.log(
+          entityType: 'voucher',
+          entityId: surplusVoucher.id.value,
+          action: AuditAction.create,
+          severity: AuditSeverity.warning,
+          newData: {
+            'id': surplusVoucher.id.value,
+            'type': surplusVoucher.type.name,
+            'amount_minor': surplusVoucher.amount.minorUnits,
+          },
+        );
       }
 
       // 6. Mark collateral as liquidated
       final liquidated = collateral.markLiquidated();
       await collateralRepository.update(liquidated);
+      await auditLogService?.log(
+        entityType: 'collateral',
+        entityId: liquidated.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.critical,
+        oldData: oldCollateral,
+        newData: {
+          'id': liquidated.id.value,
+          'status': liquidated.status.name,
+        },
+      );
 
       return Success(LiquidationResult(
         settlementVoucherId: settlementVoucherId.value,

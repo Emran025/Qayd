@@ -685,6 +685,7 @@ abstract final class InjectionContainer {
       voucherKeyService: voucherKeyService,
       notificationMessageRepository: notificationMessageRepository,
       notificationFilterService: notificationFilterService,
+      auditLogService: auditLogService,
       onDecryptionFailure: (nodeId) =>
           syncStatusCubit.reportDecryptionfailure(nodeId),
     );
@@ -791,15 +792,23 @@ abstract final class InjectionContainer {
     manageTransactionFeeUseCase = ManageTransactionFeeUseCase(
       transactionFeeSettingsRepository,
       _idGenerator,
+      auditLogService: auditLogService,
     );
 
     listCurrenciesUseCase = ListCurrenciesUseCase(currencyRepository);
     getBaseCurrencyUseCase = GetBaseCurrencyUseCase(currencyRepository);
-    setBaseCurrencyUseCase = SetBaseCurrencyUseCase(currencyRepository);
+    setBaseCurrencyUseCase = SetBaseCurrencyUseCase(
+      currencyRepository,
+      auditLogService: auditLogService,
+    );
     toggleCurrencyStatusUseCase = ToggleCurrencyStatusUseCase(
       currencyRepository,
+      auditLogService: auditLogService,
     );
-    addCurrencyUseCase = AddCurrencyUseCase(currencyRepository);
+    addCurrencyUseCase = AddCurrencyUseCase(
+      currencyRepository,
+      auditLogService: auditLogService,
+    );
 
     createAccountUseCase = CreateAccountUseCase(
       accountRepository,
@@ -891,6 +900,7 @@ abstract final class InjectionContainer {
       accountRepository,
       entryGenerator,
       syncEventDispatcher: syncEventDispatcher,
+      auditLogService: auditLogService,
     );
     createDualTransferUseCase = CreateDualTransferUseCase(
       voucherRepository,
@@ -900,11 +910,13 @@ abstract final class InjectionContainer {
       accountRepository,
       entryGenerator,
       syncEventDispatcher: syncEventDispatcher,
+      auditLogService: auditLogService,
     );
     updateDraftVoucherUseCase = UpdateDraftVoucherUseCase(
       voucherRepository,
       currencyRepository,
       governanceWriteGuard,
+      auditLogService: auditLogService,
     );
     confirmVoucherUseCase = ConfirmVoucherUseCase(
       voucherRepository,
@@ -922,10 +934,12 @@ abstract final class InjectionContainer {
       voucherRepository,
       governanceWriteGuard,
       syncEventDispatcher: syncEventDispatcher,
+      auditLogService: auditLogService,
     );
     resubmitVoucherUseCase = ResubmitVoucherUseCase(
       voucherRepository,
       governanceWriteGuard,
+      auditLogService: auditLogService,
     );
     listVouchersUseCase = ListVouchersUseCase(
       voucherRepository,
@@ -983,13 +997,16 @@ abstract final class InjectionContainer {
     );
     saveMessageTemplateUseCase = SaveMessageTemplateUseCase(
       messageTemplateRepository,
+      auditLogService: auditLogService,
     );
     deleteMessageTemplateUseCase = DeleteMessageTemplateUseCase(
       messageTemplateRepository,
+      auditLogService: auditLogService,
     );
     createMessageTemplateUseCase = CreateMessageTemplateUseCase(
       messageTemplateRepository,
       _idGenerator,
+      auditLogService: auditLogService,
     );
     getAutoSuggestionsUseCase = GetAutoSuggestionsUseCase(
       notificationMessageRepository,
@@ -1024,6 +1041,7 @@ abstract final class InjectionContainer {
       balanceCalculator: balanceCalculator,
       idGenerator: _idGenerator,
       governanceWriteGuard: governanceWriteGuard,
+      auditLogService: auditLogService,
     );
 
     // ── Digital Signature Protocol services ────────────────────────────────
@@ -1043,6 +1061,7 @@ abstract final class InjectionContainer {
       entryGenerator: entryGenerator,
       idGenerator: _idGenerator,
       syncEventDispatcher: syncEventDispatcher,
+      auditLogService: auditLogService,
     );
 
     // ── Threaded Financial Interactions ──────────────────────────────────
@@ -1057,10 +1076,12 @@ abstract final class InjectionContainer {
       currencyRepository,
       _idGenerator,
       governanceWriteGuard,
+      auditLogService: auditLogService,
     );
     settleVoucherUseCase = SettleVoucherUseCase(
       voucherRepository,
       governanceWriteGuard,
+      auditLogService: auditLogService,
     );
     p2pSyncService = P2PSyncService(
       outboxDao: outboxDao,
@@ -1077,20 +1098,34 @@ abstract final class InjectionContainer {
       _idGenerator,
     );
     listCostCentersUseCase = ListCostCentersUseCase(costCenterRepository);
-    suspendCostCenterUseCase = SuspendCostCenterUseCase(costCenterRepository);
-    activateCostCenterUseCase = ActivateCostCenterUseCase(costCenterRepository);
+    suspendCostCenterUseCase = SuspendCostCenterUseCase(
+      costCenterRepository,
+      auditLogService: auditLogService,
+    );
+    activateCostCenterUseCase = ActivateCostCenterUseCase(
+      costCenterRepository,
+      auditLogService: auditLogService,
+    );
     getCostCenterDetailsUseCase = GetCostCenterDetailsUseCase(
       costCenterRepository,
     );
-    updateCostCenterUseCase = UpdateCostCenterUseCase(costCenterRepository);
+    updateCostCenterUseCase = UpdateCostCenterUseCase(
+      costCenterRepository,
+      auditLogService: auditLogService,
+    );
     manageDimensionsUseCase = ManageDimensionsUseCase(
       costCenterRepository,
       _idGenerator,
+      auditLogService: auditLogService,
     );
 
     accrualRepository = SqliteAccrualRepository(database);
     listAccrualsUseCase = ListAccrualsUseCase(accrualRepository);
-    saveAccrualUseCase = SaveAccrualUseCase(accrualRepository, _idGenerator);
+    saveAccrualUseCase = SaveAccrualUseCase(
+      accrualRepository,
+      _idGenerator,
+      auditLogService: auditLogService,
+    );
     processAccrualUseCase =
         ProcessAccrualUseCase(accrualRepository, createVoucherUseCase);
 

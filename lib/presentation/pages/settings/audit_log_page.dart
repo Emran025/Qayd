@@ -969,9 +969,17 @@ class _AuditEntryCard extends StatelessWidget {
       'currencies' => AppStrings.auditEntityCurrencies,
       'accrual_component' => AppStrings.auditEntityAccrual,
       'accrual_components' => AppStrings.auditEntityAccruals,
+      'accrual' => AppStrings.auditEntityAccrual,
       'accruals' => AppStrings.auditEntityAccruals,
+      'cost_center_dimension' => AppStrings.auditEntityCostCenterDimension,
+      'cost_center_dimensions' => AppStrings.auditEntityCostCenterDimensions,
+      'transaction_fee' => AppStrings.auditEntityTransactionFee,
+      'transaction_fees' => AppStrings.auditEntityTransactionFees,
+      'transaction_fee_setting' => AppStrings.auditEntityTransactionFee,
+      'transaction_fee_settings' => AppStrings.auditEntityTransactionFees,
       'message_template' => AppStrings.auditEntityMessageTemplate,
       'message_templates' => AppStrings.auditEntityMessageTemplates,
+      'party_details' => AppStrings.auditEntityPartyDetails,
       _ => type,
     };
   }
@@ -1034,6 +1042,9 @@ class _AuditEntryCard extends StatelessWidget {
       'ledger_id' => AppStrings.auditFieldLedgerId,
       'entry_date' => AppStrings.auditFieldEntryDate,
       'voucher_entry_id' => AppStrings.auditFieldVoucherEntryId,
+      'value' => AppStrings.auditFieldValue,
+      'calc_type' => AppStrings.auditFieldCalculationType,
+      'calculation_type' => AppStrings.auditFieldCalculationType,
       _ => key,
     };
   }
@@ -1087,6 +1098,11 @@ class _AuditEntryCard extends StatelessWidget {
             AppStrings.auditFrequencySemiAnnually,
           'yearly' || 'annually' => AppStrings.auditFrequencyYearly,
           'once' => AppStrings.auditFrequencyOnce,
+          _ => valStr,
+        },
+      'calc_type' || 'calculation_type' => switch (valStr.toLowerCase()) {
+          'fixed' => AppStrings.auditCalcTypeFixed,
+          'percentage' => AppStrings.auditCalcTypePercentage,
           _ => valStr,
         },
       _ => valStr,

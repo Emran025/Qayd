@@ -2450,6 +2450,11 @@ abstract class AppStringsBase {
   String get auditEntityAccruals => 'الالتزامات المالية';
   String get auditEntityMessageTemplate => 'قالب رسالة';
   String get auditEntityMessageTemplates => 'قوالب الرسائل';
+  String get auditEntityCostCenterDimension => 'بُعد مركز تكلفة';
+  String get auditEntityCostCenterDimensions => 'أبعاد مراكز التكلفة';
+  String get auditEntityTransactionFee => 'إعداد رسم تحويل';
+  String get auditEntityTransactionFees => 'إعدادات رسوم التحويل';
+  String get auditEntityPartyDetails => 'بيانات الطرف';
 
   // ---------------------------------------------------------------------------
   // Audit Log — Field (Key) Translations
@@ -2497,6 +2502,8 @@ abstract class AppStringsBase {
   String get auditFieldLedgerId => 'معرّف الدفتر';
   String get auditFieldEntryDate => 'تاريخ القيد';
   String get auditFieldVoucherEntryId => 'معرّف قيد السند';
+  String get auditFieldValue => 'القيمة';
+  String get auditFieldCalculationType => 'نوع الاحتساب';
 
   // Accrual value translations
   String get auditFrequencyDaily => 'يومياً';
@@ -2506,6 +2513,8 @@ abstract class AppStringsBase {
   String get auditFrequencySemiAnnually => 'نصف سنوياً';
   String get auditFrequencyYearly => 'سنوياً';
   String get auditFrequencyOnce => 'مرة واحدة';
+  String get auditCalcTypeFixed => 'ثابت';
+  String get auditCalcTypePercentage => 'نسبة مئوية';
 
   // Revert single entry
   String get auditRevertSingle => 'تراجع عن هذه العملية فقط';

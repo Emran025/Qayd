@@ -10,6 +10,8 @@ import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 
 /// Creates a reversal (مرتجع) voucher linked to the original via [originVoucherId].
@@ -25,13 +27,15 @@ final class CreateReversalVoucherUseCase {
     this._voucherRepository,
     this._currencyRepository,
     this._idGenerator,
-    this._writeGuard,
-  );
+    this._writeGuard, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final CurrencyRepository _currencyRepository;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final AuditLogService? _auditLogService;
 
   /// Creates a reversal of the given [originVoucherId].
   ///
@@ -110,11 +114,31 @@ final class CreateReversalVoucherUseCase {
 
       final saved = await _voucherRepository.save(reversal);
       if (saved.isFailure) return FailureResult(saved.failureOrNull!);
+      await _auditLogService?.log(
+        entityType: 'voucher',
+        entityId: reversal.id.value,
+        action: AuditAction.create,
+        severity: AuditSeverity.info,
+        newData: {
+          'id': reversal.id.value,
+          'origin_voucher_id': original.id.value,
+          'type': reversal.type.name,
+          'state': reversal.state.name,
+        },
+      );
 
       // If settlement, update the original voucher's state to settled
       if (asSettlement && original.state.isConfirmed) {
         final settled = original.settle(DateTime.now());
         await _voucherRepository.save(settled);
+        await _auditLogService?.log(
+          entityType: 'voucher',
+          entityId: settled.id.value,
+          action: AuditAction.update,
+          severity: AuditSeverity.info,
+          oldData: {'id': original.id.value, 'state': original.state.name},
+          newData: {'id': settled.id.value, 'state': settled.state.name},
+        );
       }
 
       return Success(newId.value);

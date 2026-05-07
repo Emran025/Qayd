@@ -6,6 +6,8 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_id.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 
 /// Phase-A: "Resubmit" clears the red (invalid signature) look by setting the
@@ -19,10 +21,15 @@ import 'package:qayd/presentation/l10n/app_strings.dart';
 ///   business state. We keep dummy signature/public key values, but mark the
 ///   signature status as `unsigned` so the UI no longer renders it as rejected.
 final class ResubmitVoucherUseCase {
-  const ResubmitVoucherUseCase(this._voucherRepository, this._writeGuard);
+  const ResubmitVoucherUseCase(
+    this._voucherRepository,
+    this._writeGuard, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final GovernanceWriteGuard _writeGuard;
+  final AuditLogService? _auditLogService;
   static final String _dummySigHex = List.generate(
     64,
     (_) => '00',
@@ -42,6 +49,10 @@ final class ResubmitVoucherUseCase {
       final loaded = await _voucherRepository.getById(VoucherId(voucherId));
       if (loaded.isFailure) return FailureResult(loaded.failureOrNull!);
       final v = loaded.valueOrNull!;
+      final oldState = {
+        'id': v.id.value,
+        'sender_status': v.senderStatus.name,
+      };
       if (!v.state.isDraft) {
         return  FailureResult(
           ValidationFailure(
@@ -61,7 +72,21 @@ final class ResubmitVoucherUseCase {
         status: status,
       );
 
-      return _voucherRepository.save(resubmitted);
+      final result = await _voucherRepository.save(resubmitted);
+      if (result.isSuccess) {
+        await _auditLogService?.log(
+          entityType: 'voucher',
+          entityId: resubmitted.id.value,
+          action: AuditAction.update,
+          severity: AuditSeverity.info,
+          oldData: oldState,
+          newData: {
+            'id': resubmitted.id.value,
+            'sender_status': resubmitted.senderStatus.name,
+          },
+        );
+      }
+      return result;
     } catch (e, _) {
       return FailureResult(failureFromDomainException(e));
     }

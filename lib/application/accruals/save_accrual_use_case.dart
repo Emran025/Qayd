@@ -1,15 +1,22 @@
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/entities/accrual_component.dart';
 import 'package:qayd/domain/repositories/accrual_repository.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 final class SaveAccrualUseCase {
-  const SaveAccrualUseCase(this._repository, this._idGenerator);
+  const SaveAccrualUseCase(
+    this._repository,
+    this._idGenerator, {
+    AuditLogService? auditLogService,
+  }) : _auditLogService = auditLogService;
   final AccrualRepository _repository;
   final IdGenerator _idGenerator;
+  final AuditLogService? _auditLogService;
 
   Future<Result<AccrualComponent>> call({
     String? id,
@@ -49,6 +56,15 @@ final class SaveAccrualUseCase {
     }
 
     final result = await _repository.save(component);
+    if (result.isSuccess) {
+      await _auditLogService?.log(
+        entityType: 'accrual',
+        entityId: component.id,
+        action: id == null ? AuditAction.create : AuditAction.update,
+        severity: AuditSeverity.info,
+        newData: {'id': component.id, 'name': component.name, 'is_active': component.isActive},
+      );
+    }
     return result.fold((f) => FailureResult(f), (_) => Success(component));
   }
 }

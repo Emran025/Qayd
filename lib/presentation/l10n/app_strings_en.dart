@@ -4560,6 +4560,16 @@ class AppStringsEn extends AppStringsBase {
   String get auditEntityMessageTemplate => 'Message Template';
   @override
   String get auditEntityMessageTemplates => 'Message Templates';
+  @override
+  String get auditEntityCostCenterDimension => 'Cost Center Dimension';
+  @override
+  String get auditEntityCostCenterDimensions => 'Cost Center Dimensions';
+  @override
+  String get auditEntityTransactionFee => 'Transaction Fee Setting';
+  @override
+  String get auditEntityTransactionFees => 'Transaction Fee Settings';
+  @override
+  String get auditEntityPartyDetails => 'Party Details';
 
   // ---------------------------------------------------------------------------
   // Audit Log — Field (Key) Translations
@@ -4638,6 +4648,10 @@ class AppStringsEn extends AppStringsBase {
   String get auditFieldEntryDate => 'Entry Date';
   @override
   String get auditFieldVoucherEntryId => 'Voucher Entry ID';
+  @override
+  String get auditFieldValue => 'Value';
+  @override
+  String get auditFieldCalculationType => 'Calculation Type';
 
   // Accrual frequency value translations
   @override
@@ -4654,6 +4668,10 @@ class AppStringsEn extends AppStringsBase {
   String get auditFrequencyYearly => 'Annually';
   @override
   String get auditFrequencyOnce => 'Once';
+  @override
+  String get auditCalcTypeFixed => 'Fixed';
+  @override
+  String get auditCalcTypePercentage => 'Percentage';
 
   // Revert single entry
   @override

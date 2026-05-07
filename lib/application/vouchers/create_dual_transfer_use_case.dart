@@ -23,6 +23,8 @@ import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 /// Creates a dual transfer (two standard vouchers through the fund/cashbox).
 ///
@@ -48,7 +50,9 @@ class CreateDualTransferUseCase {
     this._accountRepository,
     this._entryGenerator, {
     SyncEventDispatcher? syncEventDispatcher,
-  }) : _syncEventDispatcher = syncEventDispatcher;
+    AuditLogService? auditLogService,
+  })  : _syncEventDispatcher = syncEventDispatcher,
+        _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final CurrencyRepository _currencyRepository;
@@ -57,6 +61,7 @@ class CreateDualTransferUseCase {
   final AccountRepository _accountRepository;
   final EntryGenerator _entryGenerator;
   final SyncEventDispatcher? _syncEventDispatcher;
+  final AuditLogService? _auditLogService;
 
   Future<Result<CreateDualTransferOutput>> call(
     CreateDualTransferInput input,
@@ -250,6 +255,22 @@ class CreateDualTransferUseCase {
         );
 
         if (saveResult.isSuccess) {
+          for (final entry in [...rEntries, ...pEntries]) {
+            await _auditLogService?.log(
+              batchId: dualGroupId,
+              entityType: 'ledger_entry',
+              entityId: entry.id.value,
+              action: AuditAction.create,
+              severity: AuditSeverity.info,
+              newData: {
+                'id': entry.id.value,
+                'voucher_id': entry.voucherId.value,
+                'account_id': entry.accountId.value,
+                'side': entry.side.name,
+                'amount_minor': entry.amount.minorUnits,
+              },
+            );
+          }
           if (_syncEventDispatcher != null) {
             _syncEventDispatcher!
                 .dispatchVoucherAcceptance(confirmedReceipt)
@@ -266,14 +287,38 @@ class CreateDualTransferUseCase {
         );
       }
 
-      return saveResult.fold(
-        (f) => FailureResult(f),
-        (_) => Success(
-          CreateDualTransferOutput(
-            receiptVoucherId: receiptId.value,
-            paymentVoucherId: paymentId.value,
-            dualGroupId: dualGroupId,
-          ),
+      if (saveResult.isFailure) {
+        return FailureResult(saveResult.failureOrNull!);
+      }
+      await _auditLogService?.log(
+        batchId: dualGroupId,
+        entityType: 'voucher',
+        entityId: receiptVoucher.id.value,
+        action: AuditAction.create,
+        severity: AuditSeverity.info,
+        newData: {
+          'id': receiptVoucher.id.value,
+          'type': receiptVoucher.type.name,
+          'state': receiptVoucher.state.name,
+        },
+      );
+      await _auditLogService?.log(
+        batchId: dualGroupId,
+        entityType: 'voucher',
+        entityId: paymentVoucher.id.value,
+        action: AuditAction.create,
+        severity: AuditSeverity.info,
+        newData: {
+          'id': paymentVoucher.id.value,
+          'type': paymentVoucher.type.name,
+          'state': paymentVoucher.state.name,
+        },
+      );
+      return Success(
+        CreateDualTransferOutput(
+          receiptVoucherId: receiptId.value,
+          paymentVoucherId: paymentId.value,
+          dualGroupId: dualGroupId,
         ),
       );
     } catch (e, _) {

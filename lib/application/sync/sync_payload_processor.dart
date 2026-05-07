@@ -35,6 +35,8 @@ import 'package:qayd/domain/value_objects/tripartite_meta.dart';
 import 'package:qayd/domain/value_objects/tripartite_role.dart';
 import 'package:uuid/uuid.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
+import 'package:qayd/domain/entities/audit_entry.dart';
 
 
 /// Intercepts inbound [SyncNode] streams, enforces E2EE Cryptographic rules,
@@ -54,6 +56,7 @@ class SyncPayloadProcessor {
     required this.voucherKeyService,
     required this.notificationMessageRepository,
     required this.notificationFilterService,
+    this.auditLogService,
     this.onDecryptionFailure,
   });
 
@@ -70,6 +73,7 @@ class SyncPayloadProcessor {
   final CollateralRepository collateralRepository;
   final VoucherKeyService voucherKeyService;
   final NotificationFilterService notificationFilterService;
+  final AuditLogService? auditLogService;
   final void Function(String nodeId)? onDecryptionFailure;
 
   /// Ingests a list of pushed/pulled encrypted sync nodes
@@ -286,6 +290,18 @@ class SyncPayloadProcessor {
 
     // 7. Persist
     await voucherRepository.save(voucher);
+    await auditLogService?.log(
+      actorId: 'sync:$senderId',
+      entityType: 'voucher',
+      entityId: voucher.id.value,
+      action: AuditAction.create,
+      severity: AuditSeverity.info,
+      newData: {
+        'id': voucher.id.value,
+        'state': voucher.state.name,
+        'type': voucher.type.name,
+      },
+    );
     debugPrint('VoucherClaim [$voucherIdStr]: Ingested and stored as $myType.');
 
     // 7.5. §5.E: Extract and persist attachment metadata + per-attachment AES keys.
@@ -499,6 +515,15 @@ class SyncPayloadProcessor {
         canonicalReceiverPhone: senderPhone,
       );
       await voucherRepository.save(signedVoucher);
+      await auditLogService?.log(
+        actorId: 'sync:$senderId',
+        entityType: 'voucher',
+        entityId: signedVoucher.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.info,
+        oldData: {'id': draft.id.value, 'receiver_status': draft.receiverStatus.name},
+        newData: {'id': signedVoucher.id.value, 'receiver_status': signedVoucher.receiverStatus.name},
+      );
       debugPrint(
         'Voucher [$voucherIdStr] accepted — verified with key ${matchedKey.substring(0, 8)}…',
       );
@@ -527,6 +552,15 @@ class SyncPayloadProcessor {
         signerPhone: senderPhone,
       );
       await voucherRepository.save(suspendedVoucher);
+      await auditLogService?.log(
+        actorId: 'sync:$senderId',
+        entityType: 'voucher',
+        entityId: suspendedVoucher.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.warning,
+        oldData: {'id': draft.id.value, 'receiver_status': draft.receiverStatus.name},
+        newData: {'id': suspendedVoucher.id.value, 'receiver_status': suspendedVoucher.receiverStatus.name},
+      );
       debugPrint(
         'SECURITY: Voucher [$voucherIdStr] SUSPENDED — '
         'signature mismatch across ${keysToTry.length} key(s).',
@@ -550,6 +584,14 @@ class SyncPayloadProcessor {
       status: AgreementStatus.rejected,
     );
     await voucherRepository.save(rejectedVoucher);
+    await auditLogService?.log(
+      actorId: 'sync:$senderId',
+      entityType: 'voucher',
+      entityId: rejectedVoucher.id.value,
+      action: AuditAction.update,
+      severity: AuditSeverity.warning,
+      newData: {'id': rejectedVoucher.id.value, 'receiver_status': rejectedVoucher.receiverStatus.name},
+    );
 
     // Create notification for rejection
     if (notificationFilterService.isPeerActivityEnabled) {
@@ -608,6 +650,19 @@ class SyncPayloadProcessor {
 
     if (mappedAttachments.isNotEmpty) {
       await attachmentRepository.saveAll(mappedAttachments);
+      for (final attachment in mappedAttachments) {
+        await auditLogService?.log(
+          actorId: 'sync:remote',
+          entityType: 'attachment',
+          entityId: attachment.id.value,
+          action: AuditAction.create,
+          severity: AuditSeverity.info,
+          newData: {
+            'id': attachment.id.value,
+            'voucher_id': attachment.voucherId.value,
+          },
+        );
+      }
       debugPrint(
         'AttachmentSync [$voucherIdStr]: saved ${mappedAttachments.length} attachment record(s) with keys.',
       );
@@ -663,8 +718,24 @@ class SyncPayloadProcessor {
     final existing = await collateralRepository.getById(collateral.id);
     if (existing.isSuccess) {
       await collateralRepository.update(collateral);
+      await auditLogService?.log(
+        entityType: 'collateral',
+        actorId: 'sync:remote',
+        entityId: collateral.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.info,
+        newData: {'id': collateral.id.value, 'status': collateral.status.name},
+      );
     } else {
       await collateralRepository.save(collateral);
+      await auditLogService?.log(
+        entityType: 'collateral',
+        actorId: 'sync:remote',
+        entityId: collateral.id.value,
+        action: AuditAction.create,
+        severity: AuditSeverity.info,
+        newData: {'id': collateral.id.value, 'status': collateral.status.name},
+      );
     }
 
     // §5.E: Extract and persist collateral image refs + per-image AES keys.
@@ -689,6 +760,19 @@ class SyncPayloadProcessor {
       }).toList();
 
       await attachmentRepository.saveAll(imageAttachments);
+      for (final attachment in imageAttachments) {
+        await auditLogService?.log(
+          actorId: 'sync:remote',
+          entityType: 'attachment',
+          entityId: attachment.id.value,
+          action: AuditAction.create,
+          severity: AuditSeverity.info,
+          newData: {
+            'id': attachment.id.value,
+            'voucher_id': attachment.voucherId.value,
+          },
+        );
+      }
       debugPrint(
         'CollateralSync [$voucherIdStr]: saved ${imageAttachments.length} image record(s) with keys.',
       );
@@ -742,6 +826,14 @@ class SyncPayloadProcessor {
 
     await collateralRepository.update(updated);
     await collateralRepository.saveRevaluation(revalAudit);
+    await auditLogService?.log(
+      entityType: 'collateral',
+      actorId: 'sync:remote',
+      entityId: updated.id.value,
+      action: AuditAction.update,
+      severity: AuditSeverity.info,
+      newData: {'id': updated.id.value, 'status': updated.status.name},
+    );
   }
 
   // ── Threaded Financial Interactions handlers ──────────────────────────
@@ -786,6 +878,15 @@ class SyncPayloadProcessor {
       // Withdraw the local copy
       final withdrawn = voucher.withdraw(DateTime.now());
       await voucherRepository.save(withdrawn);
+      await auditLogService?.log(
+        actorId: 'sync:$senderId',
+        entityType: 'voucher',
+        entityId: withdrawn.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.warning,
+        oldData: {'id': voucher.id.value, 'state': voucher.state.name},
+        newData: {'id': withdrawn.id.value, 'state': withdrawn.state.name},
+      );
       debugPrint('VoucherWithdrawal [$voucherIdStr]: local copy withdrawn.');
 
       // Create notification for withdrawal
@@ -835,6 +936,15 @@ class SyncPayloadProcessor {
     if (voucher.state.isConfirmed) {
       final settled = voucher.settle(DateTime.now());
       await voucherRepository.save(settled);
+      await auditLogService?.log(
+        actorId: 'sync:$senderId',
+        entityType: 'voucher',
+        entityId: settled.id.value,
+        action: AuditAction.update,
+        severity: AuditSeverity.info,
+        oldData: {'id': voucher.id.value, 'state': voucher.state.name},
+        newData: {'id': settled.id.value, 'state': settled.state.name},
+      );
       debugPrint('VoucherSettlement [$voucherIdStr]: marked as settled.');
 
       // Create notification for settlement
