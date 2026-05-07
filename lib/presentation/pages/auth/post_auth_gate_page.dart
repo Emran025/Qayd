@@ -104,7 +104,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     if (!_hasServerIdentity) {
       // New account (no server identity) -> skip backup check, create new identity.
       if (mounted) setState(() => _phase = _GatePhase.identitySetup);
-      _navigateToSeedSetup();
+      _navigateToSeedSetup(autoGenerate: true);
       return;
     }
 
@@ -223,12 +223,12 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
     _evaluateState();
   }
 
-  void _navigateToSeedSetup() {
+  void _navigateToSeedSetup({bool autoGenerate = false}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.of(context)
           .push(
-        MaterialPageRoute(builder: (_) => const SeedSetupPage()),
+        MaterialPageRoute(builder: (_) => SeedSetupPage(autoGenerate: autoGenerate)),
       )
           .then((_) {
         _advanceToDeviceLock();
@@ -260,7 +260,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
   void _bypassIdentityAndContinue() {
     // User chose to skip identity recovery → generate fresh identity
     if (mounted) setState(() => _phase = _GatePhase.identitySetup);
-    _navigateToSeedSetup();
+    _navigateToSeedSetup(autoGenerate: true);
   }
 
   void _skipRestoreAndContinue() async {
@@ -271,7 +271,7 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
         if (mounted) setState(() => _phase = _GatePhase.identityDecision);
       } else {
         if (mounted) setState(() => _phase = _GatePhase.identitySetup);
-        _navigateToSeedSetup();
+        _navigateToSeedSetup(autoGenerate: true);
       }
     } else {
       _advanceToDeviceLock();

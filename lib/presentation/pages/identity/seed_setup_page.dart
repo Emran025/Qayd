@@ -14,7 +14,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:qayd/presentation/pages/identity/seed_recovery_page.dart';
 
 class SeedSetupPage extends StatefulWidget {
-  const SeedSetupPage({super.key});
+  const SeedSetupPage({super.key, this.autoGenerate = false});
+
+  final bool autoGenerate;
 
   @override
   State<SeedSetupPage> createState() => _SeedSetupPageState();
@@ -22,7 +24,7 @@ class SeedSetupPage extends StatefulWidget {
 
 class _SeedSetupPageState extends State<SeedSetupPage> {
   MnemonicPhrase? _mnemonic;
-  bool _isLoading = false;
+  late bool _isLoading;
 
   final SetupIdentityUseCase _setupUseCase =
       InjectionContainer.setupIdentityUseCase;
@@ -30,7 +32,12 @@ class _SeedSetupPageState extends State<SeedSetupPage> {
   @override
   void initState() {
     super.initState();
-    // Do NOT auto-generate in initState to prevent silent registration.
+    _isLoading = widget.autoGenerate;
+    if (widget.autoGenerate) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _generateMnemonic();
+      });
+    }
   }
 
   Future<void> _generateMnemonic() async {
