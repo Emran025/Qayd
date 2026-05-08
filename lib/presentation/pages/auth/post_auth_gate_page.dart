@@ -180,8 +180,12 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
       // After restore attempt, proceed to identity check
       final hasIdentity = await InjectionContainer.mnemonicVault.hasIdentity();
       if (!hasIdentity) {
-        if (mounted) setState(() => _phase = _GatePhase.identitySetup);
-        _navigateToSeedSetup();
+        if (_hasServerIdentity) {
+          if (mounted) setState(() => _phase = _GatePhase.identityDecision);
+        } else {
+          if (mounted) setState(() => _phase = _GatePhase.identitySetup);
+          _navigateToSeedSetup(autoGenerate: true);
+        }
       } else {
         _advanceToDeviceLock();
       }

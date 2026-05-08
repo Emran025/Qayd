@@ -131,7 +131,19 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
 
     String body;
     if (first != null) {
-      body = PlaceholderResolver.resolve(first.body, bindings);
+      final Set<String> stringExceptions = voucher != null &&
+              !(voucher.transferGroupId != null || voucher.isTripartite)
+          ? {
+              'sender_party',
+              'receiver_party',
+              'sender_signature',
+              'receiver_signature'
+            }
+          : <String>{};
+      body = PlaceholderResolver.resolve(
+        PlaceholderResolver.removeExceptions(first.body, stringExceptions),
+        bindings,
+      );
     } else if (voucher != null) {
       body = await resolveVoucherShareTextWithFallback(voucher);
     } else if (account != null) {
@@ -170,7 +182,19 @@ class NotificationPreviewCubit extends Cubit<NotificationPreviewState> {
     final bindings = s.voucher != null
         ? TemplateBindingMaps.forVoucher(s.voucher!)
         : TemplateBindingMaps.forAccount(s.account!);
-    final body = PlaceholderResolver.resolve(picked.body, bindings);
+    final Set<String> stringExceptions = s.voucher != null &&
+            !(s.voucher!.transferGroupId != null || s.voucher!.isTripartite)
+        ? {
+            'sender_party',
+            'receiver_party',
+            'sender_signature',
+            'receiver_signature'
+          }
+        : <String>{};
+    final body = PlaceholderResolver.resolve(
+      PlaceholderResolver.removeExceptions(picked.body, stringExceptions),
+      bindings,
+    );
     emit(
       NotificationPreviewReady(
         templates: s.templates,

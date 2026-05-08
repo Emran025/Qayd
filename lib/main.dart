@@ -20,6 +20,7 @@ import 'package:qayd/presentation/security/security_state.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
 import 'package:qayd/presentation/theme/app_theme.dart';
 import 'package:qayd/presentation/utils/no_stretch_scroll_behavior.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 
 void main() async {
   await AppObservability.bootstrap(() async {
@@ -222,6 +223,7 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
             debugShowCheckedModeBanner: false,
             navigatorObservers: <NavigatorObserver>[
               AppObservability.navigatorObserver,
+              QaydPageRoute.routeObserver,
             ],
             locale: locale,
             supportedLocales: const [Locale('ar'), Locale('en')],
@@ -379,6 +381,7 @@ class _QaydAppState extends State<QaydApp> {
           debugShowCheckedModeBanner: false,
           navigatorObservers: <NavigatorObserver>[
             AppObservability.navigatorObserver,
+            QaydPageRoute.routeObserver,
           ],
           locale: locale,
           supportedLocales: const [Locale('ar'), Locale('en')],

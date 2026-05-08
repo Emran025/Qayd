@@ -3,6 +3,8 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 
 /// Premium slide + fade; respects RTL. Gold-tinted barrier for depth.
 class QaydPageRoute {
+  static final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
   static Route<T> slideFromStart<T extends Object?>({
     required WidgetBuilder builder,
     Duration duration = const Duration(milliseconds: 320),

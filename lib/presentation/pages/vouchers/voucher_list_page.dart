@@ -89,11 +89,25 @@ class _VoucherListView extends StatefulWidget {
   State<_VoucherListView> createState() => _VoucherListViewState();
 }
 
-class _VoucherListViewState extends State<_VoucherListView> {
+class _VoucherListViewState extends State<_VoucherListView> with RouteAware {
   final _searchController = TextEditingController();
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    QaydPageRoute.routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    if (mounted) {
+      context.read<VoucherListCubit>().load();
+    }
+  }
+
+  @override
   void dispose() {
+    QaydPageRoute.routeObserver.unsubscribe(this);
     _searchController.dispose();
     super.dispose();
   }

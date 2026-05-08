@@ -79,11 +79,25 @@ class _TripartiteListView extends StatefulWidget {
   State<_TripartiteListView> createState() => _TripartiteListViewState();
 }
 
-class _TripartiteListViewState extends State<_TripartiteListView> {
+class _TripartiteListViewState extends State<_TripartiteListView> with RouteAware {
   final _searchController = TextEditingController();
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    QaydPageRoute.routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    if (mounted) {
+      context.read<TripartiteListCubit>().load();
+    }
+  }
+
+  @override
   void dispose() {
+    QaydPageRoute.routeObserver.unsubscribe(this);
     _searchController.dispose();
     super.dispose();
   }

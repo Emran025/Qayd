@@ -22,6 +22,7 @@ import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 
 class InternalManagementPage extends StatefulWidget {
   const InternalManagementPage({super.key, this.isActive = true});
@@ -104,9 +105,22 @@ class _InternalManagementView extends StatefulWidget {
       _InternalManagementViewState();
 }
 
-class _InternalManagementViewState extends State<_InternalManagementView> {
+class _InternalManagementViewState extends State<_InternalManagementView> with RouteAware {
   final _searchController = TextEditingController();
   String _flowFilter = 'all'; // 'all', 'revenues', 'expenses'
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    QaydPageRoute.routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    if (mounted) {
+      context.read<VoucherListCubit>().load();
+    }
+  }
 
   Future<void> _openCreate(BuildContext context) async {
     final listCubit = context.read<VoucherListCubit>();
@@ -147,6 +161,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> {
 
   @override
   void dispose() {
+    QaydPageRoute.routeObserver.unsubscribe(this);
     _searchController.dispose();
     super.dispose();
   }

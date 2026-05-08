@@ -27,7 +27,21 @@ Future<String?> resolveVoucherShareText(GetVoucherDetailsOutput data) async {
         )!;
 
     final bindings = TemplateBindingMaps.forVoucher(data);
-    return PlaceholderResolver.resolve(template.body, bindings);
+    final Set<String> stringExceptions =
+        !(data.transferGroupId != null || data.isTripartite)
+            ? {
+                'sender_party',
+                'receiver_party',
+                'sender_signature',
+                'receiver_signature'
+              }
+            : <String>{};
+
+    final result = PlaceholderResolver.resolve(
+      PlaceholderResolver.removeExceptions(template.body, stringExceptions),
+      bindings,
+    );
+    return result;
   } catch (_) {
     return null;
   }
@@ -46,11 +60,8 @@ Future<String> resolveVoucherShareTextWithFallback(
 
   String body;
   if (data.isTripartite) {
-    body = AppStrings.voucherTripartiteShareText(
-        bindings['sender_party'] ?? '',
-        bindings['receiver_party'] ?? '',
-        bindings['amount'] ?? '',
-        reference);
+    body = AppStrings.voucherTripartiteShareText(bindings['sender_party'] ?? '',
+        bindings['receiver_party'] ?? '', bindings['amount'] ?? '', reference);
   } else {
     final voucherType = data.typeCode == 'receipt'
         ? AppStrings.receiptNotice

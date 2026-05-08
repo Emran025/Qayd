@@ -33,4 +33,13 @@ abstract final class PlaceholderResolver {
         .whereType<String>()
         .toSet();
   }
+
+  // Removes entire lines from the template that contain any of the exception keys
+  static String removeExceptions(String template, Set<String> exceptions) {
+    if (exceptions.isEmpty) return template;
+    final keysPattern = exceptions.join('|');
+    final regex = RegExp(r'^.*\{\{\s*(?:' + keysPattern + r')\s*\}\}.*\n?',
+        multiLine: true);
+    return template.replaceAll(regex, '');
+  }
 }

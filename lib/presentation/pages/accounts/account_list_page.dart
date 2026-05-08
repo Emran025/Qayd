@@ -84,11 +84,25 @@ class _AccountListScaffold extends StatefulWidget {
   State<_AccountListScaffold> createState() => _AccountListScaffoldState();
 }
 
-class _AccountListScaffoldState extends State<_AccountListScaffold> {
+class _AccountListScaffoldState extends State<_AccountListScaffold> with RouteAware {
   final _searchController = TextEditingController();
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    QaydPageRoute.routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    if (mounted) {
+      context.read<AccountListCubit>().load();
+    }
+  }
+
+  @override
   void dispose() {
+    QaydPageRoute.routeObserver.unsubscribe(this);
     _searchController.dispose();
     super.dispose();
   }

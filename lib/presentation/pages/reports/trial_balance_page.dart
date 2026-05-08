@@ -20,6 +20,7 @@ import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
+import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 
 class TrialBalancePage extends StatefulWidget {
   const TrialBalancePage({super.key});
@@ -29,18 +30,39 @@ class TrialBalancePage extends StatefulWidget {
 }
 
 class _TrialBalancePageState extends State<TrialBalancePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   late TabController _tabController;
+  late final TrialBalanceCubit _trialBalanceCubit;
+  late final BalanceSheetCubit _balanceSheetCubit;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _trialBalanceCubit = TrialBalanceCubit(InjectionContainer.generateTrialBalanceUseCase)..load();
+    _balanceSheetCubit = BalanceSheetCubit(InjectionContainer.generateBalanceSheetUseCase)..load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    QaydPageRoute.routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    if (mounted) {
+      _trialBalanceCubit.load();
+      _balanceSheetCubit.load();
+    }
   }
 
   @override
   void dispose() {
+    QaydPageRoute.routeObserver.unsubscribe(this);
     _tabController.dispose();
+    _trialBalanceCubit.close();
+    _balanceSheetCubit.close();
     super.dispose();
   }
 
@@ -50,16 +72,8 @@ class _TrialBalancePageState extends State<TrialBalancePage>
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) =>
-              TrialBalanceCubit(InjectionContainer.generateTrialBalanceUseCase)
-                ..load(),
-        ),
-        BlocProvider(
-          create: (_) =>
-              BalanceSheetCubit(InjectionContainer.generateBalanceSheetUseCase)
-                ..load(),
-        ),
+        BlocProvider.value(value: _trialBalanceCubit),
+        BlocProvider.value(value: _balanceSheetCubit),
       ],
       child: QaydScaffold(
         appBar: QaydAppBar(

@@ -2,40 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:qayd/domain/value_objects/message_template_kind.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
-
 class TemplateVariable {
   final String key;
   final String label;
   final String charCode;
   final MessageTemplateKind? kindRestricted; // if null, available for all
 
-   TemplateVariable(this.key, this.label, this.charCode,
-      {this.kindRestricted});
+  TemplateVariable(this.key, this.label, this.charCode, {this.kindRestricted});
 }
 
 // Private Use Area Unicode Characters
 final List<TemplateVariable> kTemplateVariables = [
-   TemplateVariable('{{customer}}', AppStrings.theOtherParty, '\uE000'),
-   TemplateVariable('{{counterparty}}', AppStrings.theOtherParty, '\uE001'),
-   TemplateVariable('{{amount}}', AppStrings.amount, '\uE002'),
-   TemplateVariable('{{currency}}', AppStrings.currency, '\uE003'),
-   TemplateVariable('{{date}}', AppStrings.theDate, '\uE004'),
-   TemplateVariable('{{affected_account}}', AppStrings.theAccount, '\uE005'),
-   TemplateVariable('{{reference}}', AppStrings.referenceNumber1, '\uE006'),
-   TemplateVariable('{{description}}', AppStrings.statement1, '\uE007'),
-   TemplateVariable('{{notes}}', AppStrings.notes1, '\uE008'),
-   TemplateVariable('{{voucher_id}}', AppStrings.bondNumber, '\uE009'),
-   TemplateVariable('{{type}}', AppStrings.type, '\uE00A'),
-   TemplateVariable('{{signature}}', AppStrings.electronicSignature, '\uE00B'),
-   TemplateVariable('{{net_balance}}', AppStrings.totalBalance1, '\uE010'),
+  TemplateVariable('{{customer}}', AppStrings.theOtherParty, '\uE000'),
+  TemplateVariable('{{counterparty}}', AppStrings.theOtherParty, '\uE001'),
+  TemplateVariable('{{amount}}', AppStrings.amount, '\uE002'),
+  TemplateVariable('{{currency}}', AppStrings.currency, '\uE003'),
+  TemplateVariable('{{date}}', AppStrings.theDate, '\uE004'),
+  TemplateVariable('{{affected_account}}', AppStrings.theAccount, '\uE005'),
+  TemplateVariable('{{reference}}', AppStrings.referenceNumber1, '\uE006'),
+  TemplateVariable('{{description}}', AppStrings.statement1, '\uE007'),
+  TemplateVariable('{{notes}}', AppStrings.notes1, '\uE008'),
+  TemplateVariable('{{voucher_id}}', AppStrings.bondNumber, '\uE009'),
+  TemplateVariable('{{type}}', AppStrings.type, '\uE00A'),
+  TemplateVariable('{{signature}}', AppStrings.electronicSignature, '\uE00B'),
+  TemplateVariable('{{net_balance}}', AppStrings.totalBalance1, '\uE010'),
+  TemplateVariable('{{sender_party}}', AppStrings.sender, '\uE011'),
+  TemplateVariable('{{receiver_party}}', AppStrings.recipient, '\uE012'),
   // Account Specific
-   TemplateVariable('{{account_name}}', AppStrings.accountName, '\uE00C',
+  TemplateVariable('{{account_name}}', AppStrings.accountName, '\uE00C',
       kindRestricted: MessageTemplateKind.accountBalance),
-   TemplateVariable('{{balance}}', AppStrings.balance, '\uE00D',
+  TemplateVariable('{{balance}}', AppStrings.balance, '\uE00D',
       kindRestricted: MessageTemplateKind.accountBalance),
-   TemplateVariable('{{nature}}', AppStrings.typeDebitcredit, '\uE00E',
+  TemplateVariable('{{nature}}', AppStrings.typeDebitcredit, '\uE00E',
       kindRestricted: MessageTemplateKind.accountBalance),
-   TemplateVariable('{{account_id}}', AppStrings.accountId, '\uE00F'),
+  TemplateVariable('{{account_id}}', AppStrings.accountId, '\uE00F'),
 ];
 
 class TemplateTextController extends TextEditingController {
