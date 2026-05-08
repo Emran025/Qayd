@@ -262,6 +262,7 @@ class SecurityCubit extends Cubit<SecurityState> {
 
   bool _isRefreshing = false;
   DateTime? _lastRefreshAt;
+  DateTime? _blockedUntil;
 
   /// Refreshes the license state from the server and updates the lock state.
   ///
@@ -275,8 +276,24 @@ class SecurityCubit extends Cubit<SecurityState> {
 
     final now = DateTime.now();
 
+    // ── Server-driven Rate Limiting (429 Too Many Requests) ──────────
+    if (_blockedUntil != null && now.isBefore(_blockedUntil!)) {
+      final waitSecs = _blockedUntil!.difference(now).inSeconds;
+      return (
+        success: false,
+        errorAr: "يرجى الانتظار $waitSecs ثانية قبل المحاولة مرة أخرى.",
+      );
+    }
+
     // ── Throttling Logic ─────────────────────────────────────────────────────
-    if (!isForced) {
+    if (isForced) {
+      // Even forced refreshes should be throttled to prevent API spam loops
+      // if multiple requests fail with 403 simultaneously.
+      if (_lastRefreshAt != null &&
+          now.difference(_lastRefreshAt!) < const Duration(seconds: 10)) {
+        return (success: true, errorAr: null);
+      }
+    } else {
       if (isManual) {
         // Manual refresh cooldown: 30 seconds to prevent spamming.
         if (_lastRefreshAt != null &&
@@ -298,9 +315,15 @@ class SecurityCubit extends Cubit<SecurityState> {
     // ──────────────────────────────────────────────────────────────────────────
 
     _isRefreshing = true;
+    // Set the cooldown timestamp BEFORE making the network call so that
+    // failed requests (like 429) don't bypass the local cooldown.
+    _lastRefreshAt = now;
+
     try {
       final newData = await _authRepository.refreshLicense();
-      _lastRefreshAt = DateTime.now();
+
+      // Clear any previous blocks on success
+      _blockedUntil = null;
 
       // Merge new status fields into the existing license data
       final existingData = await _licenseVault.readLicenseData() ?? {};
@@ -376,6 +399,11 @@ class SecurityCubit extends Cubit<SecurityState> {
       }
 
       return (success: true, errorAr: null);
+    } on AuthException catch (e) {
+      if (e.retryAfterSeconds != null) {
+        _blockedUntil = DateTime.now().add(Duration(seconds: e.retryAfterSeconds!));
+      }
+      return (success: false, errorAr: e.messageAr);
     } catch (e) {
       return (success: false, errorAr: AppStrings.failedToUpdateLicense);
     } finally {

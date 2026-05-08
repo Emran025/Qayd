@@ -35,6 +35,10 @@ abstract interface class AccountRepository {
 
   Future<Result<AccountId?>> findAccountByWhatsApp(String whatsapp);
 
+  /// Resolves an account whose party details carry this Ed25519 public key
+  /// (current column or rotated history JSON).
+  Future<Result<AccountId?>> findAccountByPublicKey(String publicKeyHex);
+
   Future<Result<bool>> hasAnyAccounts();
 
   // ── Archive operations ──────────────────────────────────────────────────

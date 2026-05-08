@@ -377,6 +377,49 @@ ORDER BY a.name COLLATE NOCASE
   }
 
   @override
+  Future<Result<AccountId?>> findAccountByPublicKey(String publicKeyHex) async {
+    final needle = publicKeyHex.trim().toLowerCase();
+    if (needle.isEmpty) {
+      return const Success(null);
+    }
+    try {
+      final rows = await _db.rawQuery(
+        '''
+        SELECT account_id FROM party_details
+        WHERE lower(trim(ifnull(current_public_key_hex, ''))) = ?
+        LIMIT 1
+        ''',
+        [needle],
+      );
+      if (rows.isNotEmpty) {
+        return Success(AccountId(rows.first['account_id'] as String));
+      }
+
+      final historyRows = await _db.query(
+        'party_details',
+        columns: ['account_id', 'public_key_history_json'],
+        where: 'public_key_history_json IS NOT NULL AND public_key_history_json != ?',
+        whereArgs: ['[]'],
+      );
+      for (final row in historyRows) {
+        final keys =
+            _decodeKeyHistory(row['public_key_history_json'] as String?);
+        for (final k in keys) {
+          if (k.trim().toLowerCase() == needle) {
+            return Success(AccountId(row['account_id'] as String));
+          }
+        }
+      }
+
+      return const Success(null);
+    } catch (_) {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToSearchBy),
+      );
+    }
+  }
+
+  @override
   Future<Result<bool>> hasAnyAccounts() async {
     try {
       final rows = await _db.rawQuery('SELECT 1 FROM $_table LIMIT 1');

@@ -212,11 +212,16 @@ final class _ErrorInterceptor extends Interceptor {
       onSecurityError?.call();
     }
 
+    final meta = err.response?.data is Map<String, dynamic> 
+        ? err.response?.data['meta'] as Map<String, dynamic>? 
+        : null;
+    final retryAfter = meta?['retry_after'] as int?;
+
     final arabicMessage = _resolveArabicMessage(err);
     handler.reject(
       DioException(
         requestOptions: err.requestOptions,
-        error: AuthException(arabicMessage),
+        error: AuthException(arabicMessage, retryAfterSeconds: retryAfter),
         type: err.type,
         response: err.response,
         message: arabicMessage,

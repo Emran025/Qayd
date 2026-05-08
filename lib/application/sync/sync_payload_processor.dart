@@ -39,6 +39,29 @@ import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/application/sync/audit_sync_processor.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
+import 'package:qayd/domain/entities/party_details.dart';
+
+List<String> _orderedDecryptPublicKeys({
+  required SyncNode node,
+  required PartyDetails party,
+}) {
+  final out = <String>[];
+
+  void add(String? hex) {
+    final v = (hex ?? '').trim();
+    if (v.isEmpty) return;
+    final normalized = v.toLowerCase();
+    if (!out.contains(normalized)) {
+      out.add(normalized);
+    }
+  }
+
+  add(node.senderPublicKey);
+  for (final k in party.allAuthorizedKeys) {
+    add(k);
+  }
+  return out;
+}
 
 /// Intercepts inbound [SyncNode] streams, enforces E2EE Cryptographic rules,
 /// decrypts the payloads, and mutates the local Drift databases securely.
@@ -79,84 +102,111 @@ class SyncPayloadProcessor {
   final AuditSyncProcessor? auditSyncProcessor;
   final void Function(String nodeId)? onDecryptionFailure;
 
+  Future<PartyDetails?> _resolveInboundSenderParty(SyncNode node) async {
+    AccountId? accountId;
+
+    final envPk = node.senderPublicKey?.trim().toLowerCase() ?? '';
+    if (envPk.isNotEmpty) {
+      accountId =
+          (await accountRepository.findAccountByPublicKey(envPk)).valueOrNull;
+    }
+
+    final envPhone = node.senderPhone?.trim() ?? '';
+    if (accountId == null && envPhone.isNotEmpty) {
+      accountId =
+          (await accountRepository.findAccountByPhone(envPhone)).valueOrNull;
+    }
+
+    final envWa = node.senderWhatsapp?.trim() ?? '';
+    if (accountId == null && envWa.isNotEmpty) {
+      accountId =
+          (await accountRepository.findAccountByWhatsApp(envWa)).valueOrNull;
+    }
+
+    if (accountId == null) return null;
+
+    final partyRow = await accountRepository.getPartyDetails(accountId);
+    return partyRow.valueOrNull ??
+        PartyDetails(accountId: accountId);
+  }
+
   /// Ingests a list of pushed/pulled encrypted sync nodes
   Future<void> processIncomingNodes(List<SyncNode> nodes) async {
     final myKeyPair = await getCurrentUserKeyPair();
 
     for (final node in nodes) {
       try {
-        // 1. We must determine the counterpart's phone to fetch their keys.
-        // Assuming Sender ID strongly correlates with Account mapping / Governance API...
-        // For professional rigor, if governance requires phone, we fetch the PartyDetails by ID to get the phone:
-        final partyResult = await accountRepository.getPartyDetails(
-          AccountId(node.senderId.toString()),
-        );
-        final senderPhone = partyResult.valueOrNull?.phoneNumber ?? '';
-        final senderEmail = partyResult.valueOrNull?.email ?? '';
+        // §5.D — Hierarchical counterpart resolution ( pubkey → phone → whatsapp ).
+        final party = await _resolveInboundSenderParty(node);
 
-        PublicKeyLookupResult? counterpartIdentityResult;
-
-        if (senderPhone.isNotEmpty) {
-          counterpartIdentityResult = await identityRepository.lookupByPhone(
-            phone: senderPhone,
-          );
-        }
-
-        if (counterpartIdentityResult == null && senderEmail.isNotEmpty) {
-          counterpartIdentityResult = await identityRepository.lookupByEmail(
-            email: senderEmail,
-          );
-        }
-
-        if (counterpartIdentityResult == null) {
+        if (party == null) {
           debugPrint(
             'Blocked SyncNode [${node.id}]: Untrusted or Unknown Sender Identity.',
           );
           continue; // DROP SILENTLY
         }
 
-        final counterpartPublicKey = counterpartIdentityResult.publicKeyHex;
-
-        if (counterpartPublicKey == null) {
+        final decryptKeys =
+            _orderedDecryptPublicKeys(node: node, party: party);
+        if (decryptKeys.isEmpty) {
           debugPrint(
             'Blocked SyncNode [${node.id}]: No public key available for Sender.',
           );
-          continue; // DROP SILENTLY
+          continue;
         }
 
-        // 2. Decrypt Payload Enclave
-        late final Map<String, dynamic> decryptedRawPayload;
-        try {
-          decryptedRawPayload = await e2eeService.decryptPayload(
-            encryptedPayload: node.encryptedPayload,
-            receiverKeyPair: myKeyPair,
-            senderPublicKeyHex: counterpartPublicKey,
-          );
-        } catch (e) {
-          debugPrint('Decryption failed for SyncNode [${node.id}]: $e');
+        Map<String, dynamic>? decryptedRawPayload;
+        String? decryptionKeyHexUsed;
+        for (final pk in decryptKeys) {
+          try {
+            decryptedRawPayload = await e2eeService.decryptPayload(
+              encryptedPayload: node.encryptedPayload,
+              receiverKeyPair: myKeyPair,
+              senderPublicKeyHex: pk,
+            );
+            decryptionKeyHexUsed = pk;
+            break;
+          } catch (_) {
+            continue;
+          }
+        }
+
+        if (decryptedRawPayload == null) {
+          debugPrint('Decryption failed for SyncNode [${node.id}]');
           onDecryptionFailure?.call(node.id);
-          continue; // Skip this node
+          continue;
         }
 
-        // 3. Process Domain Actions Structurally with Signatures
+        final localSenderAccountIdStr = party.accountId.value;
+
+        final senderPhone = party.phoneNumber ?? '';
+        final senderEmail = party.email ?? '';
+
+        // Process Domain Actions Structurally with Signatures
         switch (node.eventType) {
           case SyncEventType.claim:
             await _inboundVoucherClaim(
-                decryptedRawPayload, node.id, node.senderId.toString());
+              decryptedRawPayload,
+              node.id,
+              localSenderAccountIdStr,
+            );
             break;
           case SyncEventType.acceptance:
             await _inboundVoucherAcceptance(
               decryptedRawPayload,
-              counterpartPublicKey,
+              decryptionKeyHexUsed ?? decryptKeys.first,
               senderPhone,
               senderEmail,
               node.id,
-              node.senderId.toString(),
+              localSenderAccountIdStr,
             );
             break;
           case SyncEventType.rejection:
             await _inboundVoucherRejection(
-                decryptedRawPayload, node.id, node.senderId.toString());
+              decryptedRawPayload,
+              node.id,
+              localSenderAccountIdStr,
+            );
             break;
           case SyncEventType.journalEntry:
             await _inboundJournalEntryMirrored(decryptedRawPayload);
@@ -172,11 +222,17 @@ class SyncPayloadProcessor {
             break;
           case SyncEventType.withdrawal:
             await _inboundVoucherWithdrawal(
-                decryptedRawPayload, node.id, node.senderId.toString());
+              decryptedRawPayload,
+              node.id,
+              localSenderAccountIdStr,
+            );
             break;
           case SyncEventType.settlement:
             await _inboundVoucherSettlement(
-                decryptedRawPayload, node.id, node.senderId.toString());
+              decryptedRawPayload,
+              node.id,
+              localSenderAccountIdStr,
+            );
             break;
           case SyncEventType.auditBatch:
             await _inboundAuditBatch(decryptedRawPayload);
@@ -192,7 +248,10 @@ class SyncPayloadProcessor {
             break;
           case SyncEventType.tripartiteRequest:
             await _inboundTripartiteRequest(
-                decryptedRawPayload, node.senderId.toString(), node.id);
+              decryptedRawPayload,
+              localSenderAccountIdStr,
+              node.id,
+            );
             break;
           case SyncEventType.unknown:
             debugPrint('Warning: Unknown event type in SyncNode [${node.id}]');

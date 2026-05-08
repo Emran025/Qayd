@@ -37,6 +37,10 @@ enum SyncEventType {
 ///
 /// The [encryptedPayload] is strictly opaque: it must NEVER contain plaintext
 /// identifiers that would bypass the privacy policy checks.
+///
+/// §5.D — Sender hints: Plaintext counterpart identity mirrored from receiver
+/// routing hints. Populated server-side from the authenticated sender so inbound
+/// clients can resolve UUID contacts before ECDH decryption.
 @immutable
 class SyncNode {
   const SyncNode({
@@ -50,6 +54,9 @@ class SyncNode {
     this.receiverPhone,
     this.receiverWhatsapp,
     this.receiverPublicKey,
+    this.senderPhone,
+    this.senderWhatsapp,
+    this.senderPublicKey,
     this.clientTimestamp,
     this.senderDeviceId,
     this.targetDeviceId,
@@ -74,6 +81,15 @@ class SyncNode {
 
   /// §5.C Routing hint 4: Ed25519 public key hex (offline / QR discovery)
   final String? receiverPublicKey;
+
+  /// §5.D Sender hint: E.164 phone (plaintext envelope symmetry)
+  final String? senderPhone;
+
+  /// §5.D Sender hint: WhatsApp number when distinct from phone
+  final String? senderWhatsapp;
+
+  /// §5.D Sender hint: Ed25519 public key hex registered for the sender
+  final String? senderPublicKey;
 
   /// Strongly typed event discriminator
   final SyncEventType eventType;
@@ -100,6 +116,9 @@ class SyncNode {
       receiverPhone: json['receiver_phone'] as String?,
       receiverWhatsapp: json['receiver_whatsapp'] as String?,
       receiverPublicKey: json['receiver_public_key'] as String?,
+      senderPhone: json['sender_phone'] as String?,
+      senderWhatsapp: json['sender_whatsapp'] as String?,
+      senderPublicKey: json['sender_public_key'] as String?,
       eventType: SyncEventType.fromString(json['event_type'] as String),
       encryptedPayload: json['encrypted_payload'] as String,
       syncState: json['sync_state'] as String,
@@ -121,6 +140,9 @@ class SyncNode {
       if (receiverPhone != null) 'receiver_phone': receiverPhone,
       if (receiverWhatsapp != null) 'receiver_whatsapp': receiverWhatsapp,
       if (receiverPublicKey != null) 'receiver_public_key': receiverPublicKey,
+      if (senderPhone != null) 'sender_phone': senderPhone,
+      if (senderWhatsapp != null) 'sender_whatsapp': senderWhatsapp,
+      if (senderPublicKey != null) 'sender_public_key': senderPublicKey,
       'event_type': eventType.name,
       'encrypted_payload': encryptedPayload,
       'sync_state': syncState,

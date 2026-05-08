@@ -49,6 +49,8 @@ class MockNotificationFilterService extends Mock
     implements NotificationFilterService {}
 
 void main() {
+  const localSenderAccountUuid = 'a1000001-1111-4111-a111-a11111111111';
+
   late SyncPayloadProcessor processor;
   late MockIdentityRepository mockIdentityRepo;
   late MockAccountRepository mockAccountRepo;
@@ -65,6 +67,8 @@ void main() {
 
     when(() => mockFilterRepo.isPeerActivityEnabled).thenReturn(true);
     when(() => mockFilterRepo.isSelfActivityEnabled).thenReturn(true);
+
+    registerFallbackValue(AccountId(localSenderAccountUuid));
 
     processor = SyncPayloadProcessor(
       identityRepository: mockIdentityRepo,
@@ -97,38 +101,36 @@ void main() {
       // Arrange
       final node = SyncNode(
         id: 'node-123',
-        senderId: 101, // Sender A
+        senderId: 101, // Sender A — server FK only; local counterpart uses UUID below
         receiverId: 202, // Me (B)
         eventType: SyncEventType.tripartiteRequest,
         encryptedPayload: 'secret-payload',
         syncState: 'pending',
         clientTimestamp: DateTime.now(),
+        senderPublicKey: 'sender-pub',
+        senderPhone: '0500000000',
       );
 
       final partyDetails = PartyDetails(
-        accountId: AccountId('101'),
+        accountId: AccountId(localSenderAccountUuid),
         phoneNumber: '0500000000',
         currentPublicKeyHex: 'sender-pub',
       );
 
-      final senderLookup = PublicKeyLookupResult(
-        phone: '0500000000',
-        publicKeyHex: 'sender-pub',
-        keyGeneration: 1,
-        name: 'Sender A',
-      );
-
       final senderAccount = Account.createRoot(
-        id: AccountId('101'),
+        id: AccountId(localSenderAccountUuid),
         name: 'Sender A',
         classification: AccountClassification.personalExpenses,
         createdAt: DateTime.now(),
       );
 
-      when(() => mockAccountRepo.getPartyDetails(AccountId('101')))
-          .thenAnswer((_) async => Success(partyDetails));
-      when(() => mockIdentityRepo.lookupByPhone(phone: any(named: 'phone')))
-          .thenAnswer((_) async => senderLookup);
+      when(() =>
+              mockAccountRepo.findAccountByPublicKey('sender-pub'))
+          .thenAnswer(
+              (_) async => Success(AccountId(localSenderAccountUuid)));
+      when(() => mockAccountRepo.getPartyDetails(
+            AccountId(localSenderAccountUuid),
+          )).thenAnswer((_) async => Success(partyDetails));
       when(() => mockE2ee.decryptPayload(
             encryptedPayload: any(named: 'encryptedPayload'),
             receiverKeyPair: any(named: 'receiverKeyPair'),
@@ -139,7 +141,8 @@ void main() {
             'currencyCode': 'SAR',
           });
 
-      when(() => mockAccountRepo.getById(AccountId('101')))
+      when(() =>
+              mockAccountRepo.getById(AccountId(localSenderAccountUuid)))
           .thenAnswer((_) async => Success(senderAccount));
       when(() => mockNotificationRepo.insert(
             id: any(named: 'id'),
@@ -156,7 +159,7 @@ void main() {
       // Assert
       verify(() => mockNotificationRepo.insert(
             id: any(named: 'id'),
-            counterpartyAccountId: '101',
+            counterpartyAccountId: localSenderAccountUuid,
             bodyText: any(named: 'bodyText', that: contains('Sender A')),
             channel: 'tripartite_event',
             createdAtIso: any(named: 'createdAtIso'),
@@ -177,25 +180,23 @@ void main() {
         encryptedPayload: 'secret-payload',
         syncState: 'pending',
         clientTimestamp: DateTime.now(),
+        senderPublicKey: 'sender-pub',
+        senderPhone: '0500000000',
       );
 
       final partyDetails = PartyDetails(
-        accountId: AccountId('101'),
+        accountId: AccountId(localSenderAccountUuid),
         phoneNumber: '0500000000',
         currentPublicKeyHex: 'sender-pub',
       );
 
-      final senderLookup = PublicKeyLookupResult(
-        phone: '0500000000',
-        publicKeyHex: 'sender-pub',
-        keyGeneration: 1,
-        name: 'Sender A',
-      );
-
-      when(() => mockAccountRepo.getPartyDetails(AccountId('101')))
-          .thenAnswer((_) async => Success(partyDetails));
-      when(() => mockIdentityRepo.lookupByPhone(phone: any(named: 'phone')))
-          .thenAnswer((_) async => senderLookup);
+      when(() =>
+              mockAccountRepo.findAccountByPublicKey('sender-pub'))
+          .thenAnswer(
+              (_) async => Success(AccountId(localSenderAccountUuid)));
+      when(() => mockAccountRepo.getPartyDetails(
+            AccountId(localSenderAccountUuid),
+          )).thenAnswer((_) async => Success(partyDetails));
       when(() => mockE2ee.decryptPayload(
             encryptedPayload: any(named: 'encryptedPayload'),
             receiverKeyPair: any(named: 'receiverKeyPair'),
@@ -206,9 +207,10 @@ void main() {
             'currencyCode': 'SAR',
           });
 
-      when(() => mockAccountRepo.getById(AccountId('101'))).thenAnswer(
+      when(() =>
+              mockAccountRepo.getById(AccountId(localSenderAccountUuid))).thenAnswer(
           (_) async => Success(Account.createRoot(
-              id: AccountId('101'),
+              id: AccountId(localSenderAccountUuid),
               name: 'Sender A',
               classification: AccountClassification.personalExpenses,
               createdAt: DateTime.now())));

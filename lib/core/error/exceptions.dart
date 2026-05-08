@@ -10,7 +10,9 @@ sealed class AppException implements Exception {
 
 /// Thrown when API authentication fails.
 final class AuthException extends AppException {
-  const AuthException(String message) : super(message: message);
+  const AuthException(String message, {this.retryAfterSeconds}) : super(message: message);
+
+  final int? retryAfterSeconds;
 
   /// Arabic message for UI display (alias for message).
   String get messageAr => message;
