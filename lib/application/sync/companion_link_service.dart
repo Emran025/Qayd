@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/application/sync/credential_bootstrap_payload.dart';
 import 'package:qayd/application/sync/device_pairing_qr_service.dart';
@@ -54,6 +55,10 @@ class CompanionLinkService {
   final Set<String> _usedNonces = <String>{};
 
   CompanionLinkSession startReceiverSession() {
+    // Clear nonces from previous sessions to prevent unbounded accumulation.
+    // Each QR has its own nonce, so old ones are irrelevant after the session expires.
+    _usedNonces.clear();
+
     final ephemeral = _generateEphemeralKeyPair();
     final sessionId = const Uuid().v4();
     final qr = qrService.generateCompanionLinkQr(
@@ -75,7 +80,7 @@ class CompanionLinkService {
       throw StateError('Invalid companion QR payload.');
     }
     final now = DateTime.now().toUtc();
-    final expiresAt = now.add(const Duration(minutes: 3));
+    final expiresAt = now.add(const Duration(minutes: 30));
     final mnemonic = await mnemonicVault.readMnemonic();
     final jwt = await licenseVault.readJwt();
     final senderPair = await getCurrentKeyPair();
@@ -111,28 +116,60 @@ class CompanionLinkService {
   Future<bool> pollAndConsumeBootstrap({
     required CompanionLinkSession session,
   }) async {
-    final res = await apiClient.post(
-      ApiEndpoints.devicesCompanionConsume,
-      body: {'socket_session_id': session.socketSessionId},
-    );
-    if (res is! Map<String, dynamic>) return false;
+    Map<String, dynamic>? res;
+    try {
+      res = await apiClient.post(
+        ApiEndpoints.devicesCompanionConsume,
+        body: {'socket_session_id': session.socketSessionId},
+      ) as Map<String, dynamic>?;
+    } catch (e) {
+      debugPrint('CompanionLink: poll request failed: $e');
+      return false;
+    }
+
+    if (res == null) return false;
     final encrypted = res['encrypted_payload'] as String?;
     final senderPublicKey = res['sender_public_key'] as String?;
-    if (encrypted == null || senderPublicKey == null) return false;
+    if (encrypted == null || senderPublicKey == null) {
+      debugPrint('CompanionLink: no bootstrap payload available yet.');
+      return false;
+    }
 
-    final payload = await e2eeService.decryptPayload(
-      encryptedPayload: encrypted,
-      receiverKeyPair: session.ephemeralKeyPair,
-      senderPublicKeyHex: senderPublicKey,
-    );
+    Map<String, dynamic> payload;
+    try {
+      payload = await e2eeService.decryptPayload(
+        encryptedPayload: encrypted,
+        receiverKeyPair: session.ephemeralKeyPair,
+        senderPublicKeyHex: senderPublicKey,
+      );
+    } catch (e) {
+      debugPrint('CompanionLink: decryption failed: $e');
+      return false;
+    }
+
     final model = CredentialBootstrapPayload.fromMap(payload);
-    if (!_validateNonceAndFreshness(model, session.nonce)) return false;
+    if (!_validateNonceAndFreshness(model, session.nonce)) {
+      debugPrint('CompanionLink: nonce/freshness check failed — stale bootstrap.');
+      return false;
+    }
 
-    final keyPair = await _persistBootstrap(model);
-    await _registerRecoveredCompanionIdentity(keyPair);
+    // §C-1: Persist mnemonic + JWT for data access, but generate a NEW
+    // unique keypair for this companion device's own identity.
+    // The Primary's keypair is stored as a trusted peer, NOT as our own.
+    final companionKeyPair = await _persistBootstrap(model);
+    await _registerCompanionDeviceWithOwnKey(companionKeyPair);
     return true;
   }
 
+  /// Persists the bootstrap credentials and sets up the mnemonic identity
+  /// for data access. Returns a **new companion-specific keypair**.
+  ///
+  /// §C-1 Security Note:
+  /// The mnemonic received from Primary is used to restore data access
+  /// (voucher decryption keys), but the companion generates its OWN
+  /// Ed25519 keypair for device authentication and sync routing.
+  /// This prevents the identity mismatch where both devices fight over
+  /// the same public key on the server.
   Future<CryptoKeyPair> _persistBootstrap(
       CredentialBootstrapPayload payload) async {
     await licenseVault.writeJwt(payload.jwt);
@@ -140,22 +177,49 @@ class CompanionLinkService {
     if (payload.licenseData != null) {
       await licenseVault.writeLicenseData(payload.licenseData!);
     }
-    return setupIdentityUseCase.recoverFromMnemonic(
+
+    // Restore mnemonic for data-layer key derivation (voucher encryption).
+    // primaryLicenseData is passed so recoverFromMnemonic skips server
+    // re-registration of the Primary's key under our identity.
+    await setupIdentityUseCase.recoverFromMnemonic(
       MnemonicPhrase.fromPhrase(payload.mnemonic),
+      primaryLicenseData: payload.licenseData,
     );
+
+    // §C-1: Generate a unique keypair for this companion device.
+    // This is entirely separate from the mnemonic-derived Primary key.
+    final companionKeyPair = _generateEphemeralKeyPair();
+    await mnemonicVault.writeKeyPair(companionKeyPair);
+    debugPrint(
+      'CompanionLink: companion device key generated: '
+      '${companionKeyPair.publicKeyHex.substring(0, 8)}…',
+    );
+    return companionKeyPair;
   }
 
-  Future<void> _registerRecoveredCompanionIdentity(CryptoKeyPair keyPair) async {
-    final publicKeyHex = keyPair.publicKeyHex.toLowerCase();
+  /// Registers the companion's OWN unique keypair with the server.
+  /// This is distinct from the Primary's keypair stored in license_data.
+  Future<void> _registerCompanionDeviceWithOwnKey(
+      CryptoKeyPair companionKeyPair) async {
+    final publicKeyHex = companionKeyPair.publicKeyHex.toLowerCase();
     final deviceId = await getCurrentDeviceId();
     final signedChallenge =
         'companion-bootstrap:$deviceId:${DateTime.now().millisecondsSinceEpoch}';
-    await deviceRegistryRepository.pairDevice(
-      deviceId: deviceId,
-      deviceName: 'Companion Device',
-      publicKeyHex: publicKeyHex,
-      signedChallenge: signedChallenge,
-    );
+    try {
+      await deviceRegistryRepository.pairDevice(
+        deviceId: deviceId,
+        deviceName: 'Companion Device',
+        publicKeyHex: publicKeyHex,
+        signedChallenge: signedChallenge,
+      );
+      debugPrint(
+        'CompanionLink: companion registered on server '
+        '[key: ${publicKeyHex.substring(0, 8)}…, device: $deviceId]',
+      );
+    } catch (e) {
+      // Registration will be retried on next sync cycle via ensureServerRegistration.
+      debugPrint('CompanionLink: server registration deferred: $e');
+    }
   }
 
   bool _validateNonceAndFreshness(

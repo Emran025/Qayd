@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:qayd/domain/entities/account.dart';
+import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/core/result/result.dart';
@@ -123,7 +125,20 @@ class SyncPayloadProcessor {
           (await accountRepository.findAccountByWhatsApp(envWa)).valueOrNull;
     }
 
-    if (accountId == null) return null;
+    if (accountId == null) {
+      // §5.D fallback: If we don't know the sender yet, but the envelope provides
+      // routing hints (Phone or PK), create a "Shadow Account" to allow sync to proceed.
+      // This is vital for bootstrapping companion devices or receiving first-time vouchers.
+      if (envPk.isNotEmpty || envPhone.isNotEmpty || envWa.isNotEmpty) {
+        debugPrint('Sync: Creating shadow account for unknown sender [PK: ${envPk.substring(0, 4)}... Phone: $envPhone]');
+        return await _createShadowAccount(
+          publicKey: envPk,
+          phone: envPhone,
+          whatsapp: envWa,
+        );
+      }
+      return null;
+    }
 
     final partyRow = await accountRepository.getPartyDetails(accountId);
     return partyRow.valueOrNull ??
@@ -1103,6 +1118,41 @@ class SyncPayloadProcessor {
     }
 
     debugPrint('TripartiteRequest [$senderName -> B]: Ingested and stored.');
+  }
+
+  Future<PartyDetails> _createShadowAccount({
+    String? publicKey,
+    String? phone,
+    String? whatsapp,
+  }) async {
+    final accountId = AccountId(const Uuid().v4());
+
+    // 1. Create a "Shadow" Account in the Chart of Accounts.
+    // Categorize under Receivables by default for counterparties.
+    final account = Account.createRoot(
+      id: accountId,
+      name: phone != null && phone.isNotEmpty ? 'Unknown ($phone)' : 'Unknown Sender',
+      classification: AccountClassification.receivables,
+      createdAt: DateTime.now(),
+      metadata: {
+        'is_shadow': true,
+        'trusted': false,
+        if (publicKey != null) 'initial_public_key': publicKey,
+      },
+    );
+    await accountRepository.save(account);
+
+    // 2. Create corresponding PartyDetails for E2EE resolution.
+    final details = PartyDetails(
+      accountId: accountId,
+      phoneNumber: phone,
+      whatsappNumber: whatsapp,
+      currentPublicKeyHex: publicKey,
+      partyType: 'Unknown',
+    );
+    await accountRepository.savePartyDetails(details);
+
+    return details;
   }
 
   Uint8List _hexToBytes(String hex) {

@@ -15,6 +15,7 @@ import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/domain/value_objects/voucher_state.dart';
 import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
+import 'package:qayd/domain/value_objects/date_range.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/core/result/result.dart';
 
@@ -143,7 +144,9 @@ class SyncCoordinatorService {
     _expiryTimer = null;
     _socketSubscription?.cancel();
     _socketSubscription = null;
-    socketService.disconnect();
+    // closeStreams: true — fully disposes the service on logout.
+    // On app pause, call stop() without this flag and reconnect on resume.
+    socketService.disconnect(closeStreams: true);
   }
 
   /// Manually requested pull-to-refresh / On-Enter Sync
@@ -236,23 +239,34 @@ class SyncCoordinatorService {
 
   /// Scans for confirmed vouchers that were never enqueued to the outbox
   /// (usually due to a missing public key during creation).
+  ///
+  /// §P-3: Bounded to the last 7 days to avoid O(n) full-history scans.
+  /// Older unsynced vouchers are assumed delivered or abandoned.
   Future<void> _reSyncUnsyncedVouchers() async {
     try {
-      debugPrint('Sync: 🔍 Scanning for unsynced vouchers...');
-      
-      // Fetch vouchers that are confirmed but might be missing from outbox
-      final filter = VoucherQueryFilter(state: VoucherState.confirmed);
+      debugPrint('Sync: 🔍 Scanning recent unsynced vouchers...');
+
+      final cutoff = DateTime.now().subtract(const Duration(days: 7));
+      final filter = VoucherQueryFilter(
+        state: VoucherState.confirmed,
+        dateRange: DateRange(
+          start: cutoff,
+          end: DateTime.now().add(const Duration(days: 1)),
+        ),
+      );
       final vouchersRes = await voucherRepository.getAll(filter: filter);
       if (vouchersRes.isFailure) return;
 
       final vouchers = vouchersRes.valueOrNull ?? [];
+      if (vouchers.isEmpty) {
+        debugPrint('Sync: ✅ No recent unsynced vouchers found.');
+        return;
+      }
+
       for (final voucher in vouchers) {
-        // Check if a 'claim' event exists in outbox for this voucher
         final exists = await outboxDao.exists(voucher.id.value, 'claim');
         if (!exists) {
-          debugPrint('Sync: ♻️ Re-attempting identity discovery for voucher ${voucher.id.value}');
-          // This will attempt E2EE encryption and outbox enqueueing.
-          // If the public key is still missing, it will return FailureResult.
+          debugPrint('Sync: ♻️ Re-queuing voucher ${voucher.id.value}');
           await syncEventDispatcher.dispatchVoucherClaim(voucher);
         }
       }

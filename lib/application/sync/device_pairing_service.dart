@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
@@ -25,6 +26,10 @@ class DevicePairingService {
   final AuditSyncDispatcher auditSyncDispatcher;
   final CompanionLinkService companionLinkService;
   final LicenseVault licenseVault;
+
+  // Cancellation token for the companion discovery loop.
+  // Cancelled when a new bootstrap is initiated, so the old loop exits cleanly.
+  Completer<void>? _discoveryCancel;
 
   Future<void> pairDevice({
     required String deviceId,
@@ -106,6 +111,12 @@ class DevicePairingService {
     if (!approved) {
       throw StateError('Companion linking cancelled by user.');
     }
+
+    // Cancel any in-progress discovery from a previous QR session.
+    _discoveryCancel?.complete();
+    _discoveryCancel = Completer<void>();
+    final cancel = _discoveryCancel!;
+
     final sessionsBefore = await deviceSessionRepository.listAll();
     final knownDeviceIds = sessionsBefore.map((s) => s.deviceId).toSet();
     final bridgeStartedAt = DateTime.now().toUtc();
@@ -114,6 +125,7 @@ class DevicePairingService {
       _discoverCompanionAndDispatchSnapshot(
         knownDeviceIds: knownDeviceIds,
         bridgeStartedAt: bridgeStartedAt,
+        cancel: cancel,
       ),
     );
   }
@@ -133,12 +145,22 @@ class DevicePairingService {
   Future<void> _discoverCompanionAndDispatchSnapshot({
     required Set<String> knownDeviceIds,
     required DateTime bridgeStartedAt,
+    required Completer<void> cancel,
   }) async {
     const maxAttempts = 20;
     const pollInterval = Duration(seconds: 3);
 
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      // Check cancellation before each poll.
+      if (cancel.isCompleted) {
+        debugPrint('DevicePairing: Discovery loop cancelled (new QR initiated).');
+        return;
+      }
+
       await Future<void>.delayed(pollInterval);
+
+      if (cancel.isCompleted) return;
+
       await refreshSessionsFromServer();
       final sessions = await deviceSessionRepository.listAll();
       final targets = sessions.where((session) {
@@ -152,11 +174,17 @@ class DevicePairingService {
       }).toList();
 
       for (final target in targets) {
+        if (cancel.isCompleted) return;
         await dispatchInitialSnapshot(target.deviceId);
         knownDeviceIds.add(target.deviceId);
       }
-      if (targets.isNotEmpty) return;
+      if (targets.isNotEmpty) {
+        debugPrint('DevicePairing: Companion discovered and snapshot dispatched.');
+        return;
+      }
       knownDeviceIds.addAll(sessions.map((s) => s.deviceId));
     }
+    debugPrint('DevicePairing: Companion not discovered within polling window.');
   }
 }
+

@@ -496,6 +496,7 @@ abstract final class InjectionContainer {
       mnemonicVault: mnemonicVault,
       identityRepository: identityRepository,
       identityFileStorage: identityFileStorage,
+      accountRepositoryProvider: () => accountRepository,
     );
     companionLinkService = CompanionLinkService(
       qrService: const DevicePairingQrService(),
