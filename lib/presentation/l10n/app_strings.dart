@@ -670,6 +670,27 @@ class AppStrings {
   static String get familyAndDependents => i.familyAndDependents;
   static String get faroeIslands => i.faroeIslands;
   static String get february => i.february;
+  static String get fiscalPeriodCloseButton => i.fiscalPeriodCloseButton;
+  static String get fiscalPeriodCloseConfirm => i.fiscalPeriodCloseConfirm;
+  static String get fiscalPeriodCloseDraftsRemain =>
+      i.fiscalPeriodCloseDraftsRemain;
+  static String get fiscalPeriodCreateTitle => i.fiscalPeriodCreateTitle;
+  static String get fiscalPeriodDividerClosed => i.fiscalPeriodDividerClosed;
+  static String get fiscalPeriodDividerOpen => i.fiscalPeriodDividerOpen;
+  static String get fiscalPeriodEmpty => i.fiscalPeriodEmpty;
+  static String get fiscalPeriodEndLabel => i.fiscalPeriodEndLabel;
+  static String get fiscalPeriodInvalidRange => i.fiscalPeriodInvalidRange;
+  static String get fiscalPeriodNameLabel => i.fiscalPeriodNameLabel;
+  static String get fiscalPeriodNotFound => i.fiscalPeriodNotFound;
+  static String get fiscalPeriodNotOpen => i.fiscalPeriodNotOpen;
+  static String get fiscalPeriodOpenAlreadyExists =>
+      i.fiscalPeriodOpenAlreadyExists;
+  static String get fiscalPeriodOverlap => i.fiscalPeriodOverlap;
+  static String get fiscalPeriodPolicyAuto => i.fiscalPeriodPolicyAuto;
+  static String get fiscalPeriodPolicyLabel => i.fiscalPeriodPolicyLabel;
+  static String get fiscalPeriodPolicyManual => i.fiscalPeriodPolicyManual;
+  static String get fiscalPeriodStartLabel => i.fiscalPeriodStartLabel;
+  static String get fiscalPeriodsPageTitle => i.fiscalPeriodsPageTitle;
   static String get fijiIslands => i.fijiIslands;
   static String get file => i.file;
   static String get filterApplied => i.filterApplied;
@@ -1505,6 +1526,9 @@ class AppStrings {
   static String get settingsGroupAppearance => i.settingsGroupAppearance;
   static String get settingsGroupBackup => i.settingsGroupBackup;
   static String get settingsGroupCurrency => i.settingsGroupCurrency;
+  static String get settingsFiscalPeriodsSubtitle =>
+      i.settingsFiscalPeriodsSubtitle;
+  static String get settingsFiscalPeriodsTitle => i.settingsFiscalPeriodsTitle;
   static String get settingsGroupNotifications => i.settingsGroupNotifications;
   static String get settingsGroupProfile => i.settingsGroupProfile;
   static String get settingsGroupSecurity => i.settingsGroupSecurity;
@@ -1619,6 +1643,8 @@ class AppStrings {
   static String get statementChatReject => i.statementChatReject;
   static String get statementChatResubmit => i.statementChatResubmit;
   static String get statementChatSearchHint => i.statementChatSearchHint;
+  static String get statementSettlementMilestone =>
+      i.statementSettlementMilestone;
   static String get statementChatTitle => i.statementChatTitle;
   static String get statementChatWithdraw => i.statementChatWithdraw;
   static String get statementDateLastQuarter => i.statementDateLastQuarter;
@@ -2134,6 +2160,7 @@ class AppStrings {
   static String get voucherFilterTypeAny => i.voucherFilterTypeAny;
   static String get voucherFilterTypeSection => i.voucherFilterTypeSection;
   static String get voucherJumpHeader => i.voucherJumpHeader;
+  static String get voucherDateInClosedPeriod => i.voucherDateInClosedPeriod;
   static String get voucherListTitle => i.voucherListTitle;
   static String get voucherMergeAction => i.voucherMergeAction;
   static String get voucherNewTitle => i.voucherNewTitle;

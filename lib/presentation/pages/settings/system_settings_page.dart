@@ -8,6 +8,7 @@ import 'package:qayd/presentation/pages/settings/groups/support_settings_page.da
 import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/groups/notification_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/device_management_page.dart';
+import 'package:qayd/presentation/pages/settings/fiscal_periods_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/sync_privacy_settings_section.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
@@ -48,6 +49,14 @@ class SystemSettingsPage extends StatelessWidget {
             title: AppStrings.deviceManagement,
             subtitle: AppStrings.deviceManagementSubtitle,
             onTap: () => _navTo(context, const DeviceManagementPage()),
+          ),
+          _buildSettingsTile(
+            context,
+            icon: Icons.calendar_month_outlined,
+            title: AppStrings.settingsFiscalPeriodsTitle,
+            subtitle: AppStrings.settingsFiscalPeriodsSubtitle,
+            onTap: () =>
+                _navTo(context, const FiscalPeriodsSettingsPage()),
           ),
           SizedBox(height: SpacingTokens.md),
           _buildSectionHeader(context, AppStrings.settingsSectionCustomization),

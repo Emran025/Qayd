@@ -448,6 +448,10 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     });
 
     for (final m in history) {
+      if (m.isSettlementMilestone) {
+        snapshotsList.add(currentBalances.values.toList());
+        continue;
+      }
       final current = currentBalances[m.currencyCode] ??
           _BalanceSnapshot(
             code: m.currencyCode,
@@ -531,6 +535,8 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         final data = state as StatementChatReady;
         final cubit = context.read<StatementChatCubit>();
         final custom = Theme.of(context).extension<QaydCustomColors>()!;
+        final voucherCount =
+            data.messages.where((m) => !m.isSettlementMilestone).length;
 
         final int firstUnreadIndex = data.messages.lastIndexWhere(
           (m) =>
@@ -546,7 +552,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                 _ChatHeader(
                   counterpartyName: data.counterpartyName,
                   counterpartyAccountId: data.counterpartyAccountId,
-                  messageCount: data.messages.length,
+                  messageCount: voucherCount,
                   hasFilters: data.hasActiveFilters,
                   showSearch: _showSearch,
                   isUnified: data.isUnified,
@@ -698,28 +704,32 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                     msg.voucherId, () => GlobalKey());
                                 final balances = allSnapshots[msgIdx];
 
-                                final msgWidget = _MessageBubble(
-                                  msg: msg,
-                                  mutating: _mutating,
-                                  isUnified: data.isUnified,
-                                  onAccept: (id) => _acceptVoucher(context, id),
-                                  onReject: (id) => _rejectVoucher(context, id),
-                                  onWithdraw: (id) =>
-                                      _withdrawVoucher(context, id),
-                                  onResubmit: (id) =>
-                                      _resubmitVoucher(context, id),
-                                  onOriginTap: _scrollToMessage,
-                                  onTap: () => data.isUnified
-                                      ? _navigateToCounterpartyChat(
-                                          context,
-                                          msg.otherPartyId,
-                                          data.counterpartyAccountId,
-                                        )
-                                      : VoucherDetailPage.show(
-                                          context, msg.voucherId),
-                                  onLongPress: () =>
-                                      _showVoucherActions(context, msg),
-                                );
+                                final msgWidget = msg.isSettlementMilestone
+                                    ? _SettlementMilestoneCard(msg: msg)
+                                    : _MessageBubble(
+                                        msg: msg,
+                                        mutating: _mutating,
+                                        isUnified: data.isUnified,
+                                        onAccept: (id) =>
+                                            _acceptVoucher(context, id),
+                                        onReject: (id) =>
+                                            _rejectVoucher(context, id),
+                                        onWithdraw: (id) =>
+                                            _withdrawVoucher(context, id),
+                                        onResubmit: (id) =>
+                                            _resubmitVoucher(context, id),
+                                        onOriginTap: _scrollToMessage,
+                                        onTap: () => data.isUnified
+                                            ? _navigateToCounterpartyChat(
+                                                context,
+                                                msg.otherPartyId,
+                                                data.counterpartyAccountId,
+                                              )
+                                            : VoucherDetailPage.show(
+                                                context, msg.voucherId),
+                                        onLongPress: () =>
+                                            _showVoucherActions(context, msg),
+                                      );
 
                                 final itemWidget = Column(
                                   key: key,
@@ -749,7 +759,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
               if (data.messages.isNotEmpty)
                 _SummaryFooter(
                   finalBalancesByCurrency: data.finalBalanceByCurrency,
-                  messageCount: data.messages.length,
+                  messageCount: voucherCount,
                 ),
             ],
           ),
@@ -1514,6 +1524,63 @@ class _ChronologySummaryTable extends StatelessWidget {
 // ══════════════════════════════════════════════════════════════════════════════
 // ── Message Bubble ───────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
+
+class _SettlementMilestoneCard extends StatelessWidget {
+  const _SettlementMilestoneCard({required this.msg});
+
+  final AccountStatementChatMessageDto msg;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final balance = msg.settlementBalanceMinorUnits ?? 0;
+    final currency = CurrencyCode(
+      code: msg.currencyCode,
+      nameAr: CurrencyUtil.getLocalizedName(msg.currencyCode),
+      symbol: msg.currencySymbol,
+      fractionalDigits: msg.currencyDigits,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: SpacingTokens.sm,
+        horizontal: SpacingTokens.sm,
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(SpacingTokens.md),
+        decoration: BoxDecoration(
+          color: custom.confirmedState.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(RadiusTokens.md),
+          border: Border.all(
+            color: custom.confirmedState.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(Icons.flag_circle_rounded, color: custom.confirmedState),
+            const SizedBox(height: SpacingTokens.xs),
+            Text(
+              msg.settlementLabel ?? AppStrings.statementSettlementMilestone,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: SpacingTokens.xs),
+            QaydMoneyDisplay(
+              money: Money.fromMinorUnits(balance, currency),
+              size: QaydMoneyDisplaySize.medium,
+              displayNegative: true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _MessageBubble extends StatelessWidget {
   const _MessageBubble({

@@ -1,14 +1,18 @@
 import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
+import 'package:qayd/application/fiscal/fiscal_period_policy.dart';
 import 'package:qayd/application/failure_mapping.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/entities/fiscal_period.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
 import 'package:qayd/domain/value_objects/voucher_query_filter.dart';
 import 'package:qayd/domain/value_objects/voucher_type.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 /// Output bundle for the Statement of Account chat use case.
 class StatementChatOutput {
@@ -31,10 +35,12 @@ final class ListAccountStatementChatUseCase {
   const ListAccountStatementChatUseCase({
     required this.accountRepository,
     required this.voucherRepository,
+    required this.fiscalPeriodRepository,
   });
 
   final AccountRepository accountRepository;
   final VoucherRepository voucherRepository;
+  final FiscalPeriodRepository fiscalPeriodRepository;
 
   Future<Result<StatementChatOutput>> call({
     required String myAccountId,
@@ -182,6 +188,26 @@ final class ListAccountStatementChatUseCase {
         return false;
       }
 
+      final periodsR = await fiscalPeriodRepository.listAllOrdered();
+      final periods = periodsR.isSuccess
+          ? periodsR.valueOrNull!
+          : const <FiscalPeriod>[];
+
+      final latestSettlementAt = _latestSignedSettlementDate(
+        allVouchers,
+        myId: myId,
+        cpId: cpId,
+      );
+      final latestFiscalAnchor = _latestFiscalClosingDate(periods);
+      DateTime? anchorStart;
+      if (latestSettlementAt != null && latestFiscalAnchor != null) {
+        anchorStart = latestSettlementAt.isAfter(latestFiscalAnchor)
+            ? latestSettlementAt
+            : latestFiscalAnchor;
+      } else {
+        anchorStart = latestSettlementAt ?? latestFiscalAnchor;
+      }
+
       Map<String, int> broughtForwardByCurrency = {};
       List<Voucher> periodVouchers = allVouchers;
 
@@ -193,8 +219,11 @@ final class ListAccountStatementChatUseCase {
         );
 
         if (filter.includePreviousBalance) {
-          final priorVouchers =
-              allVouchers.where((v) => v.date.isBefore(fromStart)).toList();
+          final priorVouchers = allVouchers.where((v) {
+            if (!v.date.isBefore(fromStart)) return false;
+            if (anchorStart == null) return true;
+            return !v.date.isBefore(anchorStart);
+          }).toList();
 
           for (final v in priorVouchers) {
             final dir = _directionFromPerspective(
@@ -348,6 +377,31 @@ final class ListAccountStatementChatUseCase {
           isCreator: isCreator,
           originVoucherId: v.originVoucherId?.value,
         ));
+
+        if (_isSignedSettlementVoucher(v, myId: myId, cpId: cpId)) {
+          messages.add(
+            AccountStatementChatMessageDto(
+              voucherId: 'settlement:${v.id.value}',
+              dateIso: v.date.toIso8601String(),
+              direction: 'incoming',
+              typeCode: v.type.name,
+              voucherStateCode: v.state.name,
+              signatureStatusCode: v.receiverStatus.name,
+              amountMinorUnits: 0,
+              currencyCode: v.currency.code,
+              currencySymbol: v.currency.symbol,
+              currencyDigits: v.currency.fractionalDigits,
+              description: '',
+              otherPartyId: otherId,
+              otherPartyName: otherName,
+              isCreator: isCreator,
+              isSettlementMilestone: true,
+              settlementLabel: AppStrings.statementSettlementMilestone,
+              settlementBalanceMinorUnits:
+                  runningBalances[v.currency.code] ?? 0,
+            ),
+          );
+        }
       }
 
       return Success(StatementChatOutput(
@@ -394,5 +448,46 @@ final class ListAccountStatementChatUseCase {
     }
 
     return isPerspAffected ? 'incoming' : 'incoming';
+  }
+
+  DateTime? _latestFiscalClosingDate(List<FiscalPeriod> periods) {
+    DateTime? latestEnd;
+    for (final p in periods) {
+      if (p.status != FiscalPeriodStatus.closed) continue;
+      final end = DateTime(p.endDate.year, p.endDate.month, p.endDate.day);
+      if (latestEnd == null || end.isAfter(latestEnd)) latestEnd = end;
+    }
+    return latestEnd == null
+        ? null
+        : FiscalPeriodPolicy.firstMomentAfterClosedEnd(latestEnd);
+  }
+
+  DateTime? _latestSignedSettlementDate(
+    List<Voucher> vouchers, {
+    required AccountId myId,
+    required AccountId cpId,
+  }) {
+    DateTime? latest;
+    for (final v in vouchers) {
+      if (!_isSignedSettlementVoucher(v, myId: myId, cpId: cpId)) continue;
+      final at = v.settledAt ?? v.date;
+      if (latest == null || at.isAfter(latest)) latest = at;
+    }
+    if (latest == null) return null;
+    return DateTime(latest.year, latest.month, latest.day);
+  }
+
+  bool _isSignedSettlementVoucher(
+    Voucher v, {
+    required AccountId myId,
+    required AccountId cpId,
+  }) {
+    final betweenParties =
+        (v.affectedAccountId == myId && v.counterpartyId == cpId) ||
+            (v.affectedAccountId == cpId && v.counterpartyId == myId);
+    if (!betweenParties) return false;
+    return v.state.isSettled &&
+        v.senderStatus == AgreementStatus.accepted &&
+        v.receiverStatus == AgreementStatus.accepted;
   }
 }

@@ -1306,6 +1306,46 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get february => 'February';
   @override
+  String get fiscalPeriodCloseButton => 'Close period';
+  @override
+  String get fiscalPeriodCloseConfirm =>
+      'Account balances through this period will be sealed with your signature. Continue?';
+  @override
+  String get fiscalPeriodCloseDraftsRemain =>
+      'Cannot close: draft vouchers exist in this period.';
+  @override
+  String get fiscalPeriodCreateTitle => 'New fiscal period';
+  @override
+  String get fiscalPeriodDividerClosed => 'Closed — balance carried forward';
+  @override
+  String get fiscalPeriodDividerOpen => 'Open';
+  @override
+  String get fiscalPeriodEmpty => 'No fiscal periods yet.';
+  @override
+  String get fiscalPeriodEndLabel => 'End date';
+  @override
+  String get fiscalPeriodInvalidRange => 'Invalid period range.';
+  @override
+  String get fiscalPeriodNameLabel => 'Period name';
+  @override
+  String get fiscalPeriodNotFound => 'Period not found.';
+  @override
+  String get fiscalPeriodNotOpen => 'This period is not open.';
+  @override
+  String get fiscalPeriodOpenAlreadyExists => 'An open period already exists.';
+  @override
+  String get fiscalPeriodOverlap => 'This period overlaps another.';
+  @override
+  String get fiscalPeriodPolicyAuto => 'Periodic auto-close';
+  @override
+  String get fiscalPeriodPolicyLabel => 'Closing policy';
+  @override
+  String get fiscalPeriodPolicyManual => 'Manual governance';
+  @override
+  String get fiscalPeriodStartLabel => 'Start date';
+  @override
+  String get fiscalPeriodsPageTitle => 'Fiscal periods';
+  @override
   String get fijiIslands => 'Fiji Islands';
   @override
   String get file => 'File';
@@ -2973,6 +3013,11 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get settingsGroupCurrency => 'Currencies and Conversion';
   @override
+  String get settingsFiscalPeriodsSubtitle =>
+      'Fiscal periods, signed balance snapshots, and carry-forward';
+  @override
+  String get settingsFiscalPeriodsTitle => 'Fiscal periods (Qayd V3)';
+  @override
   String get settingsGroupNotifications => 'Notification Preferences';
   @override
   String get settingsGroupProfile => 'Account Data and Identity';
@@ -3203,6 +3248,9 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get statementChatSearchHint =>
       'Search by statement, number, or amount…';
+  @override
+  String get statementSettlementMilestone =>
+      'Account settled here — all previous vouchers carried forward';
   @override
   String get statementChatTitle => 'Account Statement';
   @override
@@ -4324,6 +4372,10 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get voucherJumpHeader =>
       'A newer version of this voucher exists. Click to navigate.';
+  @override
+  @override
+  String get voucherDateInClosedPeriod =>
+      'You cannot edit or confirm a voucher in a closed period. Post a reversing entry in the open period.';
   @override
   String get voucherListTitle => 'Accounting Vouchers';
   @override

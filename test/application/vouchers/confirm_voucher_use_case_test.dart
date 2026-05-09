@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qayd/application/vouchers/confirm_voucher_use_case.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_input.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/core/utils/id_generator.dart';
@@ -32,6 +33,9 @@ class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
 
 class MockSyncEventDispatcher extends Mock implements SyncEventDispatcher {}
 
+class MockFiscalPeriodRepository extends Mock
+    implements FiscalPeriodRepository {}
+
 class FakeVoucher extends Fake implements Voucher {}
 
 void main() {
@@ -48,6 +52,7 @@ void main() {
   late MockIdGenerator mockIdGen;
   late MockGovernanceWriteGuard mockWriteGuard;
   late MockSyncEventDispatcher mockSyncEventDispatcher;
+  late MockFiscalPeriodRepository mockFiscalRepo;
 
   setUp(() {
     mockVoucherRepo = MockVoucherRepository();
@@ -55,12 +60,16 @@ void main() {
     mockIdGen = MockIdGenerator();
     mockWriteGuard = MockGovernanceWriteGuard();
     mockSyncEventDispatcher = MockSyncEventDispatcher();
+    mockFiscalRepo = MockFiscalPeriodRepository();
+    when(() => mockFiscalRepo.listAllOrdered())
+        .thenAnswer((_) async => const Success([]));
 
     useCase = ConfirmVoucherUseCase(
       mockVoucherRepo,
       mockEntryGen,
       mockIdGen,
       mockWriteGuard,
+      mockFiscalRepo,
       syncEventDispatcher: mockSyncEventDispatcher,
     );
   });

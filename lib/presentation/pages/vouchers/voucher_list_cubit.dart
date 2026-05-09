@@ -3,16 +3,23 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
 import 'package:qayd/application/vouchers/dtos/list_vouchers_input.dart';
+import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/application/vouchers/list_vouchers_use_case.dart';
-import 'package:qayd/domain/entities/notification_message.dart';
-import 'package:qayd/domain/repositories/notification_message_repository.dart';
+import 'package:qayd/application/fiscal/fiscal_period_policy.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/entities/fiscal_period.dart';
+import 'package:qayd/domain/entities/notification_message.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
+import 'package:qayd/domain/repositories/notification_message_repository.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_list_row.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
 
 class VoucherListCubit extends Cubit<VoucherListState> {
   VoucherListCubit(
     this._listVouchers,
-    this._notificationRepo, {
+    this._notificationRepo,
+    this._fiscalPeriodRepository, {
     AdvancedFilterInput? initialFilter,
     bool? isInternalOnly,
   }) : super(const VoucherListInitial()) {
@@ -22,6 +29,7 @@ class VoucherListCubit extends Cubit<VoucherListState> {
 
   final ListVouchersUseCase _listVouchers;
   final NotificationMessageRepository _notificationRepo;
+  final FiscalPeriodRepository _fiscalPeriodRepository;
 
   String _searchQuery = '';
   AdvancedFilterInput _advancedFilter = AdvancedFilterInput.empty;
@@ -86,6 +94,10 @@ class VoucherListCubit extends Cubit<VoucherListState> {
       ),
     );
 
+    final fiscalR = await _fiscalPeriodRepository.listAllOrdered();
+    final periods =
+        fiscalR.isSuccess ? fiscalR.valueOrNull! : const <FiscalPeriod>[];
+
     final proposalsResult = await _notificationRepo.listAllUnprocessed();
     final proposals = proposalsResult.isSuccess
         ? proposalsResult.valueOrNull!
@@ -103,9 +115,10 @@ class VoucherListCubit extends Cubit<VoucherListState> {
             if (dateCmp != 0) return dateCmp;
             return b.createdAtIso.compareTo(a.createdAtIso);
           });
+        final rows = _buildRows(sorted, periods);
         emit(
           VoucherListReady(
-            vouchers: sorted,
+            rows: rows,
             searchQuery: _searchQuery,
             advancedFilter: _advancedFilter,
             accountNamesById: Map<String, String>.from(_accountNamesById),
@@ -114,5 +127,47 @@ class VoucherListCubit extends Cubit<VoucherListState> {
         );
       },
     );
+  }
+
+  List<VoucherListRow> _buildRows(
+    List<VoucherSummaryDto> sorted,
+    List<FiscalPeriod> periods,
+  ) {
+    if (periods.isEmpty) {
+      return sorted.map<VoucherListRow>(VoucherListVoucherRow.new).toList();
+    }
+    final rows = <VoucherListRow>[];
+    FiscalPeriod? prevPeriod;
+    for (final v in sorted) {
+      final vd = DateTime.parse(v.dateIso);
+      final p = FiscalPeriodPolicy.periodContaining(periods, vd);
+      if (prevPeriod?.id != p?.id) {
+        if (p != null) {
+          final suffix = p.status == FiscalPeriodStatus.closed
+              ? AppStrings.fiscalPeriodDividerClosed
+              : AppStrings.fiscalPeriodDividerOpen;
+          rows.add(
+            VoucherListPeriodDivider(
+              label: '${p.name} — $suffix',
+              isClosed: p.status == FiscalPeriodStatus.closed,
+            ),
+          );
+        }
+      }
+      rows.add(VoucherListVoucherRow(v));
+      if (v.stateCode == 'settled' &&
+          v.senderStatusCode == 'accepted' &&
+          v.receiverStatusCode == 'accepted') {
+        rows.add(
+          VoucherListSettlementRow(
+            label: AppStrings.statementSettlementMilestone,
+            currencyCode: v.currencyCode,
+            balanceMinorUnits: null,
+          ),
+        );
+      }
+      prevPeriod = p;
+    }
+    return rows;
   }
 }

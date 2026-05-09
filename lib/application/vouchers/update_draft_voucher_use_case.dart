@@ -1,10 +1,12 @@
 import 'package:qayd/application/failure_mapping.dart';
+import 'package:qayd/application/fiscal/fiscal_period_policy.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/application/vouchers/dtos/update_draft_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/update_draft_voucher_output.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/money.dart';
@@ -19,13 +21,15 @@ class UpdateDraftVoucherUseCase {
   UpdateDraftVoucherUseCase(
     this._voucherRepository,
     this._currencyRepository,
-    this._writeGuard, {
+    this._writeGuard,
+    this._fiscalPeriodRepository, {
     AuditLogService? auditLogService,
   }) : _auditLogService = auditLogService;
 
   final VoucherRepository _voucherRepository;
   final CurrencyRepository _currencyRepository;
   final GovernanceWriteGuard _writeGuard;
+  final FiscalPeriodRepository _fiscalPeriodRepository;
   final AuditLogService? _auditLogService;
 
   Future<Result<UpdateDraftVoucherOutput>> call(
@@ -65,6 +69,21 @@ class UpdateDraftVoucherUseCase {
         // Use either the new currency or the current voucher's currency
         final activeCurrency = currency ?? current.currency;
         amount = Money.positiveAmount(input.amountMinorUnits!, activeCurrency);
+      }
+
+      final nextDate = input.date ?? current.date;
+      final periodsR = await _fiscalPeriodRepository.listAllOrdered();
+      if (periodsR.isSuccess &&
+          FiscalPeriodPolicy.voucherDateInClosedPeriod(
+            periodsR.valueOrNull!,
+            nextDate,
+          )) {
+        return FailureResult(
+          ValidationFailure(
+            messageAr: AppStrings.voucherDateInClosedPeriod,
+            code: 'voucher_closed_period',
+          ),
+        );
       }
 
       final updated = current.updateDraft(

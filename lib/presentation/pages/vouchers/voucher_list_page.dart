@@ -24,6 +24,7 @@ import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart'
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_filter_sheet.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_cubit.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_list_row.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_qr_scanner_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
 import 'package:qayd/presentation/pages/vouchers/widgets/conflict_banner.dart';
@@ -55,6 +56,7 @@ class _VoucherListPageState extends State<VoucherListPage> {
     _cubit = VoucherListCubit(
       InjectionContainer.listVouchersUseCase,
       InjectionContainer.notificationMessageRepository,
+      InjectionContainer.fiscalPeriodRepository,
       isInternalOnly: false,
     )..load();
   }
@@ -515,8 +517,8 @@ class _VoucherListViewState extends State<_VoucherListView> with RouteAware {
                         ),
                       ),
                     ),
-                  VoucherListReady(:final vouchers, :final hasActiveQuery) =>
-                    vouchers.isEmpty
+                  VoucherListReady(:final rows, :final hasActiveQuery) =>
+                    rows.isEmpty
                         ? QaydEmptyState(
                             icon: hasActiveQuery
                                 ? Icons.search_off_rounded
@@ -535,21 +537,97 @@ class _VoucherListViewState extends State<_VoucherListView> with RouteAware {
                               SpacingTokens.md,
                               SpacingTokens.xxl,
                             ),
-                            itemCount: vouchers.length,
+                            itemCount: rows.length,
                             itemBuilder: (context, i) {
-                              return _VoucherTile(
-                                dto: vouchers[i],
-                                onTap: () =>
-                                    _openDetail(context, vouchers[i].id),
-                                onOriginTap: vouchers[i].originVoucherId != null
-                                    ? () => _openDetail(
-                                        context, vouchers[i].originVoucherId!)
-                                    : null,
-                                onChildTap: vouchers[i].firstChildId != null
-                                    ? () => _openDetail(
-                                        context, vouchers[i].firstChildId!)
-                                    : null,
-                              );
+                              final row = rows[i];
+                              return switch (row) {
+                                VoucherListPeriodDivider(:final label) =>
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: SpacingTokens.sm,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '— $label —',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ),
+                                  ),
+                                VoucherListVoucherRow(:final dto) =>
+                                  _VoucherTile(
+                                    dto: dto,
+                                    onTap: () =>
+                                        _openDetail(context, dto.id),
+                                    onOriginTap: dto.originVoucherId != null
+                                        ? () => _openDetail(
+                                            context, dto.originVoucherId!)
+                                        : null,
+                                    onChildTap: dto.firstChildId != null
+                                        ? () => _openDetail(
+                                            context, dto.firstChildId!)
+                                        : null,
+                                  ),
+                                VoucherListSettlementRow(:final label) =>
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: SpacingTokens.sm,
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(
+                                        SpacingTokens.sm,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withValues(alpha: 0.35),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.25),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.flag_circle_rounded,
+                                            size: 16,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                          ),
+                                          const SizedBox(
+                                              width: SpacingTokens.xs),
+                                          Expanded(
+                                            child: Text(
+                                              label,
+                                              textAlign: TextAlign.center,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              };
                             },
                           ),
                 };

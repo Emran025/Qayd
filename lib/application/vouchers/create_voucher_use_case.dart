@@ -1,4 +1,5 @@
 import 'package:qayd/application/failure_mapping.dart';
+import 'package:qayd/application/fiscal/fiscal_period_policy.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/domain/entities/voucher_attachment.dart';
@@ -10,6 +11,7 @@ import 'package:qayd/data/services/attachment_storage_service.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
@@ -47,6 +49,7 @@ class CreateVoucherUseCase {
   final AttachmentStorageService _attachmentStorage;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final FiscalPeriodRepository _fiscalPeriodRepository;
   final AccountRepository? _accountRepository;
   final ReceiptSigningService? _signingService;
   final Future<CryptoKeyPair?> Function()? _getKeyPair;
@@ -63,7 +66,8 @@ class CreateVoucherUseCase {
     this._attachmentRepository,
     this._attachmentStorage,
     this._idGenerator,
-    this._writeGuard, {
+    this._writeGuard,
+    this._fiscalPeriodRepository, {
     AccountRepository? accountRepository,
     ReceiptSigningService? signingService,
     Future<CryptoKeyPair?> Function()? getKeyPair,
@@ -103,6 +107,20 @@ class CreateVoucherUseCase {
       }
       final currency = currencyRes.valueOrNull!;
       final amount = Money.positiveAmount(input.amountMinorUnits, currency);
+
+      final periodsR = await _fiscalPeriodRepository.listAllOrdered();
+      if (periodsR.isSuccess &&
+          FiscalPeriodPolicy.voucherDateInClosedPeriod(
+            periodsR.valueOrNull!,
+            input.date,
+          )) {
+        return FailureResult(
+          ValidationFailure(
+            messageAr: AppStrings.voucherDateInClosedPeriod,
+            code: 'voucher_closed_period',
+          ),
+        );
+      }
 
       // ── Automated Bridge Logic Detection ──────────────
       String actualAffectedAccountId = input.affectedAccountId;

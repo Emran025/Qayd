@@ -16,6 +16,7 @@ import 'package:qayd/presentation/pages/management/widgets/internal_voucher_tile
 import 'package:qayd/presentation/pages/vouchers/voucher_detail_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_cubit.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_list_row.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
@@ -43,6 +44,7 @@ class _InternalManagementPageState extends State<InternalManagementPage> {
     _listCubit = VoucherListCubit(
       InjectionContainer.listVouchersUseCase,
       InjectionContainer.notificationMessageRepository,
+      InjectionContainer.fiscalPeriodRepository,
     )..setAdvancedFilter(const AdvancedFilterInput(isInternalOnly: true));
     _loadRoots();
   }
@@ -251,7 +253,11 @@ class _InternalManagementViewState extends State<_InternalManagementView> with R
     if (state is! VoucherListReady) return const SizedBox.shrink();
 
     // Filter list locally based on _flowFilter
-    final list = state.vouchers.where((v) {
+    final vouchers = state.rows
+        .whereType<VoucherListVoucherRow>()
+        .map((r) => r.dto)
+        .toList();
+    final list = vouchers.where((v) {
       if (_flowFilter == 'expenses') return v.typeCode == 'payment';
       if (_flowFilter == 'revenues') return v.typeCode == 'receipt';
       return true;
@@ -294,7 +300,7 @@ class _InternalManagementViewState extends State<_InternalManagementView> with R
     final Map<String, double> revenuesByCurrency = {};
 
     if (state is VoucherListReady) {
-      for (final v in state.vouchers) {
+      for (final v in state.rows.whereType<VoucherListVoucherRow>().map((r) => r.dto)) {
         final classification =
             widget.accountClassifications[v.counterpartyAccountId];
         // Skip debt settlements

@@ -1,7 +1,7 @@
 import 'package:qayd/application/vouchers/dtos/advanced_filter_input.dart';
-import 'package:qayd/application/vouchers/dtos/voucher_summary_dto.dart';
 import 'package:qayd/domain/entities/notification_message.dart';
 import 'package:qayd/core/error/failures.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_list_row.dart';
 
 sealed class VoucherListState {
   const VoucherListState();
@@ -17,14 +17,14 @@ final class VoucherListLoading extends VoucherListState {
 
 final class VoucherListReady extends VoucherListState {
   const VoucherListReady({
-    required this.vouchers,
+    required this.rows,
     required this.searchQuery,
     required this.advancedFilter,
     required this.accountNamesById,
     this.mergeProposals = const [],
   });
 
-  final List<VoucherSummaryDto> vouchers;
+  final List<VoucherListRow> rows;
   final String searchQuery;
   final AdvancedFilterInput advancedFilter;
   final Map<String, String> accountNamesById;
@@ -34,14 +34,14 @@ final class VoucherListReady extends VoucherListState {
       searchQuery.trim().isNotEmpty || advancedFilter.hasAny;
 
   VoucherListReady copyWith({
-    List<VoucherSummaryDto>? vouchers,
+    List<VoucherListRow>? rows,
     String? searchQuery,
     AdvancedFilterInput? advancedFilter,
     Map<String, String>? accountNamesById,
     List<NotificationMessage>? mergeProposals,
   }) {
     return VoucherListReady(
-      vouchers: vouchers ?? this.vouchers,
+      rows: rows ?? this.rows,
       searchQuery: searchQuery ?? this.searchQuery,
       advancedFilter: advancedFilter ?? this.advancedFilter,
       accountNamesById: accountNamesById ?? this.accountNamesById,

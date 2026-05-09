@@ -37,6 +37,15 @@ class ReceiptSigningService {
     return _crypto.sign(payloadHash, keyPair);
   }
 
+  /// Signs an arbitrary canonical UTF-8 string (e.g. fiscal snapshot aggregate).
+  DigitalSignature signCanonicalString(
+    String canonical,
+    CryptoKeyPair keyPair,
+  ) {
+    final payloadHash = hashPayload(canonical);
+    return _crypto.sign(payloadHash, keyPair);
+  }
+
   /// Verifies a receipt's signature against the signer's public key.
   ///
   /// Reconstructs the canonical payload hash and checks the signature.

@@ -4,6 +4,7 @@ import 'package:qayd/application/accounts/list_accounts_use_case.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
 import 'package:qayd/domain/entities/account.dart';
@@ -25,6 +26,9 @@ class MockLedgerRepository extends Mock implements LedgerRepository {}
 
 class MockVoucherRepository extends Mock implements VoucherRepository {}
 
+class MockFiscalPeriodRepository extends Mock
+    implements FiscalPeriodRepository {}
+
 class MockBalanceCalculator extends Mock implements BalanceCalculator {}
 
 void main() {
@@ -38,18 +42,26 @@ void main() {
   late MockLedgerRepository mockLedgerRepo;
   late MockBalanceCalculator mockBalanceCalc;
   late MockVoucherRepository mockVoucherRepo;
+  late MockFiscalPeriodRepository mockFiscalRepo;
 
   setUp(() {
     mockAccountRepo = MockAccountRepository();
     mockLedgerRepo = MockLedgerRepository();
     mockBalanceCalc = MockBalanceCalculator();
     mockVoucherRepo = MockVoucherRepository();
+    mockFiscalRepo = MockFiscalPeriodRepository();
+
+    when(() => mockFiscalRepo.findLatestClosed())
+        .thenAnswer((_) async => const Success(null));
+    when(() => mockFiscalRepo.listAllOrdered())
+        .thenAnswer((_) async => const Success([]));
 
     useCase = ListAccountsUseCase(
       mockAccountRepo,
       mockLedgerRepo,
       mockBalanceCalc,
       mockVoucherRepo,
+      mockFiscalRepo,
     );
   });
 

@@ -1,11 +1,14 @@
 import 'package:qayd/application/failure_mapping.dart';
+import 'package:qayd/application/fiscal/fiscal_period_policy.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_input.dart';
 import 'package:qayd/application/vouchers/dtos/confirm_voucher_output.dart';
+import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/voucher.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/entry_generator.dart';
 import 'package:qayd/domain/value_objects/entry_id.dart';
@@ -21,6 +24,7 @@ import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/domain/value_objects/signable_receipt.dart';
 import 'package:qayd/data/security/license_vault.dart';
+import 'package:qayd/presentation/l10n/app_strings.dart';
 
 
 class ConfirmVoucherUseCase {
@@ -28,7 +32,8 @@ class ConfirmVoucherUseCase {
     this._voucherRepository,
     this._entryGenerator,
     this._idGenerator,
-    this._writeGuard, {
+    this._writeGuard,
+    this._fiscalPeriodRepository, {
     AccountRepository? accountRepository,
     ReceiptSigningService? signingService,
     Future<CryptoKeyPair?> Function()? getKeyPair,
@@ -46,6 +51,7 @@ class ConfirmVoucherUseCase {
   final EntryGenerator _entryGenerator;
   final IdGenerator _idGenerator;
   final GovernanceWriteGuard _writeGuard;
+  final FiscalPeriodRepository _fiscalPeriodRepository;
   final AccountRepository? _accountRepository;
   final ReceiptSigningService? _signingService;
   final Future<CryptoKeyPair?> Function()? _getKeyPair;
@@ -65,6 +71,20 @@ class ConfirmVoucherUseCase {
         return FailureResult(loaded.failureOrNull!);
       }
       final draft = loaded.valueOrNull!;
+
+      final periodsR = await _fiscalPeriodRepository.listAllOrdered();
+      if (periodsR.isSuccess &&
+          FiscalPeriodPolicy.voucherDateInClosedPeriod(
+            periodsR.valueOrNull!,
+            draft.date,
+          )) {
+        return FailureResult(
+          ValidationFailure(
+            messageAr: AppStrings.voucherDateInClosedPeriod,
+            code: 'voucher_closed_period',
+          ),
+        );
+      }
 
       // 2. Enforce signature agreement before ledger confirmation.
       // Policy: Recording in the local ledger requires the user's own signature.

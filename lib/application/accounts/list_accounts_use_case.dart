@@ -2,9 +2,13 @@ import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_input.dart';
 import 'package:qayd/application/accounts/dtos/list_accounts_output.dart';
 import 'package:qayd/application/failure_mapping.dart';
+import 'package:qayd/application/fiscal/brought_forward_balance_loader.dart';
+import 'package:qayd/application/fiscal/fiscal_period_policy.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/entities/fiscal_period.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
@@ -20,12 +24,14 @@ class ListAccountsUseCase {
     this._ledgerRepository,
     this._balanceCalculator,
     this._voucherRepository,
+    this._fiscalPeriodRepository,
   );
 
   final AccountRepository _accountRepository;
   final LedgerRepository _ledgerRepository;
   final BalanceCalculator _balanceCalculator;
   final VoucherRepository _voucherRepository;
+  final FiscalPeriodRepository _fiscalPeriodRepository;
 
   Future<Result<ListAccountsOutput>> call(ListAccountsInput input) async {
     try {
@@ -39,12 +45,22 @@ class ListAccountsUseCase {
       }
       final allAccounts = accountsResult.valueOrNull!;
 
-      // 2. Fetch all confirmed ledger entries
-      final allEntriesResult = await _ledgerRepository.getAllEntries();
-      if (allEntriesResult.isFailure) {
-        return FailureResult(allEntriesResult.failureOrNull!);
+      // 2. Confirmed ledger: latest closed snapshot + delta (V3), or full history.
+      final bfResult = await BroughtForwardBalanceLoader.load(
+        fiscal: _fiscalPeriodRepository,
+        ledger: _ledgerRepository,
+      );
+      if (bfResult.isFailure) {
+        return FailureResult(bfResult.failureOrNull!);
       }
-      final allEntries = allEntriesResult.valueOrNull!;
+      final bf = bfResult.valueOrNull!;
+      final snapshotBase = bf.snapshotMinorByAccountAndCurrency;
+      final deltaEntries = bf.deltaEntries;
+
+      final periodsR = await _fiscalPeriodRepository.listAllOrdered();
+      final closedPeriods = periodsR.isSuccess
+          ? periodsR.valueOrNull!
+          : <FiscalPeriod>[];
 
       // 3. Fetch all pending/unconfirmed vouchers to include user's claims
       // Non-confirmed vouchers are not yet in the ledger.
@@ -64,19 +80,27 @@ class ListAccountsUseCase {
       // 4. Pre-compute base balances for every account (Ledger + Pending Vouchers)
       final directBalances = <String, Map<String, int>>{};
       for (final a in allAccounts) {
-        // Confirmed balance from general ledger
-        final perCurrency =
+        final fromSnap = snapshotBase[a.id.value] ?? const <String, int>{};
+        final baseMap = Map<String, int>.from(fromSnap);
+
+        final perCurrencyDelta =
             _balanceCalculator.signedBalanceMinorUnitsPerCurrency(
-          entries: allEntries,
+          entries: deltaEntries,
           accountId: a.id,
           nature: a.nature,
         );
-        final baseMap = {
-          for (final entry in perCurrency.entries) entry.key.code: entry.value,
-        };
+        for (final e in perCurrencyDelta.entries) {
+          baseMap[e.key.code] = (baseMap[e.key.code] ?? 0) + e.value;
+        }
 
         // Add impact of pending claims (Perspective: "My Accounts")
         for (final v in unconfirmedVouchers) {
+          if (FiscalPeriodPolicy.voucherDateInClosedPeriod(
+            closedPeriods,
+            v.date,
+          )) {
+            continue;
+          }
           final impact = _calculateVoucherImpact(v, a.id, a.nature);
           if (impact != 0) {
             final code = v.currency.code;

@@ -59,6 +59,9 @@ import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/application/identity/update_profile_use_case.dart';
 import 'package:qayd/application/vouchers/get_voucher_details_use_case.dart';
 import 'package:qayd/application/vouchers/list_vouchers_use_case.dart';
+import 'package:qayd/application/fiscal/close_fiscal_period_use_case.dart';
+import 'package:qayd/application/fiscal/create_fiscal_period_use_case.dart';
+import 'package:qayd/application/fiscal/auto_fiscal_closing_service.dart';
 import 'package:qayd/application/vouchers/update_draft_voucher_use_case.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/data/backup/auto_backup_service.dart';
@@ -74,6 +77,7 @@ import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/data/repositories/governance_repository_impl.dart';
 import 'package:qayd/data/repositories/remote_auth_repository.dart';
 import 'package:qayd/data/repositories/sqlite_account_repository.dart';
+import 'package:qayd/data/repositories/sqlite_fiscal_period_repository.dart';
 import 'package:qayd/data/repositories/sqlite_ledger_repository.dart';
 import 'package:qayd/data/repositories/sqlite_message_template_repository.dart';
 import 'package:qayd/data/repositories/sqlite_notification_log_repository.dart';
@@ -128,6 +132,7 @@ import 'package:qayd/domain/services/e2ee_encryption_service.dart';
 import 'package:qayd/domain/repositories/sync_repository.dart';
 import 'package:qayd/domain/repositories/device_registry_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/ledger_repository.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -257,6 +262,7 @@ abstract final class InjectionContainer {
 
   static late AccountRepository accountRepository;
   static late LedgerRepository ledgerRepository;
+  static late FiscalPeriodRepository fiscalPeriodRepository;
   static late VoucherRepository voucherRepository;
   static late CurrencyRepository currencyRepository;
 
@@ -270,6 +276,9 @@ abstract final class InjectionContainer {
   static late GetAccountDetailsUseCase getAccountDetailsUseCase;
   static late FindAccountByPhoneUseCase findAccountByPhoneUseCase;
   static late ListAccountsUseCase listAccountsUseCase;
+  static late CreateFiscalPeriodUseCase createFiscalPeriodUseCase;
+  static late CloseFiscalPeriodUseCase closeFiscalPeriodUseCase;
+  static AutoFiscalClosingService? autoFiscalClosingService;
   static late ArchiveAccountUseCase archiveAccountUseCase;
   static late RestoreAccountUseCase restoreAccountUseCase;
   static late ListArchivedAccountsUseCase listArchivedAccountsUseCase;
@@ -765,6 +774,7 @@ abstract final class InjectionContainer {
     if (userId > 0) {
       syncCoordinatorService.start();
     }
+    autoFiscalClosingService?.start();
 
     seedExpenseAccountsUseCase = SeedExpenseAccountsUseCase(
       accountRepository,
@@ -812,6 +822,7 @@ abstract final class InjectionContainer {
       identityRepository: identityRepository,
     );
     ledgerRepository = SqliteLedgerRepository(database);
+    fiscalPeriodRepository = SqliteFiscalPeriodRepository(database);
     final transactionRunner = DatabaseTransactionRunner(database);
     voucherRepository = SqliteVoucherRepository(database, transactionRunner);
     currencyRepository = SqliteCurrencyRepository(database);
@@ -936,6 +947,31 @@ abstract final class InjectionContainer {
       ledgerRepository,
       balanceCalculator,
       voucherRepository,
+      fiscalPeriodRepository,
+    );
+    createFiscalPeriodUseCase = CreateFiscalPeriodUseCase(
+      fiscalPeriodRepository,
+      governanceWriteGuard,
+      _idGenerator,
+    );
+    closeFiscalPeriodUseCase = CloseFiscalPeriodUseCase(
+      fiscalPeriodRepository,
+      ledgerRepository,
+      accountRepository,
+      voucherRepository,
+      balanceCalculator,
+      governanceWriteGuard,
+      _idGenerator,
+      receiptSigningService,
+      () => setupIdentityUseCase.getKeyPair(),
+      sharedPreferences,
+    );
+    autoFiscalClosingService?.stop();
+    autoFiscalClosingService = AutoFiscalClosingService(
+      prefs: sharedPreferences,
+      fiscalRepository: fiscalPeriodRepository,
+      createFiscalPeriodUseCase: createFiscalPeriodUseCase,
+      closeFiscalPeriodUseCase: closeFiscalPeriodUseCase,
     );
 
     getAccountStatementUseCase = GetAccountStatementUseCase(
@@ -946,6 +982,7 @@ abstract final class InjectionContainer {
     listAccountStatementChatUseCase = ListAccountStatementChatUseCase(
       accountRepository: accountRepository,
       voucherRepository: voucherRepository,
+      fiscalPeriodRepository: fiscalPeriodRepository,
     );
     createVoucherUseCase = CreateVoucherUseCase(
       voucherRepository,
@@ -954,6 +991,7 @@ abstract final class InjectionContainer {
       attachmentStorage,
       _idGenerator,
       governanceWriteGuard,
+      fiscalPeriodRepository,
       accountRepository: accountRepository,
       signingService: receiptSigningService,
       getKeyPair: () => setupIdentityUseCase.getKeyPair(),
@@ -989,6 +1027,7 @@ abstract final class InjectionContainer {
       voucherRepository,
       currencyRepository,
       governanceWriteGuard,
+      fiscalPeriodRepository,
       auditLogService: auditLogService,
     );
     confirmVoucherUseCase = ConfirmVoucherUseCase(
@@ -996,6 +1035,7 @@ abstract final class InjectionContainer {
       entryGenerator,
       _idGenerator,
       governanceWriteGuard,
+      fiscalPeriodRepository,
       accountRepository: accountRepository,
       signingService: receiptSigningService,
       getKeyPair: () => setupIdentityUseCase.getKeyPair(),

@@ -21,6 +21,9 @@ class AccountStatementChatMessageDto {
     this.feeAmountMinorUnits,
     required this.isCreator,
     this.originVoucherId,
+    this.isSettlementMilestone = false,
+    this.settlementLabel,
+    this.settlementBalanceMinorUnits,
   });
 
   final String voucherId;
@@ -70,4 +73,13 @@ class AccountStatementChatMessageDto {
 
   /// The ID of the original voucher if this is a correction or reply.
   final String? originVoucherId;
+
+  /// Non-voucher milestone row: indicates account settlement checkpoint.
+  final bool isSettlementMilestone;
+
+  /// Display text for settlement milestone row.
+  final String? settlementLabel;
+
+  /// Balance that becomes the new opening balance at milestone point.
+  final int? settlementBalanceMinorUnits;
 }

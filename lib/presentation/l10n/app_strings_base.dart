@@ -644,6 +644,27 @@ abstract class AppStringsBase {
   String get familyAndDependents => 'الأسرة والمعالون';
   String get faroeIslands => 'جزر فاروس';
   String get february => 'فبراير';
+  String get fiscalPeriodCloseButton => 'إقفال الفترة';
+  String get fiscalPeriodCloseConfirm =>
+      'سيتم ختم أرصدة جميع الحسابات حتى نهاية هذه الفترة بتوقيعك. المتابعة؟';
+  String get fiscalPeriodCloseDraftsRemain =>
+      'لا يمكن الإقفال: توجد مسودات ضمن هذه الفترة.';
+  String get fiscalPeriodCreateTitle => 'فترة مالية جديدة';
+  String get fiscalPeriodDividerClosed => 'مغلق — رصيد مرحّل';
+  String get fiscalPeriodDividerOpen => 'مفتوح';
+  String get fiscalPeriodEmpty => 'لا توجد فترات مالية بعد.';
+  String get fiscalPeriodEndLabel => 'تاريخ الانتهاء';
+  String get fiscalPeriodInvalidRange => 'نطاق الفترة غير صالح.';
+  String get fiscalPeriodNameLabel => 'اسم الفترة';
+  String get fiscalPeriodNotFound => 'الفترة غير موجودة.';
+  String get fiscalPeriodNotOpen => 'هذه الفترة ليست مفتوحة.';
+  String get fiscalPeriodOpenAlreadyExists => 'توجد فترة مفتوحة بالفعل.';
+  String get fiscalPeriodOverlap => 'الفترة تتداخل مع فترة أخرى.';
+  String get fiscalPeriodPolicyAuto => 'إغلاق دوري تلقائي';
+  String get fiscalPeriodPolicyLabel => 'سياسة الإغلاق';
+  String get fiscalPeriodPolicyManual => 'حوكمة يدوية';
+  String get fiscalPeriodStartLabel => 'تاريخ البداية';
+  String get fiscalPeriodsPageTitle => 'الفترات المالية';
   String get fijiIslands => 'جزر فيجي';
   String get file => 'ملف';
   String get filterApplied => 'تمت التصفية';
@@ -1521,6 +1542,9 @@ abstract class AppStringsBase {
   String get settingsGroupAppearance => 'تخصيص المظهر';
   String get settingsGroupBackup => 'النسخ الاحتياطي والأرشفة';
   String get settingsGroupCurrency => 'العملات والتحويل';
+  String get settingsFiscalPeriodsSubtitle =>
+      'فترات محاسبية، لقطات أرصدة موقعة، وترحيل';
+  String get settingsFiscalPeriodsTitle => 'الفترات المالية (Qayd V3)';
   String get settingsGroupNotifications => 'تفضيلات الإشعارات';
   String get settingsGroupProfile => 'بيانات الحساب والهوية';
   String get settingsGroupSecurity => 'القفل والحماية';
@@ -1633,6 +1657,8 @@ abstract class AppStringsBase {
   String get statementChatReject => 'رفض';
   String get statementChatResubmit => 'إعادة العرض';
   String get statementChatSearchHint => 'بحث بالبيان أو الرقم أو المبلغ…';
+  String get statementSettlementMilestone =>
+      'تمت تسوية الحساب هنا — كل ما قبل ذلك مُرحّل';
   String get statementChatTitle => 'كشف الحساب';
   String get statementChatWithdraw => 'سحب';
   String get statementDateLastQuarter => 'الربع السابق';
@@ -2222,6 +2248,8 @@ abstract class AppStringsBase {
   String get voucherFilterTypeAny => 'الكل';
   String get voucherFilterTypeSection => 'نوع السند';
   String get voucherJumpHeader => 'يوجد إصدار أحدث لهذا السند. اضغط للانتقال.';
+  String get voucherDateInClosedPeriod =>
+      'لا يمكن تعديل أو تأكيد سند ضمن فترة مغلقة. استخدم قيد عكسي في الفترة المفتوحة.';
   String get voucherListTitle => 'سندات القيد';
   String get voucherMergeAction => 'دمج';
   String get voucherNewTitle => 'سند جديد';

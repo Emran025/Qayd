@@ -10,6 +10,7 @@ import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/attachment_repository.dart';
 import 'package:qayd/domain/repositories/cost_center_repository.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
+import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/data/services/attachment_storage_service.dart';
 import 'package:qayd/core/utils/id_generator.dart';
@@ -39,6 +40,9 @@ class MockAttachmentStorageService extends Mock
 
 class MockGovernanceWriteGuard extends Mock implements GovernanceWriteGuard {}
 
+class MockFiscalPeriodRepository extends Mock
+    implements FiscalPeriodRepository {}
+
 void main() {
   late CreateVoucherUseCase useCase;
   late MockVoucherRepository mockVoucherRepo;
@@ -47,6 +51,7 @@ void main() {
   late MockAttachmentStorageService mockAttachmentStorage;
   late MockIdGenerator mockIdGenerator;
   late MockGovernanceWriteGuard mockWriteGuard;
+  late MockFiscalPeriodRepository mockFiscalRepo;
 
   setUpAll(() {
     registerFallbackValue(FakeVoucher());
@@ -59,6 +64,9 @@ void main() {
     mockAttachmentStorage = MockAttachmentStorageService();
     mockIdGenerator = MockIdGenerator();
     mockWriteGuard = MockGovernanceWriteGuard();
+    mockFiscalRepo = MockFiscalPeriodRepository();
+    when(() => mockFiscalRepo.listAllOrdered())
+        .thenAnswer((_) async => const Success([]));
 
     useCase = CreateVoucherUseCase(
       mockVoucherRepo,
@@ -67,6 +75,7 @@ void main() {
       mockAttachmentStorage,
       mockIdGenerator,
       mockWriteGuard,
+      mockFiscalRepo,
     );
   });
 
