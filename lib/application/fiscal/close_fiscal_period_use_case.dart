@@ -96,10 +96,12 @@ final class CloseFiscalPeriodUseCase {
         );
       }
 
-      final endDay =
-          DateTime(period.endDate.year, period.endDate.month, period.endDate.day)
-              .add(const Duration(days: 1))
-              .subtract(const Duration(milliseconds: 1));
+      final closureNow = DateTime.now().toUtc();
+      final closureDateOnly =
+          DateTime(closureNow.year, closureNow.month, closureNow.day);
+      final endDay = closureDateOnly
+          .add(const Duration(days: 1))
+          .subtract(const Duration(milliseconds: 1));
 
       final entriesR = await _ledger.getAllEntries(
         dateRange: DateRange(
@@ -168,9 +170,9 @@ final class CloseFiscalPeriodUseCase {
         id: period.id,
         name: period.name,
         startDate: period.startDate,
-        endDate: period.endDate,
+        endDate: closureDateOnly,
         status: FiscalPeriodStatus.closed,
-        closedAt: DateTime.now().toUtc(),
+        closedAt: closureNow,
         closingVoucherId: period.closingVoucherId,
         aggregateSnapshotHash: aggregateHash,
         aggregateSignatureHex: signature.signatureHex,

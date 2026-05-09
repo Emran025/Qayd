@@ -1273,101 +1273,152 @@ class _SummaryFooter extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHigh,
+        color: scheme.surface,
         border: Border(
-          top: BorderSide(color: custom.subtleBorder.withValues(alpha: 0.5)),
+          top: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.4)),
         ),
       ),
       padding: EdgeInsets.only(
         left: SpacingTokens.md,
         right: SpacingTokens.md,
-        top: SpacingTokens.sm + 2,
-        bottom: MediaQuery.paddingOf(context).bottom + SpacingTokens.sm + 2,
+        top: SpacingTokens.sm,
+        bottom: MediaQuery.paddingOf(context).bottom + SpacingTokens.sm,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
+          // Compact Header
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6, left: 4, right: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
                   AppStrings.statementFinalBalance,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
                         color: scheme.onSurfaceVariant,
+                        letterSpacing: 0.5,
                       ),
                 ),
+                Text(
+                  '$messageCount ${AppStrings.statementVoucherCount}',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        fontSize: 9,
+                      ),
+                ),
+              ],
+            ),
+          ),
+
+          // Modern Data Table
+          Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(RadiusTokens.sm),
+              border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.3),
               ),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '$messageCount ',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color:
-                                scheme.onSurfaceVariant.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    TextSpan(
-                      text: AppStrings.statementVoucherCount,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color:
-                                scheme.onSurfaceVariant.withValues(alpha: 0.5),
-                            fontSize: 9,
-                          ),
-                    ),
-                  ],
+            ),
+            child: Table(
+              columnWidths: const {
+                0: FlexColumnWidth(2.2), // Icon + Status
+                1: FlexColumnWidth(1.2), // Currency
+                2: IntrinsicColumnWidth(), // Amount
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              border: TableBorder(
+                horizontalInside: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.2),
+                ),
+                verticalInside: BorderSide(
+                  color: scheme.outlineVariant.withValues(alpha: 0.2),
                 ),
               ),
-            ],
-          ),
-          SizedBox(height: SpacingTokens.xs),
-          ...finalBalancesByCurrency.entries.map((e) {
-            final isPositive = e.value > 0;
-            final isNegative = e.value < 0;
-            final statusLabel = isPositive
-                ? AppStrings.statementBalanceAgainstYou
-                : isNegative
-                    ? AppStrings.statementBalanceForYou
-                    : AppStrings.statementBalanceSettled;
-            final statusColor = isPositive
-                ? ColorTokens.errorDeep
-                : isNegative
-                    ? custom.credit
-                    : custom.confirmedState;
+              children: finalBalancesByCurrency.entries.map((e) {
+                final isPositive = e.value > 0;
+                final isNegative = e.value < 0;
+                final statusLabel = isPositive
+                    ? AppStrings.statementBalanceAgainstYou
+                    : isNegative
+                        ? AppStrings.statementBalanceForYou
+                        : AppStrings.statementBalanceSettled;
+                final statusColor = isPositive
+                    ? ColorTokens.goldAccent
+                    : isNegative
+                        ? custom.credit
+                        : custom.confirmedState;
+                final statusIcon = isPositive
+                    ? Icons.trending_up_rounded
+                    : isNegative
+                        ? Icons.trending_down_rounded
+                        : Icons.check_circle_outline_rounded;
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  SizedBox(width: SpacingTokens.sm),
-                  Expanded(
-                    child: Text(
-                      statusLabel,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: statusColor,
-                            fontWeight: FontWeight.w600,
+                return TableRow(
+                  children: [
+                    // Col 1: Icon + Status Label
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(statusIcon, color: statusColor, size: 12),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              statusLabel,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 9.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
+                        ],
+                      ),
                     ),
-                  ),
-                  _BalanceAmountText(
-                    minorUnits: e.value,
-                    currencySymbol: CurrencyUtil.getLocalizedName(e.key),
-                    currencyDigits: 2,
-                    large: true,
-                  ),
-                ],
-              ),
-            );
-          }),
+                    // Col 3: Amount
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      child: _BalanceAmountText(
+                        minorUnits: e.value,
+                        currencySymbol: CurrencyUtil.getLocalizedName(e.key),
+                        currencyDigits: 2,
+                        fontSize: 11,
+                        withCurrencySymbol: false,
+                      ),
+                    ),
+                    // Col 2: Currency Name
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 6,
+                      ),
+                      child: Text(
+                        CurrencyUtil.getLocalizedName(e.key),
+                        style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );
@@ -1470,7 +1521,7 @@ class _ChronologySummaryTable extends StatelessWidget {
               final isPositive = b.amount > 0;
               final isNegative = b.amount < 0;
               final color = isPositive
-                  ? ColorTokens.errorDeep
+                  ? ColorTokens.goldAccent
                   : isNegative
                       ? custom.credit
                       : custom.confirmedState;
@@ -2234,23 +2285,25 @@ class _BalanceAmountText extends StatelessWidget {
     required this.minorUnits,
     required this.currencySymbol,
     required this.currencyDigits,
-    this.large = false,
+    this.withCurrencySymbol = true,
     this.fontSize,
   });
 
   final int minorUnits;
   final String currencySymbol;
   final int currencyDigits;
-  final bool large;
+  final bool withCurrencySymbol;
   final double? fontSize;
 
   @override
   Widget build(BuildContext context) {
     final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final scheme = Theme.of(context).colorScheme;
+
     final isPositive = minorUnits > 0;
     final isNegative = minorUnits < 0;
     final color = isPositive
-        ? ColorTokens.errorDeep
+        ? ColorTokens.goldAccent
         : isNegative
             ? custom.credit
             : custom.confirmedState;
@@ -2263,7 +2316,7 @@ class _BalanceAmountText extends StatelessWidget {
     final major = abs / divisor;
     final formatted = major.toStringAsFixed(currencyDigits);
 
-    final effectiveFontSize = fontSize ?? (large ? 14.0 : 12.0);
+    final effectiveFontSize = fontSize ?? (12.0);
     return Text.rich(
       TextSpan(
         children: [
@@ -2271,22 +2324,24 @@ class _BalanceAmountText extends StatelessWidget {
             formatted,
             TextStyle(
               color: color,
-              fontWeight: large ? FontWeight.w800 : FontWeight.w600,
+              fontWeight: FontWeight.w800, //: FontWeight.w600,
               fontSize: effectiveFontSize,
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
-          TextSpan(
-            text: ' $currencySymbol',
-            style: TextStyle(
-              color: color.withValues(alpha: 0.7),
-              fontWeight: large ? FontWeight.bold : FontWeight.w500,
-              fontSize: effectiveFontSize * 0.75,
+          if (withCurrencySymbol)
+            TextSpan(
+              text: ' $currencySymbol',
+              style: TextStyle(
+                color: scheme.onSurfaceVariant,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w500,
+              ),
+              // textAlign: TextAlign.center,
             ),
-          ),
         ],
       ),
-      textDirection: TextDirection.ltr,
+      // textDirection: TextDirection.ltr,
     );
   }
 }

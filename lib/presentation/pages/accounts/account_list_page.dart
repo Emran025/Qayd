@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/core/utils/currency_util.dart';
 import 'package:qayd/presentation/components/atomic/qayd_floating_action_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/application/accounts/dtos/account_summary_dto.dart';
@@ -84,7 +85,8 @@ class _AccountListScaffold extends StatefulWidget {
   State<_AccountListScaffold> createState() => _AccountListScaffoldState();
 }
 
-class _AccountListScaffoldState extends State<_AccountListScaffold> with RouteAware {
+class _AccountListScaffoldState extends State<_AccountListScaffold>
+    with RouteAware {
   final _searchController = TextEditingController();
 
   @override
@@ -219,8 +221,6 @@ class _AccountListScaffoldState extends State<_AccountListScaffold> with RouteAw
         },
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.addAccountFab),
-        
-        
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -671,32 +671,6 @@ class _AccountCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 2),
           child: Row(
             children: [
-              // Currency code
-              QaydText(
-                code,
-                slot: QaydTextStyleSlot.labelSmall,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-                color: scheme.onSurfaceVariant,
-              ),
-              const Spacer(),
-              // Money amount
-              QaydMoneyDisplay(
-                money: Money.nonNegative(
-                  minor.abs(),
-                  PredefinedCurrencies.all.firstWhere(
-                    (c) => c.code == code,
-                    orElse: () => CurrencyCode(
-                      code: code,
-                      nameAr: code,
-                      symbol: code,
-                    ),
-                  ),
-                ),
-                displayNegative: false,
-                size: QaydMoneyDisplaySize.small,
-                fontWeight: FontWeight.w600,
-              ),
-              SizedBox(width: 6),
               // Side label badge
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -720,6 +694,32 @@ class _AccountCard extends StatelessWidget {
                     letterSpacing: 0.3,
                   ),
                 ),
+              ),
+              const Spacer(),
+              // Money amount
+              QaydMoneyDisplay(
+                money: Money.nonNegative(
+                  minor.abs(),
+                  PredefinedCurrencies.all.firstWhere(
+                    (c) => c.code == code,
+                    orElse: () => CurrencyCode(
+                      code: code,
+                      nameAr: code,
+                      symbol: code,
+                    ),
+                  ),
+                ),
+                displayNegative: false,
+                size: QaydMoneyDisplaySize.small,
+                fontWeight: FontWeight.w600,
+              ),
+              SizedBox(width: 6),
+              // Currency code
+              QaydText(
+                CurrencyUtil.getLocalizedName(code),
+                slot: QaydTextStyleSlot.labelSmall,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+                color: scheme.onSurfaceVariant,
               ),
             ],
           ),

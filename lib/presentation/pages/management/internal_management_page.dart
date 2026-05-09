@@ -107,7 +107,8 @@ class _InternalManagementView extends StatefulWidget {
       _InternalManagementViewState();
 }
 
-class _InternalManagementViewState extends State<_InternalManagementView> with RouteAware {
+class _InternalManagementViewState extends State<_InternalManagementView>
+    with RouteAware {
   final _searchController = TextEditingController();
   String _flowFilter = 'all'; // 'all', 'revenues', 'expenses'
 
@@ -183,65 +184,66 @@ class _InternalManagementViewState extends State<_InternalManagementView> with R
         onPressed: () => _openCreate(context),
         icon: Icon(Icons.add_rounded),
         label: Text(AppStrings.managementAddFlowFab),
-        
-        
       ),
       body: BlocBuilder<VoucherListCubit, VoucherListState>(
         builder: (context, state) {
-          return Column(
-            children: [
-              _buildControlPanel(context, state, scheme, gold),
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(SpacingTokens.md),
-                child: Column(
-                  children: [
-                    QaydTextField(
-                      controller: _searchController,
-                      hint: AppStrings.managementSearchVouchersHint,
-                      prefixIcon: Icon(Icons.search_rounded),
-                      onChanged: (v) =>
-                          context.read<VoucherListCubit>().setSearchText(v),
-                    ),
-                    SizedBox(height: SpacingTokens.sm),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          FilterChip(
-                            label: Text(AppStrings.filterNatureAll),
-                            selected: _flowFilter == 'all',
-                            onSelected: (_) =>
-                                setState(() => _flowFilter = 'all'),
-                          ),
-                          SizedBox(width: SpacingTokens.sm),
-                          FilterChip(
-                            label: Text(
-                                AppStrings.managementLabelExpenses),
-                            selected: _flowFilter == 'expenses',
-                            onSelected: (_) =>
-                                setState(() => _flowFilter = 'expenses'),
-                          ),
-                          SizedBox(width: SpacingTokens.sm),
-                          FilterChip(
-                            label: Text(
-                                AppStrings.managementLabelRevenues),
-                            selected: _flowFilter == 'revenues',
-                            onSelected: (_) =>
-                                setState(() => _flowFilter = 'revenues'),
-                          ),
-                        ],
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: _buildControlPanel(context, state, scheme, gold),
+              ),
+              const SliverToBoxAdapter(child: Divider(height: 1)),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(SpacingTokens.md),
+                  child: Column(
+                    children: [
+                      QaydTextField(
+                        controller: _searchController,
+                        hint: AppStrings.managementSearchVouchersHint,
+                        prefixIcon: Icon(Icons.search_rounded),
+                        onChanged: (v) =>
+                            context.read<VoucherListCubit>().setSearchText(v),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: SpacingTokens.sm),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            FilterChip(
+                              label: Text(AppStrings.filterNatureAll),
+                              selected: _flowFilter == 'all',
+                              onSelected: (_) =>
+                                  setState(() => _flowFilter = 'all'),
+                            ),
+                            SizedBox(width: SpacingTokens.sm),
+                            FilterChip(
+                              label: Text(AppStrings.managementLabelExpenses),
+                              selected: _flowFilter == 'expenses',
+                              onSelected: (_) =>
+                                  setState(() => _flowFilter = 'expenses'),
+                            ),
+                            SizedBox(width: SpacingTokens.sm),
+                            FilterChip(
+                              label: Text(AppStrings.managementLabelRevenues),
+                              selected: _flowFilter == 'revenues',
+                              onSelected: (_) =>
+                                  setState(() => _flowFilter = 'revenues'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const Divider(height: 1),
-              Expanded(
-                child: state is VoucherListLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : _buildList(context, state),
-              ),
+              const SliverToBoxAdapter(child: Divider(height: 1)),
+              if (state is VoucherListLoading)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else
+                _buildSliverList(context, state),
             ],
           );
         },
@@ -249,8 +251,10 @@ class _InternalManagementViewState extends State<_InternalManagementView> with R
     );
   }
 
-  Widget _buildList(BuildContext context, VoucherListState state) {
-    if (state is! VoucherListReady) return const SizedBox.shrink();
+  Widget _buildSliverList(BuildContext context, VoucherListState state) {
+    if (state is! VoucherListReady) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     // Filter list locally based on _flowFilter
     final vouchers = state.rows
@@ -265,29 +269,36 @@ class _InternalManagementViewState extends State<_InternalManagementView> with R
 
     if (list.isEmpty) {
       final isSearching = state.searchQuery.isNotEmpty;
-      return QaydEmptyState(
-        icon: isSearching
-            ? Icons.search_off_rounded
-            : Icons.account_balance_wallet_outlined,
-        title: isSearching
-            ? AppStrings.managementSearchNoResults
-            : AppStrings.vouchersEmpty,
-        description: isSearching
-            ? AppStrings.trySearchingWithOther1
-            : AppStrings.youHaveNotAdded1,
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: QaydEmptyState(
+          icon: isSearching
+              ? Icons.search_off_rounded
+              : Icons.account_balance_wallet_outlined,
+          title: isSearching
+              ? AppStrings.managementSearchNoResults
+              : AppStrings.vouchersEmpty,
+          description: isSearching
+              ? AppStrings.trySearchingWithOther1
+              : AppStrings.youHaveNotAdded1,
+        ),
       );
     }
-    return ListView.builder(
+    return SliverPadding(
       padding:
-          const EdgeInsets.fromLTRB(SpacingTokens.md, 0, SpacingTokens.md, 80),
-      itemCount: list.length,
-      itemBuilder: (context, i) {
-        final v = list[i];
-        return InternalVoucherTile(
-          dto: v,
-          onTap: () => _openDetail(context, v.id),
-        );
-      },
+          const EdgeInsets.fromLTRB(SpacingTokens.md, 0, SpacingTokens.md, 100),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, i) {
+            final v = list[i];
+            return InternalVoucherTile(
+              dto: v,
+              onTap: () => _openDetail(context, v.id),
+            );
+          },
+          childCount: list.length,
+        ),
+      ),
     );
   }
 
@@ -300,7 +311,8 @@ class _InternalManagementViewState extends State<_InternalManagementView> with R
     final Map<String, double> revenuesByCurrency = {};
 
     if (state is VoucherListReady) {
-      for (final v in state.rows.whereType<VoucherListVoucherRow>().map((r) => r.dto)) {
+      for (final v
+          in state.rows.whereType<VoucherListVoucherRow>().map((r) => r.dto)) {
         final classification =
             widget.accountClassifications[v.counterpartyAccountId];
         // Skip debt settlements
