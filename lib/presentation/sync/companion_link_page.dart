@@ -23,6 +23,7 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
   Timer? _timer;
   bool _busy = true;
   bool _timedOut = false;
+  bool _bootstrapHandled = false;  // Guards against double-processing.
   String? _error;
 
   // Poll every 5 seconds, max 120 attempts (10 minutes total).
@@ -44,6 +45,7 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
       _busy = true;
       _error = null;
       _timedOut = false;
+      _bootstrapHandled = false;
       _attemptCount = 0;
       _session = null;
     });
@@ -63,6 +65,11 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
   Future<void> _poll() async {
     final session = _session;
     if (session == null || _busy) return;
+
+    // Guard against the Timer firing a second time before cancel() takes effect.
+    // This can happen in Grace Window scenarios where the server returns the
+    // same payload for a brief period after consumption.
+    if (_bootstrapHandled) return;
 
     // Hard timeout guard — stop polling if Primary never scans within window.
     _attemptCount++;
@@ -84,7 +91,8 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
         return;
       }
 
-      // Bootstrap consumed successfully — stop polling and complete.
+      // Bootstrap consumed successfully — stop polling immediately.
+      _bootstrapHandled = true;
       _timer?.cancel();
       await widget.onProvisioningComplete();
       if (mounted) Navigator.of(context).pop(true);

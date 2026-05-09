@@ -153,10 +153,19 @@ class CompanionLinkService {
       return false;
     }
 
-    // §C-1: Persist mnemonic + JWT for data access, but generate a NEW
+    // §C-1: Persist mnemonic + JWT for data access, then generate a NEW
     // unique keypair for this companion device's own identity.
-    // The Primary's keypair is stored as a trusted peer, NOT as our own.
     final companionKeyPair = await _persistBootstrap(model);
+
+    // §C-4: Register the companion's unique device key on the server.
+    // NOTE: ensureServerRegistration() must NOT run on companion devices
+    // as it would re-register the mnemonic-derived key (= Primary's key)
+    // and overwrite the Primary's identity on the server.
+    // We explicitly mark server-key as 'registered' so ensureServerRegistration
+    // considers its job done, even though the companion never calls identity/register-key.
+    // The companion's unique key lives ONLY in user_devices, not in users.public_key.
+    await mnemonicVault.markServerKeyRegistered();
+
     await _registerCompanionDeviceWithOwnKey(companionKeyPair);
     return true;
   }
@@ -199,6 +208,10 @@ class CompanionLinkService {
 
   /// Registers the companion's OWN unique keypair with the server.
   /// This is distinct from the Primary's keypair stored in license_data.
+  ///
+  /// §C-4: We ONLY register with devices/pair — never with identity/register-key.
+  /// The companion's unique key lives in user_devices.public_key only.
+  /// The account's users.public_key remains the Primary's key, untouched.
   Future<void> _registerCompanionDeviceWithOwnKey(
       CryptoKeyPair companionKeyPair) async {
     final publicKeyHex = companionKeyPair.publicKeyHex.toLowerCase();
@@ -217,8 +230,9 @@ class CompanionLinkService {
         '[key: ${publicKeyHex.substring(0, 8)}…, device: $deviceId]',
       );
     } catch (e) {
-      // Registration will be retried on next sync cycle via ensureServerRegistration.
-      debugPrint('CompanionLink: server registration deferred: $e');
+      // Non-fatal — credentials are already persisted.
+      // The device will re-register on next app start via the normal device refresh.
+      debugPrint('CompanionLink: server device registration deferred: $e');
     }
   }
 
