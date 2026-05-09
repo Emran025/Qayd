@@ -2470,4 +2470,11 @@ class AppStrings {
   static String get scanCompanionQr => i.scanCompanionQr;
   static String get companionDeviceRestriction => i.companionDeviceRestriction;
   static String get actionApprove => i.actionApprove;
+  static String get migratingData => i.migratingData;
+  static String get migratingDataSubtitle => i.migratingDataSubtitle;
+  static String get regenerateQrCode => i.regenerateQrCode;
+  static String migratingFinancialLedger(String progress) => i.migratingFinancialLedger(progress);
+  static String newVoucherClaim(String amount, String currency) => i.newVoucherClaim(amount, currency);
+  static String voucherRejectedWithReason(String reason) => i.voucherRejectedWithReason(reason);
+  static String newTripartiteRequestFrom(String name) => i.newTripartiteRequestFrom(name);
 }

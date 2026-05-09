@@ -34,6 +34,9 @@ class AuditSyncDispatcher {
     required List<AuditEntry> entries,
     required String targetDeviceId,
     required String receiverPublicKeyHex,
+    bool isLastBatch = false,
+    int? batchIndex,
+    int? totalBatches,
   }) async {
     if (entries.isEmpty) return;
     final keyPair = await getCurrentKeyPair();
@@ -47,6 +50,9 @@ class AuditSyncDispatcher {
       'encoding': 'gzip+base64',
       'entries_gzip': base64Encode(compressed),
       'entry_count': entries.length,
+      'is_last_batch': isLastBatch,
+      if (batchIndex != null) 'batch_index': batchIndex,
+      if (totalBatches != null) 'total_batches': totalBatches,
     };
     final encrypted = await e2eeService.encryptPayload(
       rawPayload: payload,

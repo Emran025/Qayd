@@ -10,6 +10,8 @@ import 'package:qayd/domain/repositories/audit_log_repository.dart';
 import 'package:qayd/domain/repositories/device_registry_repository.dart';
 import 'package:qayd/domain/repositories/device_session_repository.dart';
 
+import 'package:qayd/application/sync/sync_coordinator_service.dart';
+
 class DevicePairingService {
   DevicePairingService({
     required this.deviceSessionRepository,
@@ -18,6 +20,7 @@ class DevicePairingService {
     required this.auditSyncDispatcher,
     required this.companionLinkService,
     required this.licenseVault,
+    required this.syncCoordinatorService,
   });
 
   final DeviceSessionRepository deviceSessionRepository;
@@ -26,6 +29,7 @@ class DevicePairingService {
   final AuditSyncDispatcher auditSyncDispatcher;
   final CompanionLinkService companionLinkService;
   final LicenseVault licenseVault;
+  final SyncCoordinatorService syncCoordinatorService;
 
   // Cancellation token for the companion discovery loop.
   // Cancelled when a new bootstrap is initiated, so the old loop exits cleanly.
@@ -65,19 +69,28 @@ class DevicePairingService {
     final delta = await auditLogRepository.listSinceSeq(session.lastSyncSeq);
     if (delta.isEmpty) return;
 
-    const chunkSize = 500;
+    const chunkSize = 250;
     final entriesToSend =
         delta.length > chunkSize ? _compactSnapshot(delta) : delta;
+    final totalBatches = (entriesToSend.length / chunkSize).ceil();
+    int batchIndex = 1;
+        
     for (var i = 0; i < entriesToSend.length; i += chunkSize) {
       final end = (i + chunkSize < entriesToSend.length)
           ? i + chunkSize
           : entriesToSend.length;
       final chunk = entriesToSend.sublist(i, end);
+      final isLast = end >= entriesToSend.length;
+      
       await auditSyncDispatcher.dispatchBatchToDevice(
         entries: chunk,
         targetDeviceId: targetDeviceId,
         receiverPublicKeyHex: session.publicKeyHex,
+        isLastBatch: isLast,
+        batchIndex: batchIndex,
+        totalBatches: totalBatches,
       );
+      batchIndex++;
     }
 
     final maxSeq = delta.last.syncSeq;
@@ -86,6 +99,10 @@ class DevicePairingService {
     }
     await deviceSessionRepository.updateLastSeen(
         targetDeviceId, DateTime.now());
+
+    debugPrint(
+        'DevicePairing: Initial snapshot dispatched to outbox. Triggering immediate push...');
+    unawaited(syncCoordinatorService.forceSync());
   }
 
   List<AuditEntry> _compactSnapshot(List<AuditEntry> entries) {
@@ -147,13 +164,14 @@ class DevicePairingService {
     required DateTime bridgeStartedAt,
     required Completer<void> cancel,
   }) async {
-    const maxAttempts = 20;
-    const pollInterval = Duration(seconds: 3);
+    const maxAttempts = 12;
+    const pollInterval = Duration(seconds: 10);
 
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       // Check cancellation before each poll.
       if (cancel.isCompleted) {
-        debugPrint('DevicePairing: Discovery loop cancelled (new QR initiated).');
+        debugPrint(
+            'DevicePairing: Discovery loop cancelled (new QR initiated).');
         return;
       }
 
@@ -161,7 +179,13 @@ class DevicePairingService {
 
       if (cancel.isCompleted) return;
 
-      await refreshSessionsFromServer();
+      try {
+        await refreshSessionsFromServer();
+      } catch (e) {
+        debugPrint('DevicePairing: Network error during discovery poll: $e');
+        // Continue to the next attempt, don't crash the loop.
+      }
+      
       final sessions = await deviceSessionRepository.listAll();
       final targets = sessions.where((session) {
         if (!session.isActive || session.isCurrent) return false;
@@ -179,12 +203,13 @@ class DevicePairingService {
         knownDeviceIds.add(target.deviceId);
       }
       if (targets.isNotEmpty) {
-        debugPrint('DevicePairing: Companion discovered and snapshot dispatched.');
+        debugPrint(
+            'DevicePairing: Companion discovered and snapshot dispatched.');
         return;
       }
       knownDeviceIds.addAll(sessions.map((s) => s.deviceId));
     }
-    debugPrint('DevicePairing: Companion not discovered within polling window.');
+    debugPrint(
+        'DevicePairing: Companion not discovered within polling window.');
   }
 }
-

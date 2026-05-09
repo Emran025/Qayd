@@ -115,6 +115,7 @@ class CompanionLinkService {
 
   Future<bool> pollAndConsumeBootstrap({
     required CompanionLinkSession session,
+    VoidCallback? onPayloadReceived,
   }) async {
     Map<String, dynamic>? res;
     try {
@@ -148,26 +149,35 @@ class CompanionLinkService {
     }
 
     final model = CredentialBootstrapPayload.fromMap(payload);
+    // Don't add to _usedNonces until we are sure persistence succeeds,
+    // otherwise a DB error will cause permanent 'stale bootstrap' on retry.
     if (!_validateNonceAndFreshness(model, session.nonce)) {
       debugPrint('CompanionLink: nonce/freshness check failed — stale bootstrap.');
       return false;
     }
 
-    // §C-1: Persist mnemonic + JWT for data access, then generate a NEW
-    // unique keypair for this companion device's own identity.
-    final companionKeyPair = await _persistBootstrap(model);
+    // Notify the UI that the payload was received and validated,
+    // so it can hide the QR code and show a migration progress indicator.
+    onPayloadReceived?.call();
 
-    // §C-4: Register the companion's unique device key on the server.
-    // NOTE: ensureServerRegistration() must NOT run on companion devices
-    // as it would re-register the mnemonic-derived key (= Primary's key)
-    // and overwrite the Primary's identity on the server.
-    // We explicitly mark server-key as 'registered' so ensureServerRegistration
-    // considers its job done, even though the companion never calls identity/register-key.
-    // The companion's unique key lives ONLY in user_devices, not in users.public_key.
-    await mnemonicVault.markServerKeyRegistered();
+    try {
+      // §C-1: Persist mnemonic + JWT for data access, then generate a NEW
+      // unique keypair for this companion device's own identity.
+      final companionKeyPair = await _persistBootstrap(model);
 
-    await _registerCompanionDeviceWithOwnKey(companionKeyPair);
-    return true;
+      // §C-4: Register the companion's unique device key on the server.
+      await mnemonicVault.markServerKeyRegistered();
+
+      await _registerCompanionDeviceWithOwnKey(companionKeyPair);
+      
+      // Mark nonce as used only AFTER successful persistence to allow retries on DB failure
+      _usedNonces.add(model.nonce);
+      
+      return true;
+    } catch (e, stack) {
+      debugPrint('CompanionLink: FATAL error during bootstrap persistence: $e\n$stack');
+      return false;
+    }
   }
 
   /// Persists the bootstrap credentials and sets up the mnemonic identity
@@ -240,7 +250,7 @@ class CompanionLinkService {
       CredentialBootstrapPayload payload, String expectedNonce) {
     if (payload.nonce.isEmpty || payload.nonce != expectedNonce) return false;
     if (_usedNonces.contains(payload.nonce)) return false;
-    _usedNonces.add(payload.nonce);
+    
     final issuedAt = DateTime.tryParse(payload.issuedAtIso);
     final expiresAt = DateTime.tryParse(payload.expiresAtIso);
     final now = DateTime.now().toUtc();

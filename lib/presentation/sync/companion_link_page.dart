@@ -23,12 +23,14 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
   Timer? _timer;
   bool _busy = true;
   bool _timedOut = false;
-  bool _bootstrapHandled = false;  // Guards against double-processing.
+  bool _bootstrapHandled = false; // Guards against double-processing.
+  bool _migrating = false; // Show migration progress when payload is received
+  String _migrationProgressText = AppStrings.migratingData;
   String? _error;
 
-  // Poll every 5 seconds, max 120 attempts (10 minutes total).
-  static const _pollInterval = Duration(seconds: 5);
-  static const _maxAttempts = 120;
+  // Poll every 10 seconds, max 12 attempts (2 minute total).
+  static const _pollInterval = Duration(seconds: 10);
+  static const _maxAttempts = 12;
   int _attemptCount = 0;
 
   @override
@@ -46,6 +48,7 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
       _error = null;
       _timedOut = false;
       _bootstrapHandled = false;
+      _migrating = false;
       _attemptCount = 0;
       _session = null;
     });
@@ -64,7 +67,7 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
 
   Future<void> _poll() async {
     final session = _session;
-    if (session == null || _busy) return;
+    if (session == null || _busy || _migrating) return;
 
     // Guard against the Timer firing a second time before cancel() takes effect.
     // This can happen in Grace Window scenarios where the server returns the
@@ -82,8 +85,17 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
     if (mounted) setState(() => _busy = true);
 
     try {
-      final ok = await InjectionContainer.companionLinkService
-          .pollAndConsumeBootstrap(session: session);
+      final ok =
+          await InjectionContainer.companionLinkService.pollAndConsumeBootstrap(
+        session: session,
+        onPayloadReceived: () {
+          if (mounted) {
+            setState(() {
+              _migrating = true;
+            });
+          }
+        },
+      );
 
       if (!ok) {
         // No bootstrap yet — keep waiting silently.
@@ -91,16 +103,57 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
         return;
       }
 
-      // Bootstrap consumed successfully — stop polling immediately.
+      // Bootstrap consumed successfully — stop polling the QR endpoint.
       _bootstrapHandled = true;
       _timer?.cancel();
+
+      // Initialize and open the database while the migrating UI is still visible
       await widget.onProvisioningComplete();
+
+      // Now that the DB is open, register the primary device as a trusted peer
+      final licenseData =
+          await InjectionContainer.licenseVault.readLicenseData();
+      if (licenseData != null) {
+        await InjectionContainer.setupIdentityUseCase
+            .trustPrimaryIdentity(licenseData);
+      }
+
+      // Wait for the full initial snapshot to be downloaded via standard sync mechanism.
+      bool isComplete =
+          await InjectionContainer.licenseVault.isInitialSyncComplete();
+      int maxMigrationWait =
+          60; // 60 iterations * 2 seconds = 2 minutes max wait
+
+      while (!isComplete && maxMigrationWait > 0) {
+        if (!mounted) return;
+        await InjectionContainer.syncCoordinatorService.forceSync();
+        await Future.delayed(const Duration(seconds: 2));
+
+        final progress =
+            await InjectionContainer.licenseVault.readInitialSyncProgress();
+        if (mounted && progress != null) {
+          setState(() {
+            _migrationProgressText =
+                AppStrings.migratingFinancialLedger(progress);
+          });
+        }
+
+        isComplete =
+            await InjectionContainer.licenseVault.isInitialSyncComplete();
+        maxMigrationWait--;
+      }
+
+      // Add a slight delay for smooth UX transition (preventing UI flicker)
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      // Finish and return
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) {
         setState(() {
           _error = AppStrings.companionCredentialsFailed;
           _busy = false;
+          _migrating = false;
         });
       }
     }
@@ -137,8 +190,31 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
                       FilledButton.icon(
                         onPressed: _startSession,
                         icon: const Icon(Icons.refresh),
-                        label: const Text('إعادة توليد رمز QR'),
+                        label: Text(AppStrings.regenerateQrCode),
                       ),
+                    ] else if (_migrating) ...[
+                      const SizedBox(height: 32),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 24),
+                      Text(
+                        _migrationProgressText,
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppStrings.migratingDataSubtitle,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
                     ] else ...[
                       Text(
                         AppStrings.scanCompanionQrInstruction,
@@ -166,7 +242,7 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
                         TextButton.icon(
                           onPressed: _startSession,
                           icon: const Icon(Icons.refresh),
-                          label: const Text('إعادة المحاولة'),
+                          label: Text(AppStrings.retryAction),
                         ),
                       ],
                     ],

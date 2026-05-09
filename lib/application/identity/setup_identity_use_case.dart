@@ -120,17 +120,10 @@ final class SetupIdentityUseCase {
         );
       }
     }
-
-    // If we have primary license data, it means we are a companion linking to a primary.
-    // We should trust the primary's identity to avoid sync blocking.
-    if (primaryLicenseData != null) {
-      await _trustPrimaryIdentity(primaryLicenseData);
-    }
-
     return keyPair;
   }
 
-  Future<void> _trustPrimaryIdentity(Map<String, dynamic> licenseData) async {
+  Future<void> trustPrimaryIdentity(Map<String, dynamic> licenseData) async {
     final pk = licenseData['public_key'] as String?;
     final phone = licenseData['phone'] as String?;
     final name = licenseData['name'] as String? ?? 'Primary Device';

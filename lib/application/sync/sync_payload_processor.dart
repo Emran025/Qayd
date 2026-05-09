@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
@@ -130,7 +131,8 @@ class SyncPayloadProcessor {
       // routing hints (Phone or PK), create a "Shadow Account" to allow sync to proceed.
       // This is vital for bootstrapping companion devices or receiving first-time vouchers.
       if (envPk.isNotEmpty || envPhone.isNotEmpty || envWa.isNotEmpty) {
-        debugPrint('Sync: Creating shadow account for unknown sender [PK: ${envPk.substring(0, 4)}... Phone: $envPhone]');
+        debugPrint(
+            'Sync: Creating shadow account for unknown sender [PK: ${envPk.substring(0, 4)}... Phone: $envPhone]');
         return await _createShadowAccount(
           publicKey: envPk,
           phone: envPhone,
@@ -141,8 +143,7 @@ class SyncPayloadProcessor {
     }
 
     final partyRow = await accountRepository.getPartyDetails(accountId);
-    return partyRow.valueOrNull ??
-        PartyDetails(accountId: accountId);
+    return partyRow.valueOrNull ?? PartyDetails(accountId: accountId);
   }
 
   /// Ingests a list of pushed/pulled encrypted sync nodes
@@ -161,8 +162,7 @@ class SyncPayloadProcessor {
           continue; // DROP SILENTLY
         }
 
-        final decryptKeys =
-            _orderedDecryptPublicKeys(node: node, party: party);
+        final decryptKeys = _orderedDecryptPublicKeys(node: node, party: party);
         if (decryptKeys.isEmpty) {
           debugPrint(
             'Blocked SyncNode [${node.id}]: No public key available for Sender.',
@@ -300,6 +300,20 @@ class SyncPayloadProcessor {
     }
     if (maps.isEmpty) return;
     await processor.processBatch(maps);
+
+    final batchIndex = payload['batch_index'] as int?;
+    final totalBatches = payload['total_batches'] as int?;
+    if (batchIndex != null && totalBatches != null) {
+      await InjectionContainer.licenseVault
+          .writeInitialSyncProgress(batchIndex, totalBatches);
+    }
+
+    final isLastBatch = payload['is_last_batch'] == true;
+    if (isLastBatch) {
+      debugPrint(
+          'SyncPayloadProcessor: Received last batch of initial snapshot.');
+      await InjectionContainer.licenseVault.markInitialSyncComplete();
+    }
   }
 
   Future<void> _inboundVoucherClaim(
@@ -455,7 +469,8 @@ class SyncPayloadProcessor {
       referenceDate: date,
     );
 
-    String bodyText = 'سند جديد بقيمة ${amountMinor / 100} $currencyCode';
+    String bodyText = AppStrings.newVoucherClaim(
+        (amountMinor / 100).toString(), currencyCode);
     String channel = 'voucher_event';
 
     if (reciprocalResult.isSuccess && reciprocalResult.valueOrNull != null) {
@@ -719,7 +734,8 @@ class SyncPayloadProcessor {
     if (notificationFilterService.isPeerActivityEnabled) {
       await notificationMessageRepository.insert(
         id: nodeId,
-        bodyText: 'تم رفض السند: ${payload['rejection_reason'] ?? ''}',
+        bodyText: AppStrings.voucherRejectedWithReason(
+            payload['rejection_reason'] ?? ''),
         counterpartyAccountId: senderId,
         createdAtIso: DateTime.now().toIso8601String(),
         channel: 'voucher_event',
@@ -1110,7 +1126,7 @@ class SyncPayloadProcessor {
       await notificationMessageRepository.insert(
         id: nodeId, // Consistent use of sync node ID
         counterpartyAccountId: senderId,
-        bodyText: 'طلب حوالة جديدة من $senderName',
+        bodyText: AppStrings.newTripartiteRequestFrom(senderName),
         channel: 'tripartite_event',
         createdAtIso: now.toIso8601String(),
         rawPayloadJson: jsonEncode(payload),
@@ -1131,7 +1147,9 @@ class SyncPayloadProcessor {
     // Categorize under Receivables by default for counterparties.
     final account = Account.createRoot(
       id: accountId,
-      name: phone != null && phone.isNotEmpty ? 'Unknown ($phone)' : 'Unknown Sender',
+      name: phone != null && phone.isNotEmpty
+          ? 'Unknown ($phone)'
+          : 'Unknown Sender',
       classification: AccountClassification.receivables,
       createdAt: DateTime.now(),
       metadata: {

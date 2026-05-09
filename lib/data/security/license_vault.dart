@@ -19,8 +19,24 @@ class LicenseVault {
   static const _kProvisionedHardwareId = 'qayd_provisioned_hw_id_v1';
   static const _kLocalDbSalt = 'qayd_local_db_salt_v1';
   static const _kIsCompanionDevice = 'qayd_is_companion_device_v1';
+  static const _kInitialSyncComplete = 'qayd_initial_sync_complete_v1';
+  static const _kInitialSyncProgress = 'qayd_initial_sync_progress_v1';
 
   static const int trialDurationDays = 30;
+
+  // ── Initial Sync Status ────────────────────────────────────────────────────
+
+  Future<bool> isInitialSyncComplete() async =>
+      (await _storage.read(key: _kInitialSyncComplete)) == 'true';
+
+  Future<void> markInitialSyncComplete() =>
+      _storage.write(key: _kInitialSyncComplete, value: 'true');
+
+  Future<String?> readInitialSyncProgress() =>
+      _storage.read(key: _kInitialSyncProgress);
+
+  Future<void> writeInitialSyncProgress(int current, int total) =>
+      _storage.write(key: _kInitialSyncProgress, value: '$current/$total');
 
   // ── JWT ────────────────────────────────────────────────────────────────────
 

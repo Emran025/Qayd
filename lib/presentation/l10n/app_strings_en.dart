@@ -4816,23 +4816,46 @@ class AppStringsEn extends AppStringsBase {
 
   // Companion Link UI Strings
   @override
-  String get companionBootstrapSentSuccess => 'Companion bootstrap sent successfully.';
+  String get companionBootstrapSentSuccess =>
+      'Companion bootstrap sent successfully.';
   @override
   String get companionBootstrapSentError => 'Companion bootstrap failed.';
   @override
-  String get companionCredentialsFailed => 'Failed to receive companion credentials.';
+  String get companionCredentialsFailed =>
+      'Failed to receive companion credentials.';
   @override
   String get linkAsCompanionDevice => 'Link as Companion Device';
   @override
-  String get scanCompanionQrInstruction => 'Scan this QR from your main device to link instantly.';
+  String get scanCompanionQrInstruction =>
+      'Scan this QR from your main device to link instantly.';
   @override
   String get linkNewCompanionDevicePrompt => 'Link new companion device?';
   @override
-  String get linkNewCompanionDeviceDesc => 'Approve to securely transfer encrypted login bootstrap credentials.';
+  String get linkNewCompanionDeviceDesc =>
+      'Approve to securely transfer encrypted login bootstrap credentials.';
   @override
   String get scanCompanionQr => 'Scan Companion QR';
   @override
-  String get companionDeviceRestriction => 'This is a companion device. To link new devices, please use your primary device.';
+  String get companionDeviceRestriction =>
+      'This is a companion device. To link new devices, please use your primary device.';
   @override
   String get actionApprove => 'Approve';
+  @override
+  String get migratingData => 'Migrating data and securing connection...';
+  @override
+  String get migratingDataSubtitle =>
+      'Please wait, this process may take a few moments.';
+  @override
+  String get regenerateQrCode => 'Regenerate QR Code';
+  @override
+  String migratingFinancialLedger(String progress) =>
+      'Syncing financial ledger ($progress)';
+  @override
+  String newVoucherClaim(String amount, String currency) =>
+      'New voucher with value $amount $currency';
+  @override
+  String voucherRejectedWithReason(String reason) => 'Voucher rejected: $reason';
+  @override
+  String newTripartiteRequestFrom(String name) =>
+      'New tripartite request from $name';
 }

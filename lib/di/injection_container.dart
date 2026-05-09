@@ -862,6 +862,7 @@ abstract final class InjectionContainer {
       auditSyncDispatcher: auditSyncDispatcher,
       companionLinkService: companionLinkService,
       licenseVault: licenseVault,
+      syncCoordinatorService: syncCoordinatorService,
     );
     devicePairingFacade = DevicePairingFacade(
       pairingService: devicePairingService,

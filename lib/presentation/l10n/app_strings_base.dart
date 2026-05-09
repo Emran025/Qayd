@@ -2612,4 +2612,11 @@ abstract class AppStringsBase {
   String get scanCompanionQr => 'مسح QR لجهاز مرتبط';
   String get companionDeviceRestriction => 'هذا جهاز مرتبط. لإضافة أجهزة جديدة الرجاء استخدام جهازك الرئيسي.';
   String get actionApprove => 'موافقة';
+  String get migratingData => 'جاري ترحيل البيانات وتأمين الاتصال...';
+  String get migratingDataSubtitle => 'يرجى الانتظار، قد تستغرق هذه العملية لحظات.';
+  String get regenerateQrCode => 'إعادة توليد رمز QR';
+  String migratingFinancialLedger(String progress) => 'جاري مزامنة السجل المالي ($progress)';
+  String newVoucherClaim(String amount, String currency) => 'سند جديد بقيمة $amount $currency';
+  String voucherRejectedWithReason(String reason) => 'تم رفض السند: $reason';
+  String newTripartiteRequestFrom(String name) => 'طلب حوالة جديدة من $name';
 }
