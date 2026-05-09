@@ -93,6 +93,7 @@ class VoucherListCubit extends Cubit<VoucherListState> {
         excludeTripartite: true,
       ),
     );
+    if (isClosed) return;
 
     final fiscalR = await _fiscalPeriodRepository.listAllOrdered();
     final periods =

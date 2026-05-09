@@ -18,6 +18,7 @@ class AccountListCubit extends Cubit<AccountListState> {
 
     final result =
         await _listAccounts(const ListAccountsInput(activeOnly: false));
+    if (isClosed) return;
 
     result.fold(
       (f) => emit(AccountListFailure(f)),

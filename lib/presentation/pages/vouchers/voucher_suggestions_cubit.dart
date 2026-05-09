@@ -64,6 +64,7 @@ class VoucherSuggestionsCubit extends Cubit<VoucherSuggestionsState> {
     }
     emit(const VoucherSuggestionsLoading());
     final r = await _getSuggestions(counterpartyAccountId);
+    if (isClosed) return;
     if (r.isFailure) {
       emit(VoucherSuggestionsError(r.failureOrNull!.messageAr));
       return;
@@ -79,6 +80,7 @@ class VoucherSuggestionsCubit extends Cubit<VoucherSuggestionsState> {
   Future<void> acceptAndMarkProcessed(ScoredSuggestionDto s) async {
     if (!s.messageId.startsWith('freq_')) {
       final mr = await _markProcessed(s.messageId);
+      if (isClosed) return;
       if (mr.isFailure) {
         emit(VoucherSuggestionsError(mr.failureOrNull!.messageAr));
         return;

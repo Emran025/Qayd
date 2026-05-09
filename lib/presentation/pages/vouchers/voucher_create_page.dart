@@ -59,6 +59,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
   bool _hiddenIsContingent = false;
 
   bool _canPickAffectedAccount = true;
+  bool _lockCounterparty = false;
 
   // Signature fields from QR
   String? _qrSenderSignatureHex;
@@ -191,6 +192,7 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
     if (data['counterpartyAccountId'] != null) {
       final accId = data['counterpartyAccountId'].toString();
       _loadAccountSummaryForCounterparty(accId);
+      _lockCounterparty = data['lockCounterparty'] as bool? ?? false;
     }
     if (data['transferGroupId'] != null) {
       _hiddenTransferGroupId = data['transferGroupId'] as String?;
@@ -577,26 +579,28 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
                     _buildDateTile(gold),
                     const Divider(),
                     _buildCurrencyTile(gold),
-                    const Divider(),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: QaydText(
-                        _type == VoucherType.payment
-                            ? AppStrings.voucherCounterpartyLabel
-                            : AppStrings.voucherAffectedAccountParty,
-                        slot: QaydTextStyleSlot.labelLarge,
+                    if (!_lockCounterparty) ...[
+                      const Divider(),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: QaydText(
+                          _type == VoucherType.payment
+                              ? AppStrings.voucherCounterpartyLabel
+                              : AppStrings.voucherAffectedAccountParty,
+                          slot: QaydTextStyleSlot.labelLarge,
+                        ),
+                        subtitle: QaydText(
+                          _counterparty?.name ??
+                              AppStrings.voucherPickCounterpartyHint2,
+                          slot: QaydTextStyleSlot.bodyLarge,
+                          color: _counterparty == null
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : null,
+                        ),
+                        trailing: Icon(Icons.chevron_left_rounded, color: gold),
+                        onTap: _pickCounterparty,
                       ),
-                      subtitle: QaydText(
-                        _counterparty?.name ??
-                            AppStrings.voucherPickCounterpartyHint2,
-                        slot: QaydTextStyleSlot.bodyLarge,
-                        color: _counterparty == null
-                            ? Theme.of(context).colorScheme.onSurfaceVariant
-                            : null,
-                      ),
-                      trailing: Icon(Icons.chevron_left_rounded, color: gold),
-                      onTap: _pickCounterparty,
-                    ),
+                    ],
 
                     if (_canPickAffectedAccount || _affected == null) ...[
                       const Divider(),

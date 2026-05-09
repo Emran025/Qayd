@@ -58,6 +58,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
     final accountsR = await _listAccounts.call(
       const ListAccountsInput(activeOnly: false),
     );
+    if (isClosed) return;
     if (accountsR.isFailure) {
       emit(StatementChatFailure(accountsR.failureOrNull!));
       return;
@@ -146,6 +147,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
       filter: activeFilter,
       isUnified: _isFund,
     );
+    if (isClosed) return;
 
     result.fold(
       (f) => emit(StatementChatFailure(f)),
@@ -162,6 +164,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
         final ccId = _filter.costCenterId;
         if (ccId != null && ccId.isNotEmpty) {
           final ccR = await _getCostCenterDetails.call(ccId);
+          if (isClosed) return;
           if (ccR.isSuccess) {
             costCenterNames[ccId] = ccR.valueOrNull!.center.name;
           }

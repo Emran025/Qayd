@@ -308,6 +308,37 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
     );
   }
 
+  Future<void> _createNewVoucher(StatementChatCubit cubit) async {
+    Navigator.of(context)
+        .push(
+          QaydPageRoute.slideFromStart(
+            builder: (ctx) => MultiBlocProvider(
+              providers: [
+                BlocProvider<VoucherCreateCubit>(
+                  create: (_) => VoucherCreateCubit(
+                    InjectionContainer.createVoucherUseCase,
+                    InjectionContainer.createTripartiteTransferUseCase,
+                  ),
+                ),
+                BlocProvider<VoucherSuggestionsCubit>(
+                  create: (_) => VoucherSuggestionsCubit(
+                    InjectionContainer.getAutoSuggestionsUseCase,
+                    InjectionContainer.markNotificationMessageProcessedUseCase,
+                  ),
+                ),
+              ],
+              child: VoucherCreatePage(
+                initialQrData: {
+                  'counterpartyAccountId': widget.counterpartyAccountId,
+                  'lockCounterparty': true,
+                },
+              ),
+            ),
+          ),
+        )
+        .then((_) => cubit.reload());
+  }
+
   Future<void> _openFilterSheet(StatementChatCubit cubit) async {
     final result = await showStatementChatFilterSheet(
       context,
@@ -545,6 +576,13 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         );
 
         return Scaffold(
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _createNewVoucher(cubit),
+            backgroundColor: custom.goldAccent,
+            foregroundColor: Colors.white,
+            mini: true,
+            child: const Icon(Icons.add_rounded),
+          ),
           body: Column(
             children: [
               // ── Header ──
@@ -754,15 +792,14 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                         ),
                       ),
               ),
-
-              // ── Summary footer ──
-              if (data.messages.isNotEmpty)
-                _SummaryFooter(
-                  finalBalancesByCurrency: data.finalBalanceByCurrency,
-                  messageCount: voucherCount,
-                ),
             ],
           ),
+          bottomNavigationBar: data.messages.isNotEmpty
+              ? _SummaryFooter(
+                  finalBalancesByCurrency: data.finalBalanceByCurrency,
+                  messageCount: voucherCount,
+                )
+              : null,
         );
       },
     );

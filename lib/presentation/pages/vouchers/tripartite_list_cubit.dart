@@ -73,6 +73,7 @@ class TripartiteListCubit extends Cubit<TripartiteListState> {
         onlyTripartite: true,
       ),
     );
+    if (isClosed) return;
     result.fold(
       (f) => emit(TripartiteListFailure(f)),
       (out) {
