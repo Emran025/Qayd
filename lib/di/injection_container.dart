@@ -772,6 +772,20 @@ abstract final class InjectionContainer {
     );
     syncFacade = SyncFacade(syncCoordinatorService);
 
+    devicePairingService = DevicePairingService(
+      deviceSessionRepository: deviceSessionRepository,
+      deviceRegistryRepository: deviceRegistryRepository,
+      auditLogRepository: auditLogRepository,
+      auditSyncDispatcher: auditSyncDispatcher,
+      companionLinkService: companionLinkService,
+      licenseVault: licenseVault,
+      syncCoordinatorService: syncCoordinatorService,
+    );
+    devicePairingFacade = DevicePairingFacade(
+      pairingService: devicePairingService,
+      sessionRepository: deviceSessionRepository,
+    );
+
     if (userId > 0) {
       syncCoordinatorService.start();
     }
@@ -854,19 +868,6 @@ abstract final class InjectionContainer {
     auditSyncProcessor = AuditSyncProcessor(
       auditLogRepository: auditLogRepository,
       auditLogService: auditLogService,
-    );
-    devicePairingService = DevicePairingService(
-      deviceSessionRepository: deviceSessionRepository,
-      deviceRegistryRepository: deviceRegistryRepository,
-      auditLogRepository: auditLogRepository,
-      auditSyncDispatcher: auditSyncDispatcher,
-      companionLinkService: companionLinkService,
-      licenseVault: licenseVault,
-      syncCoordinatorService: syncCoordinatorService,
-    );
-    devicePairingFacade = DevicePairingFacade(
-      pairingService: devicePairingService,
-      sessionRepository: deviceSessionRepository,
     );
 
     transactionFeeSettingsRepository = SqliteTransactionFeeSettingsRepository(
