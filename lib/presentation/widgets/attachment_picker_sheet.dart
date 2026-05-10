@@ -129,8 +129,8 @@ class AttachmentPickerSheet extends StatelessWidget {
       context: context,
       icon: Icons.shield_rounded,
       title: AppStrings.missingValidity,
-      content:
-          'يبدو أنك قمت برفض السماح بالوصول لـ $serviceName مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.',
+      content: AppStrings.permissionDeniedMessage(serviceName),
+
       secondaryActionLabel: AppStrings.cancellation,
       onSecondaryAction: () => Navigator.pop(context),
       primaryActionLabel: AppStrings.openSettings,

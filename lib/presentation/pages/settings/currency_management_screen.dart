@@ -60,7 +60,8 @@ class _CurrencyManagementScreenState extends State<CurrencyManagementScreen> {
           SizedBox(height: SpacingTokens.md),
           QaydTextField(
             controller: symbolController,
-            label: 'رمز العملة (مثال: \$)',
+            label: AppStrings.currencySymbolExample('\$'),
+
           ),
           SizedBox(height: SpacingTokens.md),
           QaydNumericField(

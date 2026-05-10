@@ -99,7 +99,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
       'pdf_col_balance' => AppStrings.balance,
       'pdf_col_account' => AppStrings.theAccount,
       'pdf_label_balance' => AppStrings.totalBalance2,
-      'pdf_show_balance' => 'إظهار/إخفاء الرصيد',
+      'pdf_show_balance' => AppStrings.pdfShowHideBalance,
+
       _ => key,
     };
   }
@@ -448,7 +449,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
                     ),
                     SizedBox(width: 12),
                     QaydText(
-                      '${Localizations.localeOf(context).languageCode == 'ar' ? 'جاري تعديل' : 'Editing'}: ${_labelForKey(_selectedKey!)}',
+                      AppStrings.editingWithLabel(_labelForKey(_selectedKey!)),
+
                       slot: QaydTextStyleSlot.bodyMedium,
                       color: theme.colorScheme.onSurface,
                     ),
@@ -532,7 +534,8 @@ class _PdfTemplateSettingsPageState extends State<PdfTemplateSettingsPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           QaydText(
-            'إظهار $label في السندات',
+            AppStrings.showLabelInBonds(label),
+
             slot: QaydTextStyleSlot.bodyMedium,
             color: theme.colorScheme.onSurface,
           ),

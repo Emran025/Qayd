@@ -60,7 +60,7 @@ class DevicePairingCubit extends ChangeNotifier {
     } catch (_) {
       _emit(_state.copyWith(
         isLoading: false,
-        error: 'Unable to load paired devices.',
+        error: AppStrings.deviceLoadError,
       ));
     }
   }
@@ -85,12 +85,12 @@ class DevicePairingCubit extends ChangeNotifier {
       _emit(_state.copyWith(
         isSaving: false,
         sessions: sessions,
-        success: 'Device paired successfully.',
+        success: AppStrings.devicePairedSuccess,
       ));
     } catch (_) {
       _emit(_state.copyWith(
         isSaving: false,
-        error: 'Pairing failed.',
+        error: AppStrings.devicePairError,
       ));
     }
   }
@@ -100,11 +100,11 @@ class DevicePairingCubit extends ChangeNotifier {
       final sessions = await _facade.revokeDevice(deviceId);
       _emit(_state.copyWith(
         sessions: sessions,
-        success: 'Device revoked successfully.',
+        success: AppStrings.deviceRevokedSuccess,
         clearError: true,
       ));
     } catch (_) {
-      _emit(_state.copyWith(error: 'Unable to revoke device.'));
+      _emit(_state.copyWith(error: AppStrings.deviceRevokeError));
     }
   }
 

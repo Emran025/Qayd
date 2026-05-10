@@ -304,7 +304,8 @@ class SyncPrivacyCubit extends ChangeNotifier {
 
       String successMsg = AppStrings.theListHasBeen;
       if (skippedNoPhone > 0) {
-        successMsg += ' (تم تخطي $skippedNoPhone حساب لعدم وجود رقم هاتف)';
+        successMsg += ' ${AppStrings.skippedAccountsNoPhone(skippedNoPhone)}';
+
       }
 
       _emit(_state.copyWith(

@@ -4813,6 +4813,17 @@ class AppStringsEn extends AppStringsBase {
   String get deviceDefaultName => 'My Device';
   @override
   String get deviceManagementSubtitle => 'Pair and revoke trusted devices';
+  @override
+  String get deviceLoadError => 'Unable to load paired devices.';
+  @override
+  String get devicePairedSuccess => 'Device paired successfully.';
+  @override
+  String get devicePairError => 'Pairing failed.';
+  @override
+  String get deviceRevokedSuccess => 'Device revoked successfully.';
+  @override
+  String get deviceRevokeError => 'Unable to revoke device.';
+
 
   // Companion Link UI Strings
   @override
@@ -4858,4 +4869,68 @@ class AppStringsEn extends AppStringsBase {
   @override
   String newTripartiteRequestFrom(String name) =>
       'New tripartite request from $name';
+
+  @override
+  String estimatedValueWithCurrency(String currency) => 'Estimated Value ($currency)';
+  @override
+  String permissionDeniedMessage(String service) => 'It seems you have previously denied access to $service.\n\nTo use this service, please allow it in the settings.';
+  @override
+  String voucherNotice(String type) => '$type Notice';
+  @override
+  String bondConflictsFound(int count) => 'You have $count conflicting bonds (matched to external exchange).';
+  @override
+  String errorExportingPdf(String reportName, String error) => 'Could not export $reportName as PDF: $error';
+  @override
+  String errorExportingExcel(String reportName, String error) => 'Could not export $reportName as Excel: $error';
+
+  @override
+  String accountNotFoundPrompt(String name) => 'This number is not registered in your accounts ($name). Confirm selection?';
+  @override
+  String dualTransferNoticeRecipient(String name) => 'This voucher is part of a dual transfer. The final recipient is: $name';
+  @override
+  String dualTransferNoticeSender(String name) => 'This voucher is part of a dual transfer. The original sender is: $name';
+
+  @override
+  String get currentStatus => 'Current Status';
+  @override
+  String get restoreOnlyThis => 'Restore only this';
+  @override
+  String get restoreAll => 'Restore all';
+  @override
+  String redoImpactWarning(String items) => 'You have previously undone these changes with other related items. Do you want to restore them together?\n\n$items';
+  @override
+  String versionWithNumber(String number) => 'Version $number';
+  @override
+  String waitSecondsBeforeRetry(int seconds) => 'Please wait $seconds seconds before trying again.';
+
+  @override
+  String appInvitationMessage(String name) => 'Hello $name, I invite you to use Qayd app for accounting and cloud sync.';
+  @override
+  String skippedAccountsNoPhone(int count) => '($count accounts skipped due to missing phone number)';
+  @override
+  String currencySymbolExample(String symbol) => 'Currency Symbol (e.g. $symbol)';
+  @override
+  String get pdfShowHideBalance => 'Show/Hide Balance';
+  @override
+  String accountBalanceGreeting(String name) => 'Greetings, the current balance for $name is: ';
+  @override
+  String matchedInQayd(String target) => 'Matched in Qayd: $target';
+  @override
+  String get millionSuffix => 'M';
+  @override
+  String get thousandSuffix => 'K';
+  @override
+  String onDate(String date) => 'On: $date';
+  @override
+  String editingWithLabel(String label) => 'Editing: $label';
+  @override
+  String showLabelInBonds(String label) => 'Show $label in vouchers';
+  @override
+  String searchBondsForStatus(String status) => 'Search in the voucher list for $status status';
+  @override
+  String settledWithSurplus(String amount, String currency) => 'Settled. Surplus: $amount $currency';
 }
+
+
+
+

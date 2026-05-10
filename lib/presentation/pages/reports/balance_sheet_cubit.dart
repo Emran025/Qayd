@@ -71,7 +71,7 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
     } catch (e, stackTrace) {
       // ignore: avoid_print
       print('BalanceSheet PDF Error: $e\n$stackTrace');
-      emit(BalanceSheetFailure('تعذر تصدير الميزانية العمومية كـ PDF: $e'));
+      emit(BalanceSheetFailure(AppStrings.errorExportingPdf(AppStrings.balanceSheet, e.toString())));
       return;
     }
     emit(BalanceSheetReady(currentState.output));
@@ -93,7 +93,7 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
     } catch (e) {
-      emit(BalanceSheetFailure('تعذر تصدير الميزانية العمومية كـ Excel: $e'));
+      emit(BalanceSheetFailure(AppStrings.errorExportingExcel(AppStrings.balanceSheet, e.toString())));
       return;
     }
     emit(BalanceSheetReady(currentState.output));

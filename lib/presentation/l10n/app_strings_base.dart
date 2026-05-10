@@ -2600,6 +2600,12 @@ abstract class AppStringsBase {
   String get devicePairingDialogTitle => 'ربط هذا الجهاز عبر مسح QR';
   String get deviceDefaultName => 'جهازي';
   String get deviceManagementSubtitle => 'ربط وإلغاء صلاحية الأجهزة الموثوقة';
+  String get deviceLoadError => 'تعذر تحميل الأجهزة المرتبطة.';
+  String get devicePairedSuccess => 'تم ربط الجهاز بنجاح.';
+  String get devicePairError => 'فشل عملية الربط.';
+  String get deviceRevokedSuccess => 'تم إلغاء ارتباط الجهاز بنجاح.';
+  String get deviceRevokeError => 'تعذر إلغاء ارتباط الجهاز.';
+
 
   // Companion Link UI Strings
   String get companionBootstrapSentSuccess => 'تم إرسال بيانات الدخول للجهاز بنجاح.';
@@ -2619,4 +2625,41 @@ abstract class AppStringsBase {
   String newVoucherClaim(String amount, String currency) => 'سند جديد بقيمة $amount $currency';
   String voucherRejectedWithReason(String reason) => 'تم رفض السند: $reason';
   String newTripartiteRequestFrom(String name) => 'طلب حوالة جديدة من $name';
+
+  String estimatedValueWithCurrency(String currency) => 'القيمة التقديرية ($currency)';
+  String permissionDeniedMessage(String service) => 'يبدو أنك قمت برفض السماح بالوصول لـ $service مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.';
+  String voucherNotice(String type) => 'إشعار $type';
+  String bondConflictsFound(int count) => 'لديك $count سندات متعارضة (مطابقة لبورصة خارجية).';
+  String errorExportingPdf(String reportName, String error) => 'تعذر تصدير $reportName كـ PDF: $error';
+  String errorExportingExcel(String reportName, String error) => 'تعذر تصدير $reportName كـ Excel: $error';
+
+  String accountNotFoundPrompt(String name) => 'هذا الرقم غير مسجل في حساباتك ($name). هل تريد التأكيد؟';
+  String dualTransferNoticeRecipient(String name) => 'هذا السند جزء من عملية تحويل مزدوج. الطرف المستلم النهائي هو: $name';
+  String dualTransferNoticeSender(String name) => 'هذا السند جزء من عملية تحويل مزدوج. الطرف المرسل الأصلي هو: $name';
+
+  String get currentStatus => 'الحالة الراهنة';
+  String get restoreOnlyThis => 'استعادة هذه فقط';
+  String get restoreAll => 'استعادة الكل';
+  String redoImpactWarning(String items) => 'لقد تراجعت مسبقاً عن هذه التعديلات مع متعلقات سابقة، هل تريد استعادتها معها؟\n\n$items';
+  String versionWithNumber(String number) => 'الإصدار $number';
+  String waitSecondsBeforeRetry(int seconds) => 'يرجى الانتظار $seconds ثانية قبل المحاولة مرة أخرى.';
+
+  String appInvitationMessage(String name) => 'مرحباً $name، أدعوك لاستخدام تطبيق قيد للمحاسبة والمزامنة السحابية.';
+  String skippedAccountsNoPhone(int count) => '(تم تخطي $count حساب لعدم وجود رقم هاتف)';
+  String currencySymbolExample(String symbol) => 'رمز العملة (مثال: $symbol)';
+  String get pdfShowHideBalance => 'إظهار/إخفاء الرصيد';
+  String accountBalanceGreeting(String name) => 'تحية طيبة، رصيد الحساب $name حالياً هو: ';
+  String matchedInQayd(String target) => 'مطابق في قيد: $target';
+  String get millionSuffix => 'م';
+  String get thousandSuffix => 'ك';
+  String onDate(String date) => 'بتاريخ: $date';
+  String editingWithLabel(String label) => 'جاري تعديل: $label';
+  String showLabelInBonds(String label) => 'إظهار $label في السندات';
+  String searchBondsForStatus(String status) => 'ابحث في قائمة السندات عن حالة $status';
+  String settledWithSurplus(String amount, String currency) => 'تمت التسوية. فائض: $amount $currency';
 }
+
+
+
+
+

@@ -205,11 +205,12 @@ class _FinancialMetricsGridState extends State<FinancialMetricsGrid>
   static String _fmt(int major, String currency) {
     if (major == 0) return '0';
     if (major >= 1000000) {
-      return '${(major / 1000000).toStringAsFixed(1)}م $currency';
+      return '${(major / 1000000).toStringAsFixed(1)}${AppStrings.millionSuffix} $currency';
     }
     if (major >= 1000) {
-      return '${(major / 1000).toStringAsFixed(1)}ك $currency';
+      return '${(major / 1000).toStringAsFixed(1)}${AppStrings.thousandSuffix} $currency';
     }
+
     return '$major $currency';
   }
 }

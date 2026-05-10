@@ -29,7 +29,8 @@ class _SupportSettingsPageState extends State<SupportSettingsPage> {
     try {
       final pi = await PackageInfo.fromPlatform();
       setState(() {
-        _versionInfo = 'الإصدار ${pi.version}';
+        _versionInfo = AppStrings.versionWithNumber(pi.version);
+
       });
     } catch (_) {
       setState(() {

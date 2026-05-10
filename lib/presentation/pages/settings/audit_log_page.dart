@@ -611,7 +611,8 @@ class _AuditEntryCard extends StatelessWidget {
                     Theme.of(context).colorScheme.error),
               if (isHead)
                 _statusBadge(
-                    context, 'الحالة الراهنة', Theme.of(context).colorScheme.primary),
+                    context, AppStrings.currentStatus, Theme.of(context).colorScheme.primary),
+
             ],
           ),
         ),
@@ -760,7 +761,8 @@ class _AuditEntryCard extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               foregroundColor: theme.colorScheme.primary,
             ),
-            label: const Text('استعادة هذه فقط'),
+            label: Text(AppStrings.restoreOnlyThis),
+
           ),
         if (entry.isUndone)
           TextButton.icon(
@@ -823,7 +825,8 @@ class _AuditEntryCard extends StatelessWidget {
         iconColor: Theme.of(context).colorScheme.primary,
         title: AppStrings.confirmRedoOperations,
         content: AppStrings.systematicRedoExplainer,
-        primaryActionLabel: 'استعادة هذه فقط',
+        primaryActionLabel: AppStrings.restoreOnlyThis,
+
         onPrimaryAction: () {
           Navigator.pop(context);
           cubit.redoSingleEntry(entry.id);
@@ -841,14 +844,15 @@ class _AuditEntryCard extends StatelessWidget {
       icon: Icons.layers_rounded,
       iconColor: Theme.of(context).colorScheme.primary,
       title: AppStrings.confirmRedoOperations,
-      content:
-          'لقد تراجعت مسبقاً عن هذه التعديلات مع متعلقات سابقة، هل تريد استعادتها معها؟\n\n${group.map((e) => '- ${_getEntityName(e.entityType)} • ${_getActionName(e.action)}').join('\n')}',
-      primaryActionLabel: 'استعادة الكل',
+      content: AppStrings.redoImpactWarning(
+          group.map((e) => '- ${_getEntityName(e.entityType)} • ${_getActionName(e.action)}').join('\n')),
+      primaryActionLabel: AppStrings.restoreAll,
       onPrimaryAction: () {
         Navigator.pop(context);
         cubit.redoTo(oldest.id);
       },
-      secondaryActionLabel: 'استعادة هذه فقط',
+      secondaryActionLabel: AppStrings.restoreOnlyThis,
+
       onSecondaryAction: () {
         Navigator.pop(context);
         cubit.redoSingleEntry(entry.id);

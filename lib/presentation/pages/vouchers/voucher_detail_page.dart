@@ -407,8 +407,10 @@ class _VoucherDetailBody extends StatelessWidget {
                       Expanded(
                         child: QaydText(
                           data.typeCode == 'receipt'
-                              ? 'هذا السند جزء من عملية تحويل مزدوج. الطرف المستلم النهائي هو: ${data.linkedPartyName ?? AppStrings.undefined}'
-                              : 'هذا السند جزء من عملية تحويل مزدوج. الطرف المرسل الأصلي هو: ${data.linkedPartyName ?? AppStrings.undefined}',
+                              ? AppStrings.dualTransferNoticeRecipient(
+                                  data.linkedPartyName ?? AppStrings.undefined)
+                              : AppStrings.dualTransferNoticeSender(
+                                  data.linkedPartyName ?? AppStrings.undefined),
                           slot: QaydTextStyleSlot.bodySmall,
                           color: scheme.onSurfaceVariant,
                         ),
@@ -2017,7 +2019,10 @@ class _CollateralSummaryCard extends StatelessWidget {
                                   SnackBar(
                                     content: Text(
                                       surplus > 0
-                                          ? 'تمت التسوية   فائض: ${(surplus / 100).toStringAsFixed(2)} ${data.currencyCode}'
+                                          ? AppStrings.settledWithSurplus(
+                                              (surplus / 100)
+                                                  .toStringAsFixed(2),
+                                              data.currencyCode)
                                           : AppStrings.theMortgageHasBeen,
                                     ),
                                     behavior: SnackBarBehavior.floating,
@@ -2374,7 +2379,8 @@ class _SignatureIntegrityBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.hourglass_top_rounded, size: 16, color: pendingColor),
+            const Icon(Icons.hourglass_top_rounded,
+                size: 16, color: pendingColor),
             const SizedBox(width: 6),
             Flexible(
               child: QaydText(

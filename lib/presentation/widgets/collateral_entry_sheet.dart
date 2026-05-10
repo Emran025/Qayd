@@ -172,7 +172,7 @@ class _CollateralEntrySheetState extends State<CollateralEntrySheet> {
                 // Estimated value
                 QaydAmountField(
                   controller: _valueController,
-                  label: 'القيمة التقديرية (${widget.currencyCode})',
+                  label: AppStrings.estimatedValueWithCurrency(widget.currencyCode),
                 ),
                 SizedBox(height: SpacingTokens.md),
 

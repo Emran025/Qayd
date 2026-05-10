@@ -36,9 +36,10 @@ class ConflictBanner extends StatelessWidget {
             size: 20,
           ),
           SizedBox(width: SpacingTokens.sm),
+
           Expanded(
             child: QaydText(
-              'لديك ${proposals.length} سندات متعارضة (مطابقة لبورصة خارجية).',
+              AppStrings.bondConflictsFound(proposals.length),
               slot: QaydTextStyleSlot.bodySmall,
               color: theme.colorScheme.onErrorContainer,
             ),
@@ -47,6 +48,7 @@ class ConflictBanner extends StatelessWidget {
             onPressed: () => _openConflictResolution(context),
             child: Text(AppStrings.toTreat),
           ),
+
         ],
       ),
     );

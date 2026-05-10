@@ -44,7 +44,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
       // ignore: avoid_print
       print('TrialBalance PDF Error: $e\n$stackTrace');
       emit(TrialBalanceFailure(
-        FileSystemFailure(messageAr: 'تعذر تصدير ميزان المراجعة كـ PDF: $e'),
+        FileSystemFailure(messageAr: AppStrings.errorExportingPdf(AppStrings.trialBalance, e.toString())),
       ));
       return;
     }
@@ -68,7 +68,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
       );
     } catch (e) {
       emit(TrialBalanceFailure(
-        FileSystemFailure(messageAr: 'تعذر تصدير ميزان المراجعة كـ Excel: $e'),
+        FileSystemFailure(messageAr: AppStrings.errorExportingExcel(AppStrings.trialBalance, e.toString())),
       ));
       return;
     }

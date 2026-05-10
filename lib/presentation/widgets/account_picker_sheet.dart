@@ -297,8 +297,8 @@ class _AccountPickerContentState extends State<_AccountPickerContent> {
     final phone = _identityMap[account.id]?.phone;
     if (phone == null || phone.isEmpty) return;
 
-    final message =
-        'مرحباً ${account.name}، أدعوك لاستخدام تطبيق AppStrings.restriction للمحاسبة والمزامنة السحابية.';
+    final message = AppStrings.appInvitationMessage(account.name);
+
     final uri = Uri.parse(
         'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
     launchUrl(uri, mode: LaunchMode.externalApplication);

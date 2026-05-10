@@ -173,8 +173,8 @@ class _VoucherListViewState extends State<_VoucherListView> with RouteAware {
             context: context,
             icon: Icons.person_add_rounded,
             title: AppStrings.thereIsNoAccount,
-            content:
-                '${AppStrings.theCodeDoesNot} ($counterpartyName). ${AppStrings.confirmSelection}؟',
+            content: AppStrings.accountNotFoundPrompt(counterpartyName),
+
             primaryActionLabel: AppStrings.confirmSelection,
             secondaryActionLabel: AppStrings.actionCancel,
             onPrimaryAction: () => Navigator.of(context).pop(true),

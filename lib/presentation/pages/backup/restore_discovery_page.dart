@@ -78,7 +78,8 @@ class RestoreDiscoveryPage extends StatelessWidget {
                 context,
                 title: AppStrings.localCopyOnThe,
                 subtitle:
-                    'بتاريخ: ${localMod != null ? dateFormat.format(localMod) : AppStrings.unknown}',
+                    AppStrings.onDate(localMod != null ? dateFormat.format(localMod) : AppStrings.unknown),
+
                 onTap: () => context.read<RestoreCubit>().performRestore(
                       localFile: state.localFile,
                     ),
@@ -90,7 +91,8 @@ class RestoreDiscoveryPage extends StatelessWidget {
                 context,
                 title: AppStrings.copyFromGoogleDrive,
                 subtitle:
-                    'بتاريخ: ${state.driveInfo!.lastModified != null ? dateFormat.format(state.driveInfo!.lastModified!) : AppStrings.unknown}',
+                    AppStrings.onDate(state.driveInfo!.lastModified != null ? dateFormat.format(state.driveInfo!.lastModified!) : AppStrings.unknown),
+
                 onTap: () => context.read<RestoreCubit>().performRestore(
                       fromDrive: true,
                     ),

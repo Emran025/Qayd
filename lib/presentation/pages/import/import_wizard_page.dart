@@ -930,7 +930,8 @@ class _ConflictCard extends StatelessWidget {
                     SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'مطابق في قيد: $mergeTargetName',
+                        AppStrings.matchedInQayd(mergeTargetName),
+
                         style: TextStyle(
                           color: scheme.primary,
                           fontSize: 12,
@@ -1193,7 +1194,8 @@ class _DonePage extends StatelessWidget {
                 _StepHint(
                   number: AppStrings.s1,
                   title: AppStrings.reviewOutstandingBonds,
-                  subtitle: 'ابحث في قائمة السندات عن حالة AppStrings.waiting',
+                  subtitle: AppStrings.searchBondsForStatus(AppStrings.waiting),
+
                 ),
                 _StepHint(
                   number: AppStrings.s2,

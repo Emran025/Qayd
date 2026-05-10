@@ -37,14 +37,14 @@ Future<void> shareVoucherAsText(
   // Fallback if no template is found
   if (shareText == null || shareText.isEmpty) {
     final buffer = StringBuffer();
-    buffer.writeln('إشعار $type');
+    buffer.writeln(AppStrings.voucherNotice(type));
     buffer.writeln('${AppStrings.dateLabel} $date');
     buffer.writeln('${AppStrings.amountLabel} $amount');
 
     buffer.writeln('${AppStrings.clientLabel} ${data.counterpartyName}');
     buffer.writeln('${AppStrings.accountLabel} ${data.affectedName}');
     if (data.description != null && data.description!.isNotEmpty) {
-      buffer.writeln('البيان: ${data.description}');
+      buffer.write(AppStrings.shareTextDescription(data.description!));
     }
 
     // Include net balance in fallback if available

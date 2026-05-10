@@ -281,7 +281,8 @@ class SecurityCubit extends Cubit<SecurityState> {
       final waitSecs = _blockedUntil!.difference(now).inSeconds;
       return (
         success: false,
-        errorAr: "يرجى الانتظار $waitSecs ثانية قبل المحاولة مرة أخرى.",
+        errorAr: AppStrings.waitSecondsBeforeRetry(waitSecs),
+
       );
     }
 

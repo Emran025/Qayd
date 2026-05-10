@@ -2456,6 +2456,11 @@ class AppStrings {
   static String get devicePairingDialogTitle => i.devicePairingDialogTitle;
   static String get deviceDefaultName => i.deviceDefaultName;
   static String get deviceManagementSubtitle => i.deviceManagementSubtitle;
+  static String get deviceLoadError => i.deviceLoadError;
+  static String get devicePairedSuccess => i.devicePairedSuccess;
+  static String get devicePairError => i.devicePairError;
+  static String get deviceRevokedSuccess => i.deviceRevokedSuccess;
+  static String get deviceRevokeError => i.deviceRevokeError;
 
   static String get companionBootstrapSentSuccess =>
       i.companionBootstrapSentSuccess;
@@ -2477,4 +2482,40 @@ class AppStrings {
   static String newVoucherClaim(String amount, String currency) => i.newVoucherClaim(amount, currency);
   static String voucherRejectedWithReason(String reason) => i.voucherRejectedWithReason(reason);
   static String newTripartiteRequestFrom(String name) => i.newTripartiteRequestFrom(name);
+
+  static String estimatedValueWithCurrency(String currency) => i.estimatedValueWithCurrency(currency);
+  static String permissionDeniedMessage(String service) => i.permissionDeniedMessage(service);
+  static String voucherNotice(String type) => i.voucherNotice(type);
+  static String bondConflictsFound(int count) => i.bondConflictsFound(count);
+  static String errorExportingPdf(String reportName, String error) => i.errorExportingPdf(reportName, error);
+  static String errorExportingExcel(String reportName, String error) => i.errorExportingExcel(reportName, error);
+
+  static String accountNotFoundPrompt(String name) => i.accountNotFoundPrompt(name);
+  static String dualTransferNoticeRecipient(String name) => i.dualTransferNoticeRecipient(name);
+  static String dualTransferNoticeSender(String name) => i.dualTransferNoticeSender(name);
+
+  static String get currentStatus => i.currentStatus;
+  static String get restoreOnlyThis => i.restoreOnlyThis;
+  static String get restoreAll => i.restoreAll;
+  static String redoImpactWarning(String items) => i.redoImpactWarning(items);
+  static String versionWithNumber(String number) => i.versionWithNumber(number);
+  static String waitSecondsBeforeRetry(int seconds) => i.waitSecondsBeforeRetry(seconds);
+
+  static String appInvitationMessage(String name) => i.appInvitationMessage(name);
+  static String skippedAccountsNoPhone(int count) => i.skippedAccountsNoPhone(count);
+  static String currencySymbolExample(String symbol) => i.currencySymbolExample(symbol);
+  static String get pdfShowHideBalance => i.pdfShowHideBalance;
+  static String accountBalanceGreeting(String name) => i.accountBalanceGreeting(name);
+  static String matchedInQayd(String target) => i.matchedInQayd(target);
+  static String get millionSuffix => i.millionSuffix;
+  static String get thousandSuffix => i.thousandSuffix;
+  static String onDate(String date) => i.onDate(date);
+  static String editingWithLabel(String label) => i.editingWithLabel(label);
+  static String showLabelInBonds(String label) => i.showLabelInBonds(label);
+  static String searchBondsForStatus(String status) => i.searchBondsForStatus(status);
+  static String settledWithSurplus(String amount, String currency) => i.settledWithSurplus(amount, currency);
 }
+
+
+
+

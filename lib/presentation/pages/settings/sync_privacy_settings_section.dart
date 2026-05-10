@@ -452,9 +452,8 @@ class _PolicyModeCard extends StatelessWidget {
 }
 
 void _inviteByPhone(String name, String phone) {
-  final greeting = name.isNotEmpty ? 'مرحباً $name، ' : '';
-  final message =
-      '$greetingأدعوك لاستخدام تطبيق AppStrings.restriction للمحاسبة والمزامنة السحابية.';
+  final message = AppStrings.appInvitationMessage(name);
+
   final uri = Uri.parse(
       'whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
   launchUrl(uri, mode: LaunchMode.externalApplication);
