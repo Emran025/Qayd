@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:qayd/application/sync/audit_sync_compression_service.dart';
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
@@ -65,23 +66,28 @@ class DevicePairingService {
 
   Future<void> dispatchInitialSnapshot(String targetDeviceId) async {
     final session = await deviceSessionRepository.getById(targetDeviceId);
-    if (session == null || !session.isActive) return;
+    if (session == null || !session.isActive) {
+      return;
+    }
+
     final delta = await auditLogRepository.listSinceSeq(session.lastSyncSeq);
-    if (delta.isEmpty) return;
+    if (delta.isEmpty) {
+      return;
+    }
 
     const chunkSize = 250;
     final entriesToSend =
         delta.length > chunkSize ? _compactSnapshot(delta) : delta;
     final totalBatches = (entriesToSend.length / chunkSize).ceil();
     int batchIndex = 1;
-        
+
     for (var i = 0; i < entriesToSend.length; i += chunkSize) {
       final end = (i + chunkSize < entriesToSend.length)
           ? i + chunkSize
           : entriesToSend.length;
       final chunk = entriesToSend.sublist(i, end);
       final isLast = end >= entriesToSend.length;
-      
+
       await auditSyncDispatcher.dispatchBatchToDevice(
         entries: chunk,
         targetDeviceId: targetDeviceId,
@@ -89,6 +95,7 @@ class DevicePairingService {
         isLastBatch: isLast,
         batchIndex: batchIndex,
         totalBatches: totalBatches,
+        reason: SyncPacketReason.initialBootstrap,
       );
       batchIndex++;
     }
@@ -100,8 +107,6 @@ class DevicePairingService {
     await deviceSessionRepository.updateLastSeen(
         targetDeviceId, DateTime.now());
 
-    debugPrint(
-        'DevicePairing: Initial snapshot dispatched to outbox. Triggering immediate push...');
     unawaited(syncCoordinatorService.forceSync());
   }
 
@@ -167,14 +172,19 @@ class DevicePairingService {
     const maxAttempts = 12;
     const pollInterval = Duration(seconds: 10);
 
+    debugPrint(
+        'DevicePairing: 🔍 Starting discovery loop (Bridge start: $bridgeStartedAt)');
+
     for (var attempt = 0; attempt < maxAttempts; attempt++) {
       // Check cancellation before each poll.
       if (cancel.isCompleted) {
         debugPrint(
-            'DevicePairing: Discovery loop cancelled (new QR initiated).');
+            'DevicePairing: ⏹ Discovery loop cancelled (new QR initiated).');
         return;
       }
 
+      debugPrint(
+          'DevicePairing: ⏳ Poll attempt ${attempt + 1}/$maxAttempts...');
       await Future<void>.delayed(pollInterval);
 
       if (cancel.isCompleted) return;
@@ -182,34 +192,55 @@ class DevicePairingService {
       try {
         await refreshSessionsFromServer();
       } catch (e) {
-        debugPrint('DevicePairing: Network error during discovery poll: $e');
+        debugPrint('DevicePairing: ⚠️ Network error during discovery poll: $e');
         // Continue to the next attempt, don't crash the loop.
       }
-      
+
       final sessions = await deviceSessionRepository.listAll();
+      debugPrint(
+          'DevicePairing: Polling... total sessions in DB: ${sessions.length}');
+
       final targets = sessions.where((session) {
-        if (!session.isActive || session.isCurrent) return false;
-        final isNewlyDiscovered = !knownDeviceIds.contains(session.deviceId);
+        if (!session.isActive) return false;
+
+        // In emulator environments, device_id might be identical.
+        // We allow pairing if the public key is newly discovered, 
+        // even if it reports as isCurrent due to ID collision.
+        final isNewlyDiscovered = !knownDeviceIds.contains(session.publicKeyHex) && 
+                                 !knownDeviceIds.contains(session.deviceId);
+
         final looksFresh = session.lastSyncSeq <= 0 &&
             session.pairedAt
                 .toUtc()
                 .isAfter(bridgeStartedAt.subtract(const Duration(minutes: 2)));
-        return isNewlyDiscovered || looksFresh;
+
+        if (isNewlyDiscovered || looksFresh) {
+          debugPrint('DevicePairing: ✨ Candidate found! [ID: ${session.deviceId}, New: $isNewlyDiscovered, Fresh: $looksFresh]');
+          return true;
+        }
+        return false;
       }).toList();
 
       for (final target in targets) {
         if (cancel.isCompleted) return;
+        debugPrint('DevicePairing: 🎯 Found target companion: ${target.deviceId}. Dispatching snapshot...');
         await dispatchInitialSnapshot(target.deviceId);
+        
+        // Track both ID and Key to avoid re-triggering
+        knownDeviceIds.add(target.publicKeyHex);
         knownDeviceIds.add(target.deviceId);
       }
+
       if (targets.isNotEmpty) {
         debugPrint(
-            'DevicePairing: Companion discovered and snapshot dispatched.');
+            'DevicePairing: ✅ Companion(s) discovered and snapshot(s) dispatched.');
         return;
       }
+
+      // Update known IDs to avoid re-triggering for already handled devices in next poll
       knownDeviceIds.addAll(sessions.map((s) => s.deviceId));
     }
     debugPrint(
-        'DevicePairing: Companion not discovered within polling window.');
+        'DevicePairing: ❌ Companion not discovered within polling window.');
   }
 }

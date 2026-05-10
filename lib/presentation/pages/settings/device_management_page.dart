@@ -37,7 +37,8 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
   }
 
   Future<void> _loadDeviceRole() async {
-    final isCompanion = await InjectionContainer.licenseVault.isCompanionDevice();
+    final isCompanion =
+        await InjectionContainer.licenseVault.isCompanionDevice();
     if (!mounted) return;
     setState(() => _isCompanionDevice = isCompanion);
   }
@@ -48,10 +49,27 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     super.dispose();
   }
 
+  bool _testTriggered = false;
+
   void _onCubitChanged() {
     if (!mounted) return;
     setState(() {});
     final state = _cubit.state;
+
+    // --- TEST TRIGGER ---
+    if (!_testTriggered && !state.isLoading && state.sessions.isNotEmpty) {
+      _testTriggered = true;
+      for (final s in state.sessions) {
+        if (!s.isCurrent && s.isActive) {
+          debugPrint(
+              'DEBUG: 🧪 Manually triggering test sync for companion: ${s.deviceId}');
+          InjectionContainer.devicePairingService
+              .dispatchInitialSnapshot(s.deviceId);
+        }
+      }
+    }
+    // --------------------
+
     if (state.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(state.error!)),

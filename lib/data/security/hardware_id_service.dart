@@ -1,5 +1,6 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:android_id/android_id.dart';
 
 /// Produces a stable, non-volatile hardware-bound identifier for the device.
 ///
@@ -9,6 +10,7 @@ final class HardwareIdService {
       : _plugin = plugin ?? DeviceInfoPlugin();
 
   final DeviceInfoPlugin _plugin;
+  final _androidIdPlugin = const AndroidId();
 
   static const String _fallbackId = 'qayd_unsupported_platform_v1';
 
@@ -17,9 +19,14 @@ final class HardwareIdService {
   Future<String> obtainHardwareId() async {
     try {
       if (defaultTargetPlatform == TargetPlatform.android) {
+        // Use the official Android ID (Settings.Secure.ANDROID_ID) which is 
+        // guaranteed to be unique per device and survives app reinstalls.
+        final androidId = await _androidIdPlugin.getId();
+        if (androidId != null && androidId.isNotEmpty) {
+          return 'android:$androidId';
+        }
+        // Fallback just in case Android ID is unavailable (very rare)
         final info = await _plugin.androidInfo;
-        final androidId = info.id;
-        if (androidId.isNotEmpty) return 'android:$androidId';
         return 'android:${info.fingerprint}';
       }
 

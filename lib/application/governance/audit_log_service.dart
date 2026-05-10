@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:qayd/application/sync/audit_sync_compression_service.dart';
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/repositories/audit_log_repository.dart';
@@ -684,6 +685,7 @@ class AuditLogService {
           entry: entry,
           targetDeviceId: session.deviceId,
           receiverPublicKeyHex: session.publicKeyHex,
+          reason: SyncPacketReason.liveEvent,
         );
       } catch (e) {
         _debugLog(

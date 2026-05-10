@@ -1,6 +1,5 @@
+import 'package:qayd/application/sync/audit_sync_compression_service.dart';
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:qayd/data/repositories/device_sync_outbox_dao.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/services/e2ee_encryption_service.dart';
@@ -12,21 +11,25 @@ class AuditSyncDispatcher {
     required this.outboxDao,
     required this.e2eeService,
     required this.getCurrentKeyPair,
+    this.compressionService = const AuditSyncCompressionService(),
   });
 
   final DeviceSyncOutboxDao outboxDao;
   final E2EEEncryptionService e2eeService;
   final Future<CryptoKeyPair?> Function() getCurrentKeyPair;
+  final AuditSyncCompressionService compressionService;
 
   Future<void> dispatchEntryToDevice({
     required AuditEntry entry,
     required String targetDeviceId,
     required String receiverPublicKeyHex,
+    SyncPacketReason? reason,
   }) async {
     await dispatchBatchToDevice(
       entries: [entry],
       targetDeviceId: targetDeviceId,
       receiverPublicKeyHex: receiverPublicKeyHex,
+      reason: reason,
     );
   }
 
@@ -37,14 +40,16 @@ class AuditSyncDispatcher {
     bool isLastBatch = false,
     int? batchIndex,
     int? totalBatches,
+    SyncPacketReason? reason,
   }) async {
     if (entries.isEmpty) return;
     final keyPair = await getCurrentKeyPair();
     if (keyPair == null) return;
 
-    final entriesJson =
-        utf8.encode(jsonEncode(entries.map((e) => e.toMap()).toList()));
-    final compressed = gzip.encode(entriesJson);
+    final compressed = compressionService.compressBatch(
+      entries,
+      reason: reason ?? SyncPacketReason.liveEvent,
+    );
     final payload = {
       'kind': 'audit_batch',
       'encoding': 'gzip+base64',

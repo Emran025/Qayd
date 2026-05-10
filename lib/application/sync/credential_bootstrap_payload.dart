@@ -7,6 +7,7 @@ class CredentialBootstrapPayload {
     required this.issuedAtIso,
     required this.expiresAtIso,
     this.licenseData,
+    this.deviceCertificate,
   });
 
   final int version;
@@ -16,6 +17,7 @@ class CredentialBootstrapPayload {
   final String issuedAtIso;
   final String expiresAtIso;
   final Map<String, dynamic>? licenseData;
+  final String? deviceCertificate;
 
   Map<String, dynamic> toMap() {
     return {
@@ -26,6 +28,7 @@ class CredentialBootstrapPayload {
       'issued_at': issuedAtIso,
       'expires_at': expiresAtIso,
       if (licenseData != null) 'license_data': licenseData,
+      if (deviceCertificate != null) 'device_certificate': deviceCertificate,
     };
   }
 
@@ -40,6 +43,7 @@ class CredentialBootstrapPayload {
       licenseData: map['license_data'] is Map
           ? Map<String, dynamic>.from(map['license_data'] as Map)
           : null,
+      deviceCertificate: map['device_certificate'] as String?,
     );
   }
 }

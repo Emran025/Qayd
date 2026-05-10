@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/identity/setup_identity_use_case.dart';
 import 'package:qayd/application/sync/credential_bootstrap_payload.dart';
@@ -87,6 +91,14 @@ class CompanionLinkService {
     if (mnemonic == null || jwt == null || jwt.isEmpty || senderPair == null) {
       throw StateError('Missing secure credentials for bootstrap.');
     }
+
+    // --- CROSS-SIGNING LOGIC ---
+    // The Primary Device signs the Companion's Ephemeral Public Key.
+    final payloadToSign = utf8.encode('device_certificate:${parsed.ephemeralPublicKeyHex}');
+    final hash = Uint8List.fromList(sha256.convert(payloadToSign).bytes);
+    final signature = cryptoIdentityService.sign(hash, senderPair);
+    final deviceCertificate = signature.signatureHex;
+
     final payload = CredentialBootstrapPayload(
       version: 1,
       nonce: parsed.nonce,
@@ -95,6 +107,7 @@ class CompanionLinkService {
       issuedAtIso: now.toIso8601String(),
       expiresAtIso: expiresAt.toIso8601String(),
       licenseData: await licenseVault.readLicenseData(),
+      deviceCertificate: deviceCertificate,
     );
 
     final encrypted = await e2eeService.encryptPayload(
@@ -117,6 +130,8 @@ class CompanionLinkService {
     required CompanionLinkSession session,
     VoidCallback? onPayloadReceived,
   }) async {
+    debugPrint(
+        'CompanionLink: 🔍 Polling bootstrap for session: ${session.socketSessionId}');
     Map<String, dynamic>? res;
     try {
       res = await apiClient.post(
@@ -124,18 +139,26 @@ class CompanionLinkService {
         body: {'socket_session_id': session.socketSessionId},
       ) as Map<String, dynamic>?;
     } catch (e) {
-      debugPrint('CompanionLink: poll request failed: $e');
+      debugPrint('CompanionLink: ❌ Poll request failed: $e');
       return false;
     }
 
     if (res == null) return false;
-    final encrypted = res['encrypted_payload'] as String?;
-    final senderPublicKey = res['sender_public_key'] as String?;
+
+    final Map<String, dynamic> data =
+        res.containsKey('data') ? (res['data'] as Map<String, dynamic>) : res;
+
+    final encrypted = data['encrypted_payload'] as String?;
+    final senderPublicKey = data['sender_public_key'] as String?;
+
+    debugPrint(
+        'CompanionLink: 🔍 Extracted - encrypted: ${encrypted != null}, senderKey: ${senderPublicKey != null}');
+
     if (encrypted == null || senderPublicKey == null) {
-      debugPrint('CompanionLink: no bootstrap payload available yet.');
       return false;
     }
 
+    debugPrint('CompanionLink: 📦 Bootstrap payload received. Decrypting...');
     Map<String, dynamic> payload;
     try {
       payload = await e2eeService.decryptPayload(
@@ -143,8 +166,9 @@ class CompanionLinkService {
         receiverKeyPair: session.ephemeralKeyPair,
         senderPublicKeyHex: senderPublicKey,
       );
+      debugPrint('CompanionLink: ✅ Decryption successful.');
     } catch (e) {
-      debugPrint('CompanionLink: decryption failed: $e');
+      debugPrint('CompanionLink: ❌ Decryption failed: $e');
       return false;
     }
 
@@ -152,7 +176,7 @@ class CompanionLinkService {
     // Don't add to _usedNonces until we are sure persistence succeeds,
     // otherwise a DB error will cause permanent 'stale bootstrap' on retry.
     if (!_validateNonceAndFreshness(model, session.nonce)) {
-      debugPrint('CompanionLink: nonce/freshness check failed — stale bootstrap.');
+      debugPrint('CompanionLink: ⚠️ Nonce/freshness check failed.');
       return false;
     }
 
@@ -161,36 +185,42 @@ class CompanionLinkService {
     onPayloadReceived?.call();
 
     try {
-      // §C-1: Persist mnemonic + JWT for data access, then generate a NEW
-      // unique keypair for this companion device's own identity.
-      final companionKeyPair = await _persistBootstrap(model);
+      debugPrint('CompanionLink: 💾 Persisting bootstrap credentials...');
+      // §C-1: Persist mnemonic + JWT for data access, and save the cross-signed
+      // ephemeral keypair as this companion device's own identity.
+      final companionKeyPair = await _persistBootstrap(model, session.ephemeralKeyPair);
+      debugPrint('CompanionLink: 🔑 Companion keypair persisted locally.');
 
       // §C-4: Register the companion's unique device key on the server.
       await mnemonicVault.markServerKeyRegistered();
 
-      await _registerCompanionDeviceWithOwnKey(companionKeyPair);
-      
+      debugPrint('CompanionLink: 📡 Registering companion on server...');
+      await _registerCompanionDeviceWithOwnKey(companionKeyPair, model.deviceCertificate);
+
       // Mark nonce as used only AFTER successful persistence to allow retries on DB failure
       _usedNonces.add(model.nonce);
-      
+      debugPrint('CompanionLink: 🎉 Registration process completed.');
+
       return true;
     } catch (e, stack) {
-      debugPrint('CompanionLink: FATAL error during bootstrap persistence: $e\n$stack');
+      debugPrint('CompanionLink: ❌ FATAL error: $e\n$stack');
       return false;
     }
   }
 
   /// Persists the bootstrap credentials and sets up the mnemonic identity
-  /// for data access. Returns a **new companion-specific keypair**.
+  /// for data access. Returns the **companion-specific keypair** which has
+  /// been cross-signed by the Primary.
   ///
   /// §C-1 Security Note:
   /// The mnemonic received from Primary is used to restore data access
-  /// (voucher decryption keys), but the companion generates its OWN
+  /// (voucher decryption keys), but the companion uses its OWN
   /// Ed25519 keypair for device authentication and sync routing.
   /// This prevents the identity mismatch where both devices fight over
   /// the same public key on the server.
   Future<CryptoKeyPair> _persistBootstrap(
-      CredentialBootstrapPayload payload) async {
+      CredentialBootstrapPayload payload, CryptoKeyPair ephemeralKeyPair) async {
+    debugPrint('CompanionLink: 💾 Writing JWT and license data...');
     await licenseVault.writeJwt(payload.jwt);
     await licenseVault.setIsCompanionDevice(true);
     if (payload.licenseData != null) {
@@ -200,20 +230,29 @@ class CompanionLinkService {
     // Restore mnemonic for data-layer key derivation (voucher encryption).
     // primaryLicenseData is passed so recoverFromMnemonic skips server
     // re-registration of the Primary's key under our identity.
-    await setupIdentityUseCase.recoverFromMnemonic(
-      MnemonicPhrase.fromPhrase(payload.mnemonic),
-      primaryLicenseData: payload.licenseData,
-    );
+    debugPrint('CompanionLink: 🔐 Recovering identity from mnemonic...');
+    try {
+      await setupIdentityUseCase.recoverFromMnemonic(
+        MnemonicPhrase.fromPhrase(payload.mnemonic),
+        primaryLicenseData: payload.licenseData,
+      );
+      debugPrint('CompanionLink: ✅ Identity recovery successful.');
+    } catch (e) {
+      debugPrint('CompanionLink: ❌ Identity recovery failed: $e');
+      rethrow;
+    }
 
-    // §C-1: Generate a unique keypair for this companion device.
+    // §C-1: Save the ephemeral keypair as the unique keypair for this companion device.
     // This is entirely separate from the mnemonic-derived Primary key.
-    final companionKeyPair = _generateEphemeralKeyPair();
-    await mnemonicVault.writeKeyPair(companionKeyPair);
+    // The Primary device has already cross-signed this keypair.
+    debugPrint('CompanionLink: 🔑 Storing unique companion keypair (already signed by primary)...');
+    await mnemonicVault.writeKeyPair(ephemeralKeyPair);
+
     debugPrint(
-      'CompanionLink: companion device key generated: '
-      '${companionKeyPair.publicKeyHex.substring(0, 8)}…',
+      'CompanionLink: ✅ Companion device key set to: '
+      '${ephemeralKeyPair.publicKeyHex.substring(0, 8)}…',
     );
-    return companionKeyPair;
+    return ephemeralKeyPair;
   }
 
   /// Registers the companion's OWN unique keypair with the server.
@@ -223,10 +262,14 @@ class CompanionLinkService {
   /// The companion's unique key lives in user_devices.public_key only.
   /// The account's users.public_key remains the Primary's key, untouched.
   Future<void> _registerCompanionDeviceWithOwnKey(
-      CryptoKeyPair companionKeyPair) async {
+      CryptoKeyPair companionKeyPair, String? deviceCertificate) async {
     final publicKeyHex = companionKeyPair.publicKeyHex.toLowerCase();
     final deviceId = await getCurrentDeviceId();
-    final signedChallenge =
+    debugPrint(
+        'CompanionLink: 🆔 Attempting to register device: $deviceId with key: ${publicKeyHex.substring(0, 10)}...');
+
+    // Use the cross-signed device certificate if available, otherwise fallback.
+    final signedChallenge = deviceCertificate ??
         'companion-bootstrap:$deviceId:${DateTime.now().millisecondsSinceEpoch}';
     try {
       await deviceRegistryRepository.pairDevice(
@@ -242,7 +285,7 @@ class CompanionLinkService {
     } catch (e) {
       // Non-fatal — credentials are already persisted.
       // The device will re-register on next app start via the normal device refresh.
-      debugPrint('CompanionLink: server device registration deferred: $e');
+      debugPrint('CompanionLink: ❌ server device registration deferred: $e');
     }
   }
 
@@ -250,7 +293,7 @@ class CompanionLinkService {
       CredentialBootstrapPayload payload, String expectedNonce) {
     if (payload.nonce.isEmpty || payload.nonce != expectedNonce) return false;
     if (_usedNonces.contains(payload.nonce)) return false;
-    
+
     final issuedAt = DateTime.tryParse(payload.issuedAtIso);
     final expiresAt = DateTime.tryParse(payload.expiresAtIso);
     final now = DateTime.now().toUtc();
