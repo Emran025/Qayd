@@ -41,7 +41,7 @@ abstract final class AppObservability {
       },
       appRunner: () async {
         _installFlutterErrorWidgetFallback();
-        await runZonedGuarded(appRunner, _captureZoneError);
+        await appRunner();
       },
     );
   }
@@ -118,10 +118,6 @@ abstract final class AppObservability {
     FlutterError.reportError(
       FlutterErrorDetails(exception: error, stack: stackTrace),
     );
-  }
-
-  static void _captureZoneError(Object error, StackTrace stackTrace) {
-    Sentry.captureException(error, stackTrace: stackTrace);
   }
 }
 
