@@ -376,6 +376,7 @@ final class ListAccountStatementChatUseCase {
           feeAmountMinorUnits: v.tripartiteMeta?.feeAmount?.minorUnits,
           isCreator: isCreator,
           originVoucherId: v.originVoucherId?.value,
+          reversalCount: v.reversalCount,
         ));
 
         if (_isSignedSettlementVoucher(v, myId: myId, cpId: cpId)) {

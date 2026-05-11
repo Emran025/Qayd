@@ -21,6 +21,7 @@ class AccountStatementChatMessageDto {
     this.feeAmountMinorUnits,
     required this.isCreator,
     this.originVoucherId,
+    this.reversalCount = 0,
     this.isSettlementMilestone = false,
     this.settlementLabel,
     this.settlementBalanceMinorUnits,
@@ -73,6 +74,9 @@ class AccountStatementChatMessageDto {
 
   /// The ID of the original voucher if this is a correction or reply.
   final String? originVoucherId;
+
+  /// How many reversal (corrective) entries have been created against this voucher.
+  final int reversalCount;
 
   /// Non-voucher milestone row: indicates account settlement checkpoint.
   final bool isSettlementMilestone;

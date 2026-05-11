@@ -182,6 +182,84 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
         .then((_) => cubit.reload());
   }
 
+  Future<void> _createReversalVoucher(
+    BuildContext context,
+    AccountStatementChatMessageDto msg,
+  ) async {
+    final cubit = context.read<StatementChatCubit>();
+
+    final action = await QaydDialog.show<String>(
+      context: context,
+      icon: Icons.published_with_changes_rounded,
+      title: AppStrings.confirmSystematicReversal,
+      content: AppStrings.systematicReversalExplainer,
+      primaryActionLabel: AppStrings.voucherCreateReversal,
+      onPrimaryAction: () => Navigator.pop(context, 'full'),
+      secondaryActionLabel: AppStrings.correctionAndRedirection,
+      onSecondaryAction: () => Navigator.pop(context, 'partial'),
+      tertiaryActionLabel: AppStrings.templateEditCancel,
+      onTertiaryAction: () => Navigator.pop(context, 'cancel'),
+    );
+
+    if (action == 'full') {
+      if (_mutating) return;
+      setState(() => _mutating = true);
+      final result = await InjectionContainer.createReversalVoucherUseCase.call(
+        originVoucherId: msg.voucherId,
+      );
+      setState(() => _mutating = false);
+      if (!mounted) return;
+      result.fold(
+        (f) => QaydSnackBar.show(context, f.messageAr,
+            type: QaydSnackBarType.error),
+        (_) {
+          QaydSnackBar.show(context, AppStrings.voucherCreatedDraft,
+              type: QaydSnackBarType.success);
+          cubit.reload();
+        },
+      );
+    } else if (action == 'partial') {
+      final reversalType = msg.typeCode == VoucherType.payment.name
+          ? VoucherType.receipt
+          : VoucherType.payment;
+      Navigator.of(context)
+          .push(
+            QaydPageRoute.slideFromStart(
+              builder: (ctx) => MultiBlocProvider(
+                providers: [
+                  BlocProvider<VoucherCreateCubit>(
+                    create: (_) => VoucherCreateCubit(
+                      InjectionContainer.createVoucherUseCase,
+                      InjectionContainer.createTripartiteTransferUseCase,
+                    ),
+                  ),
+                  BlocProvider<VoucherSuggestionsCubit>(
+                    create: (_) => VoucherSuggestionsCubit(
+                      InjectionContainer.getAutoSuggestionsUseCase,
+                      InjectionContainer
+                          .markNotificationMessageProcessedUseCase,
+                    ),
+                  ),
+                ],
+                child: VoucherCreatePage(
+                  initialQrData: {
+                    'type': reversalType,
+                    'date': DateTime.now(),
+                    'amountMinorUnits': msg.amountMinorUnits,
+                    'description':
+                        '${AppStrings.voucherReversalIndicator} — ${msg.description}',
+                    'counterpartyAccountId': msg.otherPartyId,
+                    'currencyCode': msg.currencyCode,
+                    'originVoucherId': msg.voucherId,
+                  },
+                ),
+              ),
+            ),
+          )
+          .then((_) => cubit.reload());
+    }
+  }
+
   Future<void> _withdrawVoucher(BuildContext context, String voucherId) async {
     final cubit = context.read<StatementChatCubit>();
     final state = cubit.state;
@@ -405,6 +483,18 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                       onTap: () {
                         Navigator.pop(ctx);
                         _withdrawVoucher(context, msg.voucherId);
+                      },
+                    ),
+                  if (AgreementStatus.values
+                      .byName(msg.signatureStatusCode)
+                      .isAccepted)
+                    _ActionButton(
+                      icon: Icons.published_with_changes_rounded,
+                      label: AppStrings.voucherCreateReversal,
+                      color: Theme.of(context).extension<QaydCustomColors>()!.goldAccent,
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _createReversalVoucher(context, msg);
                       },
                     ),
                   _ActionButton(
@@ -742,6 +832,18 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                     msg.voucherId, () => GlobalKey());
                                 final balances = allSnapshots[msgIdx];
 
+                                // Find child reversal voucher (if any) for bidirectional navigation
+                                String? childReversalId;
+                                if (!msg.isSettlementMilestone &&
+                                    msg.reversalCount > 0) {
+                                  for (final m in data.messages) {
+                                    if (m.originVoucherId == msg.voucherId) {
+                                      childReversalId = m.voucherId;
+                                      break;
+                                    }
+                                  }
+                                }
+
                                 final msgWidget = msg.isSettlementMilestone
                                     ? _SettlementMilestoneCard(msg: msg)
                                     : _MessageBubble(
@@ -757,6 +859,10 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                         onResubmit: (id) =>
                                             _resubmitVoucher(context, id),
                                         onOriginTap: _scrollToMessage,
+                                        onReversalTap: childReversalId != null
+                                            ? () =>
+                                                _scrollToMessage(childReversalId!)
+                                            : null,
                                         onTap: () => data.isUnified
                                             ? _navigateToCounterpartyChat(
                                                 context,
@@ -1682,6 +1788,7 @@ class _MessageBubble extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
     this.onOriginTap,
+    this.onReversalTap,
   });
 
   final AccountStatementChatMessageDto msg;
@@ -1694,6 +1801,7 @@ class _MessageBubble extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final void Function(String originId)? onOriginTap;
+  final VoidCallback? onReversalTap;
 
   bool get _isIncoming => msg.direction == 'incoming';
   bool get _isOutgoing => msg.direction == 'outgoing';
@@ -2081,6 +2189,83 @@ class _MessageBubble extends StatelessWidget {
                                     ),
                                   ],
                                 ],
+                              ),
+                            ),
+                          ),
+
+                        // ──── Reversal indicator (shown when a corrective entry exists) ────
+                        if (msg.reversalCount > 0)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              SpacingTokens.md,
+                              0,
+                              SpacingTokens.md,
+                              SpacingTokens.xs,
+                            ),
+                            child: InkWell(
+                              onTap: onReversalTap,
+                              borderRadius:
+                                  BorderRadius.circular(RadiusTokens.sm),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: SpacingTokens.sm,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: ColorTokens.errorDeep
+                                      .withValues(alpha: 0.06),
+                                  borderRadius:
+                                      BorderRadius.circular(RadiusTokens.sm),
+                                  border: Border.all(
+                                    color: ColorTokens.errorDeep
+                                        .withValues(alpha: 0.22),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.published_with_changes_rounded,
+                                      size: 13,
+                                      color: ColorTokens.errorDeep,
+                                    ),
+                                    SizedBox(width: SpacingTokens.xs),
+                                    Text(
+                                      AppStrings.voucherReversalIndicator,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: ColorTokens.errorDeep,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    if (msg.reversalCount > 1) ...[
+                                      SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: ColorTokens.errorDeep
+                                              .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                              RadiusTokens.pill),
+                                        ),
+                                        child: Text(
+                                          '×${msg.reversalCount}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: ColorTokens.errorDeep,
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: 9,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
