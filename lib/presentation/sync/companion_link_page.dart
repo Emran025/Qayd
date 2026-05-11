@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/presentation/sync/manual_code_input_page.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CompanionLinkPage extends StatefulWidget {
@@ -165,6 +166,34 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
     super.dispose();
   }
 
+  /// Opens the manual code input screen.
+  /// When the companion submits their keys, we get back a [CompanionLinkSession]
+  /// and immediately hand it off to [_poll] by re-routing our existing polling.
+  Future<void> _openManualCodeInput() async {
+    if (!mounted) return;
+    final CompanionLinkSession? session =
+        await Navigator.of(context).push<CompanionLinkSession>(
+      MaterialPageRoute(
+        builder: (_) => ManualCodeInputPage(
+          onSessionReady: (s) => Navigator.of(context).pop(s),
+        ),
+      ),
+    );
+    if (session == null || !mounted) return;
+    // Swap the current QR session for the manually-established one and
+    // let the existing polling loop pick it up on its next tick.
+    _timer?.cancel();
+    setState(() {
+      _session = session;
+      _busy = false;
+      _timedOut = false;
+      _bootstrapHandled = false;
+      _migrating = false;
+      _attemptCount = 0;
+    });
+    _timer = Timer.periodic(_pollInterval, (_) => _poll());
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = _session;
@@ -245,6 +274,25 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
                           label: Text(AppStrings.retryAction),
                         ),
                       ],
+                      // ── Manual Code option ──────────────────────────────
+                      const SizedBox(height: 10),
+                      const Divider(),
+                      const SizedBox(height: 6),
+                      Text(
+                        AppStrings.manualCodeDividerLabel,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _openManualCodeInput,
+                        icon: const Icon(Icons.keyboard_rounded),
+                        label: Text(AppStrings.manualCodeInputButton),
+                      ),
                     ],
                   ],
                 ),

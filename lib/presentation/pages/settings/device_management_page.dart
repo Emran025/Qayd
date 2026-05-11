@@ -5,6 +5,7 @@ import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
 import 'package:qayd/presentation/sync/device_pairing_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/sync/device_pairing_qr_scanner_page.dart';
+import 'package:qayd/presentation/sync/manual_code_display_page.dart';
 
 class DeviceManagementPage extends StatefulWidget {
   const DeviceManagementPage({super.key});
@@ -105,6 +106,22 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     );
   }
 
+  /// Opens the manual code display screen (PRIMARY device role).
+  /// The Primary generates and displays the 8-char code; waits for Companion to type it.
+  Future<void> _showManualLinkCode() async {
+    if (!mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ManualCodeDisplayPage(
+          onBootstrapSent: () {
+            Navigator.of(context).pop();
+            _cubit.load(); // Refresh device list after linking.
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = _cubit.state;
@@ -147,13 +164,19 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (!_isCompanionDevice)
+                  if (!_isCompanionDevice) ...[
                     OutlinedButton.icon(
                       onPressed: state.isSaving ? null : _scanAndLinkCompanion,
-                      icon: const Icon(Icons.link_rounded),
+                      icon: const Icon(Icons.qr_code_scanner_rounded),
                       label: Text(AppStrings.scanCompanionQr),
-                    )
-                  else
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: state.isSaving ? null : _showManualLinkCode,
+                      icon: const Icon(Icons.dialpad_rounded),
+                      label: Text(AppStrings.manualCodeLinkButton),
+                    ),
+                  ] else
                     Text(
                       AppStrings.companionDeviceRestriction,
                       style: theme.textTheme.bodySmall?.copyWith(

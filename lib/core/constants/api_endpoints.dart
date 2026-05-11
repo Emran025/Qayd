@@ -56,6 +56,9 @@ abstract final class ApiEndpoints {
   static const String devicesCompanionBootstrap =
       '$v1/devices/companion/bootstrap';
   static const String devicesCompanionConsume = '$v1/devices/companion/consume';
+  static const String devicesCompanionGenerateCode = '$v1/devices/companion/generate-code';
+  static const String devicesCompanionSubmitData = '$v1/devices/companion/submit-data';
+  static const String devicesCompanionPollCode = '$v1/devices/companion/poll-code';
   static String deviceRevoke(String deviceId) => '$v1/devices/$deviceId/revoke';
 
   // ── Support & Documents ─────────────────────────────────────────────────

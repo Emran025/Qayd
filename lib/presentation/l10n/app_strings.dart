@@ -2514,7 +2514,25 @@ class AppStrings {
   static String showLabelInBonds(String label) => i.showLabelInBonds(label);
   static String searchBondsForStatus(String status) => i.searchBondsForStatus(status);
   static String settledWithSurplus(String amount, String currency) => i.settledWithSurplus(amount, currency);
+
+  // ── Manual Device Linking (WhatsApp-style) ─────────────────────────────────
+  static String get manualCodeLinkButton => i.manualCodeLinkButton;
+  static String get manualCodeDisplayTitle => i.manualCodeDisplayTitle;
+  static String get manualCodeDisplayInstruction => i.manualCodeDisplayInstruction;
+  static String get manualCodeCopied => i.manualCodeCopied;
+  static String get manualCodeWaitingForCompanion => i.manualCodeWaitingForCompanion;
+  static String get manualCodeExpired => i.manualCodeExpired;
+  static String get manualCodeDividerLabel => i.manualCodeDividerLabel;
+  static String get manualCodeInputButton => i.manualCodeInputButton;
+  static String get manualCodeInputTitle => i.manualCodeInputTitle;
+  static String get manualCodeInputInstruction => i.manualCodeInputInstruction;
+  static String get manualCodeInputHint => i.manualCodeInputHint;
+  static String get manualCodeSubmit => i.manualCodeSubmit;
+  static String get manualCodeSubmitting => i.manualCodeSubmitting;
+  static String get manualCodeInvalidOrExpired => i.manualCodeInvalidOrExpired;
+  static String get manualCodeTooManyAttempts => i.manualCodeTooManyAttempts;
 }
+
 
 
 

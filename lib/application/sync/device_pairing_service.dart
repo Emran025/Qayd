@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:qayd/application/sync/audit_sync_compression_service.dart';
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
+import 'package:qayd/application/sync/manual_link_service.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/domain/entities/audit_entry.dart';
 import 'package:qayd/domain/entities/device_session.dart';
@@ -143,6 +144,67 @@ class DevicePairingService {
     final knownDeviceIds = sessionsBefore.map((s) => s.deviceId).toSet();
     final bridgeStartedAt = DateTime.now().toUtc();
     await companionLinkService.sendBootstrapToCompanion(scannedQr: scannedQr);
+    unawaited(
+      _discoverCompanionAndDispatchSnapshot(
+        knownDeviceIds: knownDeviceIds,
+        bridgeStartedAt: bridgeStartedAt,
+        cancel: cancel,
+      ),
+    );
+  }
+
+  /// PRIMARY DEVICE (Manual Code flow):
+  /// Polls the server until the Companion enters the displayed code,
+  /// then sends the bootstrap payload — same path as after QR scan.
+  ///
+  /// [shortCode]: the 8-char code already generated and displayed to the user.
+  /// [manualLinkService]: injected to perform the polling.
+  /// [approvalGate]: confirmation dialog before sending credentials.
+  Future<void> sendCompanionBootstrapViaCode({
+    required String shortCode,
+    required ManualLinkService manualLinkService,
+    required Future<bool> Function() approvalGate,
+  }) async {
+    if (await licenseVault.isCompanionDevice()) {
+      throw StateError(
+        'Companion devices are not allowed to authorize new pairings.',
+      );
+    }
+
+    // Poll the server until the Companion submits their data.
+    const pollInterval = Duration(seconds: 5);
+    const maxAttempts = 120; // 10 minutes (120 × 5s)
+    CompanionPairingData? companionData;
+
+    for (var i = 0; i < maxAttempts; i++) {
+      companionData = await manualLinkService.pollForCompanionData(shortCode: shortCode);
+      if (companionData != null) break;
+      await Future<void>.delayed(pollInterval);
+    }
+
+    if (companionData == null) {
+      throw StateError('Timed out waiting for Companion to enter the code.');
+    }
+
+    // Approval gate — ask the Primary user to confirm linking.
+    final approved = await approvalGate();
+    if (!approved) {
+      throw StateError('Companion linking cancelled by user.');
+    }
+
+    // Cancel previous discovery and start a new one.
+    _discoveryCancel?.complete();
+    _discoveryCancel = Completer<void>();
+    final cancel = _discoveryCancel!;
+
+    final sessionsBefore = await deviceSessionRepository.listAll();
+    final knownDeviceIds = sessionsBefore.map((s) => s.deviceId).toSet();
+    final bridgeStartedAt = DateTime.now().toUtc();
+
+    await companionLinkService.sendBootstrapToCompanionViaCode(
+      companionData: companionData,
+    );
+
     unawaited(
       _discoverCompanionAndDispatchSnapshot(
         knownDeviceIds: knownDeviceIds,

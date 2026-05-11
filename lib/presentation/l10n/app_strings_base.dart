@@ -2657,6 +2657,55 @@ abstract class AppStringsBase {
   String showLabelInBonds(String label) => 'إظهار $label في السندات';
   String searchBondsForStatus(String status) => 'ابحث في قائمة السندات عن حالة $status';
   String settledWithSurplus(String amount, String currency) => 'تمت التسوية. فائض: $amount $currency';
+
+  // ── Manual Device Linking (WhatsApp-style) ─────────────────────────────────
+  /// PRIMARY device: button in DeviceManagementPage to switch to code display mode.
+  String get manualCodeLinkButton => 'ربط بالرمز النصي';
+
+  /// PRIMARY device: AppBar title for ManualCodeDisplayPage.
+  String get manualCodeDisplayTitle => 'رمز الربط اليدوي';
+
+  /// PRIMARY device: instruction shown above the code.
+  String get manualCodeDisplayInstruction =>
+      'أدخل هذا الرمز في جهازك التابع لإتمام الربط.';
+
+  /// PRIMARY device: SnackBar when code is copied.
+  String get manualCodeCopied => 'تم نسخ الرمز.';
+
+  /// PRIMARY device: shown while waiting for Companion to enter the code.
+  String get manualCodeWaitingForCompanion => 'في انتظار إدخال الرمز على الجهاز التابع...';
+
+  /// PRIMARY/COMPANION: code has expired.
+  String get manualCodeExpired => 'انتهت صلاحية الرمز. يمكنك توليد رمز جديد.';
+
+  /// COMPANION device: divider label in CompanionLinkPage.
+  String get manualCodeDividerLabel => 'أو إذا لم تتمكن من مسح الرمز';
+
+  /// COMPANION device: button in CompanionLinkPage to switch to code input mode.
+  String get manualCodeInputButton => 'إدخال رمز الربط يدوياً';
+
+  /// COMPANION device: AppBar title for ManualCodeInputPage.
+  String get manualCodeInputTitle => 'إدخال رمز الربط';
+
+  /// COMPANION device: instruction shown above the input fields.
+  String get manualCodeInputInstruction =>
+      'أدخل الرمز المعروض على جهازك الرئيسي للمتابعة.';
+
+  /// COMPANION device: helper text below input.
+  String get manualCodeInputHint => 'الرمز مكون من 8 أحرف وأرقام، صالح لمدة 10 دقائق.';
+
+  /// COMPANION device: submit button label.
+  String get manualCodeSubmit => 'إرسال الرمز';
+
+  /// COMPANION device: submit button while loading.
+  String get manualCodeSubmitting => 'جاري الإرسال...';
+
+  /// COMPANION device: error when code is invalid or expired.
+  String get manualCodeInvalidOrExpired => 'الرمز غير صحيح أو منتهي الصلاحية.';
+
+  /// COMPANION device: error when too many attempts.
+  String get manualCodeTooManyAttempts =>
+      'تجاوزت عدد المحاولات المسموح بها. يرجى توليد رمز جديد من الجهاز الرئيسي.';
 }
 
 

@@ -4929,6 +4929,41 @@ class AppStringsEn extends AppStringsBase {
   String searchBondsForStatus(String status) => 'Search in the voucher list for $status status';
   @override
   String settledWithSurplus(String amount, String currency) => 'Settled. Surplus: $amount $currency';
+
+  // ── Manual Device Linking (WhatsApp-style) ─────────────────────────────────
+  @override
+  String get manualCodeLinkButton => 'Link via Text Code';
+  @override
+  String get manualCodeDisplayTitle => 'Manual Link Code';
+  @override
+  String get manualCodeDisplayInstruction =>
+      'Enter this code on your companion device to complete pairing.';
+  @override
+  String get manualCodeCopied => 'Code copied.';
+  @override
+  String get manualCodeWaitingForCompanion => 'Waiting for companion to enter the code...';
+  @override
+  String get manualCodeExpired => 'The code has expired. You can generate a new one.';
+  @override
+  String get manualCodeDividerLabel => 'Or if you cannot scan the QR code';
+  @override
+  String get manualCodeInputButton => 'Enter Pairing Code Manually';
+  @override
+  String get manualCodeInputTitle => 'Enter Pairing Code';
+  @override
+  String get manualCodeInputInstruction =>
+      'Enter the code shown on your primary device to continue.';
+  @override
+  String get manualCodeInputHint => 'The code is 8 alphanumeric characters, valid for 10 minutes.';
+  @override
+  String get manualCodeSubmit => 'Submit Code';
+  @override
+  String get manualCodeSubmitting => 'Submitting...';
+  @override
+  String get manualCodeInvalidOrExpired => 'The code is incorrect or expired.';
+  @override
+  String get manualCodeTooManyAttempts =>
+      'Too many failed attempts. Please ask the primary device to generate a new code.';
 }
 
 

@@ -119,6 +119,7 @@ import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/application/sync/device_pairing_qr_service.dart';
 import 'package:qayd/application/sync/device_pairing_service.dart';
 import 'package:qayd/application/sync/device_pairing_facade.dart';
+import 'package:qayd/application/sync/manual_link_service.dart';
 import 'package:qayd/application/sync/sync_facade.dart';
 import 'package:qayd/application/sync/sync_payload_processor.dart';
 import 'package:qayd/data/network/sync_socket_service.dart';
@@ -366,6 +367,7 @@ abstract final class InjectionContainer {
   static late AuditSyncProcessor auditSyncProcessor;
   static late DevicePairingService devicePairingService;
   static late CompanionLinkService companionLinkService;
+  static late ManualLinkService manualLinkService;
   static late DevicePairingFacade devicePairingFacade;
   static late SyncFacade syncFacade;
   static late P2PSyncService p2pSyncService;
@@ -510,6 +512,7 @@ abstract final class InjectionContainer {
       deviceRegistryRepository: deviceRegistryRepository,
       getCurrentDeviceId: () async => currentDeviceId,
     );
+    manualLinkService = ManualLinkService(apiClient: apiClient);
     updateProfileUseCase = UpdateProfileUseCase(
       identityRepository: identityRepository,
       licenseVault: licenseVault,
@@ -784,6 +787,7 @@ abstract final class InjectionContainer {
     devicePairingFacade = DevicePairingFacade(
       pairingService: devicePairingService,
       sessionRepository: deviceSessionRepository,
+      manualLinkService: manualLinkService,
     );
 
     if (userId > 0) {
