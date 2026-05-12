@@ -146,9 +146,13 @@ class SyncPayloadProcessor {
     return partyRow.valueOrNull ?? PartyDetails(accountId: accountId);
   }
 
-  /// Ingests a list of pushed/pulled encrypted sync nodes
-  Future<void> processIncomingNodes(List<SyncNode> nodes) async {
+  /// Ingests a list of pushed/pulled encrypted sync nodes.
+  ///
+  /// Returns the set of [SyncNode.id] values that were fully handled (decrypted
+  /// and domain logic applied). Callers should only [acknowledge] those ids.
+  Future<Set<String>> processIncomingNodes(List<SyncNode> nodes) async {
     final myKeyPair = await getCurrentUserKeyPair();
+    final appliedIds = <String>{};
 
     for (final node in nodes) {
       try {
@@ -250,7 +254,14 @@ class SyncPayloadProcessor {
             );
             break;
           case SyncEventType.auditBatch:
-            await _inboundAuditBatch(decryptedRawPayload);
+            final applied = await _inboundAuditBatch(decryptedRawPayload);
+            if (!applied) {
+              debugPrint(
+                'Sync: Skipping ack for SyncNode [${node.id}]: '
+                'audit batch produced no local changes.',
+              );
+              continue;
+            }
             break;
           case SyncEventType.credentialBootstrap:
             // Bootstrap is consumed in pre-auth companion flow.
@@ -272,21 +283,24 @@ class SyncPayloadProcessor {
             debugPrint('Warning: Unknown event type in SyncNode [${node.id}]');
             break;
         }
+        appliedIds.add(node.id);
       } catch (e) {
         debugPrint('Security Pipeline Failure for SyncNode [${node.id}]: $e');
       }
     }
+    return appliedIds;
   }
 
-  Future<void> _inboundAuditBatch(Map<String, dynamic> payload) async {
+  /// Returns `true` when at least one audit entry was ingested locally.
+  Future<bool> _inboundAuditBatch(Map<String, dynamic> payload) async {
     final processor = auditSyncProcessor;
-    if (processor == null) return;
+    if (processor == null) return false;
 
     final encoding = payload['encoding'] as String?;
     final maps = <Map<String, dynamic>>[];
     if (encoding == 'gzip+base64') {
       final encoded = payload['entries_gzip'] as String?;
-      if (encoded == null || encoded.isEmpty) return;
+      if (encoded == null || encoded.isEmpty) return false;
       final unzipped = gzip.decode(base64Decode(encoded));
       final decoded = jsonDecode(utf8.decode(unzipped)) as List<dynamic>;
       maps.addAll(
@@ -298,7 +312,7 @@ class SyncPayloadProcessor {
         entries.whereType<Map>().map((e) => Map<String, dynamic>.from(e)),
       );
     }
-    if (maps.isEmpty) return;
+    if (maps.isEmpty) return false;
     await processor.processBatch(maps);
 
     final batchIndex = payload['batch_index'] as int?;
@@ -314,6 +328,7 @@ class SyncPayloadProcessor {
           'SyncPayloadProcessor: Received last batch of initial snapshot.');
       await InjectionContainer.licenseVault.markInitialSyncComplete();
     }
+    return true;
   }
 
   Future<void> _inboundVoucherClaim(

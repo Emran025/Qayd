@@ -81,10 +81,14 @@ class SyncCoordinatorService {
         return;
       }
       // Pass the encrypted wrapper into the Crypto Engine for authentication/decryption
-      await payloadProcessor.processIncomingNodes([node]);
+      final appliedIds = await payloadProcessor.processIncomingNodes([node]);
 
-      // Auto-acknowledge receipt to update the server's tracking state
-      await _acknowledge([node.id], 'delivered');
+      // Only acknowledge nodes that were actually decrypted and applied locally.
+      // Otherwise the server may delete device-scoped audit batches (see acknowledge())
+      // while the companion never persisted business data.
+      if (appliedIds.contains(node.id)) {
+        await _acknowledge([node.id], 'delivered');
+      }
 
       // Trigger Native Notification and persist to inbox if it's an important event
       // AND user has not disabled peer activity notifications.
@@ -199,10 +203,12 @@ class SyncCoordinatorService {
           .toList();
       if (targetNodes.isNotEmpty) {
         // Feed caught-up nodes firmly into local verification pipelines
-        await payloadProcessor.processIncomingNodes(targetNodes);
+        final appliedIds =
+            await payloadProcessor.processIncomingNodes(targetNodes);
 
-        final ids = targetNodes.map((e) => e.id).toList();
-        await _acknowledge(ids, 'delivered');
+        if (appliedIds.isNotEmpty) {
+          await _acknowledge(appliedIds.toList(), 'delivered');
+        }
       }
     } catch (e) {
       debugPrint('Sync: ❌ Catch-Up error: $e');
@@ -218,6 +224,7 @@ class SyncCoordinatorService {
         final node = SyncNode(
           id: entry.id,
           senderId: currentUserId,
+          receiverId: currentUserId,
           receiverPublicKey: null,
           eventType: SyncEventType.auditBatch,
           encryptedPayload: entry.encryptedPayload,
