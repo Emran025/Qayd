@@ -1544,7 +1544,7 @@ abstract class AppStringsBase {
   String get settingsGroupCurrency => 'العملات والتحويل';
   String get settingsFiscalPeriodsSubtitle =>
       'فترات محاسبية، لقطات أرصدة موقعة، وترحيل';
-  String get settingsFiscalPeriodsTitle => 'الفترات المالية (Qayd V3)';
+  String get settingsFiscalPeriodsTitle => 'الفترات المالية';
   String get settingsGroupNotifications => 'تفضيلات الإشعارات';
   String get settingsGroupProfile => 'بيانات الحساب والهوية';
   String get settingsGroupSecurity => 'القفل والحماية';
@@ -2314,6 +2314,9 @@ abstract class AppStringsBase {
   String get whatsappBusiness => 'واتساب للأعمال';
   String get whatsappIsNotInstalled => 'واتساب غير مثبت على هذا الجهاز.';
   String get withdrawdelete => 'سحب/حذف';
+  String get showRevertedOperations => 'عرض المتراجعة/المحذوفة';
+  String get actionLabel => 'نوع العملية';
+  String get severityLabel => 'مستوى الخطورة';
   String get withoutDescription => 'بدون وصف';
   String get writeMessageDetailsHere => 'اكتب تفاصيل الرسالة هنا...';
   String get yemen => 'اليمن';
@@ -2609,6 +2612,8 @@ abstract class AppStringsBase {
 
   // Companion Link UI Strings
   String get companionBootstrapSentSuccess => 'تم إرسال بيانات الدخول للجهاز بنجاح.';
+  String get companionBootstrapSentSuccessDesc =>
+      'يمكنك الآن البدء باستخدام التطبيق على الجهاز التابع.';
   String get companionBootstrapSentError => 'فشل في إرسال بيانات الدخول للجهاز المرتبط.';
   String get companionCredentialsFailed => 'فشل في استلام بيانات الجهاز المرتبط.';
   String get linkAsCompanionDevice => 'الدخول كجهاز مرتبط';
@@ -2706,6 +2711,9 @@ abstract class AppStringsBase {
   /// COMPANION device: error when too many attempts.
   String get manualCodeTooManyAttempts =>
       'تجاوزت عدد المحاولات المسموح بها. يرجى توليد رمز جديد من الجهاز الرئيسي.';
+
+  /// PRIMARY/COMPANION: additional description for expired code.
+  String get manualCodeExpiredDesc => 'يمكنك توليد رمز جديد من صفحة إدارة الأجهزة.';
 }
 
 

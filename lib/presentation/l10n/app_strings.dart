@@ -331,6 +331,9 @@ class AppStrings {
   static String get cameroon => i.cameroon;
   static String get canada => i.canada;
   static String get cancellation => i.cancellation;
+  static String get showRevertedOperations => i.showRevertedOperations;
+  static String get actionLabel => i.actionLabel;
+  static String get severityLabel => i.severityLabel;
   static String get capeVerde => i.capeVerde;
   static String get carFurniturePersonalItems => i.carFurniturePersonalItems;
   static String get cashAndLiquidity => i.cashAndLiquidity;
@@ -2464,6 +2467,8 @@ class AppStrings {
 
   static String get companionBootstrapSentSuccess =>
       i.companionBootstrapSentSuccess;
+  static String get companionBootstrapSentSuccessDesc =>
+      i.companionBootstrapSentSuccessDesc;
   static String get companionBootstrapSentError =>
       i.companionBootstrapSentError;
   static String get companionCredentialsFailed => i.companionCredentialsFailed;
@@ -2531,6 +2536,7 @@ class AppStrings {
   static String get manualCodeSubmitting => i.manualCodeSubmitting;
   static String get manualCodeInvalidOrExpired => i.manualCodeInvalidOrExpired;
   static String get manualCodeTooManyAttempts => i.manualCodeTooManyAttempts;
+  static String get manualCodeExpiredDesc => i.manualCodeExpiredDesc;
 }
 
 

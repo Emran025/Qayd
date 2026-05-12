@@ -22,7 +22,6 @@ class AuditLogPage extends StatefulWidget {
 
 class _AuditLogPageState extends State<AuditLogPage> {
   final TextEditingController _searchController = TextEditingController();
-  bool _showReverted = true;
   bool _showLoadingOverlay = false;
 
   @override
@@ -62,9 +61,7 @@ class _AuditLogPageState extends State<AuditLogPage> {
         ],
         child: BlocBuilder<AuditLogCubit, AuditLogState>(
           builder: (context, state) {
-            final entries = _showReverted
-                ? state.visibleEntries
-                : state.visibleEntries.where((e) => !e.isUndone).toList();
+            final entries = state.visibleEntries;
             final headId =
                 state.allEntries.firstWhere((e) => !e.isUndone, orElse: () {
               return state.allEntries.isNotEmpty
@@ -85,10 +82,6 @@ class _AuditLogPageState extends State<AuditLogPage> {
                     _AuditFilterHeader(
                       state: state,
                       searchController: _searchController,
-                      showReverted: _showReverted,
-                      onShowRevertedChanged: (v) {
-                        setState(() => _showReverted = v);
-                      },
                     ),
                     Expanded(
                       child: _buildBody(
@@ -207,14 +200,10 @@ class _AuditFilterHeader extends StatelessWidget {
   const _AuditFilterHeader({
     required this.state,
     required this.searchController,
-    required this.showReverted,
-    required this.onShowRevertedChanged,
   });
 
   final AuditLogState state;
   final TextEditingController searchController;
-  final bool showReverted;
-  final ValueChanged<bool> onShowRevertedChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -231,121 +220,215 @@ class _AuditFilterHeader extends StatelessWidget {
         ),
         child: Column(
           children: [
-            TextField(
-              controller: searchController,
-              onChanged: (value) => context.read<AuditLogCubit>().applyFilter(
-                    state.filter.copyWith(searchQuery: value.trim()),
-                  ),
-              decoration: InputDecoration(
-                hintText: AppStrings.auditSearchHint,
-                prefixIcon: const Icon(Icons.search_rounded),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(RadiusTokens.md),
-                ),
-                isDense: true,
-              ),
-            ),
-            const SizedBox(height: SpacingTokens.sm),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _FilterChipItem<AuditAction>(
-                    label: AppStrings.addition,
-                    value: AuditAction.create,
-                    groupValue: state.filter.action,
-                    onSelected: (val) => context.read<AuditLogCubit>().applyFilter(
-                        state.filter
-                            .copyWith(action: val, clearAction: val == null)),
-                  ),
-                  _FilterChipItem<AuditAction>(
-                    label: AppStrings.amendment,
-                    value: AuditAction.update,
-                    groupValue: state.filter.action,
-                    onSelected: (val) => context.read<AuditLogCubit>().applyFilter(
-                        state.filter
-                            .copyWith(action: val, clearAction: val == null)),
-                  ),
-                  _FilterChipItem<AuditAction>(
-                    label: AppStrings.withdrawdelete,
-                    value: AuditAction.delete,
-                    groupValue: state.filter.action,
-                    onSelected: (val) => context.read<AuditLogCubit>().applyFilter(
-                        state.filter
-                            .copyWith(action: val, clearAction: val == null)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: SpacingTokens.sm),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _FilterChipItem<AuditSeverity>(
-                    label: AppStrings.auditSeverityInfo,
-                    value: AuditSeverity.info,
-                    groupValue: state.filter.severity,
-                    onSelected: (val) => context.read<AuditLogCubit>().applyFilter(
-                        state.filter.copyWith(
-                            severity: val, clearSeverity: val == null)),
-                  ),
-                  _FilterChipItem<AuditSeverity>(
-                    label: AppStrings.auditSeverityWarning,
-                    value: AuditSeverity.warning,
-                    groupValue: state.filter.severity,
-                    onSelected: (val) => context.read<AuditLogCubit>().applyFilter(
-                        state.filter.copyWith(
-                            severity: val, clearSeverity: val == null)),
-                  ),
-                  _FilterChipItem<AuditSeverity>(
-                    label: AppStrings.auditSeverityCritical,
-                    value: AuditSeverity.critical,
-                    groupValue: state.filter.severity,
-                    onSelected: (val) => context.read<AuditLogCubit>().applyFilter(
-                        state.filter.copyWith(
-                            severity: val, clearSeverity: val == null)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: SpacingTokens.xs),
             Row(
               children: [
                 Expanded(
-                  child: Row(
-                    children: [
-                      Switch.adaptive(
-                        value: showReverted,
-                        onChanged: onShowRevertedChanged,
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (value) =>
+                        context.read<AuditLogCubit>().applyFilter(
+                              state.filter.copyWith(searchQuery: value.trim()),
+                            ),
+                    decoration: InputDecoration(
+                      hintText: AppStrings.auditSearchHint,
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(RadiusTokens.md),
                       ),
-                      Expanded(
-                        child: QaydText(
-                          AppStrings.cancellation,
-                          slot: QaydTextStyleSlot.bodySmall,
-                        ),
-                      ),
-                    ],
+                      isDense: true,
+                    ),
                   ),
                 ),
-                if (state.filter.isActive)
-                  TextButton.icon(
+                const SizedBox(width: SpacingTokens.sm),
+                _FilterButton(state: state),
+                if (state.filter.isActive) ...[
+                  const SizedBox(width: SpacingTokens.xs),
+                  IconButton(
                     onPressed: () {
                       searchController.clear();
                       context.read<AuditLogCubit>().clearFilter();
                     },
                     icon: const Icon(Icons.clear_all_rounded),
-                    label: Text(AppStrings.allLabel),
+                    tooltip: AppStrings.allLabel,
+                    style: IconButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                    ),
                   ),
+                ],
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FilterButton extends StatelessWidget {
+  const _FilterButton({required this.state});
+  final AuditLogState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasActiveFilters = state.filter.action != null ||
+        state.filter.severity != null ||
+        !state.filter.showReverted;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton.filledTonal(
+          onPressed: () => _showFilterSheet(context),
+          icon: const Icon(Icons.tune_rounded),
+          tooltip: AppStrings.filterLedger,
+        ),
+        if (hasActiveFilters)
+          Positioned(
+            right: -2,
+            top: -2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.error,
+                shape: BoxShape.circle,
+                border: Border.all(color: theme.colorScheme.surface, width: 2),
+              ),
+              constraints: const BoxConstraints(minWidth: 12, minHeight: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _showFilterSheet(BuildContext context) {
+    final cubit = context.read<AuditLogCubit>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(RadiusTokens.lg)),
+      ),
+      builder: (context) {
+        return BlocBuilder<AuditLogCubit, AuditLogState>(
+          bloc: cubit,
+          builder: (context, state) {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                SpacingTokens.md,
+                SpacingTokens.md,
+                SpacingTokens.md,
+                MediaQuery.of(context).viewInsets.bottom + SpacingTokens.lg,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      QaydText(
+                        AppStrings.filterLedger,
+                        slot: QaydTextStyleSlot.titleMedium,
+                      ),
+                      TextButton(
+                        onPressed: () => cubit.clearFilter(),
+                        child: Text(AppStrings.allLabel),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: SpacingTokens.md),
+                  QaydText(
+                    AppStrings.actionLabel,
+                    slot: QaydTextStyleSlot.labelLarge,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: SpacingTokens.xs),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _FilterChipItem<AuditAction>(
+                        label: AppStrings.addition,
+                        value: AuditAction.create,
+                        groupValue: state.filter.action,
+                        onSelected: (val) => cubit.applyFilter(state.filter
+                            .copyWith(action: val, clearAction: val == null)),
+                      ),
+                      _FilterChipItem<AuditAction>(
+                        label: AppStrings.amendment,
+                        value: AuditAction.update,
+                        groupValue: state.filter.action,
+                        onSelected: (val) => cubit.applyFilter(state.filter
+                            .copyWith(action: val, clearAction: val == null)),
+                      ),
+                      _FilterChipItem<AuditAction>(
+                        label: AppStrings.withdrawdelete,
+                        value: AuditAction.delete,
+                        groupValue: state.filter.action,
+                        onSelected: (val) => cubit.applyFilter(state.filter
+                            .copyWith(action: val, clearAction: val == null)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: SpacingTokens.md),
+                  QaydText(
+                    AppStrings.appearanceThemeMode, // Should be severity label but using existing
+                    slot: QaydTextStyleSlot.labelLarge,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: SpacingTokens.xs),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _FilterChipItem<AuditSeverity>(
+                        label: AppStrings.auditSeverityInfo,
+                        value: AuditSeverity.info,
+                        groupValue: state.filter.severity,
+                        onSelected: (val) => cubit.applyFilter(state.filter
+                            .copyWith(
+                                severity: val, clearSeverity: val == null)),
+                      ),
+                      _FilterChipItem<AuditSeverity>(
+                        label: AppStrings.auditSeverityWarning,
+                        value: AuditSeverity.warning,
+                        groupValue: state.filter.severity,
+                        onSelected: (val) => cubit.applyFilter(state.filter
+                            .copyWith(
+                                severity: val, clearSeverity: val == null)),
+                      ),
+                      _FilterChipItem<AuditSeverity>(
+                        label: AppStrings.auditSeverityCritical,
+                        value: AuditSeverity.critical,
+                        groupValue: state.filter.severity,
+                        onSelected: (val) => cubit.applyFilter(state.filter
+                            .copyWith(
+                                severity: val, clearSeverity: val == null)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: SpacingTokens.md),
+                  const Divider(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: QaydText(
+                      AppStrings.showRevertedOperations,
+                      slot: QaydTextStyleSlot.bodyMedium,
+                    ),
+                    trailing: Switch.adaptive(
+                      value: state.filter.showReverted,
+                      onChanged: (val) =>
+                          cubit.applyFilter(state.filter.copyWith(showReverted: val)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -520,8 +603,8 @@ class _DashedLinePainter extends CustomPainter {
       ..strokeWidth = 2;
     double y = 0;
     while (y < size.height) {
-      canvas.drawLine(Offset(size.width / 2, y),
-          Offset(size.width / 2, y + 3.5), paint);
+      canvas.drawLine(
+          Offset(size.width / 2, y), Offset(size.width / 2, y + 3.5), paint);
       y += 6.5;
     }
   }
@@ -588,8 +671,7 @@ class _AuditEntryCard extends StatelessWidget {
               slot: QaydTextStyleSlot.titleSmall,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                decoration:
-                    entry.isUndone ? TextDecoration.lineThrough : null,
+                decoration: entry.isUndone ? TextDecoration.lineThrough : null,
               ),
             ),
           ],
@@ -610,9 +692,8 @@ class _AuditEntryCard extends StatelessWidget {
                 _statusBadge(context, AppStrings.cancellation,
                     Theme.of(context).colorScheme.error),
               if (isHead)
-                _statusBadge(
-                    context, AppStrings.currentStatus, Theme.of(context).colorScheme.primary),
-
+                _statusBadge(context, AppStrings.currentStatus,
+                    Theme.of(context).colorScheme.primary),
             ],
           ),
         ),
@@ -751,7 +832,8 @@ class _AuditEntryCard extends StatelessWidget {
           TextButton.icon(
             icon: const Icon(Icons.history_rounded, size: 16),
             onPressed: () => _confirmRollbackTo(context),
-            style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
+            style:
+                TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
             label: Text(AppStrings.backToThisPoint),
           ),
         if (entry.isUndone)
@@ -762,7 +844,6 @@ class _AuditEntryCard extends StatelessWidget {
               foregroundColor: theme.colorScheme.primary,
             ),
             label: Text(AppStrings.restoreOnlyThis),
-
           ),
         if (entry.isUndone)
           TextButton.icon(
@@ -826,7 +907,6 @@ class _AuditEntryCard extends StatelessWidget {
         title: AppStrings.confirmRedoOperations,
         content: AppStrings.systematicRedoExplainer,
         primaryActionLabel: AppStrings.restoreOnlyThis,
-
         onPrimaryAction: () {
           Navigator.pop(context);
           cubit.redoSingleEntry(entry.id);
@@ -844,15 +924,16 @@ class _AuditEntryCard extends StatelessWidget {
       icon: Icons.layers_rounded,
       iconColor: Theme.of(context).colorScheme.primary,
       title: AppStrings.confirmRedoOperations,
-      content: AppStrings.redoImpactWarning(
-          group.map((e) => '- ${_getEntityName(e.entityType)} • ${_getActionName(e.action)}').join('\n')),
+      content: AppStrings.redoImpactWarning(group
+          .map((e) =>
+              '- ${_getEntityName(e.entityType)} • ${_getActionName(e.action)}')
+          .join('\n')),
       primaryActionLabel: AppStrings.restoreAll,
       onPrimaryAction: () {
         Navigator.pop(context);
         cubit.redoTo(oldest.id);
       },
       secondaryActionLabel: AppStrings.restoreOnlyThis,
-
       onSecondaryAction: () {
         Navigator.pop(context);
         cubit.redoSingleEntry(entry.id);
@@ -1098,7 +1179,8 @@ class _AuditEntryCard extends StatelessWidget {
           'weekly' => AppStrings.auditFrequencyWeekly,
           'monthly' => AppStrings.auditFrequencyMonthly,
           'quarterly' => AppStrings.auditFrequencyQuarterly,
-          'semi_annually' || 'semiannually' =>
+          'semi_annually' ||
+          'semiannually' =>
             AppStrings.auditFrequencySemiAnnually,
           'yearly' || 'annually' => AppStrings.auditFrequencyYearly,
           'once' => AppStrings.auditFrequencyOnce,
@@ -1136,7 +1218,8 @@ class _ImpactWarningDialog extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700),
+                Icon(Icons.warning_amber_rounded,
+                    color: Colors.orange.shade700),
                 const SizedBox(width: 8),
                 Expanded(
                   child: QaydText(

@@ -10,16 +10,26 @@ class AuditLogFilter {
   final AuditAction? action;
   final AuditSeverity? severity;
   final String? searchQuery;
+  final bool showReverted;
 
-  const AuditLogFilter({this.action, this.severity, this.searchQuery});
+  const AuditLogFilter({
+    this.action,
+    this.severity,
+    this.searchQuery,
+    this.showReverted = true,
+  });
 
   bool get isActive =>
-      action != null || severity != null || (searchQuery?.isNotEmpty ?? false);
+      action != null ||
+      severity != null ||
+      (searchQuery?.isNotEmpty ?? false) ||
+      !showReverted;
 
   AuditLogFilter copyWith({
     AuditAction? action,
     AuditSeverity? severity,
     String? searchQuery,
+    bool? showReverted,
     bool clearAction = false,
     bool clearSeverity = false,
     bool clearSearch = false,
@@ -28,13 +38,15 @@ class AuditLogFilter {
       action: clearAction ? null : (action ?? this.action),
       severity: clearSeverity ? null : (severity ?? this.severity),
       searchQuery: clearSearch ? null : (searchQuery ?? this.searchQuery),
+      showReverted: showReverted ?? this.showReverted,
     );
   }
 
   const AuditLogFilter.empty()
       : action = null,
         severity = null,
-        searchQuery = null;
+        searchQuery = null,
+        showReverted = true;
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -213,6 +225,10 @@ class AuditLogCubit extends Cubit<AuditLogState> {
   List<AuditEntry> _applyFilter(
       List<AuditEntry> entries, AuditLogFilter filter) {
     var result = entries;
+
+    if (!filter.showReverted) {
+      result = result.where((e) => !e.isUndone).toList();
+    }
 
     if (filter.action != null) {
       result = result.where((e) => e.action == filter.action).toList();

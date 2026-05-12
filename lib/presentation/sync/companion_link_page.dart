@@ -3,8 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
+import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
+import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
+import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/sync/manual_code_input_page.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CompanionLinkPage extends StatefulWidget {
@@ -71,8 +77,6 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
     if (session == null || _busy || _migrating) return;
 
     // Guard against the Timer firing a second time before cancel() takes effect.
-    // This can happen in Grace Window scenarios where the server returns the
-    // same payload for a brief period after consumption.
     if (_bootstrapHandled) return;
 
     // Hard timeout guard — stop polling if Primary never scans within window.
@@ -167,8 +171,6 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
   }
 
   /// Opens the manual code input screen.
-  /// When the companion submits their keys, we get back a [CompanionLinkSession]
-  /// and immediately hand it off to [_poll] by re-routing our existing polling.
   Future<void> _openManualCodeInput() async {
     if (!mounted) return;
     final CompanionLinkSession? session =
@@ -180,8 +182,6 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
       ),
     );
     if (session == null || !mounted) return;
-    // Swap the current QR session for the manually-established one and
-    // let the existing polling loop pick it up on its next tick.
     _timer?.cancel();
     setState(() {
       _session = session;
@@ -197,106 +197,185 @@ class _CompanionLinkPageState extends State<CompanionLinkPage> {
   @override
   Widget build(BuildContext context) {
     final session = _session;
-    return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.linkAsCompanionDevice)),
-      body: Center(
-        child: (_busy && session == null)
-            ? const CircularProgressIndicator()
-            : Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_timedOut) ...[
-                      const Icon(Icons.timer_off_outlined,
-                          size: 48, color: Colors.orange),
-                      const SizedBox(height: 12),
-                      Text(
-                        AppStrings.companionCredentialsFailed,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        onPressed: _startSession,
-                        icon: const Icon(Icons.refresh),
-                        label: Text(AppStrings.regenerateQrCode),
-                      ),
-                    ] else if (_migrating) ...[
-                      const SizedBox(height: 32),
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 24),
-                      Text(
-                        _migrationProgressText,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppStrings.migratingDataSubtitle,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+    return AuthGradientScaffold(
+      child: SafeArea(
+        child: Stack(
+          children: [
+            // Main Centered Content
+            Positioned.fill(
+              child: (_busy && session == null)
+                  ? const Center(child: CircularProgressIndicator())
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: SpacingTokens.lg),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                  // Extra spacing at top
+                                  const SizedBox(height: 60),
+
+                                  if (_timedOut) ...[
+                                    AuthAnimatedIcon(
+                                      iconData: Icons.timer_off_outlined,
+                                      iconColor: ColorTokens.errorSoft,
+                                    ),
+                                    const SizedBox(height: SpacingTokens.lg),
+                                    AuthTitleBlock(
+                                      title: AppStrings.linkAsCompanionDevice,
+                                      subtitle: AppStrings
+                                          .companionCredentialsFailed,
+                                    ),
+                                    const SizedBox(height: SpacingTokens.xl),
+                                    AuthSubmitButton(
+                                      label: AppStrings.regenerateQrCode,
+                                      onPressed: () => _startSession(),
+                                    ),
+                                  ] else if (_migrating) ...[
+                                    const AuthAnimatedIcon(
+                                      iconData: Icons.cloud_download_rounded,
+                                      iconColor: ColorTokens.emerald500,
+                                    ),
+                                    const SizedBox(height: SpacingTokens.lg),
+                                    AuthTitleBlock(
+                                      title: AppStrings.linkAsCompanionDevice,
+                                      subtitle: _migrationProgressText,
+                                    ),
+                                    const SizedBox(height: SpacingTokens.md),
+                                    Text(
+                                      AppStrings.migratingDataSubtitle,
+                                      style: const TextStyle(
+                                          color: ColorTokens.slate400,
+                                          fontSize: 13),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 40),
+                                    const LinearProgressIndicator(
+                                      backgroundColor: ColorTokens.slate800,
+                                      color: ColorTokens.emerald500,
+                                    ),
+                                  ] else ...[
+                                    const AuthAnimatedIcon(
+                                      iconData: Icons.qr_code_scanner_rounded,
+                                      iconColor: ColorTokens.emerald500,
+                                    ),
+                                    const SizedBox(height: SpacingTokens.lg),
+                                    AuthTitleBlock(
+                                      title: AppStrings.linkAsCompanionDevice,
+                                      subtitle: AppStrings
+                                          .scanCompanionQrInstruction,
+                                    ),
+                                    const SizedBox(height: SpacingTokens.xl),
+                                    if (session != null)
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(24),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.1),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 10),
+                                            ),
+                                          ],
+                                        ),
+                                        child: QrImageView(
+                                          data: session.qrPayload,
+                                          size: 200,
+                                          eyeStyle: const QrEyeStyle(
+                                            eyeShape: QrEyeShape.square,
+                                            color: ColorTokens.navy950,
+                                          ),
+                                          dataModuleStyle:
+                                              const QrDataModuleStyle(
+                                            dataModuleShape:
+                                                QrDataModuleShape.square,
+                                            color: ColorTokens.navy950,
+                                          ),
+                                        ),
+                                      ),
+                                    const SizedBox(height: 24),
+                                    if (_busy)
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 40),
+                                        child: LinearProgressIndicator(
+                                          backgroundColor: ColorTokens.slate800,
+                                          color: ColorTokens.emerald500,
+                                        ),
+                                      ),
+                                    if (_error != null) ...[
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        _error!,
+                                        style: const TextStyle(
+                                            color: ColorTokens.errorSoft,
+                                            fontSize: 13),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      TextButton.icon(
+                                        onPressed: () => _startSession(),
+                                        icon: const Icon(Icons.refresh,
+                                            size: 18),
+                                        label: Text(AppStrings.retryAction),
+                                        style: TextButton.styleFrom(
+                                            foregroundColor:
+                                                ColorTokens.emerald400),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 32),
+                                    const Divider(color: ColorTokens.slate800),
+                                    const SizedBox(height: 24),
+                                    Text(
+                                      AppStrings.manualCodeDividerLabel,
+                                      style: const TextStyle(
+                                          color: ColorTokens.slate400,
+                                          fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    AuthSubmitButton(
+                                      label: AppStrings.manualCodeInputButton,
+                                      onPressed: () => _openManualCodeInput(),
+                                      color: ColorTokens.slate800,
+                                    ),
+                                  ],
+
+                                  // Spacing at bottom
+                                  const SizedBox(height: 60),
+                                ],
+                              ),
                             ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 32),
-                    ] else ...[
-                      Text(
-                        AppStrings.scanCompanionQrInstruction,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      if (session != null)
-                        QrImageView(data: session.qrPayload, size: 240),
-                      const SizedBox(height: 12),
-                      if (_busy)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 8),
-                          child: LinearProgressIndicator(),
-                        ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          _error!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: _startSession,
-                          icon: const Icon(Icons.refresh),
-                          label: Text(AppStrings.retryAction),
-                        ),
-                      ],
-                      // ── Manual Code option ──────────────────────────────
-                      const SizedBox(height: 10),
-                      const Divider(),
-                      const SizedBox(height: 6),
-                      Text(
-                        AppStrings.manualCodeDividerLabel,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: _openManualCodeInput,
-                        icon: const Icon(Icons.keyboard_rounded),
-                        label: Text(AppStrings.manualCodeInputButton),
-                      ),
-                    ],
-                  ],
+                          );
+                      },
+                    ),
+            ),
+
+            // Back Button (Overlaid)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: ColorTokens.slate400, size: 20),
+                  onPressed: () => Navigator.of(context).maybePop(),
                 ),
               ),
+            ),
+          ],
+        ),
       ),
     );
   }

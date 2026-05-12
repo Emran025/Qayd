@@ -1,25 +1,30 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qayd/application/sync/manual_link_service.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
+import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
+import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
+import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
+import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 /// PRIMARY DEVICE screen.
 ///
 /// Shows an 8-character pairing code and polls the server until the
 /// Companion enters it. Then sends the bootstrap payload automatically.
-///
-/// This is the "WhatsApp Desktop" side: it displays the code.
 class ManualCodeDisplayPage extends StatefulWidget {
   const ManualCodeDisplayPage({
     super.key,
     required this.onBootstrapSent,
   });
 
-  /// Called after the bootstrap payload has been sent to the companion.
   final VoidCallback onBootstrapSent;
 
   @override
@@ -35,9 +40,8 @@ class _ManualCodeDisplayPageState extends State<ManualCodeDisplayPage>
   bool _timedOut = false;
   String? _error;
 
-  Timer? _expiryTimer;
   Timer? _countdownTimer;
-  int _secondsRemaining = 600; // 10 minutes
+  int _secondsRemaining = 600;
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
@@ -47,9 +51,9 @@ class _ManualCodeDisplayPageState extends State<ManualCodeDisplayPage>
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
     _requestCode();
@@ -57,13 +61,13 @@ class _ManualCodeDisplayPageState extends State<ManualCodeDisplayPage>
 
   @override
   void dispose() {
-    _expiryTimer?.cancel();
     _countdownTimer?.cancel();
     _pulseController.dispose();
     super.dispose();
   }
 
   Future<void> _requestCode() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -84,7 +88,7 @@ class _ManualCodeDisplayPageState extends State<ManualCodeDisplayPage>
             result.expiresAt.difference(DateTime.now()).inSeconds.clamp(0, 600);
       });
       _startCountdown();
-      _sendBootstrap(result.shortCode); // البدء في انتظار دخول الجهاز التابع
+      _sendBootstrap(result.shortCode);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -156,195 +160,317 @@ class _ManualCodeDisplayPageState extends State<ManualCodeDisplayPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.manualCodeDisplayTitle),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _timedOut
-                  ? _buildTimedOut(theme, colorScheme)
-                  : _companionFound
-                      ? _buildSuccess(theme, colorScheme)
-                      : _error != null
-                          ? _buildError(theme, colorScheme)
-                          : _buildCodeDisplay(theme, colorScheme),
+    return AuthGradientScaffold(
+      child: SafeArea(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: SpacingTokens.lg),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 60),
+                                if (_timedOut)
+                                  _buildTimedOut()
+                                else if (_companionFound)
+                                  _buildSuccess()
+                                else if (_error != null)
+                                  _buildError()
+                                else
+                                  _buildCodeDisplay(),
+                                const SizedBox(height: 60),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            // Back Button
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: ColorTokens.slate400, size: 20),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildCodeDisplay(ThemeData theme, ColorScheme colorScheme) {
-    final code = _codeResult!.displayCode; // e.g. "A7B9-X2K4"
-    final shortCode = _codeResult!.shortCode;
+  Widget _buildCodeDisplay() {
+    final shortCode = _codeResult!.shortCode; // e.g. "A7B9X2K4"
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const SizedBox(height: 16),
-        Icon(Icons.devices_rounded, size: 56, color: colorScheme.primary),
-        const SizedBox(height: 16),
-        Text(
-          AppStrings.manualCodeDisplayInstruction,
-          style: theme.textTheme.bodyLarge,
-          textAlign: TextAlign.center,
+        const AuthAnimatedIcon(
+          iconData: Icons.devices_rounded,
+          iconColor: ColorTokens.emerald500,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: SpacingTokens.lg),
+        AuthTitleBlock(
+          title: AppStrings.manualCodeDisplayTitle,
+          subtitle: AppStrings.manualCodeDisplayInstruction,
+        ),
+        const SizedBox(height: SpacingTokens.xl),
 
-        // Code display card
-        Card(
-          elevation: 0,
-          color: colorScheme.primaryContainer,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-            child: Column(
-              children: [
-                SelectableText(
-                  code,
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 8,
-                    color: colorScheme.onPrimaryContainer,
-                    fontFeatures: [const FontFeature.tabularFigures()],
+        // Premium Segmented Code Display
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+          decoration: BoxDecoration(
+            color: ColorTokens.navy900.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.05),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildCodeGroup(shortCode.substring(0, 4)),
+                      const SizedBox(width: 16),
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: ColorTokens.slate400.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      _buildCodeGroup(shortCode.substring(4, 8)),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextButton.icon(
-                  onPressed: () {
+              ),
+              const SizedBox(height: 32),
+              // Modern Pill Copy Button
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
                     Clipboard.setData(ClipboardData(text: shortCode));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(AppStrings.manualCodeCopied)),
+                      SnackBar(
+                        content: Text(AppStrings.manualCodeCopied),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: ColorTokens.emerald600,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     );
                   },
-                  icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: Text(AppStrings.actionCopy),
+                  borderRadius: BorderRadius.circular(RadiusTokens.pill),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: ColorTokens.emerald500.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(RadiusTokens.pill),
+                      border: Border.all(
+                        color: ColorTokens.emerald500.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.copy_all_rounded,
+                            size: 18, color: ColorTokens.emerald400),
+                        const SizedBox(width: 10),
+                        Text(
+                          AppStrings.actionCopy,
+                          style: const TextStyle(
+                            color: ColorTokens.emerald400,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
 
-        // Countdown timer
+        // Timer and Waiting State
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.timer_outlined,
-                size: 18, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 6),
-            Text(
-              '$_formattedTime',
-              style: theme.textTheme.bodyMedium?.copyWith(
+                size: 18,
                 color: _secondsRemaining < 60
-                    ? colorScheme.error
-                    : colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
+                    ? ColorTokens.errorSoft
+                    : ColorTokens.slate400),
+            const SizedBox(width: 8),
+            Text(
+              _formattedTime,
+              style: TextStyle(
+                color: _secondsRemaining < 60
+                    ? ColorTokens.errorSoft
+                    : ColorTokens.slate400,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
           ],
         ),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 48),
 
-        // Waiting indicator
-        if (_waitingForCompanion) ...[
-          ScaleTransition(
-            scale: _pulseAnimation,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+        if (_waitingForCompanion)
+          FadeTransition(
+            opacity: _pulseAnimation,
+            child: Column(
               children: [
-                SizedBox(
-                  width: 16,
-                  height: 16,
+                const SizedBox(
+                  width: 24,
+                  height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: colorScheme.primary,
+                    color: ColorTokens.emerald500,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(height: 16),
                 Text(
                   AppStrings.manualCodeWaitingForCompanion,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  style: const TextStyle(
+                    color: ColorTokens.slate400,
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
           ),
+      ],
+    );
+  }
+
+  Widget _buildTimedOut() {
+    return Column(
+      children: [
+        const AuthAnimatedIcon(
+          iconData: Icons.timer_off_outlined,
+          iconColor: ColorTokens.errorSoft,
+        ),
+        const SizedBox(height: SpacingTokens.lg),
+        AuthTitleBlock(
+          title: AppStrings.manualCodeExpired,
+          subtitle: AppStrings.manualCodeExpiredDesc, // Add if exists
+        ),
+        const SizedBox(height: SpacingTokens.xl),
+        AuthSubmitButton(
+          label: AppStrings.regenerateQrCode,
+          onPressed: _requestCode,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSuccess() {
+    return Column(
+      children: [
+        const AuthAnimatedIcon(
+          iconData: Icons.check_circle_rounded,
+          iconColor: ColorTokens.emerald500,
+        ),
+        const SizedBox(height: SpacingTokens.lg),
+        AuthTitleBlock(
+          title: AppStrings.companionBootstrapSentSuccess,
+          subtitle: AppStrings.companionBootstrapSentSuccessDesc,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildError() {
+    return Column(
+      children: [
+        const AuthAnimatedIcon(
+          iconData: Icons.error_outline_rounded,
+          iconColor: ColorTokens.errorSoft,
+        ),
+        const SizedBox(height: SpacingTokens.lg),
+        AuthTitleBlock(
+          title: AppStrings.anErrorOccurred,
+          subtitle: _error ?? '',
+        ),
+        const SizedBox(height: SpacingTokens.xl),
+        AuthSubmitButton(
+          label: AppStrings.retryAction,
+          onPressed: _requestCode,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCodeGroup(String part) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: part.split('').map((char) => _buildCodeChar(char)).toList(),
+    );
+  }
+
+  Widget _buildCodeChar(String char) {
+    return Container(
+      width: 44,
+      height: 56,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
-
-        const Spacer(),
-
-        // Cancel button
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(AppStrings.actionCancel),
+      ),
+      child: Center(
+        child: Text(
+          char,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            fontFamily: 'monospace',
+          ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildTimedOut(ThemeData theme, ColorScheme colorScheme) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.timer_off_outlined, size: 56, color: colorScheme.error),
-        const SizedBox(height: 16),
-        Text(
-          AppStrings.manualCodeExpired,
-          style: theme.textTheme.titleLarge,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: _requestCode,
-          icon: const Icon(Icons.refresh_rounded),
-          label: Text(AppStrings.regenerateQrCode),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSuccess(ThemeData theme, ColorScheme colorScheme) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.check_circle_rounded, size: 72, color: colorScheme.primary),
-        const SizedBox(height: 20),
-        Text(
-          AppStrings.companionBootstrapSentSuccess,
-          style: theme.textTheme.titleLarge,
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildError(ThemeData theme, ColorScheme colorScheme) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.error_outline_rounded, size: 56, color: colorScheme.error),
-        const SizedBox(height: 16),
-        Text(_error!,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: colorScheme.error)),
-        const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: _requestCode,
-          icon: const Icon(Icons.refresh_rounded),
-          label: Text(AppStrings.retryAction),
-        ),
-      ],
+      ),
     );
   }
 }

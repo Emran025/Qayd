@@ -7,13 +7,13 @@ class AuthSubmitButton extends StatelessWidget {
   const AuthSubmitButton({
     super.key,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.loading = false,
     this.color,
   });
 
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool loading;
 
   /// Button fill color. Defaults to [ColorScheme.primary].

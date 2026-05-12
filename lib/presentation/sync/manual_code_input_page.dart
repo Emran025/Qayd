@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
 import 'package:qayd/di/injection_container.dart';
+import 'package:qayd/presentation/components/auth/auth_animated_icon.dart';
+import 'package:qayd/presentation/components/auth/auth_gradient_scaffold.dart';
+import 'package:qayd/presentation/components/auth/auth_submit_button.dart';
+import 'package:qayd/presentation/components/auth/auth_title_block.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
 /// COMPANION DEVICE screen.
 ///
@@ -27,27 +33,47 @@ class ManualCodeInputPage extends StatefulWidget {
 }
 
 class _ManualCodeInputPageState extends State<ManualCodeInputPage> {
-  // Two controllers: first half (4 chars) and second half (4 chars).
-  // Displayed as "ABCD - EFGH" — matching the Primary's display format.
-  final _firstController = TextEditingController();
-  final _secondController = TextEditingController();
-  final _firstFocus = FocusNode();
-  final _secondFocus = FocusNode();
+  // 8 individual controllers for each character
+  final List<TextEditingController> _controllers =
+      List.generate(8, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(8, (_) => FocusNode());
 
   bool _isSubmitting = false;
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    // Setup backspace handling for jumping back
+    for (int i = 0; i < 8; i++) {
+      _focusNodes[i].onKeyEvent = (node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (_controllers[i].text.isEmpty && i > 0) {
+            _focusNodes[i - 1].requestFocus();
+            _controllers[i - 1].clear();
+            setState(() {});
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      };
+    }
+  }
+
+  @override
   void dispose() {
-    _firstController.dispose();
-    _secondController.dispose();
-    _firstFocus.dispose();
-    _secondFocus.dispose();
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
   String get _enteredCode =>
-      (_firstController.text + _secondController.text).toUpperCase().replaceAll(' ', '');
+      _controllers.map((c) => c.text).join().toUpperCase();
 
   bool get _isComplete => _enteredCode.length == 8;
 
@@ -61,7 +87,8 @@ class _ManualCodeInputPageState extends State<ManualCodeInputPage> {
     });
 
     try {
-      final session = await InjectionContainer.companionLinkService.submitViaManualCode(
+      final session =
+          await InjectionContainer.companionLinkService.submitViaManualCode(
         shortCode: code,
         manualLinkService: InjectionContainer.manualLinkService,
       );
@@ -77,7 +104,8 @@ class _ManualCodeInputPageState extends State<ManualCodeInputPage> {
   }
 
   String _mapError(String message) {
-    if (message.contains('INVALID_OR_EXPIRED_CODE') || message.contains('404')) {
+    if (message.contains('INVALID_OR_EXPIRED_CODE') ||
+        message.contains('404')) {
       return AppStrings.manualCodeInvalidOrExpired;
     }
     if (message.contains('CODE_LOCKED') || message.contains('429')) {
@@ -86,169 +114,270 @@ class _ManualCodeInputPageState extends State<ManualCodeInputPage> {
     return AppStrings.companionCredentialsFailed;
   }
 
+  void _onChanged(String value, int index) {
+    if (value.length > 1) {
+      // Handle paste or multiple characters
+      _handleMultipleCharacters(value, index);
+      return;
+    }
+
+    if (value.isNotEmpty) {
+      // Normal single character entry
+      if (index < 7) {
+        _focusNodes[index + 1].requestFocus();
+      } else {
+        _focusNodes[index].unfocus();
+        if (_isComplete) _submit();
+      }
+    }
+    setState(() {});
+  }
+
+  void _handleMultipleCharacters(String text, int startIndex) {
+    // Sanitize: only alphanumeric and uppercase
+    final sanitized =
+        text.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
+
+    int currentIdx = startIndex;
+    for (int i = 0; i < sanitized.length && currentIdx < 8; i++) {
+      _controllers[currentIdx].text = sanitized[i];
+      currentIdx++;
+    }
+
+    // Move focus to the next logical position
+    if (currentIdx < 8) {
+      _focusNodes[currentIdx].requestFocus();
+    } else {
+      _focusNodes[7].unfocus();
+      if (_isComplete) _submit();
+    }
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    return AuthGradientScaffold(
+      child: SafeArea(
+        child: Stack(
+          children: [
+            // Main Centered Content
+            Positioned.fill(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: SpacingTokens.lg),
+                    child: ConstrainedBox(
+                      constraints:
+                          BoxConstraints(minHeight: constraints.maxHeight),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Extra spacing at top for balance
+                          const SizedBox(height: 60),
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.manualCodeInputTitle),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 16),
-              Icon(Icons.keyboard_rounded, size: 52, color: colorScheme.primary),
-              const SizedBox(height: 16),
-              Text(
-                AppStrings.manualCodeInputInstruction,
-                style: theme.textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-
-              // Code input fields
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildSegment(
-                    controller: _firstController,
-                    focusNode: _firstFocus,
-                    onComplete: () => _secondFocus.requestFocus(),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(
-                      '—',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  _buildSegment(
-                    controller: _secondController,
-                    focusNode: _secondFocus,
-                    onComplete: _submit,
-                  ),
-                ],
-              ),
-
-              // Error message
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 16, color: colorScheme.error),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        _error!,
-                        style: TextStyle(color: colorScheme.error, fontSize: 13),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              const SizedBox(height: 32),
-
-              // Submit button
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: (_isComplete && !_isSubmitting) ? _submit : null,
-                  icon: _isSubmitting
-                      ? SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
+                          const AuthAnimatedIcon(
+                            iconData: Icons.link_rounded,
+                            iconColor: ColorTokens.emerald500,
                           ),
-                        )
-                      : const Icon(Icons.link_rounded),
-                  label: Text(
-                    _isSubmitting
-                        ? AppStrings.manualCodeSubmitting
-                        : AppStrings.manualCodeSubmit,
-                  ),
+                          const SizedBox(height: SpacingTokens.lg),
+                          AuthTitleBlock(
+                            title: AppStrings.manualCodeInputTitle,
+                            subtitle: AppStrings.manualCodeInputInstruction,
+                          ),
+                          const SizedBox(height: SpacingTokens.xl),
+
+                          // Code input fields
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  ...List.generate(
+                                    4,
+                                    (index) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 1),
+                                      child: _buildCodeBox(index),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 2),
+                                    child: Icon(
+                                      Icons.remove_rounded,
+                                      color: ColorTokens.slate400
+                                          .withValues(alpha: 0.5),
+                                      size: 16,
+                                    ),
+                                  ),
+                                  ...List.generate(
+                                    4,
+                                    (index) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 1),
+                                      child: _buildCodeBox(index + 4),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          if (_error != null) ...[
+                            const SizedBox(height: SpacingTokens.md),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: ColorTokens.errorSoft
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: ColorTokens.errorSoft
+                                        .withValues(alpha: 0.2)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.error_outline_rounded,
+                                      color: ColorTokens.errorSoft, size: 20),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      _error!,
+                                      style: const TextStyle(
+                                          color: ColorTokens.errorSoft,
+                                          fontSize: 13),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
+                          const SizedBox(height: SpacingTokens.xl),
+
+                          AuthSubmitButton(
+                            label: AppStrings.manualCodeSubmit,
+                            loading: _isSubmitting,
+                            onPressed: _isComplete ? () => _submit() : null,
+                          ),
+
+                          const SizedBox(height: SpacingTokens.xxl),
+
+                          Text(
+                            AppStrings.manualCodeInputHint,
+                            style: const TextStyle(
+                              color: ColorTokens.slate400,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+
+                          // Spacing at bottom
+                          const SizedBox(height: 60),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Back Button (Overlaid)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_rounded,
+                      color: ColorTokens.slate400, size: 20),
+                  onPressed: () => Navigator.of(context).maybePop(),
                 ),
               ),
-
-              const Spacer(),
-
-              // Helper text
-              Text(
-                AppStrings.manualCodeInputHint,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSegment({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required VoidCallback onComplete,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isFirst = controller == _firstController;
-
-    return SizedBox(
-      width: 140,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        autofocus: isFirst,
-        maxLength: 4,
-        textAlign: TextAlign.center,
-        textCapitalization: TextCapitalization.characters,
-        keyboardType: TextInputType.text,
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
-          _UpperCaseTextFormatter(),
-        ],
-        style: theme.textTheme.headlineSmall?.copyWith(
-          letterSpacing: 8,
-          fontWeight: FontWeight.w700,
-          color: colorScheme.onSurface,
-        ),
-        decoration: InputDecoration(
-          counterText: '',
-          border: OutlineInputBorder(
+  Widget _buildCodeBox(int index) {
+    final scheme = Theme.of(context).colorScheme;
+    return AnimatedBuilder(
+      animation: _focusNodes[index],
+      builder: (context, child) {
+        final isFocused = _focusNodes[index].hasFocus;
+        return Container(
+          width: 38,
+          height: 52,
+          decoration: BoxDecoration(
+            color: scheme.surface,
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: colorScheme.outline, width: 1.5),
+            border: Border.all(
+              color: isFocused ? ColorTokens.emerald500 : scheme.outlineVariant,
+              width: isFocused ? 2 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: scheme.shadow.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+              if (isFocused)
+                BoxShadow(
+                  color: ColorTokens.emerald500.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+            ],
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: colorScheme.outline, width: 1.5),
+          child: Center(
+            child: TextField(
+              controller: _controllers[index],
+              focusNode: _focusNodes[index],
+              autofocus: index == 0,
+              textAlign: TextAlign.center,
+              textCapitalization: TextCapitalization.characters,
+              keyboardType: TextInputType.text,
+              // Remove maxLength to allow capturing paste/multiple chars
+              // We handle length manually in _onChanged
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+                _UpperCaseTextFormatter(),
+              ],
+              onTap: () {
+                // Select all text when tapping for easier editing/replacement
+                _controllers[index].selection = TextSelection(
+                  baseOffset: 0,
+                  extentOffset: _controllers[index].text.length,
+                );
+              },
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: scheme.onSurface,
+                letterSpacing: 0,
+              ),
+              decoration: InputDecoration(
+                counterText: '',
+                contentPadding: EdgeInsets.zero,
+                border: InputBorder.none,
+                hintText: '•',
+                hintStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 16,
+                ),
+              ),
+              onChanged: (v) => _onChanged(v, index),
+            ),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: colorScheme.primary, width: 2),
-          ),
-          filled: true,
-          fillColor: colorScheme.surfaceContainerHighest,
-          contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-        ),
-        onChanged: (val) {
-          setState(() {});
-          if (val.length == 4) onComplete();
-        },
-      ),
+        );
+      },
     );
   }
 }

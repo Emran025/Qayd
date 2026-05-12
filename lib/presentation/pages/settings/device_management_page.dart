@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/components/atomic/qayd_dialog.dart';
+import 'package:qayd/presentation/components/atomic/qayd_empty_state.dart';
+import 'package:qayd/presentation/components/atomic/qayd_text.dart';
 import 'package:qayd/presentation/sync/device_pairing_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/sync/device_pairing_qr_scanner_page.dart';
 import 'package:qayd/presentation/sync/manual_code_display_page.dart';
+import 'package:qayd/presentation/theme/color_tokens.dart';
+import 'package:qayd/presentation/theme/radius_tokens.dart';
+import 'package:qayd/presentation/theme/spacing_tokens.dart';
+import 'package:qayd/presentation/widgets/qayd_scaffold.dart';
 
 class DeviceManagementPage extends StatefulWidget {
   const DeviceManagementPage({super.key});
@@ -50,26 +56,10 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     super.dispose();
   }
 
-  bool _testTriggered = false;
-
   void _onCubitChanged() {
     if (!mounted) return;
     setState(() {});
     final state = _cubit.state;
-
-    // --- TEST TRIGGER ---
-    if (!_testTriggered && !state.isLoading && state.sessions.isNotEmpty) {
-      _testTriggered = true;
-      for (final s in state.sessions) {
-        if (!s.isCurrent && s.isActive) {
-          debugPrint(
-              'DEBUG: 🧪 Manually triggering test sync for companion: ${s.deviceId}');
-          InjectionContainer.devicePairingService
-              .dispatchInitialSnapshot(s.deviceId);
-        }
-      }
-    }
-    // --------------------
 
     if (state.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,8 +96,6 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     );
   }
 
-  /// Opens the manual code display screen (PRIMARY device role).
-  /// The Primary generates and displays the 8-char code; waits for Companion to type it.
   Future<void> _showManualLinkCode() async {
     if (!mounted) return;
     await Navigator.of(context).push(
@@ -115,7 +103,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
         builder: (_) => ManualCodeDisplayPage(
           onBootstrapSent: () {
             Navigator.of(context).pop();
-            _cubit.load(); // Refresh device list after linking.
+            _cubit.load();
           },
         ),
       ),
@@ -126,131 +114,278 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
   Widget build(BuildContext context) {
     final state = _cubit.state;
     final theme = Theme.of(context);
-    return Scaffold(
+    final scheme = theme.colorScheme;
+
+    return QaydScaffold(
       appBar: QaydAppBar(title: AppStrings.deviceManagement),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            AppStrings.devicePairingQrOnlyTitle,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+      body: RefreshIndicator(
+        onRefresh: () async => _cubit.load(),
+        child: ListView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.md,
+            vertical: SpacingTokens.lg,
           ),
-          const SizedBox(height: 6),
-          Text(
-            AppStrings.devicePairingQrOnlyDesc,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 14),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.important_devices_rounded),
-                    title: Text(AppStrings.deviceDefaultName),
-                    subtitle: Text(
-                      _deviceName,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
+          children: [
+            // --- Current Device Profile ---
+            _buildCurrentDeviceProfile(scheme, theme),
+
+            const SizedBox(height: SpacingTokens.xl),
+
+            // --- Pairing Actions Section ---
+            if (!_isCompanionDevice) ...[
+              _buildSectionTitle(AppStrings.devicePairingQrOnlyTitle),
+              const SizedBox(height: SpacingTokens.sm),
+              QaydText(
+                AppStrings.devicePairingQrOnlyDesc,
+                slot: QaydTextStyleSlot.labelSmall,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: SpacingTokens.md),
+              _buildActionCard(
+                icon: Icons.qr_code_scanner_rounded,
+                title: AppStrings.scanCompanionQr,
+                onTap: state.isSaving ? null : _scanAndLinkCompanion,
+                color: ColorTokens.emerald500,
+              ),
+              const SizedBox(height: SpacingTokens.sm),
+              _buildActionCard(
+                icon: Icons.dialpad_rounded,
+                title: AppStrings.manualCodeLinkButton,
+                onTap: state.isSaving ? null : _showManualLinkCode,
+                color: scheme.primary,
+              ),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(SpacingTokens.md),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(RadiusTokens.md),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded,
+                        size: 20, color: scheme.primary),
+                    const SizedBox(width: SpacingTokens.md),
+                    Expanded(
+                      child: QaydText(
+                        AppStrings.companionDeviceRestriction,
+                        slot: QaydTextStyleSlot.labelSmall,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (!_isCompanionDevice) ...[
-                    OutlinedButton.icon(
-                      onPressed: state.isSaving ? null : _scanAndLinkCompanion,
-                      icon: const Icon(Icons.qr_code_scanner_rounded),
-                      label: Text(AppStrings.scanCompanionQr),
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton.icon(
-                      onPressed: state.isSaving ? null : _showManualLinkCode,
-                      icon: const Icon(Icons.dialpad_rounded),
-                      label: Text(AppStrings.manualCodeLinkButton),
-                    ),
-                  ] else
-                    Text(
-                      AppStrings.companionDeviceRestriction,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppStrings.pairedDevices,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              TextButton.icon(
-                onPressed: state.isLoading ? null : _cubit.load,
-                icon: const Icon(Icons.refresh_rounded),
-                label: Text(AppStrings.devicePairingRefresh),
+                  ],
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            enabled: false,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.info_outline_rounded),
-              hintText: AppStrings.devicePairingPublicKeysAuto,
-              filled: true,
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (state.isLoading)
-            const Center(child: CircularProgressIndicator())
-          else if (state.sessions.isEmpty)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  AppStrings.devicePairingNoDevicesYet,
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ),
-            )
-          else
-            ...state.sessions.map(
-              (s) => Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Icon(
-                      s.isCurrent
-                          ? Icons.phone_android_rounded
-                          : Icons.devices_other_rounded,
-                    ),
+
+            const SizedBox(height: SpacingTokens.xl),
+
+            // --- Paired Devices List ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSectionTitle(AppStrings.pairedDevices),
+                if (state.isLoading)
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  IconButton(
+                    onPressed: _cubit.load,
+                    icon: const Icon(Icons.refresh_rounded, size: 20),
+                    tooltip: AppStrings.devicePairingRefresh,
                   ),
-                  title: Text(s.deviceName ?? s.deviceId),
-                  subtitle: Text(
-                    '${AppStrings.lastSyncSeq}: ${s.lastSyncSeq}'
-                    '${s.isCurrent ? AppStrings.devicePairingThisDeviceSuffix : ''}',
-                  ),
-                  trailing: s.isActive
-                      ? TextButton(
-                          onPressed: () => _cubit.revoke(s.deviceId),
-                          child: Text(AppStrings.revoke),
-                        )
-                      : Text(AppStrings.revoked),
-                ),
-              ),
+              ],
             ),
+            const SizedBox(height: SpacingTokens.sm),
+
+            if (state.sessions.isEmpty && !state.isLoading)
+              QaydEmptyState(
+                icon: Icons.phonelink_off_rounded,
+                title: AppStrings.devicePairingNoDevicesYet,
+              )
+            else
+              ...state.sessions.map((s) => _buildPairedDeviceTile(s, scheme)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentDeviceProfile(ColorScheme scheme, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(SpacingTokens.lg),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            scheme.primary.withValues(alpha: 0.9),
+            scheme.primary.withValues(alpha: 0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(RadiusTokens.lg),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
         ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.important_devices_rounded,
+                color: Colors.white, size: 32),
+          ),
+          const SizedBox(width: SpacingTokens.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                QaydText(
+                  AppStrings.deviceDefaultName,
+                  slot: QaydTextStyleSlot.labelSmall,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+                QaydText(
+                  _deviceName,
+                  slot: QaydTextStyleSlot.titleLarge,
+                  color: Colors.white,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(RadiusTokens.pill),
+                  ),
+                  child: QaydText(
+                    _isCompanionDevice
+                        ? AppStrings.companionDeviceRestriction
+                        : AppStrings
+                            .currentStatus, // Or something like "Primary Device"
+                    slot: QaydTextStyleSlot.labelSmall,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return QaydText(
+      title,
+      slot: QaydTextStyleSlot.titleSmall,
+      style: const TextStyle(fontWeight: FontWeight.w800),
+    );
+  }
+
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required VoidCallback? onTap,
+    required Color color,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(RadiusTokens.md),
+      child: Container(
+        padding: const EdgeInsets.all(SpacingTokens.md),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(RadiusTokens.md),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(RadiusTokens.sm),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: SpacingTokens.md),
+            Expanded(
+              child: QaydText(
+                title,
+                slot: QaydTextStyleSlot.bodyMedium,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded,
+                color: ColorTokens.slate400),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPairedDeviceTile(dynamic s, ColorScheme scheme) {
+    final isCurrent = s.isCurrent;
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: SpacingTokens.sm),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(RadiusTokens.md),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: SpacingTokens.md, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: isCurrent
+              ? scheme.primary.withValues(alpha: 0.1)
+              : scheme.surfaceContainerHighest,
+          child: Icon(
+            isCurrent
+                ? Icons.phone_android_rounded
+                : Icons.devices_other_rounded,
+            color: isCurrent ? scheme.primary : ColorTokens.slate400,
+            size: 20,
+          ),
+        ),
+        title: QaydText(
+          s.deviceName ?? s.deviceId,
+          slot: QaydTextStyleSlot.bodyMedium,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: QaydText(
+          '${AppStrings.lastSyncSeq}: ${s.lastSyncSeq}'
+          '${isCurrent ? ' (${AppStrings.devicePairingThisDeviceSuffix})' : ''}',
+          slot: QaydTextStyleSlot.labelSmall,
+        ),
+        trailing: s.isActive
+            ? TextButton(
+                onPressed: isCurrent ? null : () => _cubit.revoke(s.deviceId),
+                child: QaydText(
+                  AppStrings.revoke,
+                  slot: QaydTextStyleSlot.labelSmall,
+                  color: isCurrent ? scheme.outline : scheme.error,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              )
+            : QaydText(
+                AppStrings.revoked,
+                slot: QaydTextStyleSlot.labelSmall,
+                color: ColorTokens.slate400,
+              ),
       ),
     );
   }

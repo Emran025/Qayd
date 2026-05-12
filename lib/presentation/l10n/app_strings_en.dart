@@ -645,6 +645,12 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get cancellation => 'Cancellation';
   @override
+  String get showRevertedOperations => 'Show Reverted/Deleted';
+  @override
+  String get actionLabel => 'Action Type';
+  @override
+  String get severityLabel => 'Severity Level';
+  @override
   String get capeVerde => 'Cape Verde';
   @override
   String get carFurniturePersonalItems => 'Car, furniture, personal items';
@@ -4824,11 +4830,13 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get deviceRevokeError => 'Unable to revoke device.';
 
-
   // Companion Link UI Strings
   @override
   String get companionBootstrapSentSuccess =>
-      'Companion bootstrap sent successfully.';
+      'Access credentials sent to device successfully.';
+  @override
+  String get companionBootstrapSentSuccessDesc =>
+      'You can now start using the app on your companion device.';
   @override
   String get companionBootstrapSentError => 'Companion bootstrap failed.';
   @override
@@ -4865,30 +4873,39 @@ class AppStringsEn extends AppStringsBase {
   String newVoucherClaim(String amount, String currency) =>
       'New voucher with value $amount $currency';
   @override
-  String voucherRejectedWithReason(String reason) => 'Voucher rejected: $reason';
+  String voucherRejectedWithReason(String reason) =>
+      'Voucher rejected: $reason';
   @override
   String newTripartiteRequestFrom(String name) =>
       'New tripartite request from $name';
 
   @override
-  String estimatedValueWithCurrency(String currency) => 'Estimated Value ($currency)';
+  String estimatedValueWithCurrency(String currency) =>
+      'Estimated Value ($currency)';
   @override
-  String permissionDeniedMessage(String service) => 'It seems you have previously denied access to $service.\n\nTo use this service, please allow it in the settings.';
+  String permissionDeniedMessage(String service) =>
+      'It seems you have previously denied access to $service.\n\nTo use this service, please allow it in the settings.';
   @override
   String voucherNotice(String type) => '$type Notice';
   @override
-  String bondConflictsFound(int count) => 'You have $count conflicting bonds (matched to external exchange).';
+  String bondConflictsFound(int count) =>
+      'You have $count conflicting bonds (matched to external exchange).';
   @override
-  String errorExportingPdf(String reportName, String error) => 'Could not export $reportName as PDF: $error';
+  String errorExportingPdf(String reportName, String error) =>
+      'Could not export $reportName as PDF: $error';
   @override
-  String errorExportingExcel(String reportName, String error) => 'Could not export $reportName as Excel: $error';
+  String errorExportingExcel(String reportName, String error) =>
+      'Could not export $reportName as Excel: $error';
 
   @override
-  String accountNotFoundPrompt(String name) => 'This number is not registered in your accounts ($name). Confirm selection?';
+  String accountNotFoundPrompt(String name) =>
+      'This number is not registered in your accounts ($name). Confirm selection?';
   @override
-  String dualTransferNoticeRecipient(String name) => 'This voucher is part of a dual transfer. The final recipient is: $name';
+  String dualTransferNoticeRecipient(String name) =>
+      'This voucher is part of a dual transfer. The final recipient is: $name';
   @override
-  String dualTransferNoticeSender(String name) => 'This voucher is part of a dual transfer. The original sender is: $name';
+  String dualTransferNoticeSender(String name) =>
+      'This voucher is part of a dual transfer. The original sender is: $name';
 
   @override
   String get currentStatus => 'Current Status';
@@ -4897,22 +4914,28 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get restoreAll => 'Restore all';
   @override
-  String redoImpactWarning(String items) => 'You have previously undone these changes with other related items. Do you want to restore them together?\n\n$items';
+  String redoImpactWarning(String items) =>
+      'You have previously undone these changes with other related items. Do you want to restore them together?\n\n$items';
   @override
   String versionWithNumber(String number) => 'Version $number';
   @override
-  String waitSecondsBeforeRetry(int seconds) => 'Please wait $seconds seconds before trying again.';
+  String waitSecondsBeforeRetry(int seconds) =>
+      'Please wait $seconds seconds before trying again.';
 
   @override
-  String appInvitationMessage(String name) => 'Hello $name, I invite you to use Qayd app for accounting and cloud sync.';
+  String appInvitationMessage(String name) =>
+      'Hello $name, I invite you to use Qayd app for accounting and cloud sync.';
   @override
-  String skippedAccountsNoPhone(int count) => '($count accounts skipped due to missing phone number)';
+  String skippedAccountsNoPhone(int count) =>
+      '($count accounts skipped due to missing phone number)';
   @override
-  String currencySymbolExample(String symbol) => 'Currency Symbol (e.g. $symbol)';
+  String currencySymbolExample(String symbol) =>
+      'Currency Symbol (e.g. $symbol)';
   @override
   String get pdfShowHideBalance => 'Show/Hide Balance';
   @override
-  String accountBalanceGreeting(String name) => 'Greetings, the current balance for $name is: ';
+  String accountBalanceGreeting(String name) =>
+      'Greetings, the current balance for $name is: ';
   @override
   String matchedInQayd(String target) => 'Matched in Qayd: $target';
   @override
@@ -4926,9 +4949,11 @@ class AppStringsEn extends AppStringsBase {
   @override
   String showLabelInBonds(String label) => 'Show $label in vouchers';
   @override
-  String searchBondsForStatus(String status) => 'Search in the voucher list for $status status';
+  String searchBondsForStatus(String status) =>
+      'Search in the voucher list for $status status';
   @override
-  String settledWithSurplus(String amount, String currency) => 'Settled. Surplus: $amount $currency';
+  String settledWithSurplus(String amount, String currency) =>
+      'Settled. Surplus: $amount $currency';
 
   // ── Manual Device Linking (WhatsApp-style) ─────────────────────────────────
   @override
@@ -4941,9 +4966,11 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get manualCodeCopied => 'Code copied.';
   @override
-  String get manualCodeWaitingForCompanion => 'Waiting for companion to enter the code...';
+  String get manualCodeWaitingForCompanion =>
+      'Waiting for companion to enter the code...';
   @override
-  String get manualCodeExpired => 'The code has expired. You can generate a new one.';
+  String get manualCodeExpired =>
+      'The code has expired. You can generate a new one.';
   @override
   String get manualCodeDividerLabel => 'Or if you cannot scan the QR code';
   @override
@@ -4954,7 +4981,8 @@ class AppStringsEn extends AppStringsBase {
   String get manualCodeInputInstruction =>
       'Enter the code shown on your primary device to continue.';
   @override
-  String get manualCodeInputHint => 'The code is 8 alphanumeric characters, valid for 10 minutes.';
+  String get manualCodeInputHint =>
+      'The code is 8 alphanumeric characters, valid for 10 minutes.';
   @override
   String get manualCodeSubmit => 'Submit Code';
   @override
@@ -4964,8 +4992,7 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get manualCodeTooManyAttempts =>
       'Too many failed attempts. Please ask the primary device to generate a new code.';
+  @override
+  String get manualCodeExpiredDesc =>
+      'You can generate a new code from the Device Management page.';
 }
-
-
-
-
