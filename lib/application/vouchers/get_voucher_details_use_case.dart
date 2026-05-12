@@ -232,23 +232,28 @@ class GetVoucherDetailsUseCase {
           affectedRes.valueOrNull?.classification.standardKind?.name ==
               'liquidAssets';
 
+      // We are the sender if:
+      // 1. Our public key matches the sender signature key.
+      // 2. OR There is no signature yet, but the 'affected' account is one of our funds.
+      final isMeSender =
+          (v.senderPublicKeyHex != null && v.senderPublicKeyHex == myPubKey) ||
+              (v.senderPublicKeyHex == null && isAffectedInternal);
+
+      // The local user is the creator if:
+      // - They are the sender (isMeSender is true)
+      // - OR there are no signatures yet, meaning it's a local draft.
+      // - OR the affected account is an internal account (not a customer/supplier).
+      // OVERRIDE: If the voucher was received via inbound sync (v.isInbound),
+      // the counterparty created it — we are NEVER the creator.
       final isInternalAccount =
           affectedRes.valueOrNull?.nature.name != 'customer' &&
               affectedRes.valueOrNull?.nature.name != 'supplier';
 
-      bool isMeSender = false;
-      bool isCreator = false;
-
-      if (v.senderPublicKeyHex != null) {
-        // Protocol v2.0: If a cryptographic signature exists, identity is strictly bound to the public key.
-        isMeSender = (v.senderPublicKeyHex == myPubKey);
-        isCreator = isMeSender;
-      } else {
-        // Fallback for local drafts or legacy data without signatures.
-        isMeSender = isAffectedInternal;
-        isCreator =
-            isMeSender || (v.receiverPublicKeyHex == null) || isInternalAccount;
-      }
+      final isCreator = v.isInbound
+          ? false
+          : (isMeSender ||
+              (v.senderPublicKeyHex == null && v.receiverPublicKeyHex == null) ||
+              isInternalAccount);
 
       if (!v.isWithdrawn && v.state == VoucherState.draft) {
         // The creator can always confirm their own draft into the ledger.
@@ -277,15 +282,17 @@ class GetVoucherDetailsUseCase {
       // Fallback (legacy vouchers pre-v28):
       //   - senderPhone: signerPhone (best guess for sender)
       //   - receiverPhone: ownerPhone (current user, works only if they are B)
-      final senderPhone = v.canonicalSenderPhone ?? v.signerPhone ?? '';
-      final receiverPhone = v.canonicalReceiverPhone ?? ownerPhone ?? '';
+      final senderPhone = v.canonicalSenderPhone
+          ?? v.signerPhone
+          ?? '';
+      final receiverPhone = v.canonicalReceiverPhone
+          ?? ownerPhone
+          ?? '';
 
       // Only verify if we have a meaningful payload (non-empty phones).
       final canVerify = senderPhone.isNotEmpty && receiverPhone.isNotEmpty;
 
-      if (canVerify &&
-          v.senderSignatureHex != null &&
-          v.senderPublicKeyHex != null) {
+      if (canVerify && v.senderSignatureHex != null && v.senderPublicKeyHex != null) {
         isSenderVerified = _verificationEngine.verifyIntegrity(
           voucher: v,
           senderPhone: senderPhone,
@@ -295,9 +302,7 @@ class GetVoucherDetailsUseCase {
         );
       }
 
-      if (canVerify &&
-          v.receiverSignatureHex != null &&
-          v.receiverPublicKeyHex != null) {
+      if (canVerify && v.receiverSignatureHex != null && v.receiverPublicKeyHex != null) {
         isReceiverVerified = _verificationEngine.verifyIntegrity(
           voucher: v,
           senderPhone: senderPhone,

@@ -34,6 +34,7 @@ import 'package:qayd/data/database/migrations/migration_033_add_fee_type.dart';
 import 'package:qayd/data/database/migrations/migration_034_device_sync.dart';
 import 'package:qayd/data/database/migrations/migration_035_fiscal_periods.dart';
 import 'package:qayd/data/database/migrations/migration_036_backfill_audit_sync_seq.dart';
+import 'package:qayd/data/database/migrations/migration_037_voucher_is_inbound.dart';
 import 'package:qayd/data/database/migrations/schema_migration.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
@@ -78,6 +79,7 @@ final class MigrationRegistry {
     Migration034DeviceSync(),
     Migration035FiscalPeriods(),
     Migration036BackfillAuditSyncSeq(),
+    Migration037VoucherIsInbound(),
   ];
 
   static List<SchemaMigration> get ordered {

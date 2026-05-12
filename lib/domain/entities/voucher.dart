@@ -59,6 +59,7 @@ class Voucher {
     required this.withdrawnAt,
     this.reversalCount = 0,
     this.firstChildId,
+    this.isInbound = false,
   });
 
   final VoucherId id;
@@ -148,6 +149,16 @@ class Voucher {
   /// ID of the first reversal/settlement child for jump-to navigation.
   final VoucherId? firstChildId;
 
+  // ── Inbound-sync flag (Protocol §5 — Migration 037) ────────────────────
+
+  /// `true` when this voucher arrived via a [SyncEventType.claim] event
+  /// (i.e. was created by the counterparty and pushed to us).
+  ///
+  /// `false` (default) for vouchers the local user created themselves.
+  ///
+  /// This is the canonical source of truth for the chat UI's [isCreator] flag.
+  final bool isInbound;
+
   // ── Computed helpers ───────────────────────────────────────────────────
 
   bool get hasSignature =>
@@ -206,6 +217,7 @@ class Voucher {
     DateTime? withdrawnAt,
     int reversalCount = 0,
     VoucherId? firstChildId,
+    bool isInbound = false,
   }) {
     return Voucher._(
       id: id,
@@ -240,6 +252,7 @@ class Voucher {
       withdrawnAt: withdrawnAt,
       reversalCount: reversalCount,
       firstChildId: firstChildId,
+      isInbound: isInbound,
     );
   }
 
@@ -565,6 +578,8 @@ class Voucher {
       originVoucherId: originVoucherId ?? this.originVoucherId,
       rejectionReason: rejectionReason ?? this.rejectionReason,
       withdrawnAt: withdrawnAt ?? this.withdrawnAt,
+      // isInbound is immutable — once set by the sync layer it never changes.
+      isInbound: isInbound,
     );
   }
 }

@@ -1,4 +1,4 @@
-/// SQLite projection for [vouchers] (v28 schema — canonical signature phones).
+/// SQLite projection for [vouchers] (v37 schema — is_inbound flag).
 final class VoucherModel {
   const VoucherModel({
     required this.id,
@@ -33,6 +33,7 @@ final class VoucherModel {
     this.firstChildId,
     required this.senderStatus,
     required this.receiverStatus,
+    this.isInbound = false,
     this.senderSignatureHex,
     this.receiverSignatureHex,
     this.senderPublicKeyHex,
@@ -76,6 +77,11 @@ final class VoucherModel {
   final String? withdrawnAtIso;
   final int reversalCount;
   final String? firstChildId;
+
+  // Inbound-sync flag (Migration 037)
+  /// True when this voucher was received from the counterparty via sync,
+  /// not created locally.
+  final bool isInbound;
 
   // Dual signatures and lifecycle (Protocol v2.0)
   final String senderStatus;
@@ -122,6 +128,7 @@ final class VoucherModel {
         'sender_public_key_hex': senderPublicKeyHex,
         'receiver_public_key_hex': receiverPublicKeyHex,
         'lifecycle_status': lifecycleStatus,
+        'is_inbound': isInbound ? 1 : 0,
       };
 
   factory VoucherModel.fromMap(Map<String, Object?> map) {
@@ -158,6 +165,7 @@ final class VoucherModel {
       firstChildId: map['first_child_id'] as String?,
       senderStatus: (map['sender_status'] as String?) ?? 'accepted',
       receiverStatus: (map['receiver_status'] as String?) ?? 'under_request',
+      isInbound: (map['is_inbound'] as int?) == 1,
       senderSignatureHex: map['sender_signature_hex'] as String?,
       receiverSignatureHex: map['receiver_signature_hex'] as String?,
       senderPublicKeyHex: map['sender_public_key_hex'] as String?,

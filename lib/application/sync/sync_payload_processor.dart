@@ -407,6 +407,10 @@ class SyncPayloadProcessor {
           ? VoucherId(payload['origin_voucher_id'])
           : null,
       tripartiteMeta: tripartiteMeta,
+      // §5 Protocol: This voucher was created by the counterparty and pushed
+      // to us.  Mark it so the chat UI can correctly compute [isCreator = false]
+      // regardless of which account happens to own affectedAccountId.
+      isInbound: true,
     );
 
     // 7. Persist

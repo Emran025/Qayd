@@ -344,8 +344,17 @@ final class ListAccountStatementChatUseCase {
 
         final mergedDescription = (v.description ?? v.notes ?? '').trim();
 
-        // Check if the current perspective account is the one that created the voucher
-        final bool isCreator = v.affectedAccountId == subjectId;
+        // Check if the current user is the one who CREATED (sent) this voucher.
+        // We use the canonical [isInbound] flag persisted during sync ingestion
+        // (Migration 037).  An inbound voucher was created by the counterparty
+        // and pushed to us, so we are NEVER the creator.
+        // Fallback for legacy rows that pre-date the migration: if isInbound
+        // is not set we use the structural heuristic (affectedAccountId ==
+        // subjectId AND no senderSignatureHex, meaning we didn't receive a
+        // pre-signed document from outside).
+        final bool isCreator = v.isInbound
+            ? false
+            : v.affectedAccountId == subjectId;
 
         // Find the "Other" party
         final otherId = v.affectedAccountId == subjectId

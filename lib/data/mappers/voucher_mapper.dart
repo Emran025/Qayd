@@ -71,6 +71,7 @@ final class VoucherMapper {
       originVoucherId: voucher.originVoucherId?.value,
       rejectionReason: voucher.rejectionReason,
       withdrawnAtIso: voucher.withdrawnAt?.toIso8601String(),
+      isInbound: voucher.isInbound,
     );
   }
 
@@ -136,6 +137,7 @@ final class VoucherMapper {
       reversalCount: model.reversalCount,
       firstChildId:
           model.firstChildId != null ? VoucherId(model.firstChildId!) : null,
+      isInbound: model.isInbound,
     );
   }
 
