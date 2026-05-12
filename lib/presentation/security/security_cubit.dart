@@ -351,6 +351,13 @@ class SecurityCubit extends Cubit<SecurityState> {
       if (newData.containsKey('ban_reason')) {
         existingData['ban_reason'] = newData['ban_reason'];
       }
+      if (newData.containsKey('device_role')) {
+        final dr = newData['device_role'] as String?;
+        if (dr != null) {
+          existingData['device_role'] = dr;
+          await _licenseVault.setIsCompanionDevice(dr == 'companion');
+        }
+      }
 
       await _licenseVault.writeLicenseData(existingData);
 
@@ -632,7 +639,8 @@ class SecurityCubit extends Cubit<SecurityState> {
       await _licenseVault.writeJwt(result.jwt);
       await _licenseVault.writeLicenseData(result.licenseData);
       await _licenseVault.writeProvisionedHardwareId(hardwareId);
-      await _licenseVault.setIsCompanionDevice(false);
+      final deviceRole = result.licenseData['device_role'] as String?;
+      await _licenseVault.setIsCompanionDevice(deviceRole == 'companion');
       if (result.serverSalt.isNotEmpty) {
         await _licenseVault.writeServerSalt(result.serverSalt);
       }
@@ -757,7 +765,23 @@ class SecurityCubit extends Cubit<SecurityState> {
   }
   // ── Auth & Logout ─────────────────────────────────────────────────────────
 
-  Future<void> logout() async {
+  /// Clears the session after the server reports this device was revoked.
+  Future<void> handleDeviceRevoked() async {
+    await _licenseVault.setPendingAuthBannerAr(
+      AppStrings.deviceAuthorizationRevoked,
+    );
+    await logout(skipRemoteLogout: true);
+  }
+
+  Future<void> logout({bool skipRemoteLogout = false}) async {
+    if (!skipRemoteLogout) {
+      try {
+        await _authRepository.logout();
+      } catch (_) {
+        // Still sign out locally if the network call fails.
+      }
+    }
+
     // 1. Clear session from vault (JWT) but retain User ID and Public Key
     // to identify returning users and prevent accidental data wipes.
     final oldData = await _licenseVault.readLicenseData() ?? {};

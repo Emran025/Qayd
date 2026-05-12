@@ -136,7 +136,18 @@ final class RemoteAuthRepository implements AuthRepository {
   Future<Map<String, dynamic>> refreshLicense() async {
     try {
       final data = await _client.get(ApiEndpoints.licenseRefresh);
-      return data;
+      return data as Map<String, dynamic>;
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(_unknownError(e));
+    }
+  }
+
+  @override
+  Future<void> logout() async {
+    try {
+      await _client.post(ApiEndpoints.authLogout);
     } on AuthException {
       rethrow;
     } catch (e) {

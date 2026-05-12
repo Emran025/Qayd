@@ -22,11 +22,11 @@ class ProfileSettingsPage extends StatelessWidget {
       appBar: QaydAppBar(title: AppStrings.settingsGroupProfile),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: SpacingTokens.sm),
-        children: const [
-          ProfileDetailsSection(),
-          Divider(height: 32),
-          IdentitySettingsSection(),
-          Divider(height: 32),
+        children: [
+          const ProfileDetailsSection(),
+          const Divider(height: 32),
+          const IdentitySettingsSection(),
+          const Divider(height: 32),
           _DeleteAccountSection(),
         ],
       ),
@@ -43,6 +43,21 @@ class _DeleteAccountSection extends StatefulWidget {
 
 class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
   bool _loading = false;
+  bool _hideForCompanion = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCompanionGate();
+  }
+
+  Future<void> _loadCompanionGate() async {
+    final isCompanion =
+        await InjectionContainer.licenseVault.isCompanionDevice();
+    if (mounted) {
+      setState(() => _hideForCompanion = isCompanion);
+    }
+  }
 
   Future<void> _confirmDelete() async {
     setState(() => _loading = true);
@@ -155,6 +170,10 @@ class _DeleteAccountSectionState extends State<_DeleteAccountSection> {
 
   @override
   Widget build(BuildContext context) {
+    if (_hideForCompanion) {
+      return const SizedBox.shrink();
+    }
+
     final scheme = Theme.of(context).colorScheme;
 
     return Card(

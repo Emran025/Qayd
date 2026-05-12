@@ -43,6 +43,20 @@ class _LoginPageState extends State<LoginPage> {
   String? _errorAr;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _consumePendingBanner());
+  }
+
+  Future<void> _consumePendingBanner() async {
+    final msg =
+        await InjectionContainer.licenseVault.readAndClearPendingAuthBannerAr();
+    if (msg != null && mounted) {
+      setState(() => _errorAr = msg);
+    }
+  }
+
+  @override
   void dispose() {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();

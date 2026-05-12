@@ -2622,6 +2622,12 @@ abstract class AppStringsBase {
   String get linkNewCompanionDeviceDesc => 'وافق لنقل بيانات تسجيل الدخول المشفرة بشكل آمن وبدء الربط.';
   String get scanCompanionQr => 'مسح QR لجهاز مرتبط';
   String get companionDeviceRestriction => 'هذا جهاز مرتبط. لإضافة أجهزة جديدة الرجاء استخدام جهازك الرئيسي.';
+  String get deviceAuthorizationRevoked =>
+      'تم إلغاء تفويض هذا الجهاز من قبل المسؤول.';
+  String get logoutPrimaryHandoverTitle => 'نقل صلاحيات الإدارة';
+  String logoutPrimaryHandoverTemplate(String deviceName) =>
+      'سيتم نقل صلاحيات إدارة الأجهزة إلى الجهاز: $deviceName. هل تريد متابعة تسجيل الخروج؟';
+  String get deviceRolePrimaryLabel => 'جهاز رئيسي';
   String get actionApprove => 'موافقة';
   String get migratingData => 'جاري ترحيل البيانات وتأمين الاتصال...';
   String get migratingDataSubtitle => 'يرجى الانتظار، قد تستغرق هذه العملية لحظات.';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_page.dart';
@@ -48,7 +49,19 @@ class SystemSettingsPage extends StatelessWidget {
             icon: Icons.devices_outlined,
             title: AppStrings.deviceManagement,
             subtitle: AppStrings.deviceManagementSubtitle,
-            onTap: () => _navTo(context, const DeviceManagementPage()),
+            onTap: () async {
+              if (await InjectionContainer.licenseVault.isCompanionDevice()) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(AppStrings.companionDeviceRestriction)),
+                  );
+                }
+                return;
+              }
+              if (context.mounted) {
+                _navTo(context, const DeviceManagementPage());
+              }
+            },
           ),
           _buildSettingsTile(
             context,

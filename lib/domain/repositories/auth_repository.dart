@@ -53,4 +53,7 @@ abstract interface class AuthRepository {
   /// Useful for unlocking the app after an admin grants a license,
   /// without requiring a full re-login.
   Future<Map<String, dynamic>> refreshLicense();
+
+  /// Ends the server session for the current device (primary handover or companion deactivation).
+  Future<void> logout();
 }

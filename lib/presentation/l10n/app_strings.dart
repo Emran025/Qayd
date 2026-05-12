@@ -2479,6 +2479,11 @@ class AppStrings {
   static String get linkNewCompanionDeviceDesc => i.linkNewCompanionDeviceDesc;
   static String get scanCompanionQr => i.scanCompanionQr;
   static String get companionDeviceRestriction => i.companionDeviceRestriction;
+  static String get deviceAuthorizationRevoked => i.deviceAuthorizationRevoked;
+  static String get logoutPrimaryHandoverTitle => i.logoutPrimaryHandoverTitle;
+  static String logoutPrimaryHandoverTemplate(String deviceName) =>
+      i.logoutPrimaryHandoverTemplate(deviceName);
+  static String get deviceRolePrimaryLabel => i.deviceRolePrimaryLabel;
   static String get actionApprove => i.actionApprove;
   static String get migratingData => i.migratingData;
   static String get migratingDataSubtitle => i.migratingDataSubtitle;

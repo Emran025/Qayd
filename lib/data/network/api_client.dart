@@ -9,6 +9,7 @@ import 'package:qayd/presentation/l10n/app_strings.dart';
 /// Provides:
 ///   - Base URL and JSON headers pre-configured.
 ///   - [AuthInterceptor] to attach the stored JWT automatically.
+///   - Optional [DeviceIdInterceptor] when [deviceIdProvider] is set.
 ///   - [_ErrorInterceptor] to normalize Dio/HTTP errors into [AuthException].
 ///   - Timeout configuration (connect: 10s, receive: 30s).
 ///
@@ -21,15 +22,23 @@ final class ApiClient {
   ApiClient({
     required String baseUrl,
     Future<String?> Function()? tokenProvider,
+    Future<String?> Function()? deviceIdProvider,
     void Function()? onSecurityError,
+    void Function()? onDeviceRevoked,
     List<Interceptor> interceptors = const <Interceptor>[],
     Dio? dio,
   }) : _dio = dio ?? _buildDio(baseUrl) {
     _dio.interceptors.addAll(interceptors);
+    if (deviceIdProvider != null) {
+      _dio.interceptors.add(DeviceIdInterceptor(deviceIdProvider));
+    }
     if (tokenProvider != null) {
       _dio.interceptors.add(AuthInterceptor(tokenProvider));
     }
-    _dio.interceptors.add(_ErrorInterceptor(onSecurityError));
+    _dio.interceptors.add(_ErrorInterceptor(
+      onSecurityError: onSecurityError,
+      onDeviceRevoked: onDeviceRevoked,
+    ));
   }
 
   final Dio _dio;
@@ -172,6 +181,27 @@ final class ApiClient {
   }
 }
 
+// ── Device id header ───────────────────────────────────────────────────────
+
+/// Sends [X-Device-Id] on every request for server-side device middleware.
+final class DeviceIdInterceptor extends Interceptor {
+  DeviceIdInterceptor(this._deviceIdProvider);
+
+  final Future<String?> Function() _deviceIdProvider;
+
+  @override
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final id = await _deviceIdProvider();
+    if (id != null && id.isNotEmpty) {
+      options.headers['X-Device-Id'] = id;
+    }
+    handler.next(options);
+  }
+}
+
 // ── Auth interceptor ─────────────────────────────────────────────────────────
 
 /// Attaches the JWT bearer token to every request when available.
@@ -197,18 +227,30 @@ final class AuthInterceptor extends Interceptor {
 
 /// Converts Dio errors into structured [AuthException] with Arabic messages.
 final class _ErrorInterceptor extends Interceptor {
-  const _ErrorInterceptor(this.onSecurityError);
+  const _ErrorInterceptor({
+    this.onSecurityError,
+    this.onDeviceRevoked,
+  });
 
   final void Function()? onSecurityError;
+  final void Function()? onDeviceRevoked;
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final statusCode = err.response?.statusCode;
     final serverCode = err.response?.data?['code'] as String?;
 
-    // If we get a 403 with a security-related error code, notify the app 
-    // to refresh its license/ban state immediately.
-    if (statusCode == 403 || serverCode == 'ACCOUNT_BANNED' || serverCode == 'ACCOUNT_CLOSED') {
+    if (serverCode == 'DEVICE_REVOKED') {
+      onDeviceRevoked?.call();
+    }
+
+    // If we get a 403 with a security-related error code, notify the app
+    // to refresh its license/ban state immediately — except device revoke,
+    // which uses a dedicated flow.
+    if ((statusCode == 403 ||
+            serverCode == 'ACCOUNT_BANNED' ||
+            serverCode == 'ACCOUNT_CLOSED') &&
+        serverCode != 'DEVICE_REVOKED') {
       onSecurityError?.call();
     }
 
@@ -217,7 +259,7 @@ final class _ErrorInterceptor extends Interceptor {
         : null;
     final retryAfter = meta?['retry_after'] as int?;
 
-    final arabicMessage = _resolveArabicMessage(err);
+    final arabicMessage = _resolveArabicMessage(err, serverCode);
     handler.reject(
       DioException(
         requestOptions: err.requestOptions,
@@ -229,9 +271,13 @@ final class _ErrorInterceptor extends Interceptor {
     );
   }
 
-  String _resolveArabicMessage(DioException err) {
+  String _resolveArabicMessage(DioException err, String? serverCode) {
     // Server responded with a 4xx/5xx and a message field.
     final serverMessage = err.response?.data?['message'] as String?;
+
+    if (serverCode == 'DEVICE_REVOKED') {
+      return AppStrings.deviceAuthorizationRevoked;
+    }
 
     if (err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.sendTimeout ||

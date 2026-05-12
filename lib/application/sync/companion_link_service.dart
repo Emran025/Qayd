@@ -388,6 +388,7 @@ class CompanionLinkService {
             lastSeenAt: serverSession.lastSeenAt ?? now,
             isCurrent: true, // This IS the current device.
             isActive: serverSession.isActive,
+            role: serverSession.role,
           ),
         );
         debugPrint('CompanionLink: ✅ Companion session persisted to local DB.');

@@ -4858,6 +4858,16 @@ class AppStringsEn extends AppStringsBase {
   String get companionDeviceRestriction =>
       'This is a companion device. To link new devices, please use your primary device.';
   @override
+  String get deviceAuthorizationRevoked =>
+      'This device\'s authorization has been revoked by the administrator.';
+  @override
+  String get logoutPrimaryHandoverTitle => 'Transfer management permissions';
+  @override
+  String logoutPrimaryHandoverTemplate(String deviceName) =>
+      'Management permissions will be transferred to device: $deviceName. Continue to sign out?';
+  @override
+  String get deviceRolePrimaryLabel => 'Primary device';
+  @override
   String get actionApprove => 'Approve';
   @override
   String get migratingData => 'Migrating data and securing connection...';

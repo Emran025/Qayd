@@ -21,6 +21,7 @@ class LicenseVault {
   static const _kIsCompanionDevice = 'qayd_is_companion_device_v1';
   static const _kInitialSyncComplete = 'qayd_initial_sync_complete_v1';
   static const _kInitialSyncProgress = 'qayd_initial_sync_progress_v1';
+  static const _kPendingAuthBannerAr = 'qayd_pending_auth_banner_ar_v1';
 
   static const int trialDurationDays = 30;
 
@@ -119,6 +120,16 @@ class LicenseVault {
   Future<void> setIsCompanionDevice(bool isCompanion) =>
       _storage.write(key: _kIsCompanionDevice, value: isCompanion.toString());
 
+  /// Shown once on the login screen after a forced session end (e.g. device revoked).
+  Future<void> setPendingAuthBannerAr(String message) =>
+      _storage.write(key: _kPendingAuthBannerAr, value: message);
+
+  Future<String?> readAndClearPendingAuthBannerAr() async {
+    final v = await _storage.read(key: _kPendingAuthBannerAr);
+    await _storage.delete(key: _kPendingAuthBannerAr);
+    return v;
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   Future<bool> isProvisioned() async {
@@ -137,5 +148,6 @@ class LicenseVault {
     await _storage.delete(key: _kIsCompanionDevice);
     await _storage.delete(key: _kInitialSyncComplete);
     await _storage.delete(key: _kInitialSyncProgress);
+    await _storage.delete(key: _kPendingAuthBannerAr);
   }
 }

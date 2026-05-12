@@ -440,6 +440,7 @@ abstract final class InjectionContainer {
     final apiClient = ApiClient(
       baseUrl: ApiEndpoints.baseUrl,
       tokenProvider: () => licenseVault.readJwt(),
+      deviceIdProvider: () async => currentDeviceId,
       interceptors: <Interceptor>[
         SentryDioObserver(),
       ],
@@ -448,6 +449,9 @@ abstract final class InjectionContainer {
         // we force the security cubit to refresh its state and lock the UI.
         // We use isForced: true to bypass the refresh throttling.
         securityCubit.refreshLicenseStatus(isForced: true).ignore();
+      },
+      onDeviceRevoked: () {
+        securityCubit.handleDeviceRevoked().ignore();
       },
     );
 

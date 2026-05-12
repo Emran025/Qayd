@@ -61,6 +61,7 @@ class ApiDeviceRegistryRepository implements DeviceRegistryRepository {
           : null,
       isCurrent: deviceId == _currentDeviceId,
       isActive: (raw['is_active'] as bool?) ?? true,
+      role: raw['role'] as String?,
     );
   }
 }

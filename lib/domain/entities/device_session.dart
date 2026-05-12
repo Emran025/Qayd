@@ -8,6 +8,7 @@ class DeviceSession {
     this.lastSeenAt,
     this.isCurrent = false,
     this.isActive = true,
+    this.role,
   });
 
   final String deviceId;
@@ -18,6 +19,8 @@ class DeviceSession {
   final DateTime? lastSeenAt;
   final bool isCurrent;
   final bool isActive;
+  /// Server role: `primary` or `companion` when known.
+  final String? role;
 
   Map<String, Object?> toMap() {
     return {
@@ -29,6 +32,7 @@ class DeviceSession {
       'last_seen_at': lastSeenAt?.toUtc().toIso8601String(),
       'is_current': isCurrent ? 1 : 0,
       'is_active': isActive ? 1 : 0,
+      if (role != null) 'role': role,
     };
   }
 
@@ -44,6 +48,7 @@ class DeviceSession {
           : null,
       isCurrent: (map['is_current'] as int? ?? 0) == 1,
       isActive: (map['is_active'] as int? ?? 1) == 1,
+      role: map['role'] as String?,
     );
   }
 }

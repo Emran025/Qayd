@@ -112,6 +112,22 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isCompanionDevice) {
+      return Scaffold(
+        appBar: QaydAppBar(title: AppStrings.deviceManagement),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(SpacingTokens.lg),
+            child: QaydText(
+              AppStrings.companionDeviceRestriction,
+              slot: QaydTextStyleSlot.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
     final state = _cubit.state;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -270,10 +286,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                     borderRadius: BorderRadius.circular(RadiusTokens.pill),
                   ),
                   child: QaydText(
-                    _isCompanionDevice
-                        ? AppStrings.companionDeviceRestriction
-                        : AppStrings
-                            .currentStatus, // Or something like "Primary Device"
+                    AppStrings.deviceRolePrimaryLabel,
                     slot: QaydTextStyleSlot.labelSmall,
                     color: Colors.white,
                   ),

@@ -65,6 +65,7 @@ class DevicePairingService {
         lastSeenAt: serverSession.lastSeenAt,
         isCurrent: isCurrent,
         isActive: serverSession.isActive,
+        role: serverSession.role,
       ),
     );
   }
