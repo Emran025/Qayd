@@ -121,6 +121,8 @@ class AuditLogCubit extends Cubit<AuditLogState> {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
       final entries = await _service.getQueue();
+      if (isClosed) return;
+
       final filtered = _applyFilter(entries, state.filter);
       emit(state.copyWith(
         allEntries: entries,
@@ -181,6 +183,8 @@ class AuditLogCubit extends Cubit<AuditLogState> {
   Future<List<AuditEntry>> loadImpactedEntries(String entryId) async {
     try {
       final affected = await _service.getEntriesAffectedByRevert(entryId);
+      if (isClosed) return affected;
+
       emit(state.copyWith(impactedEntries: affected));
       return affected;
     } catch (e, st) {

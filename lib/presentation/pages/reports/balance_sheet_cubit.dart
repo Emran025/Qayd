@@ -48,6 +48,8 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
   Future<void> load() async {
     emit(const BalanceSheetLoading());
     final result = await _useCase(DateTime.now());
+    if (isClosed) return;
+
     result.fold(
       (f) => emit(BalanceSheetFailure(f.messageAr)),
       (output) {
@@ -68,6 +70,8 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
       const generator = BalanceSheetPdfGenerator();
       final bytes = await generator.generate(output);
 
+      if (isClosed) return;
+
       await sharePdfBytes(
         bytes,
         'balance_sheet_${DateTime.now().millisecondsSinceEpoch}.pdf',
@@ -76,10 +80,12 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
     } catch (e, stackTrace) {
       // ignore: avoid_print
       print('BalanceSheet PDF Error: $e\n$stackTrace');
+      if (isClosed) return;
       emit(BalanceSheetFailure(
           AppStrings.errorExportingPdf(AppStrings.balanceSheet, e.toString())));
       return;
     }
+    if (isClosed) return;
     emit(BalanceSheetReady(output));
   }
 
@@ -101,10 +107,12 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
     } catch (e) {
+      if (isClosed) return;
       emit(BalanceSheetFailure(AppStrings.errorExportingExcel(
           AppStrings.balanceSheet, e.toString())));
       return;
     }
+    if (isClosed) return;
     emit(BalanceSheetReady(output));
   }
 }

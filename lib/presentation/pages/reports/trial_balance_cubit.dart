@@ -21,6 +21,8 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
   Future<void> load() async {
     emit(const TrialBalanceLoading());
     final result = await _generate(const GenerateTrialBalanceInput());
+    if (isClosed) return;
+
     result.fold(
       (f) => emit(TrialBalanceFailure(f)),
       (output) {
@@ -41,6 +43,8 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
       const generator = TrialBalancePdfGenerator();
       final bytes = await generator.generate(output);
 
+      if (isClosed) return;
+
       await sharePdfBytes(
         bytes,
         'trial_balance_${DateTime.now().millisecondsSinceEpoch}.pdf',
@@ -49,6 +53,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
     } catch (e, stackTrace) {
       // ignore: avoid_print
       print('TrialBalance PDF Error: $e\n$stackTrace');
+      if (isClosed) return;
       emit(TrialBalanceFailure(
         FileSystemFailure(
             messageAr: AppStrings.errorExportingPdf(
@@ -56,6 +61,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
       ));
       return;
     }
+    if (isClosed) return;
     emit(TrialBalanceReady(output));
   }
 
@@ -77,6 +83,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
     } catch (e) {
+      if (isClosed) return;
       emit(TrialBalanceFailure(
         FileSystemFailure(
             messageAr: AppStrings.errorExportingExcel(
@@ -84,6 +91,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
       ));
       return;
     }
+    if (isClosed) return;
     emit(TrialBalanceReady(output));
   }
 }
