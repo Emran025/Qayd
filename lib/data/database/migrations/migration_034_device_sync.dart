@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS device_sessions (
   last_sync_seq INTEGER NOT NULL DEFAULT 0,
   last_seen_at TEXT,
   is_current INTEGER NOT NULL DEFAULT 0,
-  is_active INTEGER NOT NULL DEFAULT 1
+  is_active INTEGER NOT NULL DEFAULT 1,
+  role TEXT
 )
 ''');
 
