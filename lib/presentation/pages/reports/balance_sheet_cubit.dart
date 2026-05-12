@@ -8,7 +8,6 @@ import 'package:qayd/presentation/utils/share_export_bytes.dart';
 import 'package:qayd/presentation/utils/share_pdf_bytes.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 
-
 // ═══════════════════════════════════════════════════════════════════════════
 // ── STATE ────────────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════
@@ -44,24 +43,30 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
   BalanceSheetCubit(this._useCase) : super(const BalanceSheetInitial());
 
   final GenerateBalanceSheetUseCase _useCase;
+  BalanceSheetOutput? _lastOutput;
 
   Future<void> load() async {
     emit(const BalanceSheetLoading());
     final result = await _useCase(DateTime.now());
     result.fold(
       (f) => emit(BalanceSheetFailure(f.messageAr)),
-      (output) => emit(BalanceSheetReady(output)),
+      (output) {
+        _lastOutput = output;
+        emit(BalanceSheetReady(output));
+      },
     );
   }
 
   Future<void> exportPdf() async {
     final currentState = state;
-    if (currentState is! BalanceSheetReady) return;
+    final output =
+        currentState is BalanceSheetReady ? currentState.output : _lastOutput;
+    if (output == null) return;
 
-    emit(BalanceSheetReady(currentState.output, isExporting: true));
+    emit(BalanceSheetReady(output, isExporting: true));
     try {
       const generator = BalanceSheetPdfGenerator();
-      final bytes = await generator.generate(currentState.output);
+      final bytes = await generator.generate(output);
 
       await sharePdfBytes(
         bytes,
@@ -71,20 +76,23 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
     } catch (e, stackTrace) {
       // ignore: avoid_print
       print('BalanceSheet PDF Error: $e\n$stackTrace');
-      emit(BalanceSheetFailure(AppStrings.errorExportingPdf(AppStrings.balanceSheet, e.toString())));
+      emit(BalanceSheetFailure(
+          AppStrings.errorExportingPdf(AppStrings.balanceSheet, e.toString())));
       return;
     }
-    emit(BalanceSheetReady(currentState.output));
+    emit(BalanceSheetReady(output));
   }
 
   Future<void> exportExcel() async {
     final currentState = state;
-    if (currentState is! BalanceSheetReady) return;
+    final output =
+        currentState is BalanceSheetReady ? currentState.output : _lastOutput;
+    if (output == null) return;
 
-    emit(BalanceSheetReady(currentState.output, isExporting: true));
+    emit(BalanceSheetReady(output, isExporting: true));
     try {
       const generator = ExcelReportGenerator();
-      final bytes = generator.generateBalanceSheet(currentState.output);
+      final bytes = generator.generateBalanceSheet(output);
 
       await shareExportBytes(
         bytes,
@@ -93,9 +101,10 @@ class BalanceSheetCubit extends Cubit<BalanceSheetState> {
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
     } catch (e) {
-      emit(BalanceSheetFailure(AppStrings.errorExportingExcel(AppStrings.balanceSheet, e.toString())));
+      emit(BalanceSheetFailure(AppStrings.errorExportingExcel(
+          AppStrings.balanceSheet, e.toString())));
       return;
     }
-    emit(BalanceSheetReady(currentState.output));
+    emit(BalanceSheetReady(output));
   }
 }
