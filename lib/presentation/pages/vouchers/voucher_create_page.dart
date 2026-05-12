@@ -100,6 +100,9 @@ class _VoucherCreatePageState extends State<VoucherCreatePage>
 
     if (widget.initialQrData != null) {
       _applyFromQr(widget.initialQrData!);
+      if (widget.initialQrData!['currencyCode'] == null) {
+        _loadBaseCurrency();
+      }
     } else {
       _loadBaseCurrency();
     }

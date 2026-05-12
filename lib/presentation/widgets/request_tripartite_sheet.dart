@@ -48,6 +48,20 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
   final _amountController = TextEditingController();
   AccountSummaryDto? _mediator;
   bool _submitting = false;
+  String _currencyCode = PredefinedCurrencies.sar.code;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBaseCurrency();
+  }
+
+  Future<void> _loadBaseCurrency() async {
+    final res = await InjectionContainer.getBaseCurrencyUseCase();
+    if (res.isSuccess && mounted) {
+      setState(() => _currencyCode = res.valueOrNull!);
+    }
+  }
 
   Future<void> _pickMediator() async {
     final res = await showAccountPickerSheet(
@@ -77,7 +91,7 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
           mediatorAccountId: _mediator!.id,
           destinationAccountId: widget.destinationAccountId,
           amountMinorUnits: minor,
-          currencyCode: PredefinedCurrencies.sar.code,
+          currencyCode: _currencyCode,
         ),
       );
 
@@ -90,8 +104,7 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
           },
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(AppStrings.theTransferRequestHas)),
+              SnackBar(content: Text(AppStrings.theTransferRequestHas)),
             );
             Navigator.pop(context);
           },

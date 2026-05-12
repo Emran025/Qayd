@@ -48,6 +48,9 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     super.initState();
     if (widget.initialQrData != null) {
       _applyFromQr(widget.initialQrData!);
+      if (widget.initialQrData!['currencyCode'] == null) {
+        _loadBaseCurrency();
+      }
     } else {
       _loadBaseCurrency();
     }
