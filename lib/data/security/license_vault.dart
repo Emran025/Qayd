@@ -32,6 +32,13 @@ class LicenseVault {
   Future<void> markInitialSyncComplete() =>
       _storage.write(key: _kInitialSyncComplete, value: 'true');
 
+  /// Clears the initial sync flag so the companion page waits for a fresh
+  /// snapshot on the next pairing session.
+  Future<void> resetInitialSyncStatus() async {
+    await _storage.delete(key: _kInitialSyncComplete);
+    await _storage.delete(key: _kInitialSyncProgress);
+  }
+
   Future<String?> readInitialSyncProgress() =>
       _storage.read(key: _kInitialSyncProgress);
 
@@ -128,5 +135,7 @@ class LicenseVault {
     await _storage.delete(key: _kProvisionedHardwareId);
     await _storage.delete(key: _kLocalDbSalt);
     await _storage.delete(key: _kIsCompanionDevice);
+    await _storage.delete(key: _kInitialSyncComplete);
+    await _storage.delete(key: _kInitialSyncProgress);
   }
 }

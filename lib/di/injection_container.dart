@@ -511,6 +511,8 @@ abstract final class InjectionContainer {
       cryptoIdentityService: cryptoIdentityService,
       deviceRegistryRepository: deviceRegistryRepository,
       getCurrentDeviceId: () async => currentDeviceId,
+      // deviceSessionRepository is injected later in _initializeDatabaseDependentStack
+      // once the SQLite stack is ready (it requires the DB to be open).
     );
     manualLinkService = ManualLinkService(apiClient: apiClient);
     updateProfileUseCase = UpdateProfileUseCase(
@@ -722,6 +724,10 @@ abstract final class InjectionContainer {
     _registerSqliteStack();
     _databaseReady = true;
 
+    // §C-6: Now that the SQLite stack is ready, inject deviceSessionRepository
+    // into companionLinkService so companion registration can persist locally.
+    companionLinkService.deviceSessionRepository = deviceSessionRepository;
+
     // ── Bind DB-dependent services to the SecurityCubit ──────────────────────
     securityCubit.syncIdentityUseCase = syncIdentityToInternalAccountsUseCase;
 
@@ -783,7 +789,9 @@ abstract final class InjectionContainer {
       companionLinkService: companionLinkService,
       licenseVault: licenseVault,
       syncCoordinatorService: syncCoordinatorService,
+      database: database,
     );
+
     devicePairingFacade = DevicePairingFacade(
       pairingService: devicePairingService,
       sessionRepository: deviceSessionRepository,

@@ -500,7 +500,9 @@ class CreateVoucherUseCase {
           entityId: voucher.id.value,
           action: AuditAction.create,
           newData: {
+            'id': voucher.id.value,
             'type': voucher.type.name,
+            'date': voucher.date.toIso8601String(),
             'amount': voucher.amount.minorUnits,
             'currency': voucher.currency.code,
             'state': voucher.state.name,

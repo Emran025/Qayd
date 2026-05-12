@@ -300,6 +300,7 @@ class CreateDualTransferUseCase {
           'id': receiptVoucher.id.value,
           'type': receiptVoucher.type.name,
           'state': receiptVoucher.state.name,
+          'date': receiptVoucher.date.toIso8601String(),
         },
       );
       await _auditLogService?.log(
@@ -312,6 +313,7 @@ class CreateDualTransferUseCase {
           'id': paymentVoucher.id.value,
           'type': paymentVoucher.type.name,
           'state': paymentVoucher.state.name,
+          'date': paymentVoucher.date.toIso8601String(),
         },
       );
       return Success(

@@ -11,7 +11,9 @@ import 'package:qayd/core/constants/api_endpoints.dart';
 import 'package:qayd/data/network/api_client.dart';
 import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/data/security/mnemonic_vault.dart';
+import 'package:qayd/domain/entities/device_session.dart';
 import 'package:qayd/domain/repositories/device_registry_repository.dart';
+import 'package:qayd/domain/repositories/device_session_repository.dart';
 import 'package:qayd/domain/services/e2ee_encryption_service.dart';
 import 'package:qayd/domain/value_objects/crypto_key_pair.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
@@ -44,6 +46,7 @@ class CompanionLinkService {
     required this.cryptoIdentityService,
     required this.deviceRegistryRepository,
     required this.getCurrentDeviceId,
+    this.deviceSessionRepository,
   });
 
   final DevicePairingQrService qrService;
@@ -56,6 +59,9 @@ class CompanionLinkService {
   final CryptoIdentityService cryptoIdentityService;
   final DeviceRegistryRepository deviceRegistryRepository;
   final Future<String> Function() getCurrentDeviceId;
+  // Injected after the SQLite stack is initialized (post-DB-open).
+  // See InjectionContainer._initializeDatabaseDependentStack.
+  DeviceSessionRepository? deviceSessionRepository;
 
   final Set<String> _usedNonces = <String>{};
 
@@ -200,21 +206,27 @@ class CompanionLinkService {
   }) async {
     debugPrint(
         'CompanionLink: 🔍 Polling bootstrap for session: ${session.socketSessionId}');
-    Map<String, dynamic>? res;
+
+    // NOTE: apiClient.post() calls _extractData() internally, which already
+    // unwraps the API envelope and returns body['data'] directly.
+    // So when the server returns {"status":"success","data":null}  → returns null.
+    // When server returns {"status":"success","data":{...}}        → returns {...}.
+    // We must NOT do res['data'] again — the unwrapping is already done.
+    dynamic rawResponse;
     try {
-      res = await apiClient.post(
+      rawResponse = await apiClient.post(
         ApiEndpoints.devicesCompanionConsume,
         body: {'socket_session_id': session.socketSessionId},
-      ) as Map<String, dynamic>?;
+      );
     } catch (e) {
       debugPrint('CompanionLink: ❌ Poll request failed: $e');
       return false;
     }
 
-    if (res == null) return false;
+    // null means no bootstrap record exists yet — keep polling silently.
+    if (rawResponse == null) return false;
 
-    final Map<String, dynamic> data =
-        res.containsKey('data') ? (res['data'] as Map<String, dynamic>) : res;
+    final Map<String, dynamic> data = rawResponse as Map<String, dynamic>;
 
     final encrypted = data['encrypted_payload'] as String?;
     final senderPublicKey = data['sender_public_key'] as String?;
@@ -291,7 +303,13 @@ class CompanionLinkService {
   Future<CryptoKeyPair> _persistBootstrap(CredentialBootstrapPayload payload,
       CryptoKeyPair ephemeralKeyPair) async {
     debugPrint('CompanionLink: 💾 Writing JWT and license data...');
+    // §C-7: Reset the initial sync flag before writing new credentials.
+    // This ensures the companion_link_page waits for a fresh snapshot
+    // even if a previous pairing had already set this flag to true.
+    await licenseVault.resetInitialSyncStatus();
+
     await licenseVault.writeJwt(payload.jwt);
+
     await licenseVault.setIsCompanionDevice(true);
     if (payload.licenseData != null) {
       await licenseVault.writeLicenseData(payload.licenseData!);
@@ -336,6 +354,7 @@ class CompanionLinkService {
       CryptoKeyPair companionKeyPair, String? deviceCertificate) async {
     final publicKeyHex = companionKeyPair.publicKeyHex.toLowerCase();
     final deviceId = await getCurrentDeviceId();
+    final now = DateTime.now();
     debugPrint(
         'CompanionLink: 🆔 Attempting to register device: $deviceId with key: ${publicKeyHex.substring(0, 10)}...');
 
@@ -343,7 +362,7 @@ class CompanionLinkService {
     final signedChallenge = deviceCertificate ??
         'companion-bootstrap:$deviceId:${DateTime.now().millisecondsSinceEpoch}';
     try {
-      await deviceRegistryRepository.pairDevice(
+      final serverSession = await deviceRegistryRepository.pairDevice(
         deviceId: deviceId,
         deviceName: 'Companion Device',
         publicKeyHex: publicKeyHex,
@@ -353,6 +372,26 @@ class CompanionLinkService {
         'CompanionLink: companion registered on server '
         '[key: ${publicKeyHex.substring(0, 8)}…, device: $deviceId]',
       );
+
+      // §C-6: Also persist this companion's session locally so it appears
+      // in the device list on the Companion device itself. Without this,
+      // only the Primary's session is visible in SQLite.
+      final sessionRepo = deviceSessionRepository;
+      if (sessionRepo != null) {
+        await sessionRepo.upsert(
+          DeviceSession(
+            deviceId: serverSession.deviceId,
+            deviceName: serverSession.deviceName ?? 'Companion Device',
+            publicKeyHex: serverSession.publicKeyHex,
+            pairedAt: serverSession.pairedAt,
+            lastSyncSeq: serverSession.lastSyncSeq,
+            lastSeenAt: serverSession.lastSeenAt ?? now,
+            isCurrent: true, // This IS the current device.
+            isActive: serverSession.isActive,
+          ),
+        );
+        debugPrint('CompanionLink: ✅ Companion session persisted to local DB.');
+      }
     } catch (e) {
       // Non-fatal — credentials are already persisted.
       // The device will re-register on next app start via the normal device refresh.

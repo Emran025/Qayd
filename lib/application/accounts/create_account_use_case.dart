@@ -153,7 +153,9 @@ class CreateAccountUseCase {
         entityId: id.value,
         action: AuditAction.create,
         newData: {
+          'id': id.value,
           'name': input.name,
+          'created_at': now.toIso8601String(),
           'classification': account.classification.standardKind?.name ??
               input.customClassificationName,
         },

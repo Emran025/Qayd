@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:qayd/application/governance/audit_log_service.dart';
 import 'package:qayd/application/sync/audit_sync_compression_service.dart';
 import 'package:qayd/application/sync/audit_sync_dispatcher.dart';
 import 'package:qayd/application/sync/companion_link_service.dart';
@@ -11,6 +12,7 @@ import 'package:qayd/domain/entities/device_session.dart';
 import 'package:qayd/domain/repositories/audit_log_repository.dart';
 import 'package:qayd/domain/repositories/device_registry_repository.dart';
 import 'package:qayd/domain/repositories/device_session_repository.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import 'package:qayd/application/sync/sync_coordinator_service.dart';
 
@@ -23,6 +25,7 @@ class DevicePairingService {
     required this.companionLinkService,
     required this.licenseVault,
     required this.syncCoordinatorService,
+    required this.database,
   });
 
   final DeviceSessionRepository deviceSessionRepository;
@@ -32,6 +35,7 @@ class DevicePairingService {
   final CompanionLinkService companionLinkService;
   final LicenseVault licenseVault;
   final SyncCoordinatorService syncCoordinatorService;
+  final Database database;
 
   // Cancellation token for the companion discovery loop.
   // Cancelled when a new bootstrap is initiated, so the old loop exits cleanly.
@@ -73,12 +77,19 @@ class DevicePairingService {
 
     final delta = await auditLogRepository.listSinceSeq(session.lastSyncSeq);
     if (delta.isEmpty) {
+      debugPrint('DevicePairing: ⚠️ No audit entries to send to $targetDeviceId.');
       return;
     }
 
+    // §D-1: Enrich each CREATE entry with a full DB snapshot before sending.
+    // Entries are often logged with partial newData (e.g. {id, state, date}).
+    // The companion's _applySingle needs oldData['_parent'] to reconstruct
+    // the complete row. We query the live DB here on the Primary side.
+    final enriched = await Future.wait(delta.map(_enrichEntryForDispatch));
+
     const chunkSize = 250;
     final entriesToSend =
-        delta.length > chunkSize ? _compactSnapshot(delta) : delta;
+        enriched.length > chunkSize ? _compactSnapshot(enriched) : enriched;
     final totalBatches = (entriesToSend.length / chunkSize).ceil();
     int batchIndex = 1;
 
@@ -109,6 +120,36 @@ class DevicePairingService {
         targetDeviceId, DateTime.now());
 
     unawaited(syncCoordinatorService.forceSync());
+  }
+
+  /// §D-1: Enriches a single [AuditEntry] with a live DB snapshot so the
+  /// companion's recovery engine can reconstruct the complete row.
+  ///
+  /// For CREATE entries, we fetch the current row and embed it as
+  /// `oldData['_parent']`. If the row no longer exists, the entry is
+  /// returned as-is (best-effort — the compact snapshot will have resolved it).
+  Future<AuditEntry> _enrichEntryForDispatch(AuditEntry entry) async {
+    if (entry.action != AuditAction.create) return entry;
+    // Already enriched (has a full DB snapshot).
+    if (entry.oldData != null && entry.oldData!.containsKey('_parent')) {
+      return entry;
+    }
+
+    try {
+      final table = AuditLogService.tableFor(entry.entityType);
+      final rows = await database
+          .query(table, where: 'id = ?', whereArgs: [entry.entityId]);
+      if (rows.isEmpty) return entry;
+
+      final enrichedOldData = <String, dynamic>{
+        ...?entry.oldData,
+        '_parent': rows.first,
+      };
+      return entry.copyWith(oldData: enrichedOldData);
+    } catch (_) {
+      // Non-fatal: table might not exist for this entityType.
+      return entry;
+    }
   }
 
   List<AuditEntry> _compactSnapshot(List<AuditEntry> entries) {

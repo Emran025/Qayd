@@ -421,6 +421,7 @@ class SyncPayloadProcessor {
         'id': voucher.id.value,
         'state': voucher.state.name,
         'type': voucher.type.name,
+        'date': voucher.date.toIso8601String(),
       },
     );
     debugPrint('VoucherClaim [$voucherIdStr]: Ingested and stored as $myType.');

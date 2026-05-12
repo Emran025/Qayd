@@ -281,7 +281,7 @@ class AuditLogService {
   /// Returns the (potentially enriched) entry — callers must persist the
   /// returned value.
   Future<AuditEntry> _revertSingle(AuditEntry entry) async {
-    final table = _tableFor(entry.entityType);
+    final table = tableFor(entry.entityType);
     final id = entry.entityId;
     AuditEntry result = entry;
 
@@ -358,7 +358,7 @@ class AuditLogService {
 
   /// Re-applies a single [entry] against the live database.
   Future<void> _applySingle(AuditEntry entry) async {
-    final table = _tableFor(entry.entityType);
+    final table = tableFor(entry.entityType);
     final id = entry.entityId;
 
     switch (entry.action) {
@@ -380,14 +380,27 @@ class AuditLogService {
           }
         } else if (entry.newData != null) {
           // Fallback: use newData for entries recorded before schema enrichment.
+          // Guard: only attempt INSERT when the PK column is present in the
+          // data — partial audit payloads (e.g. {name} only) would otherwise
+          // violate NOT NULL constraints on the primary key.
           final safe = await _filterColumns(table, entry.newData!);
-          if (safe.isNotEmpty) {
+          await _ensureSchemaLoaded();
+          final pkCol = _pkCache![table];
+          final pkPresent =
+              pkCol != null && safe.containsKey(pkCol) && safe[pkCol] != null;
+          if (safe.isNotEmpty && pkPresent) {
             inserted = await _safeExecute(() => database.insert(
                       table,
                       safe,
                       conflictAlgorithm: ConflictAlgorithm.replace,
                     )) !=
                 null;
+          } else if (safe.isNotEmpty && !pkPresent) {
+            _debugLog(
+              '[AuditLog] ⚠️ Skipping CREATE replay for $table: '
+              'newData lacks PK column "$pkCol". '
+              'Entry was recorded with a partial payload. (entityId=${entry.entityId})',
+            );
           }
         }
 
@@ -607,7 +620,9 @@ class AuditLogService {
   // ── Table name resolution ────────────────────────────────────────────────────
 
   /// Maps a canonical entity-type string to its SQLite table name.
-  static String _tableFor(String entityType) {
+  /// Public so DevicePairingService can resolve tables for DB enrichment.
+  static String tableFor(String entityType) {
+
     return switch (entityType.toLowerCase()) {
       'voucher' || 'vouchers' => 'vouchers',
       'account' || 'accounts' => 'accounts',
