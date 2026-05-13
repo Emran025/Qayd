@@ -34,15 +34,20 @@ final class ListInboxNotificationsUseCase {
         String actionRoute = '/chat/${msg.counterpartyAccountId}';
 
         if (msg.channel == 'tripartite_event') {
-          title = AppStrings.requestToCreateA;
+          title = AppStrings.transferRequestReceivedTitle;
           try {
             final Map<String, dynamic> payload =
                 jsonDecode(msg.rawPayloadJson!);
             final destId = payload['destAccountId'];
             final amount = payload['amountMinorUnits'];
             final cur = payload['currencyCode'];
+            final notes = payload['notes'] as String?;
+            
             actionRoute =
                 '/tripartite/create?sourceAccountId=${msg.counterpartyAccountId}&destAccountId=$destId&amount=$amount&currency=$cur';
+            if (notes != null && notes.isNotEmpty) {
+              actionRoute += '&notes=${Uri.encodeComponent(notes)}';
+            }
           } catch (_) {}
         } else if (msg.channel == 'voucher_event' ||
             msg.channel == 'conflict') {

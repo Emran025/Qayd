@@ -9,6 +9,7 @@ import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dar
 import 'package:qayd/presentation/pages/vouchers/tripartite_create_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
+import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/theme/radius_tokens.dart';
@@ -108,16 +109,27 @@ class _NotificationsView extends StatelessWidget {
                       // Using existing router mechanism for Tripartite page
                       Navigator.of(context).push(
                         QaydPageRoute.slideFromStart(
-                          builder: (ctx) => TripartiteCreatePage(
-                            initialQrData: {
-                              'amountMinorUnits': int.tryParse(
-                                  uri.queryParameters['amount'] ?? '0'),
-                              'currencyCode': uri.queryParameters['currency'],
-                              'sourceAccountId':
-                                  uri.queryParameters['sourceAccountId'],
-                              'destAccountId':
-                                  uri.queryParameters['destAccountId'],
-                            },
+                          builder: (ctx) => MultiBlocProvider(
+                            providers: [
+                              BlocProvider<VoucherCreateCubit>(
+                                create: (_) => VoucherCreateCubit(
+                                  InjectionContainer.createVoucherUseCase,
+                                  InjectionContainer.createTripartiteTransferUseCase,
+                                ),
+                              ),
+                            ],
+                            child: TripartiteCreatePage(
+                              initialQrData: {
+                                'amountMinorUnits': int.tryParse(
+                                    uri.queryParameters['amount'] ?? '0'),
+                                'currencyCode': uri.queryParameters['currency'],
+                                'sourceAccountId':
+                                    uri.queryParameters['sourceAccountId'],
+                                'destAccountId':
+                                    uri.queryParameters['destAccountId'],
+                                'notes': uri.queryParameters['notes'],
+                              },
+                            ),
                           ),
                         ),
                       );

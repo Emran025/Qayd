@@ -688,6 +688,13 @@ class AuditLogService {
     if (dispatcher == null || sessionsRepo == null) return;
     if (entry.actorId?.startsWith('sync:') ?? false) return;
 
+    // §D-2: Enrich the entry with a full DB snapshot before dispatching.
+    // Audit entries are logged with partial newData (e.g. {id, name, date}).
+    // The companion's _applySingle needs oldData['_parent'] to reconstruct
+    // the complete row. Without this, CREATEs are silently skipped because
+    // partial newData lacks required columns (nature, parent_id, etc.).
+    final enrichedEntry = await _enrichForLiveDispatch(entry);
+
     final currentDeviceId = await getCurrentDeviceId?.call();
     final sessions = await sessionsRepo.listActive();
     for (final session in sessions) {
@@ -697,7 +704,7 @@ class AuditLogService {
       }
       try {
         await dispatcher.dispatchEntryToDevice(
-          entry: entry,
+          entry: enrichedEntry,
           targetDeviceId: session.deviceId,
           receiverPublicKeyHex: session.publicKeyHex,
           reason: SyncPacketReason.liveEvent,
@@ -706,6 +713,60 @@ class AuditLogService {
         _debugLog(
             '[AuditLog] ⚠️ live dispatch failed for ${session.deviceId}: $e');
       }
+    }
+  }
+
+  /// Enriches a single [AuditEntry] with a live DB snapshot so the
+  /// companion's recovery engine can reconstruct the complete row.
+  ///
+  /// For CREATE entries, fetches the current row and embeds it as
+  /// `oldData['_parent']` plus any child rows as `oldData['_children']`.
+  /// For UPDATE entries, fetches the current row and embeds it as
+  /// `newData['_parent']` so the companion has all column values.
+  Future<AuditEntry> _enrichForLiveDispatch(AuditEntry entry) async {
+    // Only enrich CREATE and UPDATE — DELETE already captures oldData
+    // via the revert engine, and REVERT is metadata-only.
+    if (entry.action != AuditAction.create &&
+        entry.action != AuditAction.update) {
+      return entry;
+    }
+
+    // Already enriched (has a full DB snapshot).
+    if (entry.action == AuditAction.create &&
+        entry.oldData != null &&
+        entry.oldData!.containsKey('_parent')) {
+      return entry;
+    }
+
+    try {
+      final table = tableFor(entry.entityType);
+      final rows = await database
+          .query(table, where: 'id = ?', whereArgs: [entry.entityId]);
+      if (rows.isEmpty) return entry;
+
+      if (entry.action == AuditAction.create) {
+        // Embed the full row as _parent so _applySingle can INSERT it.
+        final childrenBackup = await _backupChildren(table, entry.entityId);
+        final enrichedOldData = <String, dynamic>{
+          ...?entry.oldData,
+          '_parent': rows.first,
+          if (childrenBackup.isNotEmpty) '_children': childrenBackup,
+        };
+        return entry.copyWith(oldData: enrichedOldData);
+      } else {
+        // UPDATE: embed the full current row in newData so the companion
+        // can apply a complete UPDATE rather than a partial one.
+        final enrichedNewData = <String, dynamic>{
+          ...rows.first,
+          ...?entry.newData,
+        };
+        return entry.copyWith(newData: enrichedNewData);
+      }
+    } catch (e) {
+      // Non-fatal: table might not exist for this entityType.
+      _debugLog(
+          '[AuditLog] ⚠️ Live dispatch enrichment failed for ${entry.entityType}/${entry.entityId}: $e');
+      return entry;
     }
   }
 }

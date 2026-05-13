@@ -13,6 +13,8 @@ import 'package:qayd/presentation/theme/radius_tokens.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/utils/amount_parser.dart';
 import 'package:qayd/presentation/widgets/account_picker_sheet.dart';
+import 'package:qayd/presentation/widgets/currency_picker_sheet.dart';
+import 'package:qayd/presentation/components/inputs/qayd_text_field.dart';
 
 class RequestTripartiteSheet extends StatefulWidget {
   const RequestTripartiteSheet({
@@ -46,6 +48,7 @@ class RequestTripartiteSheet extends StatefulWidget {
 
 class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
   final _amountController = TextEditingController();
+  final _notesController = TextEditingController();
   AccountSummaryDto? _mediator;
   bool _submitting = false;
   String _currencyCode = PredefinedCurrencies.sar.code;
@@ -92,6 +95,9 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
           destinationAccountId: widget.destinationAccountId,
           amountMinorUnits: minor,
           currencyCode: _currencyCode,
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
         ),
       );
 
@@ -162,10 +168,35 @@ class _RequestTripartiteSheetState extends State<RequestTripartiteSheet> {
             trailing: Icon(Icons.arrow_forward_ios, size: 14, color: gold),
             onTap: _pickMediator,
           ),
+          SizedBox(height: SpacingTokens.sm),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: CircleAvatar(
+              backgroundColor: theme.colorScheme.secondaryContainer,
+              child: Icon(Icons.payments_outlined,
+                  color: theme.colorScheme.onSecondaryContainer),
+            ),
+            title: Text(AppStrings.transferRequestCurrencyLabel),
+            subtitle: Text(_currencyCode),
+            trailing: Icon(Icons.arrow_forward_ios, size: 14, color: gold),
+            onTap: () async {
+              final c = await CurrencyPickerSheet.show(context,
+                  selectedCode: _currencyCode);
+              if (c != null && mounted) setState(() => _currencyCode = c.code);
+            },
+          ),
           SizedBox(height: SpacingTokens.md),
           QaydAmountField(
             controller: _amountController,
             label: AppStrings.voucherAmountLabel,
+          ),
+          SizedBox(height: SpacingTokens.md),
+          QaydTextField(
+            controller: _notesController,
+            label: AppStrings.transferRequestNotesLabel,
+            hint: AppStrings.transferRequestNotesHint,
+            maxLines: 2,
+            textInputAction: TextInputAction.done,
           ),
           SizedBox(height: SpacingTokens.xl),
           FilledButton(

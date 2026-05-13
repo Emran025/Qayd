@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:qayd/application/accounts/dtos/account_statement_chat_message_dto.dart';
 import 'package:qayd/application/accounts/dtos/statement_chat_filter_input.dart';
 import 'package:qayd/application/fiscal/fiscal_period_policy.dart';
@@ -7,6 +8,7 @@ import 'package:qayd/domain/entities/fiscal_period.dart';
 import 'package:qayd/domain/entities/voucher.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/fiscal_period_repository.dart';
+import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/repositories/voucher_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/agreement_status.dart';
@@ -36,11 +38,13 @@ final class ListAccountStatementChatUseCase {
     required this.accountRepository,
     required this.voucherRepository,
     required this.fiscalPeriodRepository,
+    required this.notificationMessageRepository,
   });
 
   final AccountRepository accountRepository;
   final VoucherRepository voucherRepository;
   final FiscalPeriodRepository fiscalPeriodRepository;
+  final NotificationMessageRepository notificationMessageRepository;
 
   Future<Result<StatementChatOutput>> call({
     required String myAccountId,
@@ -413,6 +417,45 @@ final class ListAccountStatementChatUseCase {
           );
         }
       }
+
+      // ── Inject Transfer Requests ──
+      if (!isUnified) {
+        final notifsRes = await notificationMessageRepository.listUnprocessedForCounterparty(
+          counterpartyAccountId: counterpartyAccountId,
+          limit: 100, // Reasonable limit for chat history
+        );
+        if (notifsRes.isSuccess) {
+          final notifs = notifsRes.valueOrNull!;
+          for (final n in notifs) {
+            if (n.channel == 'tripartite_event' || (n.channel == 'outbound' && n.bodyText.contains('طلب'))) {
+              try {
+                final Map<String, dynamic> p = jsonDecode(n.rawPayloadJson ?? '{}');
+                final isIncoming = n.channel == 'tripartite_event';
+                messages.add(AccountStatementChatMessageDto(
+                  voucherId: n.id,
+                  dateIso: n.createdAt.toIso8601String(),
+                  direction: isIncoming ? 'incoming' : 'outgoing',
+                  typeCode: 'transfer_request',
+                  voucherStateCode: 'draft',
+                  signatureStatusCode: 'underRequest',
+                  amountMinorUnits: p['amountMinorUnits'] ?? 0,
+                  currencyCode: p['currencyCode'] ?? '',
+                  currencySymbol: '', // Could look up, but UI handles if missing
+                  currencyDigits: 2,
+                  description: p['notes'] ?? '',
+                  otherPartyId: isIncoming ? p['destAccountId'] ?? '' : p['destAccountId'] ?? '',
+                  otherPartyName: accountNamesLookup[p['destAccountId']] ?? AppStrings.unknown,
+                  isCreator: !isIncoming,
+                  isTransferRequest: true,
+                ));
+              } catch (_) {}
+            }
+          }
+        }
+      }
+
+      // Sort again because we just added notifications
+      messages.sort((a, b) => a.dateIso.compareTo(b.dateIso));
 
       return Success(StatementChatOutput(
         messages: messages.reversed.toList(),

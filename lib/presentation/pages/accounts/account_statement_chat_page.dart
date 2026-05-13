@@ -22,6 +22,7 @@ import 'package:qayd/presentation/pages/accounts/account_detail_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_filter_sheet.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
+import 'package:qayd/presentation/pages/vouchers/tripartite_create_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_create_cubit.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_suggestions_cubit.dart';
@@ -846,8 +847,43 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
 
                                 final msgWidget = msg.isSettlementMilestone
                                     ? _SettlementMilestoneCard(msg: msg)
-                                    : _MessageBubble(
-                                        msg: msg,
+                                    : msg.isTransferRequest
+                                        ? _TransferRequestBubble(
+                                            msg: msg,
+                                            onTap: () {
+                                              if (!msg.isCreator) {
+                                                final uri = Uri.parse('/tripartite/create?sourceAccountId=${msg.otherPartyId}&destAccountId=${msg.otherPartyId}&amount=${msg.amountMinorUnits}&currency=${msg.currencyCode}&notes=${Uri.encodeComponent(msg.description)}');
+                                                Navigator.of(context).push(
+                                                  QaydPageRoute.slideFromStart(
+                                                    builder: (ctx) => MultiBlocProvider(
+                                                      providers: [
+                                                        BlocProvider<VoucherCreateCubit>(
+                                                          create: (_) => VoucherCreateCubit(
+                                                            InjectionContainer.createVoucherUseCase,
+                                                            InjectionContainer.createTripartiteTransferUseCase,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                      child: TripartiteCreatePage(
+                                                        initialQrData: {
+                                                          'amountMinorUnits': int.tryParse(
+                                                              uri.queryParameters['amount'] ?? '0'),
+                                                          'currencyCode': uri.queryParameters['currency'],
+                                                          'sourceAccountId':
+                                                              uri.queryParameters['sourceAccountId'],
+                                                          'destAccountId':
+                                                              uri.queryParameters['destAccountId'],
+                                                          'notes': uri.queryParameters['notes'],
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          )
+                                        : _MessageBubble(
+                                            msg: msg,
                                         mutating: _mutating,
                                         isUnified: data.isUnified,
                                         onAccept: (id) =>
@@ -1770,6 +1806,120 @@ class _SettlementMilestoneCard extends StatelessWidget {
               displayNegative: true,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TransferRequestBubble extends StatelessWidget {
+  const _TransferRequestBubble({
+    required this.msg,
+    required this.onTap,
+  });
+
+  final AccountStatementChatMessageDto msg;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final custom = Theme.of(context).extension<QaydCustomColors>()!;
+    final isMe = msg.isCreator;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: isMe ? 64 : 0,
+        right: isMe ? 0 : 64,
+        bottom: SpacingTokens.xs,
+      ),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: isMe
+                ? custom.goldAccent.withValues(alpha: 0.1)
+                : scheme.secondaryContainer.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(RadiusTokens.lg),
+              topRight: const Radius.circular(RadiusTokens.lg),
+              bottomLeft: isMe ? const Radius.circular(RadiusTokens.lg) : Radius.zero,
+              bottomRight: isMe ? Radius.zero : const Radius.circular(RadiusTokens.lg),
+            ),
+            border: Border.all(
+              color: isMe
+                  ? custom.goldAccent.withValues(alpha: 0.3)
+                  : scheme.outlineVariant.withValues(alpha: 0.3),
+            ),
+          ),
+          padding: const EdgeInsets.all(SpacingTokens.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.call_split_rounded,
+                    size: 16,
+                    color: isMe ? custom.goldAccent : scheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: SpacingTokens.sm),
+                  Expanded(
+                    child: Text(
+                      isMe ? AppStrings.requestToMakeA : AppStrings.transferRequestReceivedTitle,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: isMe ? custom.goldAccent : scheme.onSecondaryContainer,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: SpacingTokens.sm),
+              QaydMoneyDisplay(
+                money: Money.fromMinorUnits(
+                  msg.amountMinorUnits,
+                  CurrencyCode(
+                    code: msg.currencyCode,
+                    nameAr: CurrencyUtil.getLocalizedName(msg.currencyCode),
+                    symbol: msg.currencySymbol,
+                    fractionalDigits: msg.currencyDigits,
+                  ),
+                ),
+                size: QaydMoneyDisplaySize.medium,
+                displayNegative: false,
+              ),
+              if (msg.description.isNotEmpty) ...[
+                const SizedBox(height: SpacingTokens.sm),
+                Text(
+                  msg.description,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+              if (!isMe) ...[
+                const SizedBox(height: SpacingTokens.md),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: custom.goldAccent.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(RadiusTokens.sm),
+                  ),
+                  child: Text(
+                    AppStrings.transferRequestOpenTransfers,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: custom.goldAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

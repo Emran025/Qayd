@@ -25,6 +25,7 @@ class AccountStatementChatMessageDto {
     this.isSettlementMilestone = false,
     this.settlementLabel,
     this.settlementBalanceMinorUnits,
+    this.isTransferRequest = false,
   });
 
   final String voucherId;
@@ -86,4 +87,7 @@ class AccountStatementChatMessageDto {
 
   /// Balance that becomes the new opening balance at milestone point.
   final int? settlementBalanceMinorUnits;
+
+  /// Whether this message is a tripartite transfer request rather than a real voucher.
+  final bool isTransferRequest;
 }

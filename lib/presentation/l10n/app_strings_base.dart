@@ -2026,6 +2026,11 @@ abstract class AppStringsBase {
   String get tripartiteReleasedInfo =>
       'تم تحرير سند الصرف — يمكنك الآن مشاركته وتوقيعه.';
   String get tripartiteRequestFunds => 'طلب حوالة';
+  String get transferRequestCurrencyLabel => 'عملة الحوالة';
+  String get transferRequestNotesLabel => 'ملاحظات (اختياري)';
+  String get transferRequestNotesHint => 'أضف أي تفاصيل إضافية للوسيط';
+  String get transferRequestOpenTransfers => 'فتح نافذة الحوالات';
+  String get transferRequestReceivedTitle => 'طلب حوالة وارد';
   String get transferFeeBoxMediatedTitle => 'رسوم التحويلات عبر الصندوق';
   String get transferFeeBoxMediatedSubtitle =>
       'تطبق عند التحويل بين طرفين عبر صندوق وسيط';

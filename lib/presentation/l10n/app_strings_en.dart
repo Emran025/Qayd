@@ -3939,6 +3939,16 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get tripartiteRequestFunds => 'Request Transfer';
   @override
+  String get transferRequestCurrencyLabel => 'Transfer Currency';
+  @override
+  String get transferRequestNotesLabel => 'Notes (Optional)';
+  @override
+  String get transferRequestNotesHint => 'Add any additional details for the broker';
+  @override
+  String get transferRequestOpenTransfers => 'Open Transfers';
+  @override
+  String get transferRequestReceivedTitle => 'Incoming Transfer Request';
+  @override
   String get transferFeeBoxMediatedTitle => 'Box-Mediated Transfer Fees';
   @override
   String get transferFeeBoxMediatedSubtitle =>

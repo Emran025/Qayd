@@ -69,6 +69,8 @@ class _TripartiteCreatePageState extends State<TripartiteCreatePage> {
     }
     if (data['description'] != null) {
       _descriptionController.text = data['description'] as String;
+    } else if (data['notes'] != null) {
+      _descriptionController.text = data['notes'] as String;
     }
 
     _loadAccountsFromIds(data['sourceAccountId'], data['destAccountId']);

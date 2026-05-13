@@ -13,6 +13,7 @@ class CreateTripartiteRequestInput {
     required this.destinationAccountId,
     required this.amountMinorUnits,
     required this.currencyCode,
+    this.notes,
   });
 
   /// The account ID of the mediator who will execute the transfer (B)
@@ -23,6 +24,9 @@ class CreateTripartiteRequestInput {
 
   final int amountMinorUnits;
   final String currencyCode;
+
+  /// Optional notes to accompany the request (shown to the mediator)
+  final String? notes;
 }
 
 /// Allows Sender (A) to request Mediator (B) to initiate a tripartite transfer to Recipient (C).
@@ -45,6 +49,8 @@ class CreateTripartiteRequestUseCase {
         'destAccountId': input.destinationAccountId,
         'amountMinorUnits': input.amountMinorUnits,
         'currencyCode': input.currencyCode,
+        if (input.notes != null && input.notes!.isNotEmpty)
+          'notes': input.notes,
       };
 
       // 1. Local logging (Optional visibility for sender)

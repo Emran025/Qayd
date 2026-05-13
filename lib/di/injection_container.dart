@@ -1002,6 +1002,7 @@ abstract final class InjectionContainer {
       accountRepository: accountRepository,
       voucherRepository: voucherRepository,
       fiscalPeriodRepository: fiscalPeriodRepository,
+      notificationMessageRepository: notificationMessageRepository,
     );
     createVoucherUseCase = CreateVoucherUseCase(
       voucherRepository,

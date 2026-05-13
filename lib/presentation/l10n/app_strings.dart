@@ -1961,6 +1961,14 @@ class AppStrings {
   static String get tripartiteReceiptLeg => i.tripartiteReceiptLeg;
   static String get tripartiteReleasedInfo => i.tripartiteReleasedInfo;
   static String get tripartiteRequestFunds => i.tripartiteRequestFunds;
+  static String get transferRequestCurrencyLabel =>
+      i.transferRequestCurrencyLabel;
+  static String get transferRequestNotesLabel => i.transferRequestNotesLabel;
+  static String get transferRequestNotesHint => i.transferRequestNotesHint;
+  static String get transferRequestOpenTransfers =>
+      i.transferRequestOpenTransfers;
+  static String get transferRequestReceivedTitle =>
+      i.transferRequestReceivedTitle;
   static String get tripartiteSelectAccountHint =>
       i.tripartiteSelectAccountHint;
   static String get tripartiteSelectAccounts => i.tripartiteSelectAccounts;
@@ -2543,8 +2551,3 @@ class AppStrings {
   static String get manualCodeTooManyAttempts => i.manualCodeTooManyAttempts;
   static String get manualCodeExpiredDesc => i.manualCodeExpiredDesc;
 }
-
-
-
-
-
