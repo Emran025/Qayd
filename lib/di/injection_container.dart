@@ -859,6 +859,11 @@ abstract final class InjectionContainer {
     currencyRepository = SqliteCurrencyRepository(database);
     attachmentRepository = SqliteAttachmentRepository(database);
     collateralRepository = SqliteCollateralRepository(database);
+    messageTemplateRepository = SqliteMessageTemplateRepository(database);
+    notificationLogRepository = SqliteNotificationLogRepository(database);
+    notificationMessageRepository = SqliteNotificationMessageRepository(
+      database,
+    );
     voucherKeyService = const VoucherKeyService();
     const balanceCalculator = BalanceCalculator();
     const entryGenerator = EntryGenerator();
@@ -1116,11 +1121,6 @@ abstract final class InjectionContainer {
     voucherPdfGenerator = const CairoVoucherPdfGenerator();
     accountStatementPdfGenerator = const CairoAccountStatementPdfGenerator();
 
-    messageTemplateRepository = SqliteMessageTemplateRepository(database);
-    notificationLogRepository = SqliteNotificationLogRepository(database);
-    notificationMessageRepository = SqliteNotificationMessageRepository(
-      database,
-    );
     analyzeForSuggestionsUseCase = AnalyzeForSuggestionsUseCase(
       voucherRepository,
       notificationMessageRepository,

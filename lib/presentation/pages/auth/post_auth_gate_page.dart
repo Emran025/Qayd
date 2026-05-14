@@ -317,107 +317,11 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
   }
 
   Future<void> _showPinSetupDialog() async {
-    final pinCtrl = TextEditingController();
-    final confirmCtrl = TextEditingController();
-    String? error;
-
     await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (dCtx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF0F172A),
-          title: Text(
-            AppStrings.securityPinDialogTitle,
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Directionality(
-                textDirection: TextDirection.ltr,
-                child: TextField(
-                  controller: pinCtrl,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 8,
-                  style: const TextStyle(color: Colors.white),
-                  cursorColor: ColorTokens.emerald500,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF1E293B),
-                    hintText: AppStrings.securityPinField,
-                    hintStyle: const TextStyle(color: ColorTokens.slate400),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: SpacingTokens.sm),
-              Directionality(
-                textDirection: TextDirection.ltr,
-                child: TextField(
-                  controller: confirmCtrl,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 8,
-                  style: const TextStyle(color: Colors.white),
-                  cursorColor: ColorTokens.emerald500,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF1E293B),
-                    hintText: AppStrings.securityPinRepeat,
-                    hintStyle: const TextStyle(color: ColorTokens.slate400),
-                    errorText: error,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dCtx, false),
-              child: Text(
-                AppStrings.actionCancel,
-                style: TextStyle(color: ColorTokens.slate400),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColorTokens.emerald600,
-              ),
-              onPressed: () async {
-                final pin = pinCtrl.text.trim();
-                final confirm = confirmCtrl.text.trim();
-
-                if (pin.length < 4 || pin.length > 8) {
-                  setDialogState(() => error = AppStrings.securityPinLength);
-                  return;
-                }
-                if (pin != confirm) {
-                  setDialogState(
-                      () => error = AppStrings.securityPinMismatch);
-                  return;
-                }
-
-                await InjectionContainer.securityCubit.saveNewPin(pin);
-                if (dCtx.mounted) Navigator.pop(dCtx, true);
-              },
-              child: Text(AppStrings.saveAccount),
-            ),
-          ],
-        ),
-      ),
+      builder: (context) => const _PinSetupDialog(),
     );
-
-    pinCtrl.dispose();
-    confirmCtrl.dispose();
   }
 
   void _skipDeviceLock() {
@@ -764,6 +668,124 @@ class _PostAuthGatePageState extends State<PostAuthGatePage> {
         ),
         onTap: onTap,
       ),
+    );
+  }
+}
+
+class _PinSetupDialog extends StatefulWidget {
+  const _PinSetupDialog();
+
+  @override
+  State<_PinSetupDialog> createState() => _PinSetupDialogState();
+}
+
+class _PinSetupDialogState extends State<_PinSetupDialog> {
+  late final TextEditingController pinCtrl;
+  late final TextEditingController confirmCtrl;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    pinCtrl = TextEditingController();
+    confirmCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    pinCtrl.dispose();
+    confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: const Color(0xFF0F172A),
+      title: Text(
+        AppStrings.securityPinDialogTitle,
+        style: const TextStyle(color: Colors.white),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: TextField(
+              controller: pinCtrl,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              maxLength: 8,
+              style: const TextStyle(color: Colors.white),
+              cursorColor: ColorTokens.emerald500,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: const Color(0xFF1E293B),
+                hintText: AppStrings.securityPinField,
+                hintStyle: const TextStyle(color: ColorTokens.slate400),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: SpacingTokens.sm),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: TextField(
+              controller: confirmCtrl,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              maxLength: 8,
+              style: const TextStyle(color: Colors.white),
+              cursorColor: ColorTokens.emerald500,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: const Color(0xFF1E293B),
+                hintText: AppStrings.securityPinRepeat,
+                hintStyle: const TextStyle(color: ColorTokens.slate400),
+                errorText: error,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(
+            AppStrings.actionCancel,
+            style: const TextStyle(color: ColorTokens.slate400),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ColorTokens.emerald600,
+          ),
+          onPressed: () async {
+            final pin = pinCtrl.text.trim();
+            final confirm = confirmCtrl.text.trim();
+
+            if (pin.length < 4 || pin.length > 8) {
+              setState(() => error = AppStrings.securityPinLength);
+              return;
+            }
+            if (pin != confirm) {
+              setState(() => error = AppStrings.securityPinMismatch);
+              return;
+            }
+
+            await InjectionContainer.securityCubit.saveNewPin(pin);
+            if (context.mounted) Navigator.pop(context, true);
+          },
+          child: Text(AppStrings.saveAccount),
+        ),
+      ],
     );
   }
 }

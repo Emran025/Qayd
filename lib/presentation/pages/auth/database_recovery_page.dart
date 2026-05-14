@@ -81,8 +81,8 @@ class _DatabaseRecoveryPageState extends State<DatabaseRecoveryPage> {
                   // ── Option 1: Enter primary key (mnemonic) ────────────────
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
                         backgroundColor: ColorTokens.emerald600,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),

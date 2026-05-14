@@ -127,12 +127,17 @@ class DevicePairingService {
   /// companion's recovery engine can reconstruct the complete row.
   ///
   /// For CREATE entries, we fetch the current row and embed it as
-  /// `oldData['_parent']`. If the row no longer exists, the entry is
+  /// `oldData['_parent']`. For UPDATE entries, we embed the full row
+  /// in `newData`. If the row no longer exists, the entry is
   /// returned as-is (best-effort — the compact snapshot will have resolved it).
   Future<AuditEntry> _enrichEntryForDispatch(AuditEntry entry) async {
-    if (entry.action != AuditAction.create) return entry;
+    if (entry.action != AuditAction.create && entry.action != AuditAction.update) {
+      return entry;
+    }
     // Already enriched (has a full DB snapshot).
-    if (entry.oldData != null && entry.oldData!.containsKey('_parent')) {
+    if (entry.action == AuditAction.create &&
+        entry.oldData != null &&
+        entry.oldData!.containsKey('_parent')) {
       return entry;
     }
 
@@ -142,11 +147,19 @@ class DevicePairingService {
           .query(table, where: 'id = ?', whereArgs: [entry.entityId]);
       if (rows.isEmpty) return entry;
 
-      final enrichedOldData = <String, dynamic>{
-        ...?entry.oldData,
-        '_parent': rows.first,
-      };
-      return entry.copyWith(oldData: enrichedOldData);
+      if (entry.action == AuditAction.create) {
+        final enrichedOldData = <String, dynamic>{
+          ...?entry.oldData,
+          '_parent': rows.first,
+        };
+        return entry.copyWith(oldData: enrichedOldData);
+      } else {
+        final enrichedNewData = <String, dynamic>{
+          ...rows.first,
+          ...?entry.newData,
+        };
+        return entry.copyWith(newData: enrichedNewData);
+      }
     } catch (_) {
       // Non-fatal: table might not exist for this entityType.
       return entry;
@@ -154,12 +167,29 @@ class DevicePairingService {
   }
 
   List<AuditEntry> _compactSnapshot(List<AuditEntry> entries) {
-    final latestByEntity = <String, AuditEntry>{};
+    final firstByEntity = <String, AuditEntry>{};
+    final deletes = <String, AuditEntry>{};
+
     for (final entry in entries) {
-      latestByEntity['${entry.entityType}:${entry.entityId}'] = entry;
+      final key = '${entry.entityType}:${entry.entityId}';
+      if (entry.action == AuditAction.delete) {
+        deletes[key] = entry;
+      }
+      if (!firstByEntity.containsKey(key)) {
+        firstByEntity[key] = entry;
+      }
     }
-    final compacted = latestByEntity.values.toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+    final compacted = <AuditEntry>[];
+    for (final key in firstByEntity.keys) {
+      if (deletes.containsKey(key)) {
+        compacted.add(deletes[key]!);
+      } else {
+        compacted.add(firstByEntity[key]!);
+      }
+    }
+
+    compacted.sort((a, b) => (a.syncSeq ?? 0).compareTo(b.syncSeq ?? 0));
     return compacted;
   }
 

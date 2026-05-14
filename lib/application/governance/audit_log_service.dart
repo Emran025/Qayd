@@ -55,6 +55,11 @@ class AuditLogService {
   /// table → set of valid column names.
   Map<String, Set<String>>? _columnCache;
 
+  /// When true, [_safeExecute] rethrows FK constraint errors instead of
+  /// swallowing them. Set by [replaySyncedEntry] so the sync processor's
+  /// retry logic can detect and defer dependent entries.
+  bool _rethrowForeignKeyErrors = false;
+
   /// Clears the schema caches so they are rebuilt on next access.
   /// Call this after a live schema migration.
   void invalidateSchemaCache() {
@@ -103,8 +108,18 @@ class AuditLogService {
     _debugLog('[AuditLog] ✏️ ${action.label} $entityType/$entityId');
   }
 
+  /// Replays a synced entry from a companion device.
+  ///
+  /// Unlike local redo, this **rethrows** FK constraint errors so the
+  /// [AuditSyncProcessor] retry mechanism can defer the entry and
+  /// retry after its dependencies have been inserted.
   Future<void> replaySyncedEntry(AuditEntry entry) async {
-    await _applySingle(entry);
+    _rethrowForeignKeyErrors = true;
+    try {
+      await _applySingle(entry);
+    } finally {
+      _rethrowForeignKeyErrors = false;
+    }
   }
 
   /// Returns all entries, newest-first.
@@ -371,6 +386,23 @@ class AuditLogService {
               Map<String, dynamic>.from(entry.oldData!['_parent'] as Map);
           final safe = await _filterColumns(table, parentRow);
           if (safe.isNotEmpty) {
+            // Companion devices must delete their own randomly-generated default accounts
+            // to avoid duplicates and FK failures when receiving the primary's default accounts.
+            if (table == 'accounts') {
+              if (safe['is_default'] == 1) {
+                await _safeExecute(() => database.delete(
+                      table,
+                      where: 'is_default = 1 AND nature = ?',
+                      whereArgs: [safe['nature']],
+                    ));
+              } else if (safe['standard_classification'] != null) {
+                await _safeExecute(() => database.delete(
+                      table,
+                      where: 'standard_classification = ?',
+                      whereArgs: [safe['standard_classification']],
+                    ));
+              }
+            }
             await _safeExecute(() => database.insert(
                   table,
                   safe,
@@ -603,18 +635,28 @@ class AuditLogService {
     }
   }
 
-  /// BFS over the FK graph to produce a stable top-down insertion order.
+  /// DFS over the FK graph to produce a stable top-down insertion order.
   List<String> _topDownOrder(String root) {
     final order = <String>[];
-    final queue = [root];
-    while (queue.isNotEmpty) {
-      final node = queue.removeAt(0);
-      if (!order.contains(node)) order.add(node);
+    final visited = <String>{};
+    final visiting = <String>{};
+
+    void dfs(String node) {
+      if (visited.contains(node)) return;
+      if (visiting.contains(node)) return; // Break cycles
+      visiting.add(node);
+
       for (final dep in _fkGraph![node] ?? <Map<String, String>>[]) {
-        queue.add(dep['childTable']!);
+        dfs(dep['childTable']!);
       }
+
+      visiting.remove(node);
+      visited.add(node);
+      order.add(node);
     }
-    return order;
+
+    dfs(root);
+    return order.reversed.toList();
   }
 
   // ── Table name resolution ────────────────────────────────────────────────────
@@ -669,13 +711,26 @@ class AuditLogService {
   /// Silent failure is only acceptable here because the recovery engine is a
   /// *best-effort* subsystem — the underlying DB state may already be
   /// inconsistent (e.g., old entries referencing dropped columns).
+  ///
+  /// When [_rethrowForeignKeyErrors] is true (set during sync replay),
+  /// FK constraint errors are rethrown so the caller can defer and retry.
   Future<T?> _safeExecute<T>(Future<T> Function() fn) async {
     try {
       return await fn();
     } catch (e, st) {
       _debugLog('[AuditLog] ⚠️ Recovery step failed (non-fatal): $e\n$st');
+      if (_rethrowForeignKeyErrors && _isForeignKeyError(e)) {
+        rethrow;
+      }
       return null;
     }
+  }
+
+  /// Returns `true` if [error] is a SQLite FOREIGN KEY constraint failure.
+  static bool _isForeignKeyError(Object error) {
+    final msg = error.toString();
+    return msg.contains('FOREIGN KEY constraint failed') ||
+        msg.contains('code 787');
   }
 
   static void _debugLog(String message) {
