@@ -2550,4 +2550,11 @@ class AppStrings {
   static String get manualCodeInvalidOrExpired => i.manualCodeInvalidOrExpired;
   static String get manualCodeTooManyAttempts => i.manualCodeTooManyAttempts;
   static String get manualCodeExpiredDesc => i.manualCodeExpiredDesc;
+
+  static String get counterpartyOnboardingRequestTitle =>
+      i.counterpartyOnboardingRequestTitle;
+  static String counterpartyOnboardingRequestFrom(String identifier) =>
+      i.counterpartyOnboardingRequestFrom(identifier);
+  static String get counterpartyOnboardingAcceptButton =>
+      i.counterpartyOnboardingAcceptButton;
 }

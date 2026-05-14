@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:qayd/di/injection_container.dart';
-import 'package:qayd/domain/entities/account.dart';
-import 'package:qayd/domain/value_objects/account_classification.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/services/notification_filter_service.dart';
 import 'package:qayd/core/result/result.dart';
@@ -127,17 +125,76 @@ class SyncPayloadProcessor {
     }
 
     if (accountId == null) {
-      // §5.D fallback: If we don't know the sender yet, but the envelope provides
-      // routing hints (Phone or PK), create a "Shadow Account" to allow sync to proceed.
-      // This is vital for bootstrapping companion devices or receiving first-time vouchers.
+      // §5.D — Unknown sender with routing hints:
+      // Instead of silently creating a shadow account (which bypasses user
+      // consent), persist the raw SyncNode as a pending onboarding request.
+      // The user will be notified and can create the counterparty account
+      // manually. Once they do, [replayPendingNodesForSender] re-processes
+      // all staged nodes so no voucher data is lost.
       if (envPk.isNotEmpty || envPhone.isNotEmpty || envWa.isNotEmpty) {
+        // ── Deduplication guard ────────────────────────────────────────────
+        // The server keeps returning unacknowledged nodes on every pull.
+        // Check whether this node is already staged so we never make a
+        // redundant network call or overwrite a previously-resolved name.
+        final existing =
+            await notificationMessageRepository.findById(node.id);
+
+        if (existing != null) {
+          // Node is already staged. Check if the name was already resolved.
+          final existingRaw = existing.rawPayloadJson != null
+              ? (jsonDecode(existing.rawPayloadJson!) as Map<String, dynamic>?)
+              : null;
+          final alreadyHasName =
+              existingRaw?['sender_name'] as String?;
+
+          if (alreadyHasName != null && alreadyHasName.isNotEmpty) {
+            // Name already known — nothing to do.
+            debugPrint(
+                'Sync: Node [${node.id}] already staged with name [$alreadyHasName], skipping.');
+            return null;
+          }
+
+          // Staged without a name (e.g. was offline at first staging).
+          // Resolve the name now and backfill the existing record.
+          debugPrint(
+              'Sync: Node [${node.id}] staged but missing name — backfilling from server.');
+          try {
+            final result = await identityRepository
+                .lookupSyncNodeSender(nodeId: node.id);
+            if (result != null && result.name.isNotEmpty) {
+              final updatedPayload = jsonDecode(existing.rawPayloadJson ?? '{}')
+                  as Map<String, dynamic>;
+              updatedPayload['sender_name'] = result.name;
+              updatedPayload['sender_phone'] ??=
+                  result.phone.isNotEmpty ? result.phone : null;
+              updatedPayload['sender_whatsapp'] ??= result.whatsappNumber;
+              updatedPayload['sender_pk'] ??= result.publicKeyHex;
+              await notificationMessageRepository.updateBodyAndPayload(
+                id: node.id,
+                bodyText:
+                    AppStrings.counterpartyOnboardingRequestFrom(result.name),
+                rawPayloadJson: jsonEncode(updatedPayload),
+              );
+              debugPrint(
+                  'Sync: Backfilled name [${result.name}] for node [${node.id}].');
+            }
+          } catch (e) {
+            debugPrint('Sync: Backfill name lookup failed (non-fatal): $e');
+          }
+          return null;
+        }
+
+        // Node not yet staged — run the full staging flow.
         debugPrint(
-            'Sync: Creating shadow account for unknown sender [PK: ${envPk.substring(0, 4)}... Phone: $envPhone]');
-        return await _createShadowAccount(
-          publicKey: envPk,
-          phone: envPhone,
-          whatsapp: envWa,
+            'Sync: Unknown sender [Phone: $envPhone / PK: ${envPk.isNotEmpty ? envPk.substring(0, 8) : '—'}] — staging consent-based onboarding request.');
+        await stagePendingCounterpartyRequest(
+          nodeId: node.id,
+          node: node,
+          publicKey: envPk.isEmpty ? null : envPk,
+          phone: envPhone.isEmpty ? null : envPhone,
+          whatsapp: envWa.isEmpty ? null : envWa,
         );
+        return null;
       }
       return null;
     }
@@ -1156,41 +1213,148 @@ class SyncPayloadProcessor {
     debugPrint('TripartiteRequest [$senderName -> B]: Ingested and stored.');
   }
 
-  Future<PartyDetails> _createShadowAccount({
+  /// Stages a consent-based onboarding request for an unknown sender,
+  /// resolving their real registered name from the server identity registry
+  /// before persisting the notification so the user sees a meaningful name
+  /// rather than a raw phone number or public key fragment.
+  Future<void> stagePendingCounterpartyRequest({
+    required String nodeId,
+    required SyncNode node,
     String? publicKey,
     String? phone,
     String? whatsapp,
   }) async {
-    final accountId = AccountId(const Uuid().v4());
+    // ── Step 1: Resolve the sender's real name from the server ───────────────
+    // Try phone lookup first (fastest), then reverse-lookup by public key.
+    // Both are non-fatal: if offline or the sender isn't registered, we fall
+    // back gracefully to the phone number / pk fragment as the display ID.
+    String? resolvedName;
+    String? resolvedPhone = phone;
+    String? resolvedWhatsapp = whatsapp;
+    String? resolvedPk = publicKey;
 
-    // 1. Create a "Shadow" Account in the Chart of Accounts.
-    // Categorize under Receivables by default for counterparties.
-    final account = Account.createRoot(
-      id: accountId,
-      name: phone != null && phone.isNotEmpty
-          ? 'Unknown ($phone)'
-          : 'Unknown Sender',
-      classification: AccountClassification.receivables,
-      createdAt: DateTime.now(),
-      metadata: {
-        'is_shadow': true,
-        'trusted': false,
-        if (publicKey != null) 'initial_public_key': publicKey,
-      },
+    try {
+      // ── Primary: use the server-authoritative sender_id FK on the node ──────
+      // This bypasses the bidirectional privacy gate on identity/lookup, which
+      // can withhold the name even after a successful push. Since the push-time
+      // §6 check already passed, the sender has consented to contacting us.
+      final nodeResult =
+          await identityRepository.lookupSyncNodeSender(nodeId: nodeId);
+      if (nodeResult != null && nodeResult.name.isNotEmpty) {
+        resolvedName = nodeResult.name;
+        resolvedPhone ??= nodeResult.phone.isNotEmpty ? nodeResult.phone : null;
+        resolvedWhatsapp ??= nodeResult.whatsappNumber;
+        resolvedPk ??= nodeResult.publicKeyHex;
+      }
+
+      // ── Fallback 1: phone lookup (covers offline-node scenarios) ────────────
+      if (resolvedName == null && phone?.isNotEmpty == true) {
+        final result = await identityRepository.lookupByPhone(phone: phone!);
+        if (result != null && result.name.isNotEmpty) {
+          resolvedName = result.name;
+          resolvedPhone ??= result.phone;
+          resolvedWhatsapp ??= result.whatsappNumber;
+          resolvedPk ??= result.publicKeyHex;
+        }
+      }
+
+      // ── Fallback 2: reverse public-key lookup ────────────────────────────────
+      if (resolvedName == null && publicKey?.isNotEmpty == true) {
+        final result = await identityRepository.reverseLookupByPublicKey(
+          publicKeyHex: publicKey!,
+        );
+        if (result != null && result.name.isNotEmpty) {
+          resolvedName = result.name;
+          resolvedPhone ??= result.phone;
+          resolvedWhatsapp ??= result.whatsappNumber;
+          resolvedPk ??= result.publicKeyHex ?? publicKey;
+        }
+      }
+    } catch (e) {
+      // Network failures are non-fatal; proceed with raw identifiers.
+      debugPrint('Sync: Identity lookup failed during staging (non-fatal): $e');
+    }
+
+    // ── Step 2: Derive the best display identifier ───────────────────────────
+    final displayId = resolvedName ??
+        resolvedPhone ??
+        resolvedWhatsapp ??
+        (resolvedPk?.isNotEmpty == true
+            ? resolvedPk!.substring(0, 12)
+            : nodeId.substring(0, 8));
+
+    // Use a sentinel that won't conflict with real account UUIDs.
+    final sentinelId =
+        'pending:${resolvedPhone ?? resolvedWhatsapp ?? (resolvedPk?.substring(0, 16) ?? nodeId)}';
+
+    // ── Step 3: Persist the staged request ──────────────────────────────────
+    await notificationMessageRepository.insert(
+      id: nodeId,
+      bodyText: AppStrings.counterpartyOnboardingRequestFrom(displayId),
+      channel: 'counterparty_request',
+      counterpartyAccountId: sentinelId,
+      createdAtIso: DateTime.now().toIso8601String(),
+      rawPayloadJson: jsonEncode({
+        'node': node.toJson(),
+        'sender_phone': resolvedPhone,
+        'sender_pk': resolvedPk,
+        'sender_whatsapp': resolvedWhatsapp,
+        'sender_name': resolvedName, // real name from server (may be null)
+      }),
     );
-    await accountRepository.save(account);
 
-    // 2. Create corresponding PartyDetails for E2EE resolution.
-    final details = PartyDetails(
-      accountId: accountId,
-      phoneNumber: phone,
-      whatsappNumber: whatsapp,
-      currentPublicKeyHex: publicKey,
-      partyType: 'Unknown',
-    );
-    await accountRepository.savePartyDetails(details);
+    debugPrint(
+        'Sync: Staged counterparty onboarding request for [$displayId] (name: ${resolvedName ?? '—'}), node [$nodeId]');
+  }
 
-    return details;
+  /// Called after the user successfully creates a new counterparty account.
+  ///
+  /// Finds all staged [SyncNode]s that match the provided sender identifiers,
+  /// marks them as processed, and re-runs them through [processIncomingNodes]
+  /// so the original voucher claims are now applied against the real account.
+  Future<void> replayPendingNodesForSender({
+    String? phone,
+    String? publicKey,
+    String? whatsapp,
+  }) async {
+    final pendingResult =
+        await notificationMessageRepository.listPendingCounterpartyRequests();
+    if (pendingResult.isFailure) {
+      debugPrint('SyncPayloadProcessor: Failed to load pending counterparty requests.');
+      return;
+    }
+
+    final nodes = <SyncNode>[];
+    for (final msg in pendingResult.valueOrNull!) {
+      if (msg.rawPayloadJson == null) continue;
+      try {
+        final raw = jsonDecode(msg.rawPayloadJson!) as Map<String, dynamic>;
+        final sPhone = raw['sender_phone'] as String?;
+        final sPk = raw['sender_pk'] as String?;
+        final sWa = raw['sender_whatsapp'] as String?;
+
+        final matches =
+            (phone != null && phone.isNotEmpty && sPhone == phone) ||
+            (publicKey != null && publicKey.isNotEmpty && sPk == publicKey) ||
+            (whatsapp != null && whatsapp.isNotEmpty && sWa == whatsapp);
+
+        if (!matches) continue;
+
+        final nodeJson = raw['node'] as Map<String, dynamic>?;
+        if (nodeJson == null) continue;
+
+        nodes.add(SyncNode.fromJson(nodeJson));
+        await notificationMessageRepository.markProcessed(msg.id);
+      } catch (e) {
+        debugPrint('SyncPayloadProcessor: Failed to parse staged node ${msg.id}: $e');
+      }
+    }
+
+    if (nodes.isNotEmpty) {
+      debugPrint(
+          'SyncPayloadProcessor: Replaying ${nodes.length} staged node(s) for newly onboarded counterparty.');
+      await processIncomingNodes(nodes);
+    }
   }
 
   Uint8List _hexToBytes(String hex) {

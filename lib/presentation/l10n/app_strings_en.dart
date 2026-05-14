@@ -5015,4 +5015,14 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get manualCodeExpiredDesc =>
       'You can generate a new code from the Device Management page.';
+
+  @override
+  String get counterpartyOnboardingRequestTitle => 'Bond Exchange Request';
+
+  @override
+  String counterpartyOnboardingRequestFrom(String identifier) =>
+      '$identifier asks to exchange bonds with you';
+
+  @override
+  String get counterpartyOnboardingAcceptButton => 'Set Up Account';
 }

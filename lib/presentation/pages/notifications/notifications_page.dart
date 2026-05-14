@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/domain/entities/inbox_notification.dart';
+import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_cubit.dart';
+import 'package:qayd/presentation/pages/accounts/account_create_page.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_create_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
@@ -99,7 +102,37 @@ class _NotificationsView extends StatelessWidget {
                   notification: notif,
                   onTap: () {
                     context.read<NotificationsCubit>().markAsRead(notif.id);
-                    if (notif.actionRoute.startsWith('/chat/')) {
+                    if (notif.actionRoute.startsWith('/onboard/counterparty')) {
+                      final uri = Uri.parse(notif.actionRoute);
+                      final phone = uri.queryParameters['phone'] ?? '';
+                      final pk = uri.queryParameters['pk'] ?? '';
+                      final whatsapp = uri.queryParameters['whatsapp'] ?? '';
+                      final name = uri.queryParameters['name'] ?? '';
+                      Navigator.of(context)
+                          .push(
+                            QaydPageRoute.slideFromStart(
+                              builder: (ctx) => BlocProvider<AccountCreateCubit>(
+                                create: (_) => AccountCreateCubit(
+                                  InjectionContainer.createAccountUseCase,
+                                ),
+                                child: AccountCreatePage(
+                                  forcedIsChild: true,
+                                  allowedStandardKinds: const [
+                                    StandardAccountClassificationKind.receivables,
+                                    StandardAccountClassificationKind.payables,
+                                  ],
+                                  pendingPhone: phone.isNotEmpty ? phone : null,
+                                  pendingPublicKey: pk.isNotEmpty ? pk : null,
+                                  pendingWhatsapp: whatsapp.isNotEmpty ? whatsapp : null,
+                                  pendingSenderName: name.isNotEmpty ? name : null,
+                                ),
+                              ),
+                            ),
+                          )
+                          .then((_) => context
+                              .read<NotificationsCubit>()
+                              .load());
+                    } else if (notif.actionRoute.startsWith('/chat/')) {
                       final accountId = notif.actionRoute.substring(6);
                       _openChat(context, accountId);
                     } else if (notif.actionRoute

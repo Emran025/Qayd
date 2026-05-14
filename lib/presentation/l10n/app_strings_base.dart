@@ -2725,6 +2725,16 @@ abstract class AppStringsBase {
 
   /// PRIMARY/COMPANION: additional description for expired code.
   String get manualCodeExpiredDesc => 'يمكنك توليد رمز جديد من صفحة إدارة الأجهزة.';
+
+  /// Notification title shown when an unknown sender requests to exchange bonds.
+  String get counterpartyOnboardingRequestTitle => 'طلب تبادل سندات';
+
+  /// Notification body: "[identifier] asks to exchange bonds with you."
+  String counterpartyOnboardingRequestFrom(String identifier) =>
+      '$identifier يطلب تبادل سندات معك';
+
+  /// Label for the "Complete Account Setup" button on onboarding notification.
+  String get counterpartyOnboardingAcceptButton => 'إعداد الحساب';
 }
 
 

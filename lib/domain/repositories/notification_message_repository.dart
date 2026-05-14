@@ -19,4 +19,21 @@ abstract class NotificationMessageRepository {
   Future<Result<List<NotificationMessage>>> listAllUnprocessed({int limit});
 
   Future<Result<void>> markProcessed(String id);
+
+  /// Returns all unprocessed records staged by the consent-based onboarding
+  /// flow (channel = 'counterparty_request').
+  Future<Result<List<NotificationMessage>>> listPendingCounterpartyRequests();
+
+  /// Finds a single notification by its [id], or returns null if not found.
+  Future<NotificationMessage?> findById(String id);
+
+  /// Updates the display text and raw payload of an existing record.
+  ///
+  /// Used to backfill the sender name on records that were staged before the
+  /// name could be resolved (e.g. offline at staging time).
+  Future<Result<void>> updateBodyAndPayload({
+    required String id,
+    required String bodyText,
+    required String rawPayloadJson,
+  });
 }

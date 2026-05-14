@@ -32,6 +32,11 @@ class AccountCreatePage extends StatefulWidget {
     this.allowedStandardKinds,
     // Edit-mode: when provided the page behaves as an edit form.
     this.editData,
+    // Consent-based onboarding: pre-fill data from a pending counterparty request.
+    this.pendingPhone,
+    this.pendingWhatsapp,
+    this.pendingPublicKey,
+    this.pendingSenderName,
   });
 
   final String? parentAccountId;
@@ -45,8 +50,20 @@ class AccountCreatePage extends StatefulWidget {
   /// [AccountCreateCubit].
   final GetAccountDetailsOutput? editData;
 
+  /// Consent-based counterparty onboarding: pre-filled phone from the staged
+  /// sync request. When set, the phone field is locked to this value.
+  final String? pendingPhone;
+  final String? pendingWhatsapp;
+
+  /// The sender's public key, registered automatically on account creation.
+  final String? pendingPublicKey;
+
+  /// Best-effort display name derived from the sender's phone / pk.
+  final String? pendingSenderName;
+
   bool get isEditMode => editData != null;
   bool get isChild => forcedIsChild || parentAccountId != null;
+  bool get isOnboardingMode => pendingPhone != null || pendingPublicKey != null;
 
   @override
   State<AccountCreatePage> createState() => _AccountCreatePageState();
@@ -88,6 +105,44 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
       if (widget.allowedStandardKinds?.isNotEmpty == true) {
         _standardKind = widget.allowedStandardKinds!.first;
       }
+      // Consent-based onboarding: pre-fill sender contact data.
+      if (widget.isOnboardingMode) {
+        _prefillFromPendingRequest();
+      }
+    }
+  }
+
+  /// Pre-fills contact fields from a staged pending counterparty request.
+  void _prefillFromPendingRequest() {
+    if (widget.pendingSenderName?.isNotEmpty == true) {
+      _nameController.text = widget.pendingSenderName!;
+    }
+
+    void splitPhone(
+        String? raw, TextEditingController zone, TextEditingController num) {
+      if (raw == null || raw.isEmpty) return;
+      final digits = raw.replaceAll(RegExp(r'[^\d]'), '');
+      if (digits.length >= 9) {
+        zone.text = digits.substring(0, digits.length - 9);
+        num.text = digits.substring(digits.length - 9);
+      } else {
+        num.text = digits;
+      }
+    }
+
+    splitPhone(widget.pendingPhone, _phoneZoneController, _phoneController);
+    splitPhone(widget.pendingWhatsapp ?? widget.pendingPhone,
+        _whatsappZoneController, _whatsappController);
+
+    // Store the public key so it is registered when the account is saved.
+    if (widget.pendingPublicKey?.isNotEmpty == true) {
+      _scannedData = CounterpartyQrData(
+        version: 1,
+        name: widget.pendingSenderName ?? '',
+        phone: widget.pendingPhone ?? '',
+        email: '',
+        currentPublicKeyHex: widget.pendingPublicKey,
+      );
     }
   }
 
@@ -300,8 +355,17 @@ class _AccountCreatePageState extends State<AccountCreatePage> {
 
     return BlocConsumer<AccountCreateCubit, AccountCreateState>(
       listener: (ctx, state) {
-// ...
         if (state is AccountCreateSuccess) {
+          // If this was a consent-based onboarding, replay any staged sync
+          // nodes from this sender so their voucher claims are applied now
+          // that the account exists.
+          if (widget.isOnboardingMode) {
+            InjectionContainer.syncPayloadProcessor.replayPendingNodesForSender(
+              phone: widget.pendingPhone,
+              publicKey: widget.pendingPublicKey,
+              whatsapp: widget.pendingWhatsapp,
+            );
+          }
           ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
             content: Text(AppStrings.accountCreatedSuccess),
             behavior: SnackBarBehavior.floating,

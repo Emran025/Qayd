@@ -51,6 +51,9 @@ abstract final class ApiEndpoints {
   static const String syncPush = '$v1/sync/push';
   static const String syncPull = '$v1/sync/pull';
   static const String syncAcknowledge = '$v1/sync/acknowledge';
+  /// Returns the sender's name/phone/pk for a node the caller received.
+  /// Bypasses the bidirectional privacy gate — push-time §6 check already passed.
+  static String syncNodeSender(String nodeId) => '$v1/sync/nodes/$nodeId/sender';
   static const String devicesPair = '$v1/devices/pair';
   static const String devicesList = '$v1/devices';
   static const String devicesCompanionBootstrap =

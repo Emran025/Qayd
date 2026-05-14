@@ -24,21 +24,76 @@ final class SqliteNotificationMessageRepository
     String? rawPayloadJson,
   }) async {
     try {
-      await _db.insert(_table, {
-        'id': id,
-        'body_text': bodyText,
-        'channel': channel,
-        'context_kind': 'counterparty',
-        'context_ref': counterpartyAccountId,
-        'created_at': createdAtIso,
-        'raw_payload_json': rawPayloadJson,
-        'counterparty_account_id': counterpartyAccountId,
-        'processed': 0,
-      });
-      return  Success(null);
+      await _db.insert(
+        _table,
+        {
+          'id': id,
+          'body_text': bodyText,
+          'channel': channel,
+          'context_kind': 'counterparty',
+          'context_ref': counterpartyAccountId,
+          'created_at': createdAtIso,
+          'raw_payload_json': rawPayloadJson,
+          'counterparty_account_id': counterpartyAccountId,
+          'processed': 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+      return Success(null);
     } catch (_) {
-      return  FailureResult(
+      return FailureResult(
         DatabaseFailure(messageAr: AppStrings.unableToSaveNotification),
+      );
+    }
+  }
+
+  @override
+  Future<NotificationMessage?> findById(String id) async {
+    try {
+      final rows = await _db.query(
+        _table,
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (rows.isEmpty) return null;
+      final r = rows.first;
+      final created = r['created_at'] as String?;
+      if (created == null) return null;
+      return NotificationMessage(
+        id: r['id'] as String,
+        bodyText: r['body_text'] as String,
+        channel: r['channel'] as String?,
+        counterpartyAccountId: r['counterparty_account_id'] as String? ?? '',
+        createdAt: DateTime.parse(created),
+        processed: (r['processed'] as int? ?? 0) != 0,
+        rawPayloadJson: r['raw_payload_json'] as String?,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<Result<void>> updateBodyAndPayload({
+    required String id,
+    required String bodyText,
+    required String rawPayloadJson,
+  }) async {
+    try {
+      await _db.update(
+        _table,
+        {
+          'body_text': bodyText,
+          'raw_payload_json': rawPayloadJson,
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      return Success(null);
+    } catch (_) {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToUpdateNotification),
       );
     }
   }
@@ -114,6 +169,38 @@ final class SqliteNotificationMessageRepository
     } catch (_) {
       return  FailureResult(
         DatabaseFailure(messageAr: AppStrings.unableToLoadInbox),
+      );
+    }
+  }
+
+  @override
+  Future<Result<List<NotificationMessage>>> listPendingCounterpartyRequests() async {
+    try {
+      final rows = await _db.query(
+        _table,
+        where: "channel = 'counterparty_request' AND processed = 0",
+        orderBy: 'created_at ASC',
+      );
+      final out = <NotificationMessage>[];
+      for (final r in rows) {
+        final created = r['created_at'] as String?;
+        if (created == null) continue;
+        out.add(
+          NotificationMessage(
+            id: r['id'] as String,
+            bodyText: r['body_text'] as String,
+            channel: r['channel'] as String?,
+            counterpartyAccountId: r['counterparty_account_id'] as String? ?? '',
+            createdAt: DateTime.parse(created),
+            processed: (r['processed'] as int? ?? 0) != 0,
+            rawPayloadJson: r['raw_payload_json'] as String?,
+          ),
+        );
+      }
+      return Success(out);
+    } catch (_) {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.unableToLoadNotification),
       );
     }
   }

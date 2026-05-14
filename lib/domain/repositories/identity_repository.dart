@@ -66,6 +66,17 @@ abstract interface class IdentityRepository {
 
   /// Soft-deletes the user's account from the server.
   Future<void> deleteAccount();
+
+  /// Resolves the sender's identity for a sync node that was delivered to
+  /// the calling user.
+  ///
+  /// Uses the server-authoritative [sender_id] FK on the sync_nodes row,
+  /// bypassing the bidirectional privacy gate that blocks [lookupByPhone] /
+  /// [reverseLookupByPublicKey] when either party has restricted sync.
+  ///
+  /// Returns `null` if the node is not found, does not belong to the caller,
+  /// or the sender's account has been deleted. Network failures also return null.
+  Future<PublicKeyLookupResult?> lookupSyncNodeSender({required String nodeId});
 }
 
 /// Result of a public key lookup from the server.

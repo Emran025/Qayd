@@ -179,6 +179,27 @@ final class RemoteIdentityRepository implements IdentityRepository {
   }
 
   @override
+  Future<PublicKeyLookupResult?> lookupSyncNodeSender({
+    required String nodeId,
+  }) async {
+    try {
+      final data = await _client.get(ApiEndpoints.syncNodeSender(nodeId));
+      final sender = data['data'] as Map<String, dynamic>? ?? data;
+      final name = sender['name'] as String? ?? '';
+      return PublicKeyLookupResult(
+        phone: sender['phone'] as String? ?? '',
+        name: name,
+        email: null,
+        whatsappNumber: sender['whatsapp_number'] as String?,
+        publicKeyHex: sender['public_key'] as String?,
+        isRegistered: true,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>> updateProfile({
     String? name,
     String? phone,

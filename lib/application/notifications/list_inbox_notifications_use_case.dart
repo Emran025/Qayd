@@ -32,8 +32,38 @@ final class ListInboxNotificationsUseCase {
 
         String title = AppStrings.newNotification;
         String actionRoute = '/chat/${msg.counterpartyAccountId}';
+        // May be overridden below when no account exists yet (e.g. onboarding).
+        String? overrideSenderName;
 
-        if (msg.channel == 'tripartite_event') {
+        if (msg.channel == 'counterparty_request') {
+          title = AppStrings.counterpartyOnboardingRequestTitle;
+          try {
+            final Map<String, dynamic> raw =
+                jsonDecode(msg.rawPayloadJson ?? '{}');
+            final sPhone = raw['sender_phone'] as String?;
+            final sPk = raw['sender_pk'] as String?;
+            final sWa = raw['sender_whatsapp'] as String?;
+
+            // Prefer the real registered name resolved from the server at
+            // staging time; fall back to phone / whatsapp / pk fragment.
+            final resolvedName = raw['sender_name'] as String?;
+            overrideSenderName = resolvedName?.isNotEmpty == true
+                ? resolvedName!
+                : sPhone?.isNotEmpty == true
+                    ? sPhone!
+                    : sWa?.isNotEmpty == true
+                        ? sWa!
+                        : (sPk?.isNotEmpty == true
+                            ? sPk!.substring(0, 12)
+                            : '');
+
+            actionRoute =
+                '/onboard/counterparty?phone=${Uri.encodeComponent(sPhone ?? '')}'
+                '&pk=${Uri.encodeComponent(sPk ?? '')}'
+                '&whatsapp=${Uri.encodeComponent(sWa ?? '')}'
+                '&name=${Uri.encodeComponent(overrideSenderName)}';
+          } catch (_) {}
+        } else if (msg.channel == 'tripartite_event') {
           title = AppStrings.transferRequestReceivedTitle;
           try {
             final Map<String, dynamic> payload =
@@ -89,7 +119,7 @@ final class ListInboxNotificationsUseCase {
         notifications.add(
           InboxNotification(
             id: msg.id,
-            senderName: senderName,
+            senderName: overrideSenderName ?? senderName,
             title: title,
             body: msg.bodyText,
             isRead: msg.processed,
