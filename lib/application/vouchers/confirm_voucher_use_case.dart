@@ -184,6 +184,24 @@ class ConfirmVoucherUseCase {
         },
       );
 
+      for (final entry in entries) {
+        await _auditLogService?.log(
+          entityType: 'ledger_entry',
+          entityId: entry.id.value,
+          action: AuditAction.create,
+          severity: AuditSeverity.info,
+          newData: {
+            'id': entry.id.value,
+            'transaction_id': entry.transactionId.value,
+            'account_id': entry.accountId.value,
+            'side': entry.side.name,
+            'voucher_id': entry.voucherId.value,
+            'amount_minor': entry.amount.minorUnits,
+            'currency_code': entry.currency.code,
+          },
+        );
+      }
+
       // ── Cascading release for tripartite transfers ─────────────────────
       // When confirming the receipt leg (A→C), automatically release
       // the contingent payment leg (C→B) so it can be shared/signed.

@@ -70,6 +70,10 @@ class AuditSyncProcessor {
         'applied after retry: ${retryQueue.map((e) => '${e.entityType}/${e.entityId}').join(', ')}',
       );
     }
+
+    // § Sync Repair: Ensure any confirmed vouchers we just restored
+    // get their missing ledger entries generated automatically.
+    await auditLogService?.repairMissingLedgerEntries();
   }
 
   /// Attempts to replay and save a single entry.

@@ -492,7 +492,9 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                     _ActionButton(
                       icon: Icons.published_with_changes_rounded,
                       label: AppStrings.voucherCreateReversal,
-                      color: Theme.of(context).extension<QaydCustomColors>()!.goldAccent,
+                      color: Theme.of(context)
+                          .extension<QaydCustomColors>()!
+                          .goldAccent,
                       onTap: () {
                         Navigator.pop(ctx);
                         _createReversalVoucher(context, msg);
@@ -582,7 +584,10 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
             amount: 0,
           );
 
-      if (m.signatureStatusCode != AgreementStatus.rejected.name) {
+      final affectsBalance =
+          m.voucherStateCode == 'confirmed' || m.voucherStateCode == 'settled';
+
+      if (affectsBalance) {
         int impact = m.amountMinorUnits;
         if (m.direction == 'outgoing') impact = -impact;
 
@@ -852,28 +857,44 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                             msg: msg,
                                             onTap: () {
                                               if (!msg.isCreator) {
-                                                final uri = Uri.parse('/tripartite/create?sourceAccountId=${msg.otherPartyId}&destAccountId=${msg.otherPartyId}&amount=${msg.amountMinorUnits}&currency=${msg.currencyCode}&notes=${Uri.encodeComponent(msg.description)}');
+                                                final uri = Uri.parse(
+                                                    '/tripartite/create?sourceAccountId=${msg.otherPartyId}&destAccountId=${msg.otherPartyId}&amount=${msg.amountMinorUnits}&currency=${msg.currencyCode}&notes=${Uri.encodeComponent(msg.description)}');
                                                 Navigator.of(context).push(
                                                   QaydPageRoute.slideFromStart(
-                                                    builder: (ctx) => MultiBlocProvider(
+                                                    builder: (ctx) =>
+                                                        MultiBlocProvider(
                                                       providers: [
-                                                        BlocProvider<VoucherCreateCubit>(
-                                                          create: (_) => VoucherCreateCubit(
-                                                            InjectionContainer.createVoucherUseCase,
-                                                            InjectionContainer.createTripartiteTransferUseCase,
+                                                        BlocProvider<
+                                                            VoucherCreateCubit>(
+                                                          create: (_) =>
+                                                              VoucherCreateCubit(
+                                                            InjectionContainer
+                                                                .createVoucherUseCase,
+                                                            InjectionContainer
+                                                                .createTripartiteTransferUseCase,
                                                           ),
                                                         ),
                                                       ],
-                                                      child: TripartiteCreatePage(
+                                                      child:
+                                                          TripartiteCreatePage(
                                                         initialQrData: {
-                                                          'amountMinorUnits': int.tryParse(
-                                                              uri.queryParameters['amount'] ?? '0'),
-                                                          'currencyCode': uri.queryParameters['currency'],
-                                                          'sourceAccountId':
-                                                              uri.queryParameters['sourceAccountId'],
-                                                          'destAccountId':
-                                                              uri.queryParameters['destAccountId'],
-                                                          'notes': uri.queryParameters['notes'],
+                                                          'amountMinorUnits':
+                                                              int.tryParse(
+                                                                  uri.queryParameters[
+                                                                          'amount'] ??
+                                                                      '0'),
+                                                          'currencyCode':
+                                                              uri.queryParameters[
+                                                                  'currency'],
+                                                          'sourceAccountId': uri
+                                                                  .queryParameters[
+                                                              'sourceAccountId'],
+                                                          'destAccountId': uri
+                                                                  .queryParameters[
+                                                              'destAccountId'],
+                                                          'notes':
+                                                              uri.queryParameters[
+                                                                  'notes'],
                                                         },
                                                       ),
                                                     ),
@@ -884,32 +905,34 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                           )
                                         : _MessageBubble(
                                             msg: msg,
-                                        mutating: _mutating,
-                                        isUnified: data.isUnified,
-                                        onAccept: (id) =>
-                                            _acceptVoucher(context, id),
-                                        onReject: (id) =>
-                                            _rejectVoucher(context, id),
-                                        onWithdraw: (id) =>
-                                            _withdrawVoucher(context, id),
-                                        onResubmit: (id) =>
-                                            _resubmitVoucher(context, id),
-                                        onOriginTap: _scrollToMessage,
-                                        onReversalTap: childReversalId != null
-                                            ? () =>
-                                                _scrollToMessage(childReversalId!)
-                                            : null,
-                                        onTap: () => data.isUnified
-                                            ? _navigateToCounterpartyChat(
-                                                context,
-                                                msg.otherPartyId,
-                                                data.counterpartyAccountId,
-                                              )
-                                            : VoucherDetailPage.show(
-                                                context, msg.voucherId),
-                                        onLongPress: () =>
-                                            _showVoucherActions(context, msg),
-                                      );
+                                            mutating: _mutating,
+                                            isUnified: data.isUnified,
+                                            onAccept: (id) =>
+                                                _acceptVoucher(context, id),
+                                            onReject: (id) =>
+                                                _rejectVoucher(context, id),
+                                            onWithdraw: (id) =>
+                                                _withdrawVoucher(context, id),
+                                            onResubmit: (id) =>
+                                                _resubmitVoucher(context, id),
+                                            onOriginTap: _scrollToMessage,
+                                            onReversalTap:
+                                                childReversalId != null
+                                                    ? () => _scrollToMessage(
+                                                        childReversalId!)
+                                                    : null,
+                                            onTap: () => data.isUnified
+                                                ? _navigateToCounterpartyChat(
+                                                    context,
+                                                    msg.otherPartyId,
+                                                    data.counterpartyAccountId,
+                                                  )
+                                                : VoucherDetailPage.show(
+                                                    context, msg.voucherId),
+                                            onLongPress: () =>
+                                                _showVoucherActions(
+                                                    context, msg),
+                                          );
 
                                 final itemWidget = Column(
                                   key: key,
@@ -921,7 +944,10 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
                                     msgWidget,
 
                                     // Centered balance summary table
-                                    _ChronologySummaryTable(balances: balances),
+                                    if (msg.voucherStateCode == 'confirmed' ||
+                                        msg.voucherStateCode == 'settled')
+                                      _ChronologySummaryTable(
+                                          balances: balances),
 
                                     SizedBox(height: SpacingTokens.sm),
                                   ],
@@ -1843,8 +1869,10 @@ class _TransferRequestBubble extends StatelessWidget {
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(RadiusTokens.lg),
               topRight: const Radius.circular(RadiusTokens.lg),
-              bottomLeft: isMe ? const Radius.circular(RadiusTokens.lg) : Radius.zero,
-              bottomRight: isMe ? Radius.zero : const Radius.circular(RadiusTokens.lg),
+              bottomLeft:
+                  isMe ? const Radius.circular(RadiusTokens.lg) : Radius.zero,
+              bottomRight:
+                  isMe ? Radius.zero : const Radius.circular(RadiusTokens.lg),
             ),
             border: Border.all(
               color: isMe
@@ -1861,14 +1889,19 @@ class _TransferRequestBubble extends StatelessWidget {
                   Icon(
                     Icons.call_split_rounded,
                     size: 16,
-                    color: isMe ? custom.goldAccent : scheme.onSecondaryContainer,
+                    color:
+                        isMe ? custom.goldAccent : scheme.onSecondaryContainer,
                   ),
                   const SizedBox(width: SpacingTokens.sm),
                   Expanded(
                     child: Text(
-                      isMe ? AppStrings.requestToMakeA : AppStrings.transferRequestReceivedTitle,
+                      isMe
+                          ? AppStrings.requestToMakeA
+                          : AppStrings.transferRequestReceivedTitle,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: isMe ? custom.goldAccent : scheme.onSecondaryContainer,
+                            color: isMe
+                                ? custom.goldAccent
+                                : scheme.onSecondaryContainer,
                             fontWeight: FontWeight.bold,
                           ),
                     ),

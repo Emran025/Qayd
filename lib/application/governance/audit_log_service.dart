@@ -386,22 +386,15 @@ class AuditLogService {
               Map<String, dynamic>.from(entry.oldData!['_parent'] as Map);
           final safe = await _filterColumns(table, parentRow);
           if (safe.isNotEmpty) {
-            // Companion devices must delete their own randomly-generated default accounts
-            // to avoid duplicates and FK failures when receiving the primary's default accounts.
-            if (table == 'accounts') {
-              if (safe['is_default'] == 1) {
-                await _safeExecute(() => database.delete(
-                      table,
-                      where: 'is_default = 1 AND nature = ?',
-                      whereArgs: [safe['nature']],
-                    ));
-              } else if (safe['standard_classification'] != null) {
-                await _safeExecute(() => database.delete(
-                      table,
-                      where: 'standard_classification = ?',
-                      whereArgs: [safe['standard_classification']],
-                    ));
-              }
+            // Companion devices must delete their own randomly-generated seeded accounts
+            // to avoid duplicates when receiving the primary's versions.
+            // Seeded accounts are identified by: standard_classification != null
+            // AND parent_id == null (root accounts). User sub-accounts inherit
+            // classification from their parent but have parent_id set.
+            if (table == 'accounts' &&
+                safe['standard_classification'] != null &&
+                safe['parent_id'] == null) {
+              await _deleteConflictingLocalAccounts(safe);
             }
             await _safeExecute(() => database.insert(
                   table,
@@ -567,6 +560,46 @@ class AuditLogService {
         where: '$fkCol = ?',
         whereArgs: [parentId],
       );
+    }
+  }
+
+  /// Cascade-deletes local seeded accounts that conflict with an incoming
+  /// root account from the primary device.
+  ///
+  /// Seeded accounts are identified by having a `standard_classification`
+  /// AND being root accounts (`parent_id IS NULL`).  They may have child
+  /// rows (sub-accounts, ledger entries) that block a simple DELETE, so we
+  /// cascade-delete each one's children first.
+  ///
+  /// Note: `is_default` is NOT a reliable identifier — Migration 011 seeds
+  /// Payables and Receivables with `is_default = 0`.
+  Future<void> _deleteConflictingLocalAccounts(
+      Map<String, dynamic> incoming) async {
+    await _ensureSchemaLoaded();
+
+    final classification = incoming['standard_classification'];
+    if (classification == null) return;
+
+    // Find local root accounts with the same classification.
+    // parent_id IS NULL ensures we only match seeded root accounts,
+    // not user-created sub-accounts that inherit the classification.
+    final conflicting = await database.query(
+      'accounts',
+      columns: ['id'],
+      where: 'standard_classification = ? AND parent_id IS NULL',
+      whereArgs: [classification],
+    );
+
+    for (final row in conflicting) {
+      final conflictId = row['id'] as String;
+      if (conflictId == incoming['id']) continue;
+      _debugLog(
+        '[AuditLog] 🗑️ Cascade-deleting conflicting seeded account '
+        '$conflictId (classification=$classification)',
+      );
+      await _cascadeDelete('accounts', conflictId);
+      await database
+          .delete('accounts', where: 'id = ?', whereArgs: [conflictId]);
     }
   }
 
@@ -822,6 +855,71 @@ class AuditLogService {
       _debugLog(
           '[AuditLog] ⚠️ Live dispatch enrichment failed for ${entry.entityType}/${entry.entityId}: $e');
       return entry;
+    }
+  }
+
+  /// § Sync Repair: Ensure all confirmed/settled vouchers have ledger entries
+  /// This repairs legacy vouchers synced from primary devices before AuditLog
+  /// correctly tracked ledger_entry creations.
+  Future<void> repairMissingLedgerEntries() async {
+    try {
+      final nowStr = DateTime.now().toUtc().toIso8601String();
+      final List<Map<String, dynamic>> missing = await database.rawQuery('''
+        SELECT v.id, v.type, v.amount_minor, v.currency_code, v.date, v.affected_account_id, v.counterparty_id
+        FROM vouchers v
+        WHERE v.state IN ('confirmed', 'settled')
+        AND NOT EXISTS (
+          SELECT 1 FROM ledger_entries e WHERE e.voucher_id = v.id
+        )
+      ''');
+
+      if (missing.isNotEmpty) {
+        _debugLog('[AuditLog] 🛠️ Found ${missing.length} confirmed vouchers missing ledger entries. Repairing...');
+        await database.transaction((txn) async {
+          for (final row in missing) {
+            final voucherId = row['id'] as String;
+            final type = row['type'] as String;
+            final amount = row['amount_minor'] as int;
+            final currency = row['currency_code'] as String;
+            final date = row['date'] as String;
+            final affected = row['affected_account_id'] as String;
+            final counterparty = row['counterparty_id'] as String;
+
+            final transactionId = const Uuid().v4();
+            final debitId = const Uuid().v4();
+            final creditId = const Uuid().v4();
+
+            final debitAccountId = type == 'receipt' ? affected : counterparty;
+            final creditAccountId = type == 'receipt' ? counterparty : affected;
+
+            await txn.insert('ledger_entries', {
+              'id': debitId,
+              'transaction_id': transactionId,
+              'account_id': debitAccountId,
+              'side': 'debit',
+              'voucher_id': voucherId,
+              'amount_minor': amount,
+              'currency_code': currency,
+              'date': date,
+              'created_at': nowStr,
+            });
+
+            await txn.insert('ledger_entries', {
+              'id': creditId,
+              'transaction_id': transactionId,
+              'account_id': creditAccountId,
+              'side': 'credit',
+              'voucher_id': voucherId,
+              'amount_minor': amount,
+              'currency_code': currency,
+              'date': date,
+              'created_at': nowStr,
+            });
+          }
+        });
+      }
+    } catch (e) {
+      _debugLog('[AuditLog] ⚠️ Failed to repair ledger entries: $e');
     }
   }
 }

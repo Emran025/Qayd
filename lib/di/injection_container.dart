@@ -633,6 +633,15 @@ abstract final class InjectionContainer {
 
     await _initializeDatabaseDependentStack();
 
+    // § Sync Repair: Ensure all confirmed/settled vouchers have ledger entries
+    // This repairs legacy vouchers synced from primary devices before AuditLog
+    // correctly tracked ledger_entry creations.
+    try {
+      await auditLogService.repairMissingLedgerEntries();
+    } catch (e) {
+      debugPrint('DevicePairing: ⚠️ Failed to repair ledger entries: $e');
+    }
+
     autoBackupService.performIfDue().ignore();
     driveBackupService.performIfDue().ignore();
 

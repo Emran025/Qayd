@@ -58,9 +58,8 @@ class ListAccountsUseCase {
       final deltaEntries = bf.deltaEntries;
 
       final periodsR = await _fiscalPeriodRepository.listAllOrdered();
-      final closedPeriods = periodsR.isSuccess
-          ? periodsR.valueOrNull!
-          : <FiscalPeriod>[];
+      final closedPeriods =
+          periodsR.isSuccess ? periodsR.valueOrNull! : <FiscalPeriod>[];
 
       // 3. Fetch all pending/unconfirmed vouchers to include user's claims
       // Non-confirmed vouchers are not yet in the ledger.
@@ -181,8 +180,18 @@ class ListAccountsUseCase {
 
     // §6: Signature-Gated Impact
     // A document only affects an account's balance if the owner of that account has signed it.
-    final bool isAccountOwnerTheSender = v.affectedAccountId == a;
-    final bool isAccountOwnerTheReceiver = v.counterpartyId == a;
+    // However, if this is an inbound claim that we (the receiver) haven't accepted yet,
+    // it shouldn't affect ANY local account balances (neither ours nor the counterparty's) 
+    // until we formally approve it.
+    if (v.isInbound && v.receiverStatus != AgreementStatus.accepted) {
+      return 0;
+    }
+
+    // Use the `isInbound` flag to accurately determine creator (sender) vs receiver roles.
+    final bool isAccountOwnerTheSender =
+        v.isInbound ? v.counterpartyId == a : v.affectedAccountId == a;
+    final bool isAccountOwnerTheReceiver =
+        v.isInbound ? v.affectedAccountId == a : v.counterpartyId == a;
 
     if (isAccountOwnerTheSender && v.senderStatus != AgreementStatus.accepted) {
       return 0;

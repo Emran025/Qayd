@@ -193,9 +193,8 @@ final class ListAccountStatementChatUseCase {
       }
 
       final periodsR = await fiscalPeriodRepository.listAllOrdered();
-      final periods = periodsR.isSuccess
-          ? periodsR.valueOrNull!
-          : const <FiscalPeriod>[];
+      final periods =
+          periodsR.isSuccess ? periodsR.valueOrNull! : const <FiscalPeriod>[];
 
       final latestSettlementAt = _latestSignedSettlementDate(
         allVouchers,
@@ -235,12 +234,11 @@ final class ListAccountStatementChatUseCase {
               perspectiveId: subjectId,
             );
             if (isIncludedInView(v)) {
-              // Only confirmed or pending claims affect balance.
-              // Rejected/Withdrawn ones do not.
-              final isRejected = v.receiverStatus == AgreementStatus.rejected;
-              final isWithdrawn = v.state.isWithdrawn;
+              // Only confirmed or settled vouchers affect the running balance.
+              // Drafts (including pending inbound claims) do not affect balance.
+              final affectsBalance = v.state.isConfirmed || v.state.isSettled;
 
-              if (!isRejected && !isWithdrawn) {
+              if (affectsBalance) {
                 final cur = v.currency.code;
                 if (dir == 'incoming') {
                   broughtForwardByCurrency[cur] =
@@ -332,10 +330,10 @@ final class ListAccountStatementChatUseCase {
         );
 
         // All vouchers currently in 'filtered' list are already verified by isIncludedInView.
-        final isRejected = v.receiverStatus == AgreementStatus.rejected;
-        final isWithdrawn = v.state.isWithdrawn;
+        // However, only confirmed or settled vouchers affect the running balance.
+        final affectsBalance = v.state.isConfirmed || v.state.isSettled;
 
-        if (!isRejected && !isWithdrawn) {
+        if (affectsBalance) {
           final cur = v.currency.code;
           if (direction == 'incoming') {
             runningBalances[cur] =
@@ -356,9 +354,8 @@ final class ListAccountStatementChatUseCase {
         // is not set we use the structural heuristic (affectedAccountId ==
         // subjectId AND no senderSignatureHex, meaning we didn't receive a
         // pre-signed document from outside).
-        final bool isCreator = v.isInbound
-            ? false
-            : v.affectedAccountId == subjectId;
+        final bool isCreator =
+            v.isInbound ? false : v.affectedAccountId == subjectId;
 
         // Find the "Other" party
         final otherId = v.affectedAccountId == subjectId
@@ -420,16 +417,19 @@ final class ListAccountStatementChatUseCase {
 
       // ── Inject Transfer Requests ──
       if (!isUnified) {
-        final notifsRes = await notificationMessageRepository.listUnprocessedForCounterparty(
+        final notifsRes =
+            await notificationMessageRepository.listUnprocessedForCounterparty(
           counterpartyAccountId: counterpartyAccountId,
           limit: 100, // Reasonable limit for chat history
         );
         if (notifsRes.isSuccess) {
           final notifs = notifsRes.valueOrNull!;
           for (final n in notifs) {
-            if (n.channel == 'tripartite_event' || (n.channel == 'outbound' && n.bodyText.contains('طلب'))) {
+            if (n.channel == 'tripartite_event' ||
+                (n.channel == 'outbound' && n.bodyText.contains('طلب'))) {
               try {
-                final Map<String, dynamic> p = jsonDecode(n.rawPayloadJson ?? '{}');
+                final Map<String, dynamic> p =
+                    jsonDecode(n.rawPayloadJson ?? '{}');
                 final isIncoming = n.channel == 'tripartite_event';
                 messages.add(AccountStatementChatMessageDto(
                   voucherId: n.id,
@@ -440,11 +440,15 @@ final class ListAccountStatementChatUseCase {
                   signatureStatusCode: 'underRequest',
                   amountMinorUnits: p['amountMinorUnits'] ?? 0,
                   currencyCode: p['currencyCode'] ?? '',
-                  currencySymbol: '', // Could look up, but UI handles if missing
+                  currencySymbol:
+                      '', // Could look up, but UI handles if missing
                   currencyDigits: 2,
                   description: p['notes'] ?? '',
-                  otherPartyId: isIncoming ? p['destAccountId'] ?? '' : p['destAccountId'] ?? '',
-                  otherPartyName: accountNamesLookup[p['destAccountId']] ?? AppStrings.unknown,
+                  otherPartyId: isIncoming
+                      ? p['destAccountId'] ?? ''
+                      : p['destAccountId'] ?? '',
+                  otherPartyName: accountNamesLookup[p['destAccountId']] ??
+                      AppStrings.unknown,
                   isCreator: !isIncoming,
                   isTransferRequest: true,
                 ));
