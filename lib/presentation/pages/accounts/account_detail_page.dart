@@ -103,6 +103,7 @@ class AccountDetailPage extends StatelessWidget {
                                 getCostCenterDetails: InjectionContainer
                                     .getCostCenterDetailsUseCase,
                                 counterpartyAccountId: state.data.accountId,
+                                syncCoordinatorService: InjectionContainer.syncCoordinatorService,
                               )..load(),
                               child: AccountStatementChatPage(
                                 counterpartyAccountId: state.data.accountId,

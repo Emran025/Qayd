@@ -7,6 +7,7 @@ import 'package:qayd/application/accounts/list_account_statement_chat_use_case.d
 import 'package:qayd/application/accounts/list_accounts_use_case.dart';
 import 'package:qayd/application/cost_centers/get_cost_center_details_use_case.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/application/sync/sync_coordinator_service.dart';
 import 'package:qayd/domain/value_objects/standard_account_classification_kind.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_state.dart';
 
@@ -16,6 +17,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
     required ListAccountsUseCase listAccounts,
     required GetCostCenterDetailsUseCase getCostCenterDetails,
     required String counterpartyAccountId,
+    required SyncCoordinatorService syncCoordinatorService,
     StatementChatFilterInput? initialFilter,
     String? initialCounterpartyName,
     String? myAccountId,
@@ -23,15 +25,21 @@ class StatementChatCubit extends Cubit<StatementChatState> {
         _listAccounts = listAccounts,
         _getCostCenterDetails = getCostCenterDetails,
         _counterpartyAccountId = counterpartyAccountId,
+        _syncCoordinatorService = syncCoordinatorService,
         _initialMyAccountId = myAccountId,
         _initialCounterpartyName = initialCounterpartyName,
         _filter = initialFilter ?? StatementChatFilterInput.empty,
-        super(const StatementChatInitial());
+        super(const StatementChatInitial()) {
+    _syncSubscription = _syncCoordinatorService.onSyncUpdate.listen((_) {
+      if (!isClosed) reload();
+    });
+  }
 
   final ListAccountStatementChatUseCase _listStatement;
   final ListAccountsUseCase _listAccounts;
   final GetCostCenterDetailsUseCase _getCostCenterDetails;
   final String _counterpartyAccountId;
+  final SyncCoordinatorService _syncCoordinatorService;
   final String? _initialMyAccountId;
   final String? _initialCounterpartyName;
 
@@ -41,6 +49,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
   bool _isFund = false;
   StatementChatFilterInput _filter;
   Timer? _searchDebounce;
+  StreamSubscription<void>? _syncSubscription;
 
   String get searchQuery => _searchQuery;
   StatementChatFilterInput get filter => _filter;
@@ -48,6 +57,7 @@ class StatementChatCubit extends Cubit<StatementChatState> {
   @override
   Future<void> close() {
     _searchDebounce?.cancel();
+    _syncSubscription?.cancel();
     return super.close();
   }
 

@@ -49,6 +49,7 @@ class IncomeStreamDetailPage extends StatelessWidget {
             getCostCenterDetails:
                 InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: summary.id,
+            syncCoordinatorService: InjectionContainer.syncCoordinatorService,
           )..load(),
         ),
       ],

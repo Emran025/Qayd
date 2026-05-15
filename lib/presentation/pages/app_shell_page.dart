@@ -65,6 +65,7 @@ class _AppShellPageState extends State<AppShellPage> {
             listStatement: InjectionContainer.listAccountStatementChatUseCase,
             listAccounts: InjectionContainer.listAccountsUseCase,
             counterpartyAccountId: cpId,
+            syncCoordinatorService: InjectionContainer.syncCoordinatorService,
             getCostCenterDetails:
                 InjectionContainer.getCostCenterDetailsUseCase,
           )..load(),

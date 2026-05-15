@@ -61,6 +61,9 @@ class SyncCoordinatorService {
   Timer? _expiryTimer;
   StreamSubscription? _socketSubscription;
 
+  final _syncUpdateController = StreamController<void>.broadcast();
+  Stream<void> get onSyncUpdate => _syncUpdateController.stream;
+
   // Background queue state for lookups
   bool _isProcessingQueue = false;
   bool _hasPendingPull = false;
@@ -88,6 +91,7 @@ class SyncCoordinatorService {
       // while the companion never persisted business data.
       if (appliedIds.contains(node.id)) {
         await _acknowledge([node.id], 'delivered');
+        _syncUpdateController.add(null);
       }
 
       // Trigger Native Notification and persist to inbox if it's an important event
@@ -208,6 +212,7 @@ class SyncCoordinatorService {
 
         if (appliedIds.isNotEmpty) {
           await _acknowledge(appliedIds.toList(), 'delivered');
+          _syncUpdateController.add(null);
         }
       }
     } catch (e) {

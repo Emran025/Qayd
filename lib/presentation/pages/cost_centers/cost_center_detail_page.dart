@@ -423,6 +423,7 @@ class _DashboardViewState extends State<_DashboardView>
             getCostCenterDetails:
                 InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: dto.center.id,
+            syncCoordinatorService: InjectionContainer.syncCoordinatorService,
             initialCounterpartyName: dto.center.name,
             initialFilter: StatementChatFilterInput(costCenterId: dto.center.id),
           )..load(),

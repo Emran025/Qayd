@@ -14,6 +14,7 @@ import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_row.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_state.dart';
+import 'package:qayd/application/sync/sync_coordinator_service.dart';
 
 class VoucherListCubit extends Cubit<VoucherListState> {
   VoucherListCubit(
@@ -22,9 +23,15 @@ class VoucherListCubit extends Cubit<VoucherListState> {
     this._fiscalPeriodRepository, {
     AdvancedFilterInput? initialFilter,
     bool? isInternalOnly,
+    SyncCoordinatorService? syncCoordinatorService,
   }) : super(const VoucherListInitial()) {
     _advancedFilter =
         initialFilter ?? AdvancedFilterInput(isInternalOnly: isInternalOnly);
+    if (syncCoordinatorService != null) {
+      _syncSub = syncCoordinatorService.onSyncUpdate.listen((_) {
+        load();
+      });
+    }
   }
 
   final ListVouchersUseCase _listVouchers;
@@ -40,9 +47,12 @@ class VoucherListCubit extends Cubit<VoucherListState> {
   AdvancedFilterInput get advancedFilter => _advancedFilter;
   Map<String, String> get accountNamesById => _accountNamesById;
 
+  StreamSubscription<void>? _syncSub;
+
   @override
   Future<void> close() {
     _searchDebounce?.cancel();
+    _syncSub?.cancel();
     return super.close();
   }
 

@@ -44,6 +44,7 @@ class _NotificationsView extends StatelessWidget {
             getCostCenterDetails:
                 InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: accountId,
+            syncCoordinatorService: InjectionContainer.syncCoordinatorService,
           )..load(),
           child: AccountStatementChatPage(
             counterpartyAccountId: accountId,

@@ -48,6 +48,7 @@ class _AccountListPageState extends State<AccountListPage> {
   void initState() {
     super.initState();
     _cubit = AccountListCubit(InjectionContainer.listAccountsUseCase,
+        syncCoordinatorService: InjectionContainer.syncCoordinatorService,
         initialTypeFilter: widget.isRootMode
             ? AccountTypeFilter.root
             : AccountTypeFilter.child)
@@ -164,6 +165,7 @@ class _AccountListScaffoldState extends State<_AccountListScaffold>
               listStatement: InjectionContainer.listAccountStatementChatUseCase,
               listAccounts: InjectionContainer.listAccountsUseCase,
               counterpartyAccountId: accountId,
+              syncCoordinatorService: InjectionContainer.syncCoordinatorService,
               getCostCenterDetails:
                   InjectionContainer.getCostCenterDetailsUseCase)
             ..load(),

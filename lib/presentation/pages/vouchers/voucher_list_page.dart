@@ -58,6 +58,7 @@ class _VoucherListPageState extends State<VoucherListPage> {
       InjectionContainer.notificationMessageRepository,
       InjectionContainer.fiscalPeriodRepository,
       isInternalOnly: false,
+      syncCoordinatorService: InjectionContainer.syncCoordinatorService,
     )..load();
   }
 

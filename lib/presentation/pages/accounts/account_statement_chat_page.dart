@@ -376,6 +376,7 @@ class _AccountStatementChatPageState extends State<AccountStatementChatPage> {
             getCostCenterDetails:
                 InjectionContainer.getCostCenterDetailsUseCase,
             counterpartyAccountId: cpAccountId,
+            syncCoordinatorService: InjectionContainer.syncCoordinatorService,
             myAccountId: myAccountId,
           )..load(),
           child: AccountStatementChatPage(
