@@ -55,3 +55,7 @@ app.*.map.json
 /linux/flutter/generated_plugin_registrant.h
 /linux/flutter/generated_plugins.cmake
 /linux/flutter/ephemeral
+
+# Environment configurations
+config_dev.json
+config_prod.json

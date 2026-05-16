@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Qayd (Development)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define-from-file",
+        "config_dev.json"
+      ]
+    },
+    {
+      "name": "Qayd (Production)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define-from-file",
+        "config_prod.json"
+      ]
+    }
+  ]
+}

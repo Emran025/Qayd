@@ -12,10 +12,7 @@ abstract final class ApiEndpoints {
   /// Resolved at compile-time from the `QAYD_API_URL` env variable.
   /// Pass with: `--dart-define=QAYD_API_URL=https://api.qayd.app`
   /// Falls back to the Android emulator loopback address in development.
-  static const String baseUrl = String.fromEnvironment(
-    'QAYD_API_URL',
-    defaultValue: 'https://qayd-qq6w.onrender.com/',
-  );
+  static const String baseUrl = String.fromEnvironment('QAYD_API_URL');
 
   // ── Base prefix ───────────────────────────────────────────────────────────
   static const String v1 = '/api/v1';
