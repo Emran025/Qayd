@@ -138,3 +138,10 @@ If you are modifying, extending, or auditing Qayd, you are bound by the followin
 3. **Never Bypass the Engine:** The `EntryGenerator` is untouchable. Never attempt to write directly to the `ledger_entries` layer. All financial changes, without exception, must originate from a `Voucher` state transition representing a localized event in time.
 
 #### *The integrity of the Qayd local ledger is absolute.*
+
+> [!TIP]
+> To build a release APK with code obfuscation and split debug information, run:
+>
+> ```bash
+> flutter build apk --release --obfuscate --split-debug-info=debug-info --dart-define-from-file=config_prod.json
+> ```
