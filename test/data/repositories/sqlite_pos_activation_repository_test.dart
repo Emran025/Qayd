@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'dart:convert';
+
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/data/database/migrations/migration_040_pos_foundation.dart';
@@ -54,8 +56,8 @@ void main() {
       expect(result.isSuccess, isTrue);
       final activation = result.valueOrNull!;
       expect(activation.alreadyInstalled, isFalse);
-      expect(activation.accountIdsByKey, hasLength(10));
-      expect((await db.query('accounts')), hasLength(10));
+      expect(activation.accountIdsByKey, hasLength(11));
+      expect((await db.query('accounts')), hasLength(11));
       expect((await db.query('pos_warehouses')), hasLength(1));
       expect((await db.query('pos_template_installs')), hasLength(1));
       expect((await db.query('pos_settings')), hasLength(1));
@@ -79,6 +81,50 @@ void main() {
       expect((await repository.getEnabledWarehouseId()).valueOrNull, isNull);
     });
 
+    test('upgrades prior template accounts without duplicates', () async {
+      await repository.installTemplate(
+        template: PosTemplateDefinition.current(),
+        now: DateTime.utc(2026, 1, 1),
+        deviceId: 'device-a',
+      );
+
+      final accounts = await db.query('accounts');
+      for (final row in accounts) {
+        final rawMetadata = row['metadata'];
+        if (rawMetadata is! String) continue;
+        final metadata =
+            Map<String, Object?>.from(jsonDecode(rawMetadata) as Map);
+        if (metadata['pos_template_account_key'] ==
+            'pos.opening_balance_clearing') {
+          await db.delete('accounts', where: 'id = ?', whereArgs: [row['id']]);
+          continue;
+        }
+        metadata['pos_template_version'] = 1;
+        await db.update(
+          'accounts',
+          <String, Object?>{'metadata': jsonEncode(metadata)},
+          where: 'id = ?',
+          whereArgs: [row['id']],
+        );
+      }
+      await db.delete('pos_template_installs');
+      await db.delete('pos_settings');
+
+      final upgraded = await repository.installTemplate(
+        template: PosTemplateDefinition.current(),
+        now: DateTime.utc(2026, 1, 2),
+        deviceId: 'device-a',
+      );
+
+      expect(upgraded.isSuccess, isTrue);
+      expect(upgraded.valueOrNull!.accountIdsByKey, hasLength(11));
+      expect((await db.query('accounts')), hasLength(11));
+      for (final row in await db.query('accounts')) {
+        final metadata = jsonDecode(row['metadata']! as String) as Map;
+        expect(metadata['pos_template_version'], 2);
+      }
+    });
+
     test('reuses an installed template without duplicates', () async {
       final template = PosTemplateDefinition.current();
       final first = await repository.installTemplate(
@@ -95,7 +141,7 @@ void main() {
       expect(first.isSuccess, isTrue);
       expect(second.isSuccess, isTrue);
       expect(second.valueOrNull!.alreadyInstalled, isTrue);
-      expect((await db.query('accounts')), hasLength(10));
+      expect((await db.query('accounts')), hasLength(11));
       expect((await db.query('pos_warehouses')), hasLength(1));
       expect((await db.query('pos_template_installs')), hasLength(1));
     });
@@ -111,7 +157,7 @@ void main() {
 
       expect(disabled.isSuccess, isTrue);
       expect((await repository.isEnabled()).valueOrNull, isFalse);
-      expect((await db.query('accounts')), hasLength(10));
+      expect((await db.query('accounts')), hasLength(11));
       expect((await db.query('pos_template_installs')), hasLength(1));
       expect((await db.query('pos_warehouses')), hasLength(1));
     });

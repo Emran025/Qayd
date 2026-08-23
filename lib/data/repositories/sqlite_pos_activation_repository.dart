@@ -282,21 +282,41 @@ final class SqlitePosActivationRepository implements PosActivationRepository {
     );
 
     String? foundId;
+    Map<String, Object?>? foundMetadata;
     for (final row in rows) {
       final raw = row['metadata'];
       if (raw is! String || raw.isEmpty) continue;
-      final metadata = jsonDecode(raw);
-      if (metadata is! Map) continue;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) continue;
+      final metadata = <String, Object?>{};
+      for (final entry in decoded.entries) {
+        if (entry.key is! String) continue;
+        metadata[entry.key as String] = entry.value;
+      }
       if (metadata['pos_template_key'] == template.templateKey &&
-          metadata['pos_template_version'] == template.version &&
           metadata['pos_template_account_key'] == spec.key.value) {
         if (foundId != null && foundId != row['id']) {
           throw const _PosTemplateConflictException();
         }
         foundId = row['id'] as String;
+        foundMetadata = metadata;
       }
     }
-    if (foundId != null) return foundId;
+    if (foundId != null) {
+      if (foundMetadata?['pos_template_version'] != template.version) {
+        final upgradedMetadata = <String, Object?>{
+          ...?foundMetadata,
+          'pos_template_version': template.version,
+        };
+        await txn.update(
+          'accounts',
+          <String, Object?>{'metadata': jsonEncode(upgradedMetadata)},
+          where: 'id = ?',
+          whereArgs: [foundId],
+        );
+      }
+      return foundId;
+    }
 
     final account = Account.createRoot(
       id: AccountId(_idGenerator.next()),
