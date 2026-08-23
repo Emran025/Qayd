@@ -5037,4 +5037,7 @@ class AppStringsEn extends AppStringsBase {
   String get posQuantityScaleMismatch => 'Quantities with different scales cannot be combined.';
   @override
   String get posQuantityWouldBeNegative => 'The operation would produce a negative quantity.';
+  @override
+  String get posDocumentTransitionInvalid =>
+      'This POS document state transition is not allowed.';
 }

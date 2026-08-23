@@ -2564,4 +2564,6 @@ class AppStrings {
   static String get posQuantityScaleInvalid => i.posQuantityScaleInvalid;
   static String get posQuantityScaleMismatch => i.posQuantityScaleMismatch;
   static String get posQuantityWouldBeNegative => i.posQuantityWouldBeNegative;
+  static String get posDocumentTransitionInvalid =>
+      i.posDocumentTransitionInvalid;
 }
