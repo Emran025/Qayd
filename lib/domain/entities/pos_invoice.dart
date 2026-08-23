@@ -1,0 +1,326 @@
+import 'dart:collection';
+
+import 'package:qayd/domain/entities/pos_invoice_signature.dart';
+import 'package:qayd/domain/exceptions/invalid_pos_invoice_exception.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/currency_code.dart';
+import 'package:qayd/domain/value_objects/money.dart';
+import 'package:qayd/domain/value_objects/pos_document_status.dart';
+import 'package:qayd/domain/value_objects/pos_quantity.dart';
+
+/// POS document direction. Returns are separate documents linked to a source.
+enum PosInvoiceType { sale, purchase, salesReturn, purchaseReturn }
+
+/// One immutable invoice line with snapshots for historical rendering.
+final class PosInvoiceLine {
+  const PosInvoiceLine._({
+    required this.id,
+    required this.invoiceId,
+    required this.productId,
+    required this.productNameSnapshot,
+    required this.barcodeSnapshot,
+    required this.quantity,
+    required this.unitPrice,
+    required this.unitCost,
+    required this.discount,
+    required this.tax,
+    required this.lineTotal,
+    required this.sourceLineId,
+    required this.createdAt,
+  });
+
+  factory PosInvoiceLine.create({
+    required String id,
+    required String invoiceId,
+    required String productId,
+    required String productNameSnapshot,
+    required PosQuantity quantity,
+    required Money unitPrice,
+    required Money unitCost,
+    required Money discount,
+    required Money tax,
+    required DateTime createdAt,
+    String? barcodeSnapshot,
+    String? sourceLineId,
+  }) {
+    if (id.trim().isEmpty ||
+        invoiceId.trim().isEmpty ||
+        productId.trim().isEmpty) {
+      throw InvalidPosInvoiceException.invalidLine();
+    }
+    if (productNameSnapshot.trim().isEmpty || quantity.isZero) {
+      throw InvalidPosInvoiceException.invalidLine();
+    }
+    _assertCurrency(unitPrice, unitCost, discount, tax);
+    if (unitPrice.isNegative ||
+        unitCost.isNegative ||
+        discount.isNegative ||
+        tax.isNegative) {
+      throw InvalidPosInvoiceException.invalidLine();
+    }
+    final gross = PosMoneyMath.multiply(quantity, unitPrice);
+    if (discount.minorUnits > gross.minorUnits) {
+      throw InvalidPosInvoiceException.invalidLine();
+    }
+    final net = gross.minorUnits - discount.minorUnits + tax.minorUnits;
+    if (net < 0) throw InvalidPosInvoiceException.invalidLine();
+    return PosInvoiceLine._(
+      id: id.trim(),
+      invoiceId: invoiceId.trim(),
+      productId: productId.trim(),
+      productNameSnapshot: productNameSnapshot.trim(),
+      barcodeSnapshot: barcodeSnapshot?.trim(),
+      quantity: quantity,
+      unitPrice: unitPrice,
+      unitCost: unitCost,
+      discount: discount,
+      tax: tax,
+      lineTotal: Money.fromMinorUnits(net, unitPrice.currency),
+      sourceLineId: sourceLineId?.trim(),
+      createdAt: createdAt.toUtc(),
+    );
+  }
+
+  final String id;
+  final String invoiceId;
+  final String productId;
+  final String productNameSnapshot;
+  final String? barcodeSnapshot;
+  final PosQuantity quantity;
+  final Money unitPrice;
+  final Money unitCost;
+  final Money discount;
+  final Money tax;
+  final Money lineTotal;
+  final String? sourceLineId;
+  final DateTime createdAt;
+
+  static void _assertCurrency(
+    Money unitPrice,
+    Money unitCost,
+    Money discount,
+    Money tax,
+  ) {
+    final currency = unitPrice.currency;
+    if (unitCost.currency != currency ||
+        discount.currency != currency ||
+        tax.currency != currency) {
+      throw InvalidPosInvoiceException.currencyMismatch();
+    }
+  }
+}
+
+/// Immutable POS invoice aggregate. Posted documents are never edited in place.
+final class PosInvoice {
+  const PosInvoice._({
+    required this.id,
+    required this.invoiceNumber,
+    required this.type,
+    required this.status,
+    required this.counterpartyAccountId,
+    required this.warehouseId,
+    required this.sourceInvoiceId,
+    required this.currency,
+    required this.lines,
+    required this.subtotal,
+    required this.discount,
+    required this.tax,
+    required this.total,
+    required this.paid,
+    required this.due,
+    required this.idempotencyKey,
+    required this.invoiceDate,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.postedAt,
+    required this.signature,
+  });
+
+  factory PosInvoice.draft({
+    required String id,
+    required String invoiceNumber,
+    required PosInvoiceType type,
+    required String warehouseId,
+    required CurrencyCode currency,
+    required List<PosInvoiceLine> lines,
+    required String idempotencyKey,
+    required DateTime invoiceDate,
+    required DateTime now,
+    AccountId? counterpartyAccountId,
+    String? sourceInvoiceId,
+    Money? discount,
+    Money? tax,
+  }) {
+    if (id.trim().isEmpty ||
+        invoiceNumber.trim().isEmpty ||
+        warehouseId.trim().isEmpty) {
+      throw InvalidPosInvoiceException.requiredField();
+    }
+    if (lines.isEmpty) throw InvalidPosInvoiceException.linesRequired();
+    if (idempotencyKey.trim().isEmpty) {
+      throw InvalidPosInvoiceException.requiredField();
+    }
+    final immutableLines = List<PosInvoiceLine>.unmodifiable(lines);
+    for (final line in immutableLines) {
+      if (line.invoiceId != id.trim() || line.unitPrice.currency != currency) {
+        throw InvalidPosInvoiceException.invalidLine();
+      }
+    }
+    final zero = Money.zero(currency);
+    final appliedDiscount = discount ?? zero;
+    final appliedTax = tax ?? zero;
+    if (appliedDiscount.currency != currency ||
+        appliedTax.currency != currency) {
+      throw InvalidPosInvoiceException.currencyMismatch();
+    }
+    final subtotalMinor = immutableLines.fold<int>(
+      0,
+      (sum, line) =>
+          sum + PosMoneyMath.multiply(line.quantity, line.unitPrice).minorUnits,
+    );
+    final lineDiscountMinor = immutableLines.fold<int>(
+      0,
+      (sum, line) => sum + line.discount.minorUnits,
+    );
+    final totalMinor = subtotalMinor -
+        lineDiscountMinor -
+        appliedDiscount.minorUnits +
+        immutableLines.fold<int>(0, (sum, line) => sum + line.tax.minorUnits) +
+        appliedTax.minorUnits;
+    if (totalMinor < 0) throw InvalidPosInvoiceException.invalidTotals();
+    final timestamp = now.toUtc();
+    return PosInvoice._(
+      id: id.trim(),
+      invoiceNumber: invoiceNumber.trim(),
+      type: type,
+      status: PosDocumentStatus.draft,
+      counterpartyAccountId: counterpartyAccountId,
+      warehouseId: warehouseId.trim(),
+      sourceInvoiceId: sourceInvoiceId?.trim(),
+      currency: currency,
+      lines: UnmodifiableListView(immutableLines),
+      subtotal: Money.fromMinorUnits(subtotalMinor, currency),
+      discount: Money.fromMinorUnits(
+          lineDiscountMinor + appliedDiscount.minorUnits, currency),
+      tax: Money.fromMinorUnits(
+        immutableLines.fold<int>(0, (sum, line) => sum + line.tax.minorUnits) +
+            appliedTax.minorUnits,
+        currency,
+      ),
+      total: Money.fromMinorUnits(totalMinor, currency),
+      paid: zero,
+      due: Money.fromMinorUnits(totalMinor, currency),
+      idempotencyKey: idempotencyKey.trim(),
+      invoiceDate: invoiceDate.toUtc(),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      postedAt: null,
+      signature: null,
+    );
+  }
+
+  final String id;
+  final String invoiceNumber;
+  final PosInvoiceType type;
+  final PosDocumentStatus status;
+  final AccountId? counterpartyAccountId;
+  final String warehouseId;
+  final String? sourceInvoiceId;
+  final CurrencyCode currency;
+  final UnmodifiableListView<PosInvoiceLine> lines;
+  final Money subtotal;
+  final Money discount;
+  final Money tax;
+  final Money total;
+  final Money paid;
+  final Money due;
+  final String idempotencyKey;
+  final DateTime invoiceDate;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? postedAt;
+  final PosInvoiceSignature? signature;
+
+  PosInvoice post(DateTime at) {
+    if (!status.isDraft || !status.canTransitionTo(PosDocumentStatus.posted)) {
+      throw InvalidPosInvoiceException.invalidTransition();
+    }
+    return _copy(status: PosDocumentStatus.posted, postedAt: at, updatedAt: at);
+  }
+
+  PosInvoice applyPayment(Money amount, DateTime at) {
+    if (amount.currency != currency || amount.isZero || amount.isNegative) {
+      throw InvalidPosInvoiceException.invalidPayment();
+    }
+    final newPaid = paid.minorUnits + amount.minorUnits;
+    if (newPaid > total.minorUnits) {
+      throw InvalidPosInvoiceException.invalidPayment();
+    }
+    final newDue = total.minorUnits - newPaid;
+    final newStatus =
+        newDue == 0 ? PosDocumentStatus.paid : PosDocumentStatus.partiallyPaid;
+    if (!status.canTransitionTo(newStatus)) {
+      throw InvalidPosInvoiceException.invalidTransition();
+    }
+    return _copy(
+      status: newStatus,
+      paid: Money.fromMinorUnits(newPaid, currency),
+      due: Money.fromMinorUnits(newDue, currency),
+      updatedAt: at,
+    );
+  }
+
+  PosInvoice attachSignature(PosInvoiceSignature value, DateTime at) {
+    if (value.invoiceId != id) {
+      throw InvalidPosInvoiceException.signatureMismatch();
+    }
+    return _copy(signature: value, updatedAt: at);
+  }
+
+  PosInvoice _copy({
+    PosDocumentStatus? status,
+    Money? paid,
+    Money? due,
+    DateTime? postedAt,
+    DateTime? updatedAt,
+    PosInvoiceSignature? signature,
+  }) =>
+      PosInvoice._(
+        id: id,
+        invoiceNumber: invoiceNumber,
+        type: type,
+        status: status ?? this.status,
+        counterpartyAccountId: counterpartyAccountId,
+        warehouseId: warehouseId,
+        sourceInvoiceId: sourceInvoiceId,
+        currency: currency,
+        lines: lines,
+        subtotal: subtotal,
+        discount: discount,
+        tax: tax,
+        total: total,
+        paid: paid ?? this.paid,
+        due: due ?? this.due,
+        idempotencyKey: idempotencyKey,
+        invoiceDate: invoiceDate,
+        createdAt: createdAt,
+        updatedAt: (updatedAt ?? this.updatedAt).toUtc(),
+        postedAt: postedAt ?? this.postedAt,
+        signature: signature ?? this.signature,
+      );
+}
+
+/// Exact integer arithmetic for quantity-scaled money values.
+abstract final class PosMoneyMath {
+  static Money multiply(PosQuantity quantity, Money unitPrice) {
+    var divisor = 1;
+    for (var i = 0; i < quantity.scale; i++) {
+      divisor *= 10;
+    }
+    final product = quantity.scaledUnits * unitPrice.minorUnits;
+    final quotient = product ~/ divisor;
+    final remainder = product % divisor;
+    final rounded = quotient + (remainder * 2 >= divisor ? 1 : 0);
+    return Money.fromMinorUnits(rounded, unitPrice.currency);
+  }
+}

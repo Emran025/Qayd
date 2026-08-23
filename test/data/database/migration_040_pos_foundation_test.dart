@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qayd/data/database/migrations/migration_040_pos_foundation.dart';
+import 'package:qayd/data/database/migrations/migration_041_pos_invoice_metadata.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -72,6 +73,32 @@ void main() {
 
       expect(tables, hasLength(12));
       expect(indexes.length, greaterThanOrEqualTo(8));
+    });
+
+    test('adds invoice date and signature metadata idempotently', () async {
+      await Migration040PosFoundation().up(db);
+      final migration = Migration041PosInvoiceMetadata();
+
+      await migration.up(db);
+      await migration.up(db);
+
+      final columns = await db.rawQuery('PRAGMA table_info(pos_invoices)');
+      final names = columns.map((row) => row['name'] as String).toSet();
+      expect(
+        names,
+        containsAll(<String>[
+          'invoice_date',
+          'signature_hex',
+          'signer_public_key_hex',
+          'signature_payload_hash',
+          'signed_at',
+        ]),
+      );
+      final indexes = await db.rawQuery('''
+        SELECT name FROM sqlite_master
+        WHERE type = 'index' AND name = 'idx_pos_invoices_invoice_date'
+      ''');
+      expect(indexes, hasLength(1));
     });
 
     test('enforces core positive-value constraints', () async {

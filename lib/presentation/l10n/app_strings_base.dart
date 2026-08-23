@@ -2614,19 +2614,24 @@ abstract class AppStringsBase {
   String get deviceRevokedSuccess => 'تم إلغاء ارتباط الجهاز بنجاح.';
   String get deviceRevokeError => 'تعذر إلغاء ارتباط الجهاز.';
 
-
   // Companion Link UI Strings
-  String get companionBootstrapSentSuccess => 'تم إرسال بيانات الدخول للجهاز بنجاح.';
+  String get companionBootstrapSentSuccess =>
+      'تم إرسال بيانات الدخول للجهاز بنجاح.';
   String get companionBootstrapSentSuccessDesc =>
       'يمكنك الآن البدء باستخدام التطبيق على الجهاز التابع.';
-  String get companionBootstrapSentError => 'فشل في إرسال بيانات الدخول للجهاز المرتبط.';
-  String get companionCredentialsFailed => 'فشل في استلام بيانات الجهاز المرتبط.';
+  String get companionBootstrapSentError =>
+      'فشل في إرسال بيانات الدخول للجهاز المرتبط.';
+  String get companionCredentialsFailed =>
+      'فشل في استلام بيانات الجهاز المرتبط.';
   String get linkAsCompanionDevice => 'الدخول كجهاز مرتبط';
-  String get scanCompanionQrInstruction => 'امسح هذا الرمز من جهازك الرئيسي للربط فوراً.';
+  String get scanCompanionQrInstruction =>
+      'امسح هذا الرمز من جهازك الرئيسي للربط فوراً.';
   String get linkNewCompanionDevicePrompt => 'هل تريد ربط جهاز فرعي جديد؟';
-  String get linkNewCompanionDeviceDesc => 'وافق لنقل بيانات تسجيل الدخول المشفرة بشكل آمن وبدء الربط.';
+  String get linkNewCompanionDeviceDesc =>
+      'وافق لنقل بيانات تسجيل الدخول المشفرة بشكل آمن وبدء الربط.';
   String get scanCompanionQr => 'مسح QR لجهاز مرتبط';
-  String get companionDeviceRestriction => 'هذا جهاز مرتبط. لإضافة أجهزة جديدة الرجاء استخدام جهازك الرئيسي.';
+  String get companionDeviceRestriction =>
+      'هذا جهاز مرتبط. لإضافة أجهزة جديدة الرجاء استخدام جهازك الرئيسي.';
   String get deviceAuthorizationRevoked =>
       'تم إلغاء تفويض هذا الجهاز من قبل المسؤول.';
   String get logoutPrimaryHandoverTitle => 'نقل صلاحيات الإدارة';
@@ -2635,44 +2640,62 @@ abstract class AppStringsBase {
   String get deviceRolePrimaryLabel => 'جهاز رئيسي';
   String get actionApprove => 'موافقة';
   String get migratingData => 'جاري ترحيل البيانات وتأمين الاتصال...';
-  String get migratingDataSubtitle => 'يرجى الانتظار، قد تستغرق هذه العملية لحظات.';
+  String get migratingDataSubtitle =>
+      'يرجى الانتظار، قد تستغرق هذه العملية لحظات.';
   String get regenerateQrCode => 'إعادة توليد رمز QR';
-  String migratingFinancialLedger(String progress) => 'جاري مزامنة السجل المالي ($progress)';
-  String newVoucherClaim(String amount, String currency) => 'سند جديد بقيمة $amount $currency';
+  String migratingFinancialLedger(String progress) =>
+      'جاري مزامنة السجل المالي ($progress)';
+  String newVoucherClaim(String amount, String currency) =>
+      'سند جديد بقيمة $amount $currency';
   String voucherRejectedWithReason(String reason) => 'تم رفض السند: $reason';
   String newTripartiteRequestFrom(String name) => 'طلب حوالة جديدة من $name';
 
-  String estimatedValueWithCurrency(String currency) => 'القيمة التقديرية ($currency)';
-  String permissionDeniedMessage(String service) => 'يبدو أنك قمت برفض السماح بالوصول لـ $service مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.';
+  String estimatedValueWithCurrency(String currency) =>
+      'القيمة التقديرية ($currency)';
+  String permissionDeniedMessage(String service) =>
+      'يبدو أنك قمت برفض السماح بالوصول لـ $service مسبقاً.\n\nلكي تتمكن من الاستفادة من هذه الخدمة، يجب السماح بها من الإعدادات.';
   String voucherNotice(String type) => 'إشعار $type';
-  String bondConflictsFound(int count) => 'لديك $count سندات متعارضة (مطابقة لبورصة خارجية).';
-  String errorExportingPdf(String reportName, String error) => 'تعذر تصدير $reportName كـ PDF: $error';
-  String errorExportingExcel(String reportName, String error) => 'تعذر تصدير $reportName كـ Excel: $error';
+  String bondConflictsFound(int count) =>
+      'لديك $count سندات متعارضة (مطابقة لبورصة خارجية).';
+  String errorExportingPdf(String reportName, String error) =>
+      'تعذر تصدير $reportName كـ PDF: $error';
+  String errorExportingExcel(String reportName, String error) =>
+      'تعذر تصدير $reportName كـ Excel: $error';
 
-  String accountNotFoundPrompt(String name) => 'هذا الرقم غير مسجل في حساباتك ($name). هل تريد التأكيد؟';
-  String dualTransferNoticeRecipient(String name) => 'هذا السند جزء من عملية تحويل مزدوج. الطرف المستلم النهائي هو: $name';
-  String dualTransferNoticeSender(String name) => 'هذا السند جزء من عملية تحويل مزدوج. الطرف المرسل الأصلي هو: $name';
+  String accountNotFoundPrompt(String name) =>
+      'هذا الرقم غير مسجل في حساباتك ($name). هل تريد التأكيد؟';
+  String dualTransferNoticeRecipient(String name) =>
+      'هذا السند جزء من عملية تحويل مزدوج. الطرف المستلم النهائي هو: $name';
+  String dualTransferNoticeSender(String name) =>
+      'هذا السند جزء من عملية تحويل مزدوج. الطرف المرسل الأصلي هو: $name';
 
   String get currentStatus => 'الحالة الراهنة';
   String get restoreOnlyThis => 'استعادة هذه فقط';
   String get restoreAll => 'استعادة الكل';
-  String redoImpactWarning(String items) => 'لقد تراجعت مسبقاً عن هذه التعديلات مع متعلقات سابقة، هل تريد استعادتها معها؟\n\n$items';
+  String redoImpactWarning(String items) =>
+      'لقد تراجعت مسبقاً عن هذه التعديلات مع متعلقات سابقة، هل تريد استعادتها معها؟\n\n$items';
   String versionWithNumber(String number) => 'الإصدار $number';
-  String waitSecondsBeforeRetry(int seconds) => 'يرجى الانتظار $seconds ثانية قبل المحاولة مرة أخرى.';
+  String waitSecondsBeforeRetry(int seconds) =>
+      'يرجى الانتظار $seconds ثانية قبل المحاولة مرة أخرى.';
 
-  String appInvitationMessage(String name) => 'مرحباً $name، أدعوك لاستخدام تطبيق قيد للمحاسبة والمزامنة السحابية.';
-  String skippedAccountsNoPhone(int count) => '(تم تخطي $count حساب لعدم وجود رقم هاتف)';
+  String appInvitationMessage(String name) =>
+      'مرحباً $name، أدعوك لاستخدام تطبيق قيد للمحاسبة والمزامنة السحابية.';
+  String skippedAccountsNoPhone(int count) =>
+      '(تم تخطي $count حساب لعدم وجود رقم هاتف)';
   String currencySymbolExample(String symbol) => 'رمز العملة (مثال: $symbol)';
   String get pdfShowHideBalance => 'إظهار/إخفاء الرصيد';
-  String accountBalanceGreeting(String name) => 'تحية طيبة، رصيد الحساب $name حالياً هو: ';
+  String accountBalanceGreeting(String name) =>
+      'تحية طيبة، رصيد الحساب $name حالياً هو: ';
   String matchedInQayd(String target) => 'مطابق في قيد: $target';
   String get millionSuffix => 'م';
   String get thousandSuffix => 'ك';
   String onDate(String date) => 'بتاريخ: $date';
   String editingWithLabel(String label) => 'جاري تعديل: $label';
   String showLabelInBonds(String label) => 'إظهار $label في السندات';
-  String searchBondsForStatus(String status) => 'ابحث في قائمة السندات عن حالة $status';
-  String settledWithSurplus(String amount, String currency) => 'تمت التسوية. فائض: $amount $currency';
+  String searchBondsForStatus(String status) =>
+      'ابحث في قائمة السندات عن حالة $status';
+  String settledWithSurplus(String amount, String currency) =>
+      'تمت التسوية. فائض: $amount $currency';
 
   // ── Manual Device Linking (WhatsApp-style) ─────────────────────────────────
   /// PRIMARY device: button in DeviceManagementPage to switch to code display mode.
@@ -2689,7 +2712,8 @@ abstract class AppStringsBase {
   String get manualCodeCopied => 'تم نسخ الرمز.';
 
   /// PRIMARY device: shown while waiting for Companion to enter the code.
-  String get manualCodeWaitingForCompanion => 'في انتظار إدخال الرمز على الجهاز التابع...';
+  String get manualCodeWaitingForCompanion =>
+      'في انتظار إدخال الرمز على الجهاز التابع...';
 
   /// PRIMARY/COMPANION: code has expired.
   String get manualCodeExpired => 'انتهت صلاحية الرمز. يمكنك توليد رمز جديد.';
@@ -2708,7 +2732,8 @@ abstract class AppStringsBase {
       'أدخل الرمز المعروض على جهازك الرئيسي للمتابعة.';
 
   /// COMPANION device: helper text below input.
-  String get manualCodeInputHint => 'الرمز مكون من 8 أحرف وأرقام، صالح لمدة 10 دقائق.';
+  String get manualCodeInputHint =>
+      'الرمز مكون من 8 أحرف وأرقام، صالح لمدة 10 دقائق.';
 
   /// COMPANION device: submit button label.
   String get manualCodeSubmit => 'إرسال الرمز';
@@ -2724,7 +2749,8 @@ abstract class AppStringsBase {
       'تجاوزت عدد المحاولات المسموح بها. يرجى توليد رمز جديد من الجهاز الرئيسي.';
 
   /// PRIMARY/COMPANION: additional description for expired code.
-  String get manualCodeExpiredDesc => 'يمكنك توليد رمز جديد من صفحة إدارة الأجهزة.';
+  String get manualCodeExpiredDesc =>
+      'يمكنك توليد رمز جديد من صفحة إدارة الأجهزة.';
 
   /// Notification title shown when an unknown sender requests to exchange bonds.
   String get counterpartyOnboardingRequestTitle => 'طلب تبادل سندات';
@@ -2742,13 +2768,11 @@ abstract class AppStringsBase {
   String get posQuantityScaleInvalid => 'مقياس كمية POS غير صالح.';
   String get posQuantityScaleMismatch => 'لا يمكن جمع كميات ذات مقياس مختلف.';
   String get posQuantityWouldBeNegative => 'ستؤدي العملية إلى كمية سالبة.';
-  String get posDocumentTransitionInvalid =>
-      'انتقال حالة مستند POS غير مسموح.';
+  String get posDocumentTransitionInvalid => 'انتقال حالة مستند POS غير مسموح.';
   String get posActivationFailed => 'تعذر تهيئة نقطة البيع.';
   String get posFeatureStateReadFailed => 'تعذر قراءة حالة نقطة البيع.';
   String get posFeatureDisableFailed => 'تعذر تعطيل نقطة البيع.';
-  String get posTemplateConflict =>
-      'تعارض في حسابات قالب نقطة البيع المثبتة.';
+  String get posTemplateConflict => 'تعارض في حسابات قالب نقطة البيع المثبتة.';
   String get posFeatureTitle => 'نقطة البيع';
   String get posFeatureSubtitle => 'مساحة مبيعات ومخزون مدمجة داخل Qayd';
   String get posFeaturePageTitle => 'إعداد نقطة البيع';
@@ -2785,7 +2809,8 @@ abstract class AppStringsBase {
   String get posWorkspaceDisabled => 'مساحة نقطة البيع غير مفعّلة';
   String get posWorkspaceEnableFromSettings =>
       'فعّل نقطة البيع من الإعدادات أولاً للوصول إلى هذه المساحة.';
-  String get posWorkspaceCatalogSubtitle => 'إدارة المنتجات والأسعار والباركودات';
+  String get posWorkspaceCatalogSubtitle =>
+      'إدارة المنتجات والأسعار والباركودات';
   String get posWorkspaceSalesTitle => 'المبيعات';
   String get posWorkspaceComingSoon => 'ستتوفر بعد بناء نواة المخزون والفوترة.';
   String get posWorkspaceLoadFailed => 'تعذر تجهيز مساحة نقطة البيع.';
@@ -2835,12 +2860,21 @@ abstract class AppStringsBase {
       'يجب أن يتطابق تاريخ حركة المخزون مع تاريخ القيد.';
   String get posAccountingSourceMismatch =>
       'مرجع الحركة والقيد المحاسبي غير متطابق.';
-  String get posAccountingDuplicateSource =>
-      'مرجع القيد المحاسبي مسجل مسبقاً.';
+  String get posAccountingDuplicateSource => 'مرجع القيد المحاسبي مسجل مسبقاً.';
   String get posAccountingTransactionFailed =>
       'تعذر حفظ المخزون والقيد المحاسبي معاً.';
   String get posAccountingPartialState =>
       'حالة جزئية غير مكتملة تمنع إعادة المحاولة تلقائياً.';
+  String get posInvoiceInvalid => 'بيانات فاتورة POS غير صالحة.';
+  String get posInvoiceLinesRequired =>
+      'يجب أن تحتوي الفاتورة على صنف واحد على الأقل.';
+  String get posInvoiceLineInvalid => 'بيانات سطر الفاتورة غير صالحة.';
+  String get posInvoiceTotalsInvalid => 'إجماليات الفاتورة غير صالحة.';
+  String get posInvoicePaymentInvalid =>
+      'قيمة الدفعة غير صالحة أو تتجاوز المتبقي.';
+  String get posInvoiceTransitionInvalid => 'انتقال حالة الفاتورة غير مسموح.';
+  String get posInvoiceSignatureInvalid =>
+      'التوقيع الإلكتروني للفاتورة غير صالح.';
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';
