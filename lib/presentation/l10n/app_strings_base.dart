@@ -2840,6 +2840,12 @@ abstract class AppStringsBase {
   String get posInvoiceDueLabel => 'المتبقي';
   String get posInvoiceExportPdf => 'تصدير ومشاركة PDF';
   String get posInvoicePdfFailed => 'تعذر إنشاء PDF الفاتورة.';
+  String get posDailySalesReportTitle => 'تقرير المبيعات اليومي';
+  String get posDailySalesReportFailed => 'تعذر إنشاء تقرير المبيعات اليومي.';
+  String get posDailySalesInvoiceCount => 'فاتورة';
+  String get posDailySalesGross => 'إجمالي المبيعات';
+  String get posDailySalesPaid => 'إجمالي المدفوع';
+  String get posDailySalesDue => 'إجمالي المتبقي';
   String get posWorkspaceLoadFailed => 'تعذر تجهيز مساحة نقطة البيع.';
   String get posWorkspaceCurrencyUnavailable =>
       'لا يمكن العثور على العملة الأساسية النشطة.';

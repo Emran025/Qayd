@@ -7,6 +7,7 @@ import 'package:qayd/presentation/pages/pos/pos_catalog_page.dart';
 import 'package:qayd/presentation/pages/pos/pos_opening_balance_page.dart';
 import 'package:qayd/presentation/pages/pos/pos_checkout_page.dart';
 import 'package:qayd/presentation/pages/pos/pos_invoice_history_page.dart';
+import 'package:qayd/presentation/pages/pos/pos_daily_sales_report_page.dart';
 import 'package:qayd/presentation/pos/pos_invoice_history_cubit.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/pos/pos_workspace_cubit.dart';
@@ -88,6 +89,19 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
     );
   }
 
+  Future<void> _openDailySalesReport(PosWorkspaceState state) async {
+    if (!state.isReady || !mounted) return;
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (_) => PosDailySalesReportPage(
+          reportUseCase: InjectionContainer.buildPosDailySalesReportUseCase,
+          pdfUseCase: InjectionContainer.buildPosInvoicePdfUseCase,
+          currency: state.currency!,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openCatalog(PosWorkspaceState state) async {
     final currency = state.currency;
     if (currency == null || !state.isReady || !mounted) return;
@@ -122,6 +136,7 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
                 onOpenOpeningBalance: () => _openOpeningBalance(state),
                 onOpenCheckout: () => _openCheckout(state),
                 onOpenInvoiceHistory: () => _openInvoiceHistory(state),
+                onOpenDailySalesReport: () => _openDailySalesReport(state),
               ),
           },
         );
@@ -137,6 +152,7 @@ class _ReadyWorkspace extends StatelessWidget {
     required this.onOpenOpeningBalance,
     required this.onOpenCheckout,
     required this.onOpenInvoiceHistory,
+    required this.onOpenDailySalesReport,
   });
 
   final PosWorkspaceState state;
@@ -144,6 +160,7 @@ class _ReadyWorkspace extends StatelessWidget {
   final VoidCallback onOpenOpeningBalance;
   final VoidCallback onOpenCheckout;
   final VoidCallback onOpenInvoiceHistory;
+  final VoidCallback onOpenDailySalesReport;
 
   @override
   Widget build(BuildContext context) {
@@ -194,6 +211,16 @@ class _ReadyWorkspace extends StatelessWidget {
             subtitle: Text(AppStrings.posInvoiceExportPdf),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: onOpenInvoiceHistory,
+          ),
+        ),
+        const SizedBox(height: SpacingTokens.md),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.analytics_outlined),
+            title: Text(AppStrings.posDailySalesReportTitle),
+            subtitle: Text(AppStrings.posDailySalesGross),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: onOpenDailySalesReport,
           ),
         ),
       ],
