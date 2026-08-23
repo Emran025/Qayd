@@ -2771,6 +2771,7 @@ abstract class AppStringsBase {
   String get posProductUnitRequired => 'وحدة المنتج مطلوبة.';
   String get posProductPriceInvalid => 'سعر المنتج لا يمكن أن يكون سالباً.';
   String get posProductCurrencyMismatch => 'عملة سعر المنتج غير متطابقة.';
+  String get posProductCurrencyNotFound => 'عملة المنتج غير موجودة.';
   String get posProductScaleInvalid => 'مقياس كمية المنتج غير صالح.';
   String get posProductThresholdInvalid => 'حد إعادة الطلب غير صالح.';
   String get posProductNotFound => 'المنتج غير موجود.';
