@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qayd/domain/entities/pos_invoice_payment.dart';
 import 'package:qayd/domain/entities/pos_product.dart';
@@ -64,6 +65,9 @@ class _PosCheckoutViewState extends State<_PosCheckoutView> {
   final _customerController = TextEditingController();
   final _paymentAccountController = TextEditingController();
   PosPaymentMethod _paymentMethod = PosPaymentMethod.cash;
+  final _scannerKey = GlobalKey<PosBackgroundBarcodeScannerState>();
+  bool _isBackCamera = true;
+  String? _scannerError;
   Timer? _searchDebounce;
 
   @override
@@ -113,6 +117,17 @@ class _PosCheckoutViewState extends State<_PosCheckoutView> {
     return value.isEmpty ? null : AccountId(value);
   }
 
+  Future<void> _toggleCamera() async {
+    await _scannerKey.currentState?.toggleCamera();
+    if (mounted) setState(() => _isBackCamera = !_isBackCamera);
+  }
+
+  void _onBarcode(String value) {
+    if (mounted) setState(() => _scannerError = null);
+    unawaited(HapticFeedback.selectionClick());
+    unawaited(context.read<PosCheckoutCubit>().resolveAndAdd(value));
+  }
+
   Future<void> _submitInput() async {
     final value = _inputController.text.trim();
     if (value.isEmpty) return;
@@ -145,11 +160,17 @@ class _PosCheckoutViewState extends State<_PosCheckoutView> {
               advanceController: _advanceController,
               customerController: _customerController,
               paymentAccountController: _paymentAccountController,
+              isBackCamera: _isBackCamera,
+              scannerError: _scannerError,
+              onToggleCamera: _toggleCamera,
             ),
           ),
           PosBackgroundBarcodeScanner(
-            onBarcode: (value) =>
-                context.read<PosCheckoutCubit>().resolveAndAdd(value),
+            key: _scannerKey,
+            onBarcode: _onBarcode,
+            onError: (error) {
+              if (mounted) setState(() => _scannerError = error.toString());
+            },
             enabled: widget.scannerEnabled,
           ),
         ],
@@ -174,6 +195,9 @@ class _CheckoutContent extends StatelessWidget {
     required this.advanceController,
     required this.customerController,
     required this.paymentAccountController,
+    required this.isBackCamera,
+    required this.scannerError,
+    required this.onToggleCamera,
   });
 
   final PosCheckoutState state;
@@ -190,6 +214,9 @@ class _CheckoutContent extends StatelessWidget {
   final TextEditingController advanceController;
   final TextEditingController customerController;
   final TextEditingController paymentAccountController;
+  final bool isBackCamera;
+  final String? scannerError;
+  final VoidCallback onToggleCamera;
 
   @override
   Widget build(BuildContext context) {
@@ -217,9 +244,22 @@ class _CheckoutContent extends StatelessWidget {
           children: [
             const Icon(Icons.camera_alt_outlined, size: 18),
             const SizedBox(width: SpacingTokens.xs),
-            Text(AppStrings.posCheckoutCameraActive),
-            const Spacer(),
-            Text(AppStrings.posCheckoutCameraActive),
+            Expanded(
+              child: Text(
+                scannerError ?? AppStrings.posCheckoutCameraActive,
+                style: scannerError == null
+                    ? null
+                    : TextStyle(color: Theme.of(context).colorScheme.error),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              tooltip: AppStrings.posCheckoutCameraActive,
+              icon: Icon(isBackCamera
+                  ? Icons.camera_rear_outlined
+                  : Icons.camera_front_outlined),
+              onPressed: onToggleCamera,
+            ),
           ],
         ),
         if (state.failure != null)

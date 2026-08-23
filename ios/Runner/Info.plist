@@ -70,6 +70,8 @@
 	<string>نستخدم Face ID أو Touch ID لفتح قيد بأمان.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>نحتاج للوصول لجهات الاتصال لتسهيل اختيار أرقام الهواتف.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>نستخدم الكاميرا لمسح باركود المنتجات داخل نقطة البيع.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>sms</string>
