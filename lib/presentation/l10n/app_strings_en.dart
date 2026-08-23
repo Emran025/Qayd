@@ -5092,6 +5092,8 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posProductCurrencyMismatch => 'Product price currency does not match.';
   @override
+  String get posProductCurrencyNotFound => 'Product currency was not found.';
+  @override
   String get posProductScaleInvalid => 'Product quantity scale is invalid.';
   @override
   String get posProductThresholdInvalid => 'Reorder threshold is invalid.';

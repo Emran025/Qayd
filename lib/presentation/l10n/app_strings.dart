@@ -2593,6 +2593,8 @@ class AppStrings {
   static String get posProductPriceInvalid => i.posProductPriceInvalid;
   static String get posProductCurrencyMismatch =>
       i.posProductCurrencyMismatch;
+  static String get posProductCurrencyNotFound =>
+      i.posProductCurrencyNotFound;
   static String get posProductScaleInvalid => i.posProductScaleInvalid;
   static String get posProductThresholdInvalid =>
       i.posProductThresholdInvalid;
