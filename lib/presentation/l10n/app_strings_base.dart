@@ -2778,9 +2778,25 @@ abstract class AppStringsBase {
   String get posProductReadFailed => 'تعذر قراءة منتجات نقطة البيع.';
   String get posProductSaveFailed => 'تعذر حفظ منتج نقطة البيع.';
   String get posProductBarcodeExists => 'الباركود مرتبط بمنتج آخر.';
+  String get posCatalogTitle => 'كتالوج المنتجات';
+  String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
+  String get posCatalogAddProduct => 'إضافة منتج';
+  String get posCatalogCreateTitle => 'إضافة منتج جديد';
+  String get posCatalogEmpty => 'لا توجد منتجات مضافة بعد.';
+  String get posCatalogNoResults => 'لا توجد منتجات تطابق البحث.';
+  String get posCatalogName => 'اسم المنتج';
+  String get posCatalogSku => 'رمز المنتج';
+  String get posCatalogSalePrice => 'سعر البيع';
+  String get posCatalogSalePriceMinor => 'سعر البيع (الوحدات الصغرى)';
+  String get posCatalogPurchasePrice => 'سعر الشراء';
+  String get posCatalogPurchasePriceMinor => 'سعر الشراء (الوحدات الصغرى)';
+  String get posCatalogQuantityScale => 'مقياس الكمية (0 إلى 6)';
+  String get posCatalogReorderLevel => 'حد إعادة الطلب بوحدات القياس';
+  String get posCatalogBarcode => 'الباركود';
+  String get posCatalogDescription => 'الوصف';
+  String get posCatalogExpiryTracking => 'تتبع تاريخ الانتهاء';
+  String get posCatalogDeactivateTitle => 'تعطيل المنتج؟';
+  String get posCatalogDeactivateMessage =>
+      'سيختفي المنتج من العمليات الجديدة مع الاحتفاظ بتاريخه.';
+  String get posCatalogDeactivate => 'تعطيل المنتج';
 }
-
-
-
-
-

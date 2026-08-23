@@ -5105,4 +5105,45 @@ class AppStringsEn extends AppStringsBase {
   String get posProductSaveFailed => 'Could not save POS product.';
   @override
   String get posProductBarcodeExists => 'The barcode is linked to another product.';
+  @override
+  String get posCatalogTitle => 'Product catalog';
+  @override
+  String get posCatalogSearchHint => 'Search by name, SKU, or barcode';
+  @override
+  String get posCatalogAddProduct => 'Add product';
+  @override
+  String get posCatalogCreateTitle => 'Add new product';
+  @override
+  String get posCatalogEmpty => 'No products have been added yet.';
+  @override
+  String get posCatalogNoResults => 'No products match this search.';
+  @override
+  String get posCatalogName => 'Product name';
+  @override
+  String get posCatalogSku => 'Product SKU';
+  @override
+  String get posCatalogSalePrice => 'Sale price';
+  @override
+  String get posCatalogSalePriceMinor => 'Sale price (minor units)';
+  @override
+  String get posCatalogPurchasePrice => 'Purchase price';
+  @override
+  String get posCatalogPurchasePriceMinor => 'Purchase price (minor units)';
+  @override
+  String get posCatalogQuantityScale => 'Quantity scale (0 to 6)';
+  @override
+  String get posCatalogReorderLevel => 'Reorder level in scaled units';
+  @override
+  String get posCatalogBarcode => 'Barcode';
+  @override
+  String get posCatalogDescription => 'Description';
+  @override
+  String get posCatalogExpiryTracking => 'Track expiry dates';
+  @override
+  String get posCatalogDeactivateTitle => 'Deactivate product?';
+  @override
+  String get posCatalogDeactivateMessage =>
+      'The product will be hidden from new operations while its history is preserved.';
+  @override
+  String get posCatalogDeactivate => 'Deactivate product';
 }
