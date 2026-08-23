@@ -2696,6 +2696,9 @@ class AppStrings {
   static String get posInvoiceTransitionInvalid =>
       i.posInvoiceTransitionInvalid;
   static String get posInvoiceSignatureInvalid => i.posInvoiceSignatureInvalid;
+  static String get posInvoiceNotPosted => i.posInvoiceNotPosted;
+  static String get posInvoiceFiscalPeriodClosed =>
+      i.posInvoiceFiscalPeriodClosed;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;
