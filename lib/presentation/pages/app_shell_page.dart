@@ -9,10 +9,12 @@ import 'package:qayd/presentation/pages/backup/restore_discovery_page.dart';
 import 'package:qayd/presentation/pages/reports/trial_balance_page.dart';
 import 'package:qayd/presentation/pages/vouchers/tripartite_list_page.dart';
 import 'package:qayd/presentation/pages/management/internal_management_page.dart';
+import 'package:qayd/presentation/pages/pos/pos_workspace_page.dart';
 import 'package:qayd/presentation/pages/vouchers/voucher_list_page.dart';
 import 'package:qayd/presentation/pages/accounts/account_statement_chat_page.dart';
 import 'package:qayd/presentation/pages/accounts/statement_chat_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
+import 'package:qayd/presentation/pos/pos_feature_cubit.dart';
 import 'package:qayd/presentation/theme/color_tokens.dart';
 import 'package:qayd/presentation/theme/qayd_theme_extensions.dart';
 
@@ -35,6 +37,7 @@ class _AppShellPageState extends State<AppShellPage> {
     super.initState();
     _checkEmptyDb();
     _listenToNotifications();
+    InjectionContainer.posFeatureCubit.load();
   }
 
   void _listenToNotifications() {
@@ -111,19 +114,28 @@ class _AppShellPageState extends State<AppShellPage> {
   Widget build(BuildContext context) {
     final gold = Theme.of(context).extension<QaydCustomColors>()!.goldAccent;
 
-    return QaydScaffold(
-      showDrawer: true,
-      body: Stack(
+    return BlocBuilder<PosFeatureCubit, PosFeatureState>(
+      bloc: InjectionContainer.posFeatureCubit,
+      builder: (context, featureState) {
+        final posEnabled = featureState.isEnabled;
+        final pages = <Widget>[
+          VoucherListPage(isActive: _index == 0),
+          TripartiteListPage(isActive: _index == 1),
+          AccountListPage(isActive: _index == 2),
+          TrialBalancePage(key: ValueKey('reports_$_reportKeyId')),
+          InternalManagementPage(isActive: _index == 4),
+          if (posEnabled)
+            PosWorkspacePage(cubit: InjectionContainer.posWorkspaceCubit),
+        ];
+        final selectedIndex = _index < pages.length ? _index : 0;
+
+        return QaydScaffold(
+          showDrawer: true,
+          body: Stack(
         children: [
           IndexedStack(
-            index: _index,
-            children: [
-              VoucherListPage(isActive: _index == 0),
-              TripartiteListPage(isActive: _index == 1),
-              AccountListPage(isActive: _index == 2),
-              TrialBalancePage(key: ValueKey('reports_$_reportKeyId')),
-              InternalManagementPage(isActive: _index == 4),
-            ],
+            index: selectedIndex,
+            children: pages,
           ),
           Positioned(
             top: 0,
@@ -149,7 +161,7 @@ class _AppShellPageState extends State<AppShellPage> {
         ],
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
+        selectedIndex: selectedIndex,
         indicatorColor: gold.withValues(alpha: 0.35),
         onDestinationSelected: (i) {
           if (i == 3 && _index != 3) {
@@ -185,14 +197,22 @@ class _AppShellPageState extends State<AppShellPage> {
             selectedIcon: Icon(Icons.business_center_rounded, color: gold),
             label: AppStrings.navManagementTab,
           ),
+          if (posEnabled)
+            NavigationDestination(
+              icon: Icon(Icons.point_of_sale_outlined),
+              selectedIcon: Icon(Icons.point_of_sale_rounded, color: gold),
+              label: AppStrings.posFeatureTitle,
+            ),
         ],
       ),
+      );
+      },
     );
   }
 
   Widget _buildRestoreBanner(BuildContext context) {
     return Material(
-      color: ColorTokens.emerald600.withOpacity(0.9),
+      color: ColorTokens.emerald600.withValues(alpha: 0.9),
       elevation: 4,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -228,7 +248,7 @@ class _AppShellPageState extends State<AppShellPage> {
 
   Widget _buildMismatchBanner(BuildContext context) {
     return Material(
-      color: ColorTokens.warningAmber.withOpacity(0.9),
+      color: ColorTokens.warningAmber.withValues(alpha: 0.9),
       elevation: 4,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

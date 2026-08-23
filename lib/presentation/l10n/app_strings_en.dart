@@ -5106,6 +5106,31 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posProductBarcodeExists => 'The barcode is linked to another product.';
   @override
+  String get posWorkspaceTitle => 'POS workspace';
+  @override
+  String get posWorkspaceWelcome => 'Welcome to Point of Sale';
+  @override
+  String get posWorkspaceDescription =>
+      'An integrated sales and inventory workspace sharing Qayd identity and database.';
+  @override
+  String get posWorkspaceDisabled => 'POS workspace is not enabled';
+  @override
+  String get posWorkspaceEnableFromSettings =>
+      'Enable Point of Sale from Settings before accessing this workspace.';
+  @override
+  String get posWorkspaceCatalogSubtitle =>
+      'Manage products, prices, and barcodes';
+  @override
+  String get posWorkspaceSalesTitle => 'Sales';
+  @override
+  String get posWorkspaceComingSoon =>
+      'Available after the inventory and invoicing core is built.';
+  @override
+  String get posWorkspaceLoadFailed => 'Could not prepare the POS workspace.';
+  @override
+  String get posWorkspaceCurrencyUnavailable =>
+      'The active base currency could not be found.';
+  @override
   String get posCatalogTitle => 'Product catalog';
   @override
   String get posCatalogSearchHint => 'Search by name, SKU, or barcode';

@@ -171,6 +171,7 @@ import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
 import 'package:qayd/presentation/pos/pos_catalog_cubit.dart';
+import 'package:qayd/presentation/pos/pos_workspace_cubit.dart';
 import 'package:qayd/presentation/pos/pos_feature_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
@@ -344,6 +345,7 @@ abstract final class InjectionContainer {
   static late FindPosProductByBarcodeUseCase findPosProductByBarcodeUseCase;
   static late DeactivatePosProductUseCase deactivatePosProductUseCase;
   static late PosCatalogCubit posCatalogCubit;
+  static late PosWorkspaceCubit posWorkspaceCubit;
 
   // ── Sync & Real-Time Components ──────────────────────────────────────────
 
@@ -979,6 +981,11 @@ abstract final class InjectionContainer {
 
     listCurrenciesUseCase = ListCurrenciesUseCase(currencyRepository);
     getBaseCurrencyUseCase = GetBaseCurrencyUseCase(currencyRepository);
+    posWorkspaceCubit = PosWorkspaceCubit(
+      activationRepository: posActivationRepository,
+      getBaseCurrencyUseCase: getBaseCurrencyUseCase,
+      listCurrenciesUseCase: listCurrenciesUseCase,
+    );
     setBaseCurrencyUseCase = SetBaseCurrencyUseCase(
       currencyRepository,
       auditLogService: auditLogService,
