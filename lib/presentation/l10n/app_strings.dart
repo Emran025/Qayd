@@ -2570,4 +2570,19 @@ class AppStrings {
   static String get posFeatureStateReadFailed => i.posFeatureStateReadFailed;
   static String get posFeatureDisableFailed => i.posFeatureDisableFailed;
   static String get posTemplateConflict => i.posTemplateConflict;
+  static String get posFeatureTitle => i.posFeatureTitle;
+  static String get posFeatureSubtitle => i.posFeatureSubtitle;
+  static String get posFeaturePageTitle => i.posFeaturePageTitle;
+  static String get posFeaturePageDescription => i.posFeaturePageDescription;
+  static String get posFeatureEnabled => i.posFeatureEnabled;
+  static String get posFeatureDisabled => i.posFeatureDisabled;
+  static String get posFeatureActivate => i.posFeatureActivate;
+  static String get posFeatureDisable => i.posFeatureDisable;
+  static String get posFeatureActivationWarning =>
+      i.posFeatureActivationWarning;
+  static String get posFeatureActivationSuccess =>
+      i.posFeatureActivationSuccess;
+  static String get posFeatureDisableSuccess => i.posFeatureDisableSuccess;
+  static String get posFeatureCancel => i.posFeatureCancel;
+  static String get posFeatureConfirm => i.posFeatureConfirm;
 }
