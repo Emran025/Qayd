@@ -60,6 +60,23 @@ void main() {
       expect((await db.query('pos_template_installs')), hasLength(1));
       expect((await db.query('pos_settings')), hasLength(1));
       expect((await repository.isEnabled()).valueOrNull, isTrue);
+      expect(
+        (await repository.getEnabledWarehouseId()).valueOrNull,
+        activation.warehouseId,
+      );
+    });
+
+    test('returns no warehouse while POS is disabled', () async {
+      expect((await repository.getEnabledWarehouseId()).valueOrNull, isNull);
+
+      await repository.installTemplate(
+        template: PosTemplateDefinition.current(),
+        now: DateTime.utc(2026, 1, 1),
+        deviceId: 'device-a',
+      );
+      await repository.disable();
+
+      expect((await repository.getEnabledWarehouseId()).valueOrNull, isNull);
     });
 
     test('reuses an installed template without duplicates', () async {

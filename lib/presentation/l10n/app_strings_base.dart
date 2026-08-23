@@ -2805,6 +2805,25 @@ abstract class AppStringsBase {
   String get posStockReadFailed => 'تعذر قراءة رصيد المخزون.';
   String get posStockAppendFailed => 'تعذر تسجيل حركة المخزون.';
   String get posStockProductInactive => 'لا يمكن تسجيل حركة لمنتج غير نشط.';
+  String get posOpeningBalanceTitle => 'الرصيد الافتتاحي للمخزون';
+  String get posOpeningBalanceDescription =>
+      'أدخل الكمية والتكلفة الافتتاحية. سيُحفظ الإدخال كحركة جديدة قابلة للتدقيق.';
+  String get posOpeningBalanceProduct => 'المنتج';
+  String get posOpeningBalanceSelectProduct => 'يرجى اختيار منتج.';
+  String get posOpeningBalanceNoProducts => 'أضف منتجاً إلى الكتالوج أولاً.';
+  String get posOpeningBalanceQuantity => 'الكمية بوحدات القياس';
+  String posOpeningBalanceQuantityHint(int scale) =>
+      'أدخل العدد الصحيح scaled units (المقياس الحالي: $scale).';
+  String get posOpeningBalanceUnitCost => 'تكلفة الوحدة بالوحدات الصغرى';
+  String posOpeningBalanceCostHint(String currency) =>
+      'أدخل قيمة صحيحة بالوحدات الصغرى ($currency)، دون فاصلة عشرية.';
+  String get posOpeningBalancePositiveInteger => 'أدخل عدداً صحيحاً موجباً.';
+  String get posOpeningBalanceNonNegativeInteger =>
+      'أدخل صفراً أو عدداً صحيحاً موجباً.';
+  String get posOpeningBalanceSave => 'تسجيل الرصيد الافتتاحي';
+  String get posOpeningBalanceSaved => 'تم تسجيل الرصيد الافتتاحي.';
+  String get posOpeningBalanceCurrent => 'الرصيد الحالي';
+  String get posWarehouseUnavailable => 'مخزن نقطة البيع غير متاح.';
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';

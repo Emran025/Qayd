@@ -16,7 +16,8 @@ final class _FakeGovernanceRepository implements GovernanceRepository {
   final GovernanceStatus status;
 
   @override
-  Future<Result<GovernanceStatus>> getStatus({bool forceRefresh = false}) async {
+  Future<Result<GovernanceStatus>> getStatus(
+      {bool forceRefresh = false}) async {
     return Success(status);
   }
 
@@ -50,6 +51,9 @@ final class _FakePosActivationRepository implements PosActivationRepository {
 
   @override
   Future<Result<bool>> isEnabled() async => const Success(false);
+
+  @override
+  Future<Result<String?>> getEnabledWarehouseId() async => const Success(null);
 }
 
 extension on PosActivationResult {
@@ -58,7 +62,8 @@ extension on PosActivationResult {
 
 void main() {
   group('ActivatePosFeatureUseCase', () {
-    test('passes through to the repository when governance allows writes', () async {
+    test('passes through to the repository when governance allows writes',
+        () async {
       final repo = _FakePosActivationRepository();
       final guard = GovernanceWriteGuard(
         CheckGovernanceStatusUseCase(
@@ -73,7 +78,8 @@ void main() {
       expect(repo.installCalls, 1);
     });
 
-    test('does not install the template when governance is suspended', () async {
+    test('does not install the template when governance is suspended',
+        () async {
       final repo = _FakePosActivationRepository();
       final guard = GovernanceWriteGuard(
         CheckGovernanceStatusUseCase(

@@ -171,6 +171,36 @@ final class SqlitePosActivationRepository implements PosActivationRepository {
   }
 
   @override
+  Future<Result<String?>> getEnabledWarehouseId() async {
+    try {
+      final rows = await _db.query(
+        'pos_settings',
+        columns: ['is_enabled', 'warehouse_id'],
+        where: 'id = 1',
+        limit: 1,
+      );
+      if (rows.isEmpty || rows.first['is_enabled'] != 1) {
+        return const Success(null);
+      }
+      final warehouseId = rows.first['warehouse_id'];
+      if (warehouseId is! String || warehouseId.trim().isEmpty) {
+        return FailureResult(
+          ValidationFailure(messageAr: AppStrings.posWarehouseUnavailable),
+        );
+      }
+      return Success(warehouseId);
+    } on DatabaseException {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.posFeatureStateReadFailed),
+      );
+    } catch (_) {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.posFeatureStateReadFailed),
+      );
+    }
+  }
+
+  @override
   Future<Result<void>> disable() async {
     try {
       await _db.update(

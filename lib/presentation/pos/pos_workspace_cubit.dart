@@ -13,18 +13,24 @@ final class PosWorkspaceState {
   const PosWorkspaceState({
     this.status = PosWorkspaceStatus.initial,
     this.currency,
+    this.warehouseId,
     this.failure,
   });
 
   final PosWorkspaceStatus status;
   final CurrencyCode? currency;
+  final String? warehouseId;
   final Failure? failure;
 
-  bool get isReady => status == PosWorkspaceStatus.ready && currency != null;
+  bool get isReady =>
+      status == PosWorkspaceStatus.ready &&
+      currency != null &&
+      warehouseId != null;
 
   PosWorkspaceState copyWith({
     PosWorkspaceStatus? status,
     CurrencyCode? currency,
+    String? warehouseId,
     Failure? failure,
     bool clearFailure = false,
     bool clearCurrency = false,
@@ -32,6 +38,7 @@ final class PosWorkspaceState {
     return PosWorkspaceState(
       status: status ?? this.status,
       currency: clearCurrency ? null : currency ?? this.currency,
+      warehouseId: clearCurrency ? null : warehouseId ?? this.warehouseId,
       failure: clearFailure ? null : failure ?? this.failure,
     );
   }
@@ -81,6 +88,20 @@ final class PosWorkspaceCubit extends Cubit<PosWorkspaceState> {
       return;
     }
 
+    final warehouseResult = await _activationRepository.getEnabledWarehouseId();
+    if (isClosed) return;
+    if (warehouseResult.isFailure) {
+      _failure(warehouseResult.failureOrNull!);
+      return;
+    }
+    final warehouseId = warehouseResult.valueOrNull;
+    if (warehouseId == null || warehouseId.trim().isEmpty) {
+      _failure(
+        ValidationFailure(messageAr: AppStrings.posWarehouseUnavailable),
+      );
+      return;
+    }
+
     final baseCodeResult = await _getBaseCurrencyUseCase();
     if (isClosed) return;
     if (baseCodeResult.isFailure) {
@@ -116,6 +137,7 @@ final class PosWorkspaceCubit extends Cubit<PosWorkspaceState> {
       state.copyWith(
         status: PosWorkspaceStatus.ready,
         currency: currency,
+        warehouseId: warehouseId,
         clearFailure: true,
       ),
     );

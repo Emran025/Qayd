@@ -12,5 +12,7 @@ abstract interface class PosActivationRepository {
 
   Future<Result<bool>> isEnabled();
 
+  Future<Result<String?>> getEnabledWarehouseId();
+
   Future<Result<void>> disable();
 }

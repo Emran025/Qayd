@@ -5162,6 +5162,41 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posStockProductInactive => 'Cannot record a movement for an inactive product.';
   @override
+  String get posOpeningBalanceTitle => 'Opening stock balance';
+  @override
+  String get posOpeningBalanceDescription =>
+      'Enter opening quantity and cost. The entry is saved as an auditable new movement.';
+  @override
+  String get posOpeningBalanceProduct => 'Product';
+  @override
+  String get posOpeningBalanceSelectProduct => 'Select a product.';
+  @override
+  String get posOpeningBalanceNoProducts =>
+      'Add a product to the catalog first.';
+  @override
+  String get posOpeningBalanceQuantity => 'Quantity in scaled units';
+  @override
+  String posOpeningBalanceQuantityHint(int scale) =>
+      'Enter an integer scaled quantity (current scale: $scale).';
+  @override
+  String get posOpeningBalanceUnitCost => 'Unit cost in minor units';
+  @override
+  String posOpeningBalanceCostHint(String currency) =>
+      'Enter an integer minor-unit value ($currency), without decimals.';
+  @override
+  String get posOpeningBalancePositiveInteger => 'Enter a positive integer.';
+  @override
+  String get posOpeningBalanceNonNegativeInteger =>
+      'Enter zero or a positive integer.';
+  @override
+  String get posOpeningBalanceSave => 'Record opening balance';
+  @override
+  String get posOpeningBalanceSaved => 'Opening balance recorded.';
+  @override
+  String get posOpeningBalanceCurrent => 'Current balance';
+  @override
+  String get posWarehouseUnavailable => 'The POS warehouse is unavailable.';
+  @override
   String get posCatalogTitle => 'Product catalog';
   @override
   String get posCatalogSearchHint => 'Search by name, SKU, or barcode';

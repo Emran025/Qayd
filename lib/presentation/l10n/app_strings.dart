@@ -2630,6 +2630,27 @@ class AppStrings {
   static String get posStockReadFailed => i.posStockReadFailed;
   static String get posStockAppendFailed => i.posStockAppendFailed;
   static String get posStockProductInactive => i.posStockProductInactive;
+  static String get posOpeningBalanceTitle => i.posOpeningBalanceTitle;
+  static String get posOpeningBalanceDescription =>
+      i.posOpeningBalanceDescription;
+  static String get posOpeningBalanceProduct => i.posOpeningBalanceProduct;
+  static String get posOpeningBalanceSelectProduct =>
+      i.posOpeningBalanceSelectProduct;
+  static String get posOpeningBalanceNoProducts => i.posOpeningBalanceNoProducts;
+  static String get posOpeningBalanceQuantity => i.posOpeningBalanceQuantity;
+  static String posOpeningBalanceQuantityHint(int scale) =>
+      i.posOpeningBalanceQuantityHint(scale);
+  static String get posOpeningBalanceUnitCost => i.posOpeningBalanceUnitCost;
+  static String posOpeningBalanceCostHint(String currency) =>
+      i.posOpeningBalanceCostHint(currency);
+  static String get posOpeningBalancePositiveInteger =>
+      i.posOpeningBalancePositiveInteger;
+  static String get posOpeningBalanceNonNegativeInteger =>
+      i.posOpeningBalanceNonNegativeInteger;
+  static String get posOpeningBalanceSave => i.posOpeningBalanceSave;
+  static String get posOpeningBalanceSaved => i.posOpeningBalanceSaved;
+  static String get posOpeningBalanceCurrent => i.posOpeningBalanceCurrent;
+  static String get posWarehouseUnavailable => i.posWarehouseUnavailable;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;
