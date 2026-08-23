@@ -56,6 +56,12 @@ app.*.map.json
 /linux/flutter/generated_plugins.cmake
 /linux/flutter/ephemeral
 
+# Android release signing material — injected only in local/CI workspaces
+/android/key.properties
+/android/keystore/
+*.jks
+*.keystore
+
 # Environment configurations
 config_dev.json
 config_prod.json
