@@ -2823,6 +2823,16 @@ abstract class AppStringsBase {
   String get posCheckoutCameraActive => 'المسح الخلفي مفعّل';
   String get posCheckoutPostingPending =>
       'سيتم تفعيل الإتمام المحاسبي بعد اكتمال إعداد الدفع.';
+  String get posCheckoutAdvance => 'المبلغ المقدم (بوحدات العملة الصغرى)';
+  String get posCheckoutCustomerAccount => 'حساب العميل للمبلغ المتبقي';
+  String get posCheckoutPaymentAccount => 'حساب استلام المقدم';
+  String get posCheckoutPaymentMethod => 'طريقة الدفع';
+  String get posCheckoutCash => 'نقداً';
+  String get posCheckoutBank => 'تحويل بنكي';
+  String get posCheckoutCredit => 'آجل';
+  String get posCheckoutOther => 'أخرى';
+  String get posCheckoutComplete => 'إتمام البيع ذرياً';
+  String get posCheckoutCompleted => 'تم ترحيل البيع والفاتورة بنجاح.';
   String get posWorkspaceLoadFailed => 'تعذر تجهيز مساحة نقطة البيع.';
   String get posWorkspaceCurrencyUnavailable =>
       'لا يمكن العثور على العملة الأساسية النشطة.';

@@ -8,6 +8,7 @@ import 'package:qayd/domain/entities/pos_activation_result.dart';
 import 'package:qayd/domain/entities/pos_product.dart';
 import 'package:qayd/domain/entities/pos_stock_movement.dart';
 import 'package:qayd/domain/entities/pos_template_definition.dart';
+import 'package:qayd/domain/entities/pos_invoice_payment.dart';
 import 'package:qayd/domain/repositories/account_repository.dart';
 import 'package:qayd/domain/repositories/pos_product_repository.dart';
 import 'package:qayd/domain/repositories/pos_stock_movement_repository.dart';
@@ -101,7 +102,7 @@ void main() {
         ),
       ),
     );
-    for (final id in ['inventory', 'revenue', 'cogs', 'cash']) {
+    for (final id in ['inventory', 'revenue', 'cogs', 'cash', 'customer']) {
       when(() => accounts.getById(AccountId(id)))
           .thenAnswer((_) async => Success(account(id)));
     }
@@ -114,7 +115,11 @@ void main() {
     );
   }
 
-  BuildPosSalePostingInput input() => BuildPosSalePostingInput(
+  BuildPosSalePostingInput input({
+    AccountId? customerAccountId,
+    PosSaleSettlementInput? settlement,
+  }) =>
+      BuildPosSalePostingInput(
         invoiceId: 'sale-1',
         invoiceNumber: 'S-1',
         warehouseId: 'warehouse-1',
@@ -128,6 +133,8 @@ void main() {
         idempotencyKey: 'sale-key-1',
         invoiceDate: DateTime.utc(2026, 1, 10, 10),
         createdAt: DateTime.utc(2026, 1, 10, 10),
+        customerAccountId: customerAccountId,
+        settlement: settlement,
       );
 
   test('builds a cash sale with exact COGS and two balanced postings',
@@ -144,6 +151,38 @@ void main() {
     expect(sale.postings, hasLength(2));
     expect(sale.postings.last.voucher.amount.minorUnits, 200);
     expect(sale.payments, hasLength(1));
+  });
+
+  test('builds an advance with a customer due leg atomically', () async {
+    final result = await createUseCase()(input(
+      customerAccountId: AccountId('customer'),
+      settlement: PosSaleSettlementInput(
+        advanceMinorUnits: 400,
+        paymentMethod: PosPaymentMethod.cash,
+        paymentAccountId: AccountId('cash'),
+      ),
+    ));
+
+    expect(result.isSuccess, isTrue);
+    final sale = result.valueOrNull!;
+    expect(sale.invoice.status.name, 'partiallyPaid');
+    expect(sale.invoice.paid.minorUnits, 400);
+    expect(sale.invoice.due.minorUnits, 600);
+    expect(sale.payments.single.amount.minorUnits, 400);
+    expect(sale.postings, hasLength(3));
+    expect(sale.postings.map((p) => p.voucher.amount.minorUnits),
+        containsAll(<int>[400, 600, 200]));
+  });
+
+  test('rejects a credit settlement without a customer', () async {
+    final result = await createUseCase()(input(
+      settlement: PosSaleSettlementInput(
+        advanceMinorUnits: 0,
+        paymentMethod: PosPaymentMethod.credit,
+      ),
+    ));
+
+    expect(result.isFailure, isTrue);
   });
 
   test('fails before payload construction when a required account is missing',

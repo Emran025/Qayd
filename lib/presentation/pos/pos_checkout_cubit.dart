@@ -1,14 +1,29 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/application/pos/build_pos_sale_posting_use_case.dart';
+import 'package:qayd/application/pos/complete_pos_sale_use_case.dart';
 import 'package:qayd/application/pos/list_pos_products_use_case.dart';
 import 'package:qayd/application/pos/resolve_pos_product_for_checkout_use_case.dart';
 import 'package:qayd/core/error/failures.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/core/utils/id_generator.dart';
+import 'package:qayd/domain/entities/pos_invoice.dart';
+import 'package:qayd/domain/entities/pos_invoice_payment.dart';
 import 'package:qayd/domain/entities/pos_product.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/services/pos_money_math.dart';
 import 'package:qayd/domain/value_objects/pos_quantity.dart';
 
 /// UI state for the fast POS checkout surface.
-enum PosCheckoutStatus { initial, loading, ready, resolving, failure }
+enum PosCheckoutStatus {
+  initial,
+  loading,
+  ready,
+  resolving,
+  completing,
+  completed,
+  failure,
+}
 
 final class PosCheckoutLineState {
   const PosCheckoutLineState({required this.product, required this.quantity});
@@ -30,6 +45,7 @@ final class PosCheckoutState {
     this.searchResults = const <PosProduct>[],
     this.searchQuery,
     this.failure,
+    this.completedInvoice,
   });
 
   final PosCheckoutStatus status;
@@ -37,6 +53,7 @@ final class PosCheckoutState {
   final List<PosProduct> searchResults;
   final String? searchQuery;
   final Failure? failure;
+  final PosInvoice? completedInvoice;
 
   int get subtotalMinorUnits => lines.fold<int>(
         0,
@@ -45,7 +62,8 @@ final class PosCheckoutState {
 
   bool get isBusy =>
       status == PosCheckoutStatus.loading ||
-      status == PosCheckoutStatus.resolving;
+      status == PosCheckoutStatus.resolving ||
+      status == PosCheckoutStatus.completing;
 
   PosCheckoutState copyWith({
     PosCheckoutStatus? status,
@@ -55,6 +73,7 @@ final class PosCheckoutState {
     Failure? failure,
     bool clearFailure = false,
     bool clearSearch = false,
+    PosInvoice? completedInvoice,
   }) {
     return PosCheckoutState(
       status: status ?? this.status,
@@ -62,6 +81,7 @@ final class PosCheckoutState {
       searchResults: searchResults ?? this.searchResults,
       searchQuery: clearSearch ? null : searchQuery ?? this.searchQuery,
       failure: clearFailure ? null : failure ?? this.failure,
+      completedInvoice: completedInvoice ?? this.completedInvoice,
     );
   }
 }
@@ -71,12 +91,71 @@ final class PosCheckoutCubit extends Cubit<PosCheckoutState> {
   PosCheckoutCubit({
     required ResolvePosProductForCheckoutUseCase resolveProduct,
     required ListPosProductsUseCase listProducts,
+    this.completeSale,
+    this.idGenerator,
   })  : _resolveProduct = resolveProduct,
         _listProducts = listProducts,
         super(const PosCheckoutState());
 
   final ResolvePosProductForCheckoutUseCase _resolveProduct;
   final ListPosProductsUseCase _listProducts;
+  final CompletePosSaleUseCase? completeSale;
+  final IdGenerator? idGenerator;
+
+  Future<void> completeCheckout({
+    required String warehouseId,
+    required CurrencyCode currency,
+    required int advanceMinorUnits,
+    required PosPaymentMethod paymentMethod,
+    AccountId? customerAccountId,
+    AccountId? paymentAccountId,
+  }) async {
+    if (isClosed || state.isBusy || state.lines.isEmpty) return;
+    final action = completeSale;
+    if (action == null) {
+      emit(state.copyWith(status: PosCheckoutStatus.failure));
+      return;
+    }
+    emit(state.copyWith(
+        status: PosCheckoutStatus.completing, clearFailure: true));
+    final id = idGenerator?.next() ??
+        'pos-${DateTime.now().toUtc().microsecondsSinceEpoch}';
+    final result = await action(
+      invoiceId: id,
+      invoiceNumber: 'POS-${DateTime.now().toUtc().millisecondsSinceEpoch}',
+      warehouseId: warehouseId,
+      currency: currency,
+      lines: state.lines
+          .map((line) => BuildPosSaleLineInput(
+                productId: line.product.id,
+                quantity: line.quantity,
+              ))
+          .toList(growable: false),
+      idempotencyKey: 'pos-sale:$id',
+      invoiceDate: DateTime.now().toUtc(),
+      createdAt: DateTime.now().toUtc(),
+      customerAccountId: customerAccountId,
+      settlement: PosSaleSettlementInput(
+        advanceMinorUnits: advanceMinorUnits,
+        paymentMethod: paymentMethod,
+        paymentAccountId: paymentAccountId,
+      ),
+    );
+    if (isClosed) return;
+    result.fold(
+      (failure) => emit(state.copyWith(
+        status: PosCheckoutStatus.failure,
+        failure: failure,
+      )),
+      (invoice) => emit(state.copyWith(
+        status: PosCheckoutStatus.completed,
+        lines: const [],
+        completedInvoice: invoice,
+        clearFailure: true,
+        clearSearch: true,
+      )),
+    );
+  }
 
   Future<void> search(String rawQuery) async {
     final query = rawQuery.trim();

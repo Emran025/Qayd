@@ -1,0 +1,61 @@
+import 'package:qayd/application/pos/build_pos_sale_posting_use_case.dart';
+import 'package:qayd/application/pos/post_pos_sale_atomically_use_case.dart';
+import 'package:qayd/core/result/result.dart';
+import 'package:qayd/domain/entities/pos_invoice.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/currency_code.dart';
+
+/// Complete application boundary for a POS sale.
+///
+/// It deliberately builds the complete immutable payload before invoking the
+/// governed atomic writer. A failure in either stage leaves no partial UI-side
+/// promise that a sale was committed.
+final class CompletePosSaleUseCase {
+  const CompletePosSaleUseCase({
+    required BuildPosSalePostingUseCase buildPosting,
+    required PostPosSaleAtomicallyUseCase postAtomically,
+  })  : _buildPosting = buildPosting,
+        _postAtomically = postAtomically;
+
+  final BuildPosSalePostingUseCase _buildPosting;
+  final PostPosSaleAtomicallyUseCase _postAtomically;
+
+  Future<Result<PosInvoice>> call({
+    required String invoiceId,
+    required String invoiceNumber,
+    required String warehouseId,
+    required CurrencyCode currency,
+    required List<BuildPosSaleLineInput> lines,
+    required String idempotencyKey,
+    required DateTime invoiceDate,
+    required DateTime createdAt,
+    AccountId? customerAccountId,
+    PosSaleSettlementInput? settlement,
+    bool cashSale = true,
+  }) async {
+    final buildResult = await _buildPosting(
+      BuildPosSalePostingInput(
+        invoiceId: invoiceId,
+        invoiceNumber: invoiceNumber,
+        warehouseId: warehouseId,
+        currency: currency,
+        lines: lines,
+        idempotencyKey: idempotencyKey,
+        invoiceDate: invoiceDate,
+        createdAt: createdAt,
+        customerAccountId: customerAccountId,
+        settlement: settlement,
+        cashSale: cashSale,
+      ),
+    );
+    if (buildResult.isFailure) {
+      return FailureResult(buildResult.failureOrNull!);
+    }
+    final posting = buildResult.valueOrNull!;
+    final commitResult = await _postAtomically(posting);
+    if (commitResult.isFailure) {
+      return FailureResult(commitResult.failureOrNull!);
+    }
+    return Success(posting.invoice);
+  }
+}

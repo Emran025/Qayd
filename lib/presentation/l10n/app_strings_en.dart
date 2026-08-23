@@ -5152,6 +5152,26 @@ class AppStringsEn extends AppStringsBase {
   String get posCheckoutPostingPending =>
       'Accounting completion will be enabled after payment setup is complete.';
   @override
+  String get posCheckoutAdvance => 'Advance (minor currency units)';
+  @override
+  String get posCheckoutCustomerAccount => 'Customer account for remaining due';
+  @override
+  String get posCheckoutPaymentAccount => 'Account receiving the advance';
+  @override
+  String get posCheckoutPaymentMethod => 'Payment method';
+  @override
+  String get posCheckoutCash => 'Cash';
+  @override
+  String get posCheckoutBank => 'Bank transfer';
+  @override
+  String get posCheckoutCredit => 'Credit';
+  @override
+  String get posCheckoutOther => 'Other';
+  @override
+  String get posCheckoutComplete => 'Complete sale atomically';
+  @override
+  String get posCheckoutCompleted => 'Sale and invoice posted successfully.';
+  @override
   String get posWorkspaceLoadFailed => 'Could not prepare the POS workspace.';
   @override
   String get posWorkspaceCurrencyUnavailable =>

@@ -26,6 +26,7 @@ import 'package:qayd/application/pos/post_pos_opening_balance_atomically_use_cas
 import 'package:qayd/application/pos/post_pos_sale_atomically_use_case.dart';
 import 'package:qayd/application/pos/build_pos_opening_balance_posting_use_case.dart';
 import 'package:qayd/application/pos/build_pos_sale_posting_use_case.dart';
+import 'package:qayd/application/pos/complete_pos_sale_use_case.dart';
 import 'package:qayd/application/pos/sign_pos_invoice_use_case.dart';
 import 'package:qayd/application/pos/build_pos_invoice_pdf_use_case.dart';
 import 'package:qayd/domain/services/pos_invoice_signing_service.dart';
@@ -370,6 +371,7 @@ abstract final class InjectionContainer {
   static late PosAccountingPostingRepository posAccountingPostingRepository;
   static late PosSalePostingRepository posSalePostingRepository;
   static late BuildPosSalePostingUseCase buildPosSalePostingUseCase;
+  static late CompletePosSaleUseCase completePosSaleUseCase;
   static late GetPosStockBalanceUseCase getPosStockBalanceUseCase;
   static late RecordPosStockMovementUseCase recordPosStockMovementUseCase;
   static late PosStockCubit posStockCubit;
@@ -1042,6 +1044,10 @@ abstract final class InjectionContainer {
       fiscalPeriodRepository: fiscalPeriodRepository,
       postingRepository: posSalePostingRepository,
     );
+    completePosSaleUseCase = CompletePosSaleUseCase(
+      buildPosting: buildPosSalePostingUseCase,
+      postAtomically: postPosSaleAtomicallyUseCase,
+    );
     getPosStockBalanceUseCase = GetPosStockBalanceUseCase(
       posStockMovementRepository,
     );
@@ -1074,6 +1080,8 @@ abstract final class InjectionContainer {
     posCheckoutCubit = PosCheckoutCubit(
       resolveProduct: resolvePosProductForCheckoutUseCase,
       listProducts: listPosProductsUseCase,
+      completeSale: completePosSaleUseCase,
+      idGenerator: _idGenerator,
     );
     deactivatePosProductUseCase = DeactivatePosProductUseCase(
       posProductRepository,

@@ -64,6 +64,8 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
       QaydPageRoute.slideFromStart<void>(
         builder: (_) => PosCheckoutPage(
           cubit: InjectionContainer.posCheckoutCubit,
+          warehouseId: state.warehouseId!,
+          currency: state.currency!,
         ),
       ),
     );

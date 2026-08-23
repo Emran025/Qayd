@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/domain/entities/pos_invoice_payment.dart';
 import 'package:qayd/domain/entities/pos_product.dart';
+import 'package:qayd/domain/value_objects/account_id.dart';
+import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/services/pos_money_math.dart';
 import 'package:qayd/domain/value_objects/pos_quantity.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
@@ -11,31 +14,45 @@ import 'package:qayd/presentation/pos/pos_background_barcode_scanner.dart';
 import 'package:qayd/presentation/pos/pos_checkout_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
-/// Fast POS checkout surface. Posting is deliberately not exposed until the
-/// payment/document builder is connected to this cart.
+/// Fast POS checkout surface. Completion delegates to the governed atomic
+/// application boundary after the operator provides settlement details.
 class PosCheckoutPage extends StatelessWidget {
   const PosCheckoutPage({
     super.key,
     required this.cubit,
+    required this.warehouseId,
+    required this.currency,
     this.scannerEnabled = true,
   });
 
   final PosCheckoutCubit cubit;
+  final String warehouseId;
+  final CurrencyCode currency;
   final bool scannerEnabled;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: cubit,
-      child: _PosCheckoutView(scannerEnabled: scannerEnabled),
+      child: _PosCheckoutView(
+        scannerEnabled: scannerEnabled,
+        warehouseId: warehouseId,
+        currency: currency,
+      ),
     );
   }
 }
 
 class _PosCheckoutView extends StatefulWidget {
-  const _PosCheckoutView({required this.scannerEnabled});
+  const _PosCheckoutView({
+    required this.scannerEnabled,
+    required this.warehouseId,
+    required this.currency,
+  });
 
   final bool scannerEnabled;
+  final String warehouseId;
+  final CurrencyCode currency;
 
   @override
   State<_PosCheckoutView> createState() => _PosCheckoutViewState();
@@ -43,12 +60,19 @@ class _PosCheckoutView extends StatefulWidget {
 
 class _PosCheckoutViewState extends State<_PosCheckoutView> {
   final _inputController = TextEditingController();
+  final _advanceController = TextEditingController(text: '0');
+  final _customerController = TextEditingController();
+  final _paymentAccountController = TextEditingController();
+  PosPaymentMethod _paymentMethod = PosPaymentMethod.cash;
   Timer? _searchDebounce;
 
   @override
   void dispose() {
     _searchDebounce?.cancel();
     _inputController.dispose();
+    _advanceController.dispose();
+    _customerController.dispose();
+    _paymentAccountController.dispose();
     super.dispose();
   }
 
@@ -57,6 +81,36 @@ class _PosCheckoutViewState extends State<_PosCheckoutView> {
     _searchDebounce = Timer(const Duration(milliseconds: 250), () {
       if (mounted) context.read<PosCheckoutCubit>().search(value);
     });
+  }
+
+  Future<void> _complete() async {
+    final advance = int.tryParse(_advanceController.text.trim());
+    if (advance == null || advance < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.posInvoicePaymentInvalid)),
+      );
+      return;
+    }
+    await context.read<PosCheckoutCubit>().completeCheckout(
+          warehouseId: widget.warehouseId,
+          currency: widget.currency,
+          advanceMinorUnits: advance,
+          paymentMethod: _paymentMethod,
+          customerAccountId: _accountId(_customerController.text),
+          paymentAccountId: _accountId(_paymentAccountController.text),
+        );
+    if (mounted &&
+        context.read<PosCheckoutCubit>().state.status ==
+            PosCheckoutStatus.completed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.posCheckoutCompleted)),
+      );
+    }
+  }
+
+  AccountId? _accountId(String raw) {
+    final value = raw.trim();
+    return value.isEmpty ? null : AccountId(value);
   }
 
   Future<void> _submitInput() async {
@@ -84,6 +138,13 @@ class _PosCheckoutViewState extends State<_PosCheckoutView> {
               onSetQuantity: context.read<PosCheckoutCubit>().setQuantity,
               onRemoveProduct: context.read<PosCheckoutCubit>().removeProduct,
               onClearCart: context.read<PosCheckoutCubit>().clearCart,
+              onComplete: _complete,
+              paymentMethod: _paymentMethod,
+              onPaymentMethodChanged: (value) =>
+                  setState(() => _paymentMethod = value),
+              advanceController: _advanceController,
+              customerController: _customerController,
+              paymentAccountController: _paymentAccountController,
             ),
           ),
           PosBackgroundBarcodeScanner(
@@ -107,6 +168,12 @@ class _CheckoutContent extends StatelessWidget {
     required this.onSetQuantity,
     required this.onRemoveProduct,
     required this.onClearCart,
+    required this.onComplete,
+    required this.paymentMethod,
+    required this.onPaymentMethodChanged,
+    required this.advanceController,
+    required this.customerController,
+    required this.paymentAccountController,
   });
 
   final PosCheckoutState state;
@@ -117,6 +184,12 @@ class _CheckoutContent extends StatelessWidget {
   final void Function(String, PosQuantity) onSetQuantity;
   final ValueChanged<String> onRemoveProduct;
   final VoidCallback onClearCart;
+  final VoidCallback onComplete;
+  final PosPaymentMethod paymentMethod;
+  final ValueChanged<PosPaymentMethod> onPaymentMethodChanged;
+  final TextEditingController advanceController;
+  final TextEditingController customerController;
+  final TextEditingController paymentAccountController;
 
   @override
   Widget build(BuildContext context) {
@@ -146,11 +219,7 @@ class _CheckoutContent extends StatelessWidget {
             const SizedBox(width: SpacingTokens.xs),
             Text(AppStrings.posCheckoutCameraActive),
             const Spacer(),
-            TextButton.icon(
-              onPressed: null,
-              icon: const Icon(Icons.receipt_long_outlined),
-              label: Text(AppStrings.posCheckoutPostingPending),
-            ),
+            Text(AppStrings.posCheckoutCameraActive),
           ],
         ),
         if (state.failure != null)
@@ -226,11 +295,68 @@ class _CheckoutContent extends StatelessWidget {
           ),
         const SizedBox(height: SpacingTokens.lg),
         Card(
-          child: ListTile(
-            title: Text(AppStrings.posCheckoutSubtotal),
-            trailing: Text(
-              '${state.subtotalMinorUnits}',
-              style: Theme.of(context).textTheme.titleLarge,
+          child: Padding(
+            padding: const EdgeInsets.all(SpacingTokens.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(AppStrings.posCheckoutSubtotal),
+                  trailing: Text(
+                    '${state.subtotalMinorUnits}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                TextFormField(
+                  controller: advanceController,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      InputDecoration(labelText: AppStrings.posCheckoutAdvance),
+                ),
+                const SizedBox(height: SpacingTokens.sm),
+                DropdownButtonFormField<PosPaymentMethod>(
+                  initialValue: paymentMethod,
+                  decoration: InputDecoration(
+                      labelText: AppStrings.posCheckoutPaymentMethod),
+                  items: [
+                    DropdownMenuItem(
+                        value: PosPaymentMethod.cash,
+                        child: Text(AppStrings.posCheckoutCash)),
+                    DropdownMenuItem(
+                        value: PosPaymentMethod.bank,
+                        child: Text(AppStrings.posCheckoutBank)),
+                    DropdownMenuItem(
+                        value: PosPaymentMethod.credit,
+                        child: Text(AppStrings.posCheckoutCredit)),
+                    DropdownMenuItem(
+                        value: PosPaymentMethod.other,
+                        child: Text(AppStrings.posCheckoutOther)),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) onPaymentMethodChanged(value);
+                  },
+                ),
+                const SizedBox(height: SpacingTokens.sm),
+                TextFormField(
+                  controller: paymentAccountController,
+                  decoration: InputDecoration(
+                      labelText: AppStrings.posCheckoutPaymentAccount),
+                ),
+                const SizedBox(height: SpacingTokens.sm),
+                TextFormField(
+                  controller: customerController,
+                  decoration: InputDecoration(
+                      labelText: AppStrings.posCheckoutCustomerAccount),
+                ),
+                const SizedBox(height: SpacingTokens.md),
+                FilledButton.icon(
+                  onPressed:
+                      state.lines.isEmpty || state.isBusy ? null : onComplete,
+                  icon: const Icon(Icons.verified_outlined),
+                  label: Text(AppStrings.posCheckoutComplete),
+                ),
+              ],
             ),
           ),
         ),
