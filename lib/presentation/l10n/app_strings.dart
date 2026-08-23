@@ -2585,4 +2585,15 @@ class AppStrings {
   static String get posFeatureDisableSuccess => i.posFeatureDisableSuccess;
   static String get posFeatureCancel => i.posFeatureCancel;
   static String get posFeatureConfirm => i.posFeatureConfirm;
+  static String get posBarcodeInvalid => i.posBarcodeInvalid;
+  static String get posProductIdRequired => i.posProductIdRequired;
+  static String get posProductNameRequired => i.posProductNameRequired;
+  static String get posProductSkuRequired => i.posProductSkuRequired;
+  static String get posProductUnitRequired => i.posProductUnitRequired;
+  static String get posProductPriceInvalid => i.posProductPriceInvalid;
+  static String get posProductCurrencyMismatch =>
+      i.posProductCurrencyMismatch;
+  static String get posProductScaleInvalid => i.posProductScaleInvalid;
+  static String get posProductThresholdInvalid =>
+      i.posProductThresholdInvalid;
 }
