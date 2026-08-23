@@ -1,12 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qayd/application/governance/check_governance_status_use_case.dart';
+import 'package:qayd/application/pos/create_pos_product_use_case.dart';
 import 'package:qayd/application/governance/governance_write_guard.dart';
 import 'package:qayd/application/pos/deactivate_pos_product_use_case.dart';
 import 'package:qayd/application/pos/list_pos_products_use_case.dart';
 import 'package:qayd/application/pos/save_pos_product_use_case.dart';
 import 'package:qayd/core/result/result.dart';
+import 'package:qayd/core/utils/id_generator.dart';
 import 'package:qayd/domain/entities/pos_product.dart';
 import 'package:qayd/domain/value_objects/submit_activation_request.dart';
+import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/repositories/governance_repository.dart';
 import 'package:qayd/domain/repositories/pos_product_repository.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
@@ -16,17 +19,54 @@ import 'package:qayd/domain/value_objects/pos_barcode.dart';
 import 'package:qayd/domain/value_objects/pos_quantity.dart';
 import 'package:qayd/presentation/pos/pos_catalog_cubit.dart';
 
+final class _IdGenerator implements IdGenerator {
+  @override
+  String next() => 'generated-product';
+}
+
+final class _CurrencyRepo implements CurrencyRepository {
+  _CurrencyRepo(this.currency);
+
+  final CurrencyCode currency;
+
+  @override
+  Future<Result<CurrencyCode?>> getByCode(String code) async =>
+      Success(code == currency.code ? currency : null);
+
+  @override
+  Future<Result<List<CurrencyCode>>> getAll({bool onlyActive = false}) async =>
+      Success([currency]);
+
+  @override
+  Future<Result<void>> save(CurrencyCode currency,
+          {bool isPredefined = false}) async =>
+      const Success(null);
+
+  @override
+  Future<Result<void>> toggleActiveStatus(String code, bool isActive) async =>
+      const Success(null);
+
+  @override
+  Future<Result<String>> getBaseCurrencyCode() async => Success(currency.code);
+
+  @override
+  Future<Result<void>> setBaseCurrencyCode(String code) async =>
+      const Success(null);
+}
+
 final class _GovernanceRepo implements GovernanceRepository {
   _GovernanceRepo(this.status);
 
   final GovernanceStatus status;
 
   @override
-  Future<Result<GovernanceStatus>> getStatus({bool forceRefresh = false}) async =>
+  Future<Result<GovernanceStatus>> getStatus(
+          {bool forceRefresh = false}) async =>
       Success(status);
 
   @override
-  Future<Result<void>> submitActivation(SubmitActivationRequest request) async =>
+  Future<Result<void>> submitActivation(
+          SubmitActivationRequest request) async =>
       const Success(null);
 }
 
@@ -103,9 +143,20 @@ PosCatalogCubit _cubit(
   final guard = GovernanceWriteGuard(
     CheckGovernanceStatusUseCase(_GovernanceRepo(status)),
   );
+  final currency = CurrencyCode(
+    code: 'SAR',
+    nameAr: 'ريال',
+    symbol: 'ر.س',
+  );
   return PosCatalogCubit(
     listUseCase: ListPosProductsUseCase(repository),
     saveUseCase: SavePosProductUseCase(repository, guard),
+    createUseCase: CreatePosProductUseCase(
+      repository,
+      _CurrencyRepo(currency),
+      guard,
+      _IdGenerator(),
+    ),
     deactivateUseCase: DeactivatePosProductUseCase(repository, guard),
   );
 }

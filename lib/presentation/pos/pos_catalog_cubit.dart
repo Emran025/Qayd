@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qayd/application/pos/create_pos_product_use_case.dart';
 import 'package:qayd/application/pos/deactivate_pos_product_use_case.dart';
 import 'package:qayd/application/pos/list_pos_products_use_case.dart';
 import 'package:qayd/application/pos/save_pos_product_use_case.dart';
@@ -46,14 +47,17 @@ final class PosCatalogCubit extends Cubit<PosCatalogState> {
   PosCatalogCubit({
     required ListPosProductsUseCase listUseCase,
     required SavePosProductUseCase saveUseCase,
+    required CreatePosProductUseCase createUseCase,
     required DeactivatePosProductUseCase deactivateUseCase,
   })  : _listUseCase = listUseCase,
         _saveUseCase = saveUseCase,
+        _createUseCase = createUseCase,
         _deactivateUseCase = deactivateUseCase,
         super(const PosCatalogState());
 
   final ListPosProductsUseCase _listUseCase;
   final SavePosProductUseCase _saveUseCase;
+  final CreatePosProductUseCase _createUseCase;
   final DeactivatePosProductUseCase _deactivateUseCase;
 
   Future<void> load({String? search}) async {
@@ -91,6 +95,29 @@ final class PosCatalogCubit extends Cubit<PosCatalogState> {
         ),
       ),
     );
+  }
+
+  Future<void> create(CreatePosProductInput input) async {
+    if (isClosed || state.isBusy) return;
+    emit(
+      state.copyWith(
+        status: PosCatalogStatus.saving,
+        clearFailure: true,
+      ),
+    );
+
+    final result = await _createUseCase(input);
+    if (isClosed) return;
+    if (result.isFailure) {
+      emit(
+        state.copyWith(
+          status: PosCatalogStatus.failure,
+          failure: result.failureOrNull,
+        ),
+      );
+      return;
+    }
+    await _load(search: state.search);
   }
 
   Future<void> save(PosProduct product) async {
