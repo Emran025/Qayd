@@ -14,6 +14,7 @@ import 'package:qayd/presentation/backup/restore_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/application/accounts/batch_import_accounts_from_csv_use_case.dart';
+import 'package:qayd/application/pos/activate_pos_feature_use_case.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
 import 'package:qayd/application/accounts/deactivate_account_use_case.dart';
@@ -87,6 +88,7 @@ import 'package:qayd/data/pdf/cairo_voucher_pdf_generator.dart';
 import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
 import 'package:qayd/data/repositories/sqlite_currency_repository.dart';
 import 'package:qayd/data/repositories/sqlite_transaction_fee_settings_repository.dart';
+import 'package:qayd/data/repositories/sqlite_pos_activation_repository.dart';
 import 'package:qayd/data/repositories/sqlite_voucher_repository.dart';
 import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/data/security/hardware_id_service.dart';
@@ -100,6 +102,7 @@ import 'package:qayd/domain/repositories/message_template_repository.dart';
 import 'package:qayd/domain/repositories/notification_log_repository.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/repositories/transaction_fee_settings_repository.dart';
+import 'package:qayd/domain/repositories/pos_activation_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
@@ -160,6 +163,7 @@ import 'package:qayd/data/repositories/sqlite_device_session_repository.dart';
 import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
+import 'package:qayd/presentation/pos/pos_feature_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
 import 'package:qayd/application/accruals/list_accruals_use_case.dart';
@@ -322,6 +326,9 @@ abstract final class InjectionContainer {
   static late TransactionFeeSettingsRepository transactionFeeSettingsRepository;
   static late GetActiveTransactionFeeUseCase getActiveTransactionFeeUseCase;
   static late ManageTransactionFeeUseCase manageTransactionFeeUseCase;
+  static late PosActivationRepository posActivationRepository;
+  static late ActivatePosFeatureUseCase activatePosFeatureUseCase;
+  static late PosFeatureCubit posFeatureCubit;
 
   // ── Sync & Real-Time Components ──────────────────────────────────────────
 
@@ -910,6 +917,20 @@ abstract final class InjectionContainer {
       transactionFeeSettingsRepository,
       _idGenerator,
       auditLogService: auditLogService,
+    );
+
+    posActivationRepository = SqlitePosActivationRepository(
+      database,
+      _idGenerator,
+    );
+    activatePosFeatureUseCase = ActivatePosFeatureUseCase(
+      posActivationRepository,
+      governanceWriteGuard,
+    );
+    posFeatureCubit = PosFeatureCubit(
+      activateUseCase: activatePosFeatureUseCase,
+      repository: posActivationRepository,
+      deviceIdProvider: () => currentDeviceId,
     );
 
     listCurrenciesUseCase = ListCurrenciesUseCase(currencyRepository);
