@@ -92,6 +92,58 @@ final class PosProduct {
     );
   }
 
+  /// Rehydrates a product from persistence without changing its timestamps.
+  factory PosProduct.restore({
+    required String id,
+    required String sku,
+    required String name,
+    required CurrencyCode currency,
+    required Money salePrice,
+    required Money purchasePrice,
+    required int quantityScale,
+    required PosQuantity reorderLevel,
+    required bool expiryTracking,
+    required bool isActive,
+    required List<PosBarcode> barcodes,
+    String? description,
+    String unitName = 'unit',
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) {
+    final created = PosProduct.create(
+      id: id,
+      sku: sku,
+      name: name,
+      currency: currency,
+      salePrice: salePrice,
+      purchasePrice: purchasePrice,
+      quantityScale: quantityScale,
+      reorderLevel: reorderLevel,
+      expiryTracking: expiryTracking,
+      barcodes: barcodes,
+      description: description,
+      unitName: unitName,
+      now: createdAt,
+    );
+    return PosProduct._(
+      id: created.id,
+      sku: created.sku,
+      name: created.name,
+      description: created.description,
+      unitName: created.unitName,
+      currency: created.currency,
+      salePrice: created.salePrice,
+      purchasePrice: created.purchasePrice,
+      quantityScale: created.quantityScale,
+      reorderLevel: created.reorderLevel,
+      expiryTracking: created.expiryTracking,
+      isActive: isActive,
+      barcodes: created.barcodes,
+      createdAt: createdAt.toUtc(),
+      updatedAt: updatedAt.toUtc(),
+    );
+  }
+
   final String id;
   final String sku;
   final String name;

@@ -5095,4 +5095,12 @@ class AppStringsEn extends AppStringsBase {
   String get posProductScaleInvalid => 'Product quantity scale is invalid.';
   @override
   String get posProductThresholdInvalid => 'Reorder threshold is invalid.';
+  @override
+  String get posProductNotFound => 'Product not found.';
+  @override
+  String get posProductReadFailed => 'Could not read POS products.';
+  @override
+  String get posProductSaveFailed => 'Could not save POS product.';
+  @override
+  String get posProductBarcodeExists => 'The barcode is linked to another product.';
 }

@@ -2596,4 +2596,8 @@ class AppStrings {
   static String get posProductScaleInvalid => i.posProductScaleInvalid;
   static String get posProductThresholdInvalid =>
       i.posProductThresholdInvalid;
+  static String get posProductNotFound => i.posProductNotFound;
+  static String get posProductReadFailed => i.posProductReadFailed;
+  static String get posProductSaveFailed => i.posProductSaveFailed;
+  static String get posProductBarcodeExists => i.posProductBarcodeExists;
 }

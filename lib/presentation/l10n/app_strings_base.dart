@@ -2773,6 +2773,10 @@ abstract class AppStringsBase {
   String get posProductCurrencyMismatch => 'عملة سعر المنتج غير متطابقة.';
   String get posProductScaleInvalid => 'مقياس كمية المنتج غير صالح.';
   String get posProductThresholdInvalid => 'حد إعادة الطلب غير صالح.';
+  String get posProductNotFound => 'المنتج غير موجود.';
+  String get posProductReadFailed => 'تعذر قراءة منتجات نقطة البيع.';
+  String get posProductSaveFailed => 'تعذر حفظ منتج نقطة البيع.';
+  String get posProductBarcodeExists => 'الباركود مرتبط بمنتج آخر.';
 }
 
 
