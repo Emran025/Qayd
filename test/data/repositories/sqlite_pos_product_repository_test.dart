@@ -26,7 +26,8 @@ final class _CurrencyRepository implements CurrencyRepository {
   }
 
   @override
-  Future<Result<void>> save(CurrencyCode currency, {bool isPredefined = false}) async =>
+  Future<Result<void>> save(CurrencyCode currency,
+          {bool isPredefined = false}) async =>
       const Success(null);
 
   @override
@@ -37,7 +38,8 @@ final class _CurrencyRepository implements CurrencyRepository {
   Future<Result<String>> getBaseCurrencyCode() async => Success(currency.code);
 
   @override
-  Future<Result<void>> setBaseCurrencyCode(String code) async => const Success(null);
+  Future<Result<void>> setBaseCurrencyCode(String code) async =>
+      const Success(null);
 }
 
 void main() {
@@ -119,7 +121,30 @@ void main() {
       expect(byBarcode.valueOrNull!.id, 'product-1');
     });
 
-    test('lists by active status and search, then deactivates immutably', () async {
+    test('searches by barcode and excludes inactive barcode matches', () async {
+      await repository.save(
+        product(
+          id: 'product-1',
+          sku: 'SKU-1',
+          name: 'Coffee',
+          barcodes: [PosBarcode('62900001')],
+        ),
+      );
+
+      final bySearch = await repository.list(search: '62900001');
+      expect(bySearch.valueOrNull, hasLength(1));
+      expect(bySearch.valueOrNull!.single.id, 'product-1');
+
+      await repository.deactivate('product-1');
+      expect(
+        (await repository.getByBarcode(PosBarcode('62900001'))).valueOrNull,
+        isNull,
+      );
+      expect((await repository.list(search: '62900001')).valueOrNull, isEmpty);
+    });
+
+    test('lists by active status and search, then deactivates immutably',
+        () async {
       await repository.save(
         product(id: 'product-1', sku: 'SKU-1', name: 'Coffee'),
       );
@@ -136,9 +161,14 @@ void main() {
       expect(before.valueOrNull!.single.name, 'Tea');
       expect(disabled.isSuccess, isTrue);
       expect(after.valueOrNull!.map((item) => item.id), contains('product-1'));
-      expect(after.valueOrNull!.map((item) => item.id), isNot(contains('product-2')));
+      expect(after.valueOrNull!.map((item) => item.id),
+          isNot(contains('product-2')));
       expect(all.valueOrNull, hasLength(2));
-      expect(all.valueOrNull!.singleWhere((item) => item.id == 'product-2').isActive, isFalse);
+      expect(
+          all.valueOrNull!
+              .singleWhere((item) => item.id == 'product-2')
+              .isActive,
+          isFalse);
     });
 
     test('rejects a barcode already owned by another product', () async {
@@ -160,9 +190,11 @@ void main() {
       );
 
       expect(result.isFailure, isTrue);
-      expect((await repository.getByBarcode(PosBarcode('12345'))).valueOrNull!.id,
+      expect(
+          (await repository.getByBarcode(PosBarcode('12345'))).valueOrNull!.id,
           'product-1');
-      expect((await repository.list(activeOnly: false)).valueOrNull, hasLength(1));
+      expect(
+          (await repository.list(activeOnly: false)).valueOrNull, hasLength(1));
     });
 
     test('rejects a product whose currency is not registered', () async {

@@ -1,10 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qayd/data/database/database_provider.dart';
 import 'package:qayd/data/database/migrations/migration_040_pos_foundation.dart';
+import 'package:qayd/data/database/migrations/migration_registry.dart';
 import 'package:qayd/data/database/migrations/migration_041_pos_invoice_metadata.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   sqfliteFfiInit();
+
+  test('database provider targets the latest registered migration', () {
+    expect(
+        DatabaseProvider.schemaVersion, MigrationRegistry.ordered.last.version);
+  });
 
   group('Migration040PosFoundation', () {
     late Database db;

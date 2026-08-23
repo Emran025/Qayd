@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:qayd/domain/entities/pos_invoice_signature.dart';
 import 'package:qayd/domain/exceptions/invalid_pos_invoice_exception.dart';
+import 'package:qayd/domain/services/pos_money_math.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
@@ -308,19 +309,4 @@ final class PosInvoice {
         postedAt: postedAt ?? this.postedAt,
         signature: signature ?? this.signature,
       );
-}
-
-/// Exact integer arithmetic for quantity-scaled money values.
-abstract final class PosMoneyMath {
-  static Money multiply(PosQuantity quantity, Money unitPrice) {
-    var divisor = 1;
-    for (var i = 0; i < quantity.scale; i++) {
-      divisor *= 10;
-    }
-    final product = quantity.scaledUnits * unitPrice.minorUnits;
-    final quotient = product ~/ divisor;
-    final remainder = product % divisor;
-    final rounded = quotient + (remainder * 2 >= divisor ? 1 : 0);
-    return Money.fromMinorUnits(rounded, unitPrice.currency);
-  }
 }
