@@ -30,7 +30,9 @@ import 'package:qayd/application/pos/complete_pos_sale_use_case.dart';
 import 'package:qayd/application/pos/sign_pos_invoice_use_case.dart';
 import 'package:qayd/application/pos/build_pos_invoice_pdf_use_case.dart';
 import 'package:qayd/domain/services/pos_invoice_signing_service.dart';
+import 'package:qayd/domain/repositories/pos_invoice_read_repository.dart';
 import 'package:qayd/data/pdf/cairo_pos_invoice_pdf_generator.dart';
+import 'package:qayd/data/repositories/sqlite_pos_invoice_read_repository.dart';
 import 'package:qayd/domain/services/pos_invoice_pdf_generator.dart';
 import 'package:qayd/application/pos/save_pos_product_use_case.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
@@ -370,6 +372,7 @@ abstract final class InjectionContainer {
   static late PosStockMovementRepository posStockMovementRepository;
   static late PosAccountingPostingRepository posAccountingPostingRepository;
   static late PosSalePostingRepository posSalePostingRepository;
+  static late PosInvoiceReadRepository posInvoiceReadRepository;
   static late BuildPosSalePostingUseCase buildPosSalePostingUseCase;
   static late CompletePosSaleUseCase completePosSaleUseCase;
   static late GetPosStockBalanceUseCase getPosStockBalanceUseCase;
@@ -941,6 +944,10 @@ abstract final class InjectionContainer {
         SqliteVoucherRepository(database, transactionRunner);
     voucherRepository = sqliteVoucherRepository;
     currencyRepository = SqliteCurrencyRepository(database);
+    posInvoiceReadRepository = SqlitePosInvoiceReadRepository(
+      database,
+      currencyRepository,
+    );
     attachmentRepository = SqliteAttachmentRepository(database);
     collateralRepository = SqliteCollateralRepository(database);
     messageTemplateRepository = SqliteMessageTemplateRepository(database);

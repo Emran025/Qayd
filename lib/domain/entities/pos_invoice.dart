@@ -82,6 +82,41 @@ final class PosInvoiceLine {
     );
   }
 
+  factory PosInvoiceLine.fromPersistence({
+    required String id,
+    required String invoiceId,
+    required String productId,
+    required String productNameSnapshot,
+    required PosQuantity quantity,
+    required Money unitPrice,
+    required Money unitCost,
+    required Money discount,
+    required Money tax,
+    required Money lineTotal,
+    required DateTime createdAt,
+    String? barcodeSnapshot,
+    String? sourceLineId,
+  }) {
+    final line = PosInvoiceLine.create(
+      id: id,
+      invoiceId: invoiceId,
+      productId: productId,
+      productNameSnapshot: productNameSnapshot,
+      quantity: quantity,
+      unitPrice: unitPrice,
+      unitCost: unitCost,
+      discount: discount,
+      tax: tax,
+      createdAt: createdAt,
+      barcodeSnapshot: barcodeSnapshot,
+      sourceLineId: sourceLineId,
+    );
+    if (line.lineTotal != lineTotal) {
+      throw InvalidPosInvoiceException.invalidTotals();
+    }
+    return line;
+  }
+
   final String id;
   final String invoiceId;
   final String productId;
@@ -241,6 +276,71 @@ final class PosInvoice {
   final DateTime updatedAt;
   final DateTime? postedAt;
   final PosInvoiceSignature? signature;
+
+  factory PosInvoice.fromPersistence({
+    required String id,
+    required String invoiceNumber,
+    required PosInvoiceType type,
+    required PosDocumentStatus status,
+    required AccountId? counterpartyAccountId,
+    required String warehouseId,
+    required String? sourceInvoiceId,
+    required CurrencyCode currency,
+    required List<PosInvoiceLine> lines,
+    required Money subtotal,
+    required Money discount,
+    required Money tax,
+    required Money total,
+    required Money paid,
+    required Money due,
+    required String idempotencyKey,
+    required DateTime invoiceDate,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required DateTime? postedAt,
+    required PosInvoiceSignature? signature,
+  }) {
+    if (lines.isEmpty ||
+        subtotal.currency != currency ||
+        discount.currency != currency ||
+        tax.currency != currency ||
+        total.currency != currency ||
+        paid.currency != currency ||
+        due.currency != currency ||
+        paid.minorUnits < 0 ||
+        due.minorUnits < 0 ||
+        paid.minorUnits + due.minorUnits != total.minorUnits) {
+      throw InvalidPosInvoiceException.invalidTotals();
+    }
+    for (final line in lines) {
+      if (line.invoiceId != id || line.unitPrice.currency != currency) {
+        throw InvalidPosInvoiceException.invalidLine();
+      }
+    }
+    return PosInvoice._(
+      id: id,
+      invoiceNumber: invoiceNumber,
+      type: type,
+      status: status,
+      counterpartyAccountId: counterpartyAccountId,
+      warehouseId: warehouseId,
+      sourceInvoiceId: sourceInvoiceId,
+      currency: currency,
+      lines: UnmodifiableListView(lines),
+      subtotal: subtotal,
+      discount: discount,
+      tax: tax,
+      total: total,
+      paid: paid,
+      due: due,
+      idempotencyKey: idempotencyKey,
+      invoiceDate: invoiceDate.toUtc(),
+      createdAt: createdAt.toUtc(),
+      updatedAt: updatedAt.toUtc(),
+      postedAt: postedAt?.toUtc(),
+      signature: signature,
+    );
+  }
 
   PosInvoice post(DateTime at) {
     if (!status.isDraft || !status.canTransitionTo(PosDocumentStatus.posted)) {
