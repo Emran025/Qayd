@@ -5252,6 +5252,11 @@ class AppStringsEn extends AppStringsBase {
   String get posInvoiceSignatureInvalid =>
       'The invoice electronic signature is invalid.';
   @override
+  String get posInvoiceNotPosted => 'A sale cannot be saved before posting.';
+  @override
+  String get posInvoiceFiscalPeriodClosed =>
+      'The invoice date is inside a closed fiscal period.';
+  @override
   String get posCatalogTitle => 'Product catalog';
   @override
   String get posCatalogSearchHint => 'Search by name, SKU, or barcode';

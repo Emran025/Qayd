@@ -2875,6 +2875,10 @@ abstract class AppStringsBase {
   String get posInvoiceTransitionInvalid => 'انتقال حالة الفاتورة غير مسموح.';
   String get posInvoiceSignatureInvalid =>
       'التوقيع الإلكتروني للفاتورة غير صالح.';
+  String get posInvoiceNotPosted => 'لا يمكن حفظ بيع غير مرحّل.';
+  String get posInvoiceFiscalPeriodClosed =>
+      'تاريخ الفاتورة يقع داخل فترة مالية مغلقة.';
+
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';
