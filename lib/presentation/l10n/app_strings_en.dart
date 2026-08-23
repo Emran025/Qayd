@@ -5049,4 +5049,32 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posTemplateConflict =>
       'The installed POS template accounts are inconsistent.';
+  @override
+  String get posFeatureTitle => 'Point of Sale';
+  @override
+  String get posFeatureSubtitle => 'Integrated sales and inventory workspace';
+  @override
+  String get posFeaturePageTitle => 'Point of Sale Setup';
+  @override
+  String get posFeaturePageDescription =>
+      'Enable the integrated POS workspace to use products, inventory, and invoices from the same Qayd database.';
+  @override
+  String get posFeatureEnabled => 'Point of Sale is enabled';
+  @override
+  String get posFeatureDisabled => 'Point of Sale is disabled';
+  @override
+  String get posFeatureActivate => 'Enable Point of Sale';
+  @override
+  String get posFeatureDisable => 'Hide Point of Sale';
+  @override
+  String get posFeatureActivationWarning =>
+      'This installs the POS account template and one warehouse in your database. Disabling visibility does not delete data.';
+  @override
+  String get posFeatureActivationSuccess => 'Point of Sale enabled successfully.';
+  @override
+  String get posFeatureDisableSuccess => 'Point of Sale visibility disabled.';
+  @override
+  String get posFeatureCancel => 'Cancel';
+  @override
+  String get posFeatureConfirm => 'Continue Setup';
 }

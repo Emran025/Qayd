@@ -2749,6 +2749,21 @@ abstract class AppStringsBase {
   String get posFeatureDisableFailed => 'تعذر تعطيل نقطة البيع.';
   String get posTemplateConflict =>
       'تعارض في حسابات قالب نقطة البيع المثبتة.';
+  String get posFeatureTitle => 'نقطة البيع';
+  String get posFeatureSubtitle => 'مساحة مبيعات ومخزون مدمجة داخل Qayd';
+  String get posFeaturePageTitle => 'إعداد نقطة البيع';
+  String get posFeaturePageDescription =>
+      'فعّل مساحة نقطة البيع المدمجة لاستخدام المنتجات والمخزون والفواتير من نفس قاعدة بيانات Qayd.';
+  String get posFeatureEnabled => 'نقطة البيع مفعّلة';
+  String get posFeatureDisabled => 'نقطة البيع غير مفعّلة';
+  String get posFeatureActivate => 'تفعيل نقطة البيع';
+  String get posFeatureDisable => 'تعطيل الظهور';
+  String get posFeatureActivationWarning =>
+      'سيُثبت هذا قالب الحسابات ومخزناً واحداً داخل قاعدة بياناتك. لا يتم حذف البيانات عند تعطيل الظهور.';
+  String get posFeatureActivationSuccess => 'تم تفعيل نقطة البيع بنجاح.';
+  String get posFeatureDisableSuccess => 'تم تعطيل ظهور نقطة البيع.';
+  String get posFeatureCancel => 'إلغاء';
+  String get posFeatureConfirm => 'متابعة التفعيل';
 }
 
 

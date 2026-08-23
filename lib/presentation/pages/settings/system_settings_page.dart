@@ -10,12 +10,13 @@ import 'package:qayd/presentation/pages/settings/groups/templates_settings_page.
 import 'package:qayd/presentation/pages/settings/groups/notification_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/device_management_page.dart';
 import 'package:qayd/presentation/pages/settings/fiscal_periods_settings_page.dart';
+import 'package:qayd/presentation/pages/settings/pos_feature_settings_page.dart';
 import 'package:qayd/presentation/pages/settings/sync_privacy_settings_section.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 
 class SystemSettingsPage extends StatelessWidget {
-  SystemSettingsPage({super.key});
+  const SystemSettingsPage({super.key});
 
   void _navTo(BuildContext context, Widget page) {
     Navigator.of(context)
@@ -73,6 +74,18 @@ class SystemSettingsPage extends StatelessWidget {
           ),
           SizedBox(height: SpacingTokens.md),
           _buildSectionHeader(context, AppStrings.settingsSectionCustomization),
+          _buildSettingsTile(
+            context,
+            icon: Icons.point_of_sale_outlined,
+            title: AppStrings.posFeatureTitle,
+            subtitle: AppStrings.posFeatureSubtitle,
+            onTap: () => _navTo(
+              context,
+              PosFeatureSettingsPage(
+                cubit: InjectionContainer.posFeatureCubit,
+              ),
+            ),
+          ),
           _buildSettingsTile(
             context,
             icon: Icons.palette_outlined,
@@ -147,9 +160,9 @@ class SystemSettingsPage extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: SpacingTokens.sm),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.05)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -163,7 +176,7 @@ class SystemSettingsPage extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: theme.colorScheme.primary, size: 19),
@@ -196,7 +209,7 @@ class SystemSettingsPage extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: theme.hintColor.withOpacity(0.4),
+                  color: theme.hintColor.withValues(alpha: 0.4),
                 ),
               ],
             ),
