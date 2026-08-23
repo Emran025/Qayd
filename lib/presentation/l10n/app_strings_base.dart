@@ -2824,6 +2824,12 @@ abstract class AppStringsBase {
   String get posOpeningBalanceSaved => 'تم تسجيل الرصيد الافتتاحي.';
   String get posOpeningBalanceCurrent => 'الرصيد الحالي';
   String get posWarehouseUnavailable => 'مخزن نقطة البيع غير متاح.';
+  String get posAccountingSourceRequired => 'مرجع مصدر القيد مطلوب.';
+  String get posAccountingAccountsRequired => 'حسابات القيد مطلوبة.';
+  String get posAccountingAccountsDistinct =>
+      'يجب أن يكونا حسابا القيد مختلفين.';
+  String get posOpeningBalanceAccountingDescription =>
+      'قيد افتتاحي لمخزون نقطة البيع';
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';

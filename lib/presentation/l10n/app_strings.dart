@@ -2651,6 +2651,14 @@ class AppStrings {
   static String get posOpeningBalanceSaved => i.posOpeningBalanceSaved;
   static String get posOpeningBalanceCurrent => i.posOpeningBalanceCurrent;
   static String get posWarehouseUnavailable => i.posWarehouseUnavailable;
+  static String get posAccountingSourceRequired =>
+      i.posAccountingSourceRequired;
+  static String get posAccountingAccountsRequired =>
+      i.posAccountingAccountsRequired;
+  static String get posAccountingAccountsDistinct =>
+      i.posAccountingAccountsDistinct;
+  static String get posOpeningBalanceAccountingDescription =>
+      i.posOpeningBalanceAccountingDescription;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;

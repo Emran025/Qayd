@@ -5197,6 +5197,16 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posWarehouseUnavailable => 'The POS warehouse is unavailable.';
   @override
+  String get posAccountingSourceRequired => 'A source reference is required.';
+  @override
+  String get posAccountingAccountsRequired => 'Posting accounts are required.';
+  @override
+  String get posAccountingAccountsDistinct =>
+      'Posting accounts must be different.';
+  @override
+  String get posOpeningBalanceAccountingDescription =>
+      'Opening stock balance posting';
+  @override
   String get posCatalogTitle => 'Product catalog';
   @override
   String get posCatalogSearchHint => 'Search by name, SKU, or barcode';
