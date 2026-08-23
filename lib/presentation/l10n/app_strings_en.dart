@@ -5077,4 +5077,22 @@ class AppStringsEn extends AppStringsBase {
   String get posFeatureCancel => 'Cancel';
   @override
   String get posFeatureConfirm => 'Continue Setup';
+  @override
+  String get posBarcodeInvalid => 'The barcode is invalid.';
+  @override
+  String get posProductIdRequired => 'Product ID is required.';
+  @override
+  String get posProductNameRequired => 'Product name is required.';
+  @override
+  String get posProductSkuRequired => 'Product SKU is required.';
+  @override
+  String get posProductUnitRequired => 'Product unit is required.';
+  @override
+  String get posProductPriceInvalid => 'Product price cannot be negative.';
+  @override
+  String get posProductCurrencyMismatch => 'Product price currency does not match.';
+  @override
+  String get posProductScaleInvalid => 'Product quantity scale is invalid.';
+  @override
+  String get posProductThresholdInvalid => 'Reorder threshold is invalid.';
 }

@@ -2764,6 +2764,15 @@ abstract class AppStringsBase {
   String get posFeatureDisableSuccess => 'تم تعطيل ظهور نقطة البيع.';
   String get posFeatureCancel => 'إلغاء';
   String get posFeatureConfirm => 'متابعة التفعيل';
+  String get posBarcodeInvalid => 'الباركود غير صالح.';
+  String get posProductIdRequired => 'معرف المنتج مطلوب.';
+  String get posProductNameRequired => 'اسم المنتج مطلوب.';
+  String get posProductSkuRequired => 'رمز المنتج مطلوب.';
+  String get posProductUnitRequired => 'وحدة المنتج مطلوبة.';
+  String get posProductPriceInvalid => 'سعر المنتج لا يمكن أن يكون سالباً.';
+  String get posProductCurrencyMismatch => 'عملة سعر المنتج غير متطابقة.';
+  String get posProductScaleInvalid => 'مقياس كمية المنتج غير صالح.';
+  String get posProductThresholdInvalid => 'حد إعادة الطلب غير صالح.';
 }
 
 
