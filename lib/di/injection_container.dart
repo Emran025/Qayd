@@ -26,6 +26,11 @@ import 'package:qayd/application/pos/post_pos_opening_balance_atomically_use_cas
 import 'package:qayd/application/pos/post_pos_sale_atomically_use_case.dart';
 import 'package:qayd/application/pos/build_pos_opening_balance_posting_use_case.dart';
 import 'package:qayd/application/pos/build_pos_sale_posting_use_case.dart';
+import 'package:qayd/application/pos/sign_pos_invoice_use_case.dart';
+import 'package:qayd/application/pos/build_pos_invoice_pdf_use_case.dart';
+import 'package:qayd/domain/services/pos_invoice_signing_service.dart';
+import 'package:qayd/data/pdf/cairo_pos_invoice_pdf_generator.dart';
+import 'package:qayd/domain/services/pos_invoice_pdf_generator.dart';
 import 'package:qayd/application/pos/save_pos_product_use_case.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
@@ -331,6 +336,10 @@ abstract final class InjectionContainer {
   static late ListInboxNotificationsUseCase listInboxNotificationsUseCase;
   static late NotificationsCubit notificationsCubit;
   static late AccountStatementPdfGenerator accountStatementPdfGenerator;
+  static late PosInvoicePdfGenerator posInvoicePdfGenerator;
+  static late PosInvoiceSigningService posInvoiceSigningService;
+  static late SignPosInvoiceUseCase signPosInvoiceUseCase;
+  static late BuildPosInvoicePdfUseCase buildPosInvoicePdfUseCase;
 
   static late MessageTemplateRepository messageTemplateRepository;
   static late NotificationLogRepository notificationLogRepository;
@@ -583,6 +592,13 @@ abstract final class InjectionContainer {
     );
     receiptSigningService = ReceiptSigningService(
       cryptoService: cryptoIdentityService,
+    );
+    posInvoiceSigningService = PosInvoiceSigningService(
+      receiptSigningService: receiptSigningService,
+    );
+    signPosInvoiceUseCase = SignPosInvoiceUseCase(
+      signingService: posInvoiceSigningService,
+      setupIdentityUseCase: setupIdentityUseCase,
     );
 
     if (!await mnemonicVault.hasIdentity()) {
@@ -1292,6 +1308,10 @@ abstract final class InjectionContainer {
     );
     voucherPdfGenerator = const CairoVoucherPdfGenerator();
     accountStatementPdfGenerator = const CairoAccountStatementPdfGenerator();
+    posInvoicePdfGenerator = const CairoPosInvoicePdfGenerator();
+    buildPosInvoicePdfUseCase = BuildPosInvoicePdfUseCase(
+      generator: posInvoicePdfGenerator,
+    );
 
     analyzeForSuggestionsUseCase = AnalyzeForSuggestionsUseCase(
       voucherRepository,
