@@ -398,36 +398,13 @@ final class SqliteVoucherRepository implements VoucherRepository {
       }
     }
     try {
-      await _transactionRunner.run((txn) async {
-        final map = VoucherMapper.toModel(voucher).toMap();
-        final updateMap = Map.of(map)..remove('id');
-        final updated = await txn.update(
-          _vouchers,
-          updateMap,
-          where: 'id = ?',
-          whereArgs: [voucher.id.value],
-        );
-        if (updated == 0) {
-          await txn.insert(_vouchers, map);
-        }
-
-        // Clean up any existing ledger entries for this voucher (e.g. from a previous confirmation before withdrawal/rejection)
-        // to prevent double-counting when re-confirming an edited voucher.
-        await txn.delete(
-          _ledger,
-          where: 'voucher_id = ?',
-          whereArgs: [voucher.id.value],
-        );
-
-        for (final e in ledgerEntries) {
-          await txn.insert(
-            _ledger,
-            LedgerEntryMapper.toModel(e).toMap(),
-            conflictAlgorithm: ConflictAlgorithm.abort,
-          );
-        }
-      });
-      return const Success(null);
+      return await _transactionRunner.run(
+        (txn) => saveWithLedgerEntriesInTransaction(
+          txn,
+          voucher: voucher,
+          ledgerEntries: ledgerEntries,
+        ),
+      );
     } catch (_) {
       return  FailureResult(
         DatabaseFailure(
@@ -435,6 +412,57 @@ final class SqliteVoucherRepository implements VoucherRepository {
         ),
       );
     }
+  }
+
+  /// Persists voucher and ledger entries using an existing transaction.
+  ///
+  /// Validation failures are returned before writes. Database exceptions are
+  /// allowed to escape so the owning transaction can roll back prior work.
+  Future<Result<void>> saveWithLedgerEntriesInTransaction(
+    DatabaseExecutor executor, {
+    required Voucher voucher,
+    required List<LedgerEntry> ledgerEntries,
+  }) async {
+    if (ledgerEntries.isEmpty) {
+      return FailureResult(
+        ValidationFailure(messageAr: AppStrings.posAccountingEntriesRequired),
+      );
+    }
+    for (final entry in ledgerEntries) {
+      if (entry.voucherId.value != voucher.id.value) {
+        return FailureResult(
+          ValidationFailure(
+            messageAr: AppStrings.bondEntriesDoNot,
+            code: 'ledger_voucher_mismatch',
+          ),
+        );
+      }
+    }
+
+    final map = VoucherMapper.toModel(voucher).toMap();
+    final updateMap = Map.of(map)..remove('id');
+    final updated = await executor.update(
+      _vouchers,
+      updateMap,
+      where: 'id = ?',
+      whereArgs: [voucher.id.value],
+    );
+    if (updated == 0) {
+      await executor.insert(_vouchers, map);
+    }
+    await executor.delete(
+      _ledger,
+      where: 'voucher_id = ?',
+      whereArgs: [voucher.id.value],
+    );
+    for (final entry in ledgerEntries) {
+      await executor.insert(
+        _ledger,
+        LedgerEntryMapper.toModel(entry).toMap(),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+    }
+    return const Success(null);
   }
 
   @override
@@ -504,7 +532,7 @@ final class SqliteVoucherRepository implements VoucherRepository {
     }
   }
 
-  Future<void> _saveVoucherRaw(Transaction txn, Voucher voucher) async {
+  Future<void> _saveVoucherRaw(DatabaseExecutor txn, Voucher voucher) async {
     final map = VoucherMapper.toModel(voucher).toMap();
     final updateMap = Map.of(map)..remove('id');
     final updated = await txn.update(

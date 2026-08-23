@@ -21,6 +21,8 @@ import 'package:qayd/application/pos/find_pos_product_by_barcode_use_case.dart';
 import 'package:qayd/application/pos/list_pos_products_use_case.dart';
 import 'package:qayd/application/pos/get_pos_stock_balance_use_case.dart';
 import 'package:qayd/application/pos/record_pos_stock_movement_use_case.dart';
+import 'package:qayd/application/pos/post_pos_opening_balance_atomically_use_case.dart';
+import 'package:qayd/application/pos/build_pos_opening_balance_posting_use_case.dart';
 import 'package:qayd/application/pos/save_pos_product_use_case.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
@@ -98,6 +100,7 @@ import 'package:qayd/data/repositories/sqlite_transaction_fee_settings_repositor
 import 'package:qayd/data/repositories/sqlite_pos_activation_repository.dart';
 import 'package:qayd/data/repositories/sqlite_pos_product_repository.dart';
 import 'package:qayd/data/repositories/sqlite_pos_stock_movement_repository.dart';
+import 'package:qayd/data/repositories/sqlite_pos_accounting_posting_repository.dart';
 import 'package:qayd/data/repositories/sqlite_voucher_repository.dart';
 import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/data/security/hardware_id_service.dart';
@@ -114,6 +117,8 @@ import 'package:qayd/domain/repositories/transaction_fee_settings_repository.dar
 import 'package:qayd/domain/repositories/pos_activation_repository.dart';
 import 'package:qayd/domain/repositories/pos_product_repository.dart';
 import 'package:qayd/domain/repositories/pos_stock_movement_repository.dart';
+import 'package:qayd/domain/repositories/pos_template_installation_repository.dart';
+import 'package:qayd/domain/repositories/pos_accounting_posting_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
@@ -341,10 +346,13 @@ abstract final class InjectionContainer {
   static late GetActiveTransactionFeeUseCase getActiveTransactionFeeUseCase;
   static late ManageTransactionFeeUseCase manageTransactionFeeUseCase;
   static late PosActivationRepository posActivationRepository;
+  static late PosTemplateInstallationRepository
+      posTemplateInstallationRepository;
   static late ActivatePosFeatureUseCase activatePosFeatureUseCase;
   static late PosFeatureCubit posFeatureCubit;
   static late PosProductRepository posProductRepository;
   static late PosStockMovementRepository posStockMovementRepository;
+  static late PosAccountingPostingRepository posAccountingPostingRepository;
   static late GetPosStockBalanceUseCase getPosStockBalanceUseCase;
   static late RecordPosStockMovementUseCase recordPosStockMovementUseCase;
   static late PosStockCubit posStockCubit;
@@ -355,6 +363,8 @@ abstract final class InjectionContainer {
   static late DeactivatePosProductUseCase deactivatePosProductUseCase;
   static late PosCatalogCubit posCatalogCubit;
   static late PosWorkspaceCubit posWorkspaceCubit;
+  static late PostPosOpeningBalanceAtomicallyUseCase
+      postPosOpeningBalanceAtomicallyUseCase;
 
   // ── Sync & Real-Time Components ──────────────────────────────────────────
 
@@ -897,7 +907,9 @@ abstract final class InjectionContainer {
     ledgerRepository = SqliteLedgerRepository(database);
     fiscalPeriodRepository = SqliteFiscalPeriodRepository(database);
     final transactionRunner = DatabaseTransactionRunner(database);
-    voucherRepository = SqliteVoucherRepository(database, transactionRunner);
+    final sqliteVoucherRepository =
+        SqliteVoucherRepository(database, transactionRunner);
+    voucherRepository = sqliteVoucherRepository;
     currencyRepository = SqliteCurrencyRepository(database);
     attachmentRepository = SqliteAttachmentRepository(database);
     collateralRepository = SqliteCollateralRepository(database);
@@ -945,10 +957,12 @@ abstract final class InjectionContainer {
       auditLogService: auditLogService,
     );
 
-    posActivationRepository = SqlitePosActivationRepository(
+    final sqlitePosActivationRepository = SqlitePosActivationRepository(
       database,
       _idGenerator,
     );
+    posActivationRepository = sqlitePosActivationRepository;
+    posTemplateInstallationRepository = sqlitePosActivationRepository;
     activatePosFeatureUseCase = ActivatePosFeatureUseCase(
       posActivationRepository,
       governanceWriteGuard,
@@ -963,9 +977,24 @@ abstract final class InjectionContainer {
       database,
       currencyRepository,
     );
-    posStockMovementRepository = SqlitePosStockMovementRepository(
-      database,
-      currencyRepository,
+    final sqliteStockMovementRepository =
+        SqlitePosStockMovementRepository(database, currencyRepository);
+    posStockMovementRepository = sqliteStockMovementRepository;
+    posAccountingPostingRepository = SqlitePosAccountingPostingRepository(
+      transactionRunner,
+      sqliteStockMovementRepository,
+      sqliteVoucherRepository,
+    );
+    postPosOpeningBalanceAtomicallyUseCase =
+        PostPosOpeningBalanceAtomicallyUseCase(
+      writeGuard: governanceWriteGuard,
+      installationRepository: posTemplateInstallationRepository,
+      productRepository: posProductRepository,
+      accountRepository: accountRepository,
+      fiscalPeriodRepository: fiscalPeriodRepository,
+      buildPosting: BuildPosOpeningBalancePostingUseCase(),
+      postingRepository: posAccountingPostingRepository,
+      idGenerator: _idGenerator,
     );
     getPosStockBalanceUseCase = GetPosStockBalanceUseCase(
       posStockMovementRepository,

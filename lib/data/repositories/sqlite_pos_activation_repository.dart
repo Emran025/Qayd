@@ -8,6 +8,7 @@ import 'package:qayd/domain/entities/account.dart';
 import 'package:qayd/domain/entities/pos_activation_result.dart';
 import 'package:qayd/domain/entities/pos_template_definition.dart';
 import 'package:qayd/domain/repositories/pos_activation_repository.dart';
+import 'package:qayd/domain/repositories/pos_template_installation_repository.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -17,7 +18,8 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 /// The entire installation is one database transaction because AccountRepository
 /// cannot share a transaction object with POS tables. Account entities are still
 /// created through the canonical Account factory and AccountMapper.
-final class SqlitePosActivationRepository implements PosActivationRepository {
+final class SqlitePosActivationRepository
+    implements PosActivationRepository, PosTemplateInstallationRepository {
   SqlitePosActivationRepository(this._db, this._idGenerator);
 
   final Database _db;
@@ -201,6 +203,61 @@ final class SqlitePosActivationRepository implements PosActivationRepository {
   }
 
   @override
+  Future<Result<PosActivationResult?>> getEnabledInstallation({
+    required PosTemplateDefinition template,
+  }) async {
+    try {
+      final settingsRows = await _db.query(
+        'pos_settings',
+        columns: ['is_enabled', 'template_key', 'template_version'],
+        where: 'id = 1',
+        limit: 1,
+      );
+      if (settingsRows.isEmpty || settingsRows.first['is_enabled'] != 1) {
+        return const Success(null);
+      }
+      if (settingsRows.first['template_key'] != template.templateKey ||
+          settingsRows.first['template_version'] != template.version) {
+        return FailureResult(
+          ValidationFailure(messageAr: AppStrings.posTemplateConflict),
+        );
+      }
+      final installedRows = await _db.query(
+        'pos_template_installs',
+        where: 'template_key = ? AND template_version = ? AND status = ?',
+        whereArgs: [template.templateKey, template.version, 'installed'],
+        limit: 1,
+      );
+      if (installedRows.isEmpty) {
+        return FailureResult(
+          ValidationFailure(messageAr: AppStrings.posTemplateConflict),
+        );
+      }
+      final result = await _db.transaction(
+        (txn) => _restoreInstalledResult(
+          txn,
+          installedRows.first,
+          template,
+          normalizeEnabled: false,
+        ),
+      );
+      return Success(result);
+    } on _PosTemplateConflictException {
+      return FailureResult(
+        ValidationFailure(messageAr: AppStrings.posTemplateConflict),
+      );
+    } on DatabaseException {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.posFeatureStateReadFailed),
+      );
+    } catch (_) {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.posFeatureStateReadFailed),
+      );
+    }
+  }
+
+  @override
   Future<Result<void>> disable() async {
     try {
       await _db.update(
@@ -341,8 +398,9 @@ final class SqlitePosActivationRepository implements PosActivationRepository {
   Future<PosActivationResult> _restoreInstalledResult(
     Transaction txn,
     Map<String, Object?> installRow,
-    PosTemplateDefinition template,
-  ) async {
+    PosTemplateDefinition template, {
+    bool normalizeEnabled = true,
+  }) async {
     final rawMap = installRow['account_map_json'];
     final rawWarehouse = await txn.query(
       'pos_settings',
@@ -365,11 +423,13 @@ final class SqlitePosActivationRepository implements PosActivationRepository {
       }
       accountIds[entry.key as String] = entry.value as String;
     }
-    await txn.update(
-      'pos_settings',
-      <String, Object?>{'is_enabled': 1},
-      where: 'id = 1',
-    );
+    if (normalizeEnabled) {
+      await txn.update(
+        'pos_settings',
+        <String, Object?>{'is_enabled': 1},
+        where: 'id = 1',
+      );
+    }
     return PosActivationResult(
       templateKey: template.templateKey,
       templateVersion: template.version,

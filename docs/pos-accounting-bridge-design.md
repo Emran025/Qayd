@@ -38,12 +38,20 @@ Posting dates in closed fiscal periods must be rejected before any voucher, ledg
 
 ## Atomicity requirement
 
-Stock movement and accounting posting must eventually share one atomic application/data boundary for a posted purchase, sale, return, or opening balance. The current `VoucherRepository.saveWithLedgerEntries` transaction covers voucher plus ledger lines, while the stock repository transaction covers stock movement plus weighted-average validation. A future cross-repository transaction coordinator is required before invoices are enabled; invoking the two repositories sequentially is not sufficient for a production posting path because a failure between them could leave inventory and accounting inconsistent.
+Stock movement and accounting posting must share one atomic application/data boundary for every posted purchase, sale, return, or opening balance. The opening-balance slice now has a Data-layer `SqlitePosAccountingPostingRepository` that runs stock validation/insert and official voucher-ledger persistence through one `DatabaseTransactionRunner` transaction. The Application use case owns governance, fiscal-period, product, currency/scale, activation, and account-map checks before delegating to that boundary. Sequential stock-plus-ledger writes remain forbidden for future posted sales, purchases, and returns until they use the same pattern.
+
+### Opening-balance replay policy
+
+The coordinator applies the following fail-closed rules inside the same transaction. A replay is successful only when both the stock movement identified by its idempotency key and the voucher with its ledger entries are present and their immutable business fingerprints match. An existing stock row without its complete accounting posting, a voucher without its stock movement, a ledger count or payload mismatch, or a different voucher using the same source reference is rejected as a partial/conflict state; it is never repaired by deleting or replacing history. Exact replay returns success without deleting and reinserting ledger rows, preserving append-only audit history.
+
+Posting date matching uses the **UTC calendar date** rather than exact timestamps. This permits harmless differences in time-of-day while still preventing a movement and its bridge voucher from crossing fiscal business dates. Audit `created_at` timestamps are excluded from the replay fingerprint; all business identifiers, amounts, accounts, sides, currencies, dates, and payload fields remain part of the comparison.
+
+The typed template-installation read port is read-only and returns the enabled warehouse plus account IDs keyed by stable `PosTemplateAccountKey.value` metadata. It never provisions accounts. The opening-balance UI deliberately remains on the previous stock-only path until the governed orchestration is connected in a separately reviewed UI slice.
 
 ## Implementation order
 
-1. Add and version the missing opening-balance account mapping, or explicitly defer ledger posting for opening stock until that mapping exists.
-2. Define typed account-key resolution and POS posting command/result ports in Domain/Application.
-3. Implement a bridge that delegates voucher persistence and ledger generation through official repositories.
-4. Add a transaction coordinator/adapter capable of committing stock and voucher-ledger effects together, with idempotency and rollback tests.
-5. Only after these gates pass, enable posted purchase/sale documents and checkout UI.
+1. **Completed:** Add and version the opening-balance clearing account mapping.
+2. **Completed for opening balance:** Define typed account-map access and posting payload/coordinator ports in Domain/Application.
+3. **Completed for opening balance:** Build the governed bridge using the official voucher and `EntryGenerator` path.
+4. **Completed for opening balance:** Commit stock plus voucher-ledger effects through one coordinator transaction, with replay, conflict, partial-state, and rollback tests.
+5. **Next:** Connect the opening-balance UI to the governed use case in a separately reviewed slice, then implement purchase inbound posting before sales/COGS checkout.

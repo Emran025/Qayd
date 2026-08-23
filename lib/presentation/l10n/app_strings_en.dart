@@ -5207,6 +5207,24 @@ class AppStringsEn extends AppStringsBase {
   String get posOpeningBalanceAccountingDescription =>
       'Opening stock balance posting';
   @override
+  String get posAccountingEntriesRequired =>
+      'Accounting ledger entries are required.';
+  @override
+  String get posAccountingDateMismatch =>
+      'Stock movement and posting dates must match.';
+  @override
+  String get posAccountingSourceMismatch =>
+      'Movement and accounting posting references do not match.';
+  @override
+  String get posAccountingDuplicateSource =>
+      'The accounting posting reference already exists.';
+  @override
+  String get posAccountingTransactionFailed =>
+      'Could not save stock and accounting effects together.';
+  @override
+  String get posAccountingPartialState =>
+      'An incomplete partial state prevents automatic replay.';
+  @override
   String get posCatalogTitle => 'Product catalog';
   @override
   String get posCatalogSearchHint => 'Search by name, SKU, or barcode';

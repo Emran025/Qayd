@@ -2659,6 +2659,16 @@ class AppStrings {
       i.posAccountingAccountsDistinct;
   static String get posOpeningBalanceAccountingDescription =>
       i.posOpeningBalanceAccountingDescription;
+  static String get posAccountingEntriesRequired =>
+      i.posAccountingEntriesRequired;
+  static String get posAccountingDateMismatch => i.posAccountingDateMismatch;
+  static String get posAccountingSourceMismatch =>
+      i.posAccountingSourceMismatch;
+  static String get posAccountingDuplicateSource =>
+      i.posAccountingDuplicateSource;
+  static String get posAccountingTransactionFailed =>
+      i.posAccountingTransactionFailed;
+  static String get posAccountingPartialState => i.posAccountingPartialState;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;
