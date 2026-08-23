@@ -2629,6 +2629,14 @@ class AppStrings {
       i.posWorkspaceCatalogSubtitle;
   static String get posWorkspaceSalesTitle => i.posWorkspaceSalesTitle;
   static String get posWorkspaceComingSoon => i.posWorkspaceComingSoon;
+  static String get posCheckoutTitle => i.posCheckoutTitle;
+  static String get posCheckoutInputHint => i.posCheckoutInputHint;
+  static String get posCheckoutSearchResults => i.posCheckoutSearchResults;
+  static String get posCheckoutCartEmpty => i.posCheckoutCartEmpty;
+  static String get posCheckoutSubtotal => i.posCheckoutSubtotal;
+  static String get posCheckoutClearCart => i.posCheckoutClearCart;
+  static String get posCheckoutCameraActive => i.posCheckoutCameraActive;
+  static String get posCheckoutPostingPending => i.posCheckoutPostingPending;
   static String get posWorkspaceLoadFailed => i.posWorkspaceLoadFailed;
   static String get posWorkspaceCurrencyUnavailable =>
       i.posWorkspaceCurrencyUnavailable;

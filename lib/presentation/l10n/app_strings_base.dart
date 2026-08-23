@@ -2813,6 +2813,16 @@ abstract class AppStringsBase {
       'إدارة المنتجات والأسعار والباركودات';
   String get posWorkspaceSalesTitle => 'المبيعات';
   String get posWorkspaceComingSoon => 'ستتوفر بعد بناء نواة المخزون والفوترة.';
+  String get posCheckoutTitle => 'نقطة البيع';
+  String get posCheckoutInputHint => 'امسح الباركود أو اكتب اسم المنتج أو رمزه';
+  String get posCheckoutSearchResults => 'نتائج البحث';
+  String get posCheckoutCartEmpty =>
+      'السلة فارغة. امسح باركوداً أو ابحث عن منتج.';
+  String get posCheckoutSubtotal => 'الإجمالي الفرعي';
+  String get posCheckoutClearCart => 'تفريغ السلة';
+  String get posCheckoutCameraActive => 'المسح الخلفي مفعّل';
+  String get posCheckoutPostingPending =>
+      'سيتم تفعيل الإتمام المحاسبي بعد اكتمال إعداد الدفع.';
   String get posWorkspaceLoadFailed => 'تعذر تجهيز مساحة نقطة البيع.';
   String get posWorkspaceCurrencyUnavailable =>
       'لا يمكن العثور على العملة الأساسية النشطة.';

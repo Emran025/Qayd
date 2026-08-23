@@ -5,6 +5,7 @@ import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/pos/pos_catalog_page.dart';
 import 'package:qayd/presentation/pages/pos/pos_opening_balance_page.dart';
+import 'package:qayd/presentation/pages/pos/pos_checkout_page.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/pos/pos_workspace_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -57,6 +58,17 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
     );
   }
 
+  Future<void> _openCheckout(PosWorkspaceState state) async {
+    if (!state.isReady || !mounted) return;
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (_) => PosCheckoutPage(
+          cubit: InjectionContainer.posCheckoutCubit,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openCatalog(PosWorkspaceState state) async {
     final currency = state.currency;
     if (currency == null || !state.isReady || !mounted) return;
@@ -89,6 +101,7 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
                 state: state,
                 onOpenCatalog: () => _openCatalog(state),
                 onOpenOpeningBalance: () => _openOpeningBalance(state),
+                onOpenCheckout: () => _openCheckout(state),
               ),
           },
         );
@@ -102,11 +115,13 @@ class _ReadyWorkspace extends StatelessWidget {
     required this.state,
     required this.onOpenCatalog,
     required this.onOpenOpeningBalance,
+    required this.onOpenCheckout,
   });
 
   final PosWorkspaceState state;
   final VoidCallback onOpenCatalog;
   final VoidCallback onOpenOpeningBalance;
+  final VoidCallback onOpenCheckout;
 
   @override
   Widget build(BuildContext context) {
@@ -144,8 +159,9 @@ class _ReadyWorkspace extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.point_of_sale_outlined),
             title: Text(AppStrings.posWorkspaceSalesTitle),
-            subtitle: Text(AppStrings.posWorkspaceComingSoon),
-            enabled: false,
+            subtitle: Text(AppStrings.posCheckoutInputHint),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: onOpenCheckout,
           ),
         ),
       ],
