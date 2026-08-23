@@ -175,6 +175,24 @@ void main() {
       expect(rows.map((row) => row['quantity_scaled']), contains(-5));
     });
 
+    test('accepts an exact idempotent replay without adding a second row',
+        () async {
+      final movementValue = movement(
+        id: 'opening',
+        type: PosStockMovementType.opening,
+        direction: PosStockMovementDirection.inbound,
+        quantity: 1,
+        cost: 100,
+        idempotencyKey: 'same-key',
+      );
+      final first = await repository.append(movementValue);
+      final replay = await repository.append(movementValue);
+
+      expect(first.isSuccess, isTrue);
+      expect(replay.isSuccess, isTrue);
+      expect(await db.query('pos_stock_movements'), hasLength(1));
+    });
+
     test('rejects duplicate idempotency keys without adding a second row',
         () async {
       final first = await repository.append(
@@ -205,6 +223,21 @@ void main() {
         'opening',
       );
       expect(await db.query('pos_stock_movements'), hasLength(1));
+    });
+
+    test('rejects insufficient outbound stock atomically', () async {
+      final result = await repository.append(
+        movement(
+          id: 'sale-too-large',
+          type: PosStockMovementType.sale,
+          direction: PosStockMovementDirection.outbound,
+          quantity: 1,
+          cost: 100,
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(await db.query('pos_stock_movements'), isEmpty);
     });
   });
 }
