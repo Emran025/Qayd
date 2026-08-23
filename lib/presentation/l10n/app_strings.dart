@@ -2647,6 +2647,13 @@ class AppStrings {
   static String get posCheckoutOther => i.posCheckoutOther;
   static String get posCheckoutComplete => i.posCheckoutComplete;
   static String get posCheckoutCompleted => i.posCheckoutCompleted;
+  static String get posInvoiceHistoryTitle => i.posInvoiceHistoryTitle;
+  static String get posInvoiceHistoryEmpty => i.posInvoiceHistoryEmpty;
+  static String get posInvoiceDetailTitle => i.posInvoiceDetailTitle;
+  static String get posInvoiceNotFound => i.posInvoiceNotFound;
+  static String get posInvoiceDueLabel => i.posInvoiceDueLabel;
+  static String get posInvoiceExportPdf => i.posInvoiceExportPdf;
+  static String get posInvoicePdfFailed => i.posInvoicePdfFailed;
   static String get posWorkspaceLoadFailed => i.posWorkspaceLoadFailed;
   static String get posWorkspaceCurrencyUnavailable =>
       i.posWorkspaceCurrencyUnavailable;
