@@ -5131,6 +5131,35 @@ class AppStringsEn extends AppStringsBase {
   String get posWorkspaceCurrencyUnavailable =>
       'The active base currency could not be found.';
   @override
+  String get posStockIdRequired => 'Stock movement ID is required.';
+  @override
+  String get posStockProductIdRequired => 'A stock product ID is required.';
+  @override
+  String get posStockWarehouseIdRequired => 'A warehouse ID is required.';
+  @override
+  String get posStockIdempotencyRequired => 'An idempotency key is required.';
+  @override
+  String get posStockDirectionRequired =>
+      'An adjustment movement requires an explicit direction.';
+  @override
+  String get posStockScaleMismatch =>
+      'The movement quantity scale does not match the product.';
+  @override
+  String get posStockCurrencyMismatch =>
+      'The stock movement currency does not match.';
+  @override
+  String get posStockInsufficient => 'There is not enough stock available.';
+  @override
+  String get posStockNegativeResult => 'The stock movement result is invalid.';
+  @override
+  String get posStockIdempotencyExists => 'The stock movement is already recorded.';
+  @override
+  String get posStockInvalidMovement => 'The stock movement data is invalid.';
+  @override
+  String get posStockReadFailed => 'Could not read the stock balance.';
+  @override
+  String get posStockAppendFailed => 'Could not record the stock movement.';
+  @override
   String get posCatalogTitle => 'Product catalog';
   @override
   String get posCatalogSearchHint => 'Search by name, SKU, or barcode';

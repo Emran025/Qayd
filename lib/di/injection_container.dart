@@ -95,6 +95,7 @@ import 'package:qayd/data/repositories/sqlite_currency_repository.dart';
 import 'package:qayd/data/repositories/sqlite_transaction_fee_settings_repository.dart';
 import 'package:qayd/data/repositories/sqlite_pos_activation_repository.dart';
 import 'package:qayd/data/repositories/sqlite_pos_product_repository.dart';
+import 'package:qayd/data/repositories/sqlite_pos_stock_movement_repository.dart';
 import 'package:qayd/data/repositories/sqlite_voucher_repository.dart';
 import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/data/security/hardware_id_service.dart';
@@ -110,6 +111,7 @@ import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/repositories/transaction_fee_settings_repository.dart';
 import 'package:qayd/domain/repositories/pos_activation_repository.dart';
 import 'package:qayd/domain/repositories/pos_product_repository.dart';
+import 'package:qayd/domain/repositories/pos_stock_movement_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
@@ -339,6 +341,7 @@ abstract final class InjectionContainer {
   static late ActivatePosFeatureUseCase activatePosFeatureUseCase;
   static late PosFeatureCubit posFeatureCubit;
   static late PosProductRepository posProductRepository;
+  static late PosStockMovementRepository posStockMovementRepository;
   static late CreatePosProductUseCase createPosProductUseCase;
   static late SavePosProductUseCase savePosProductUseCase;
   static late ListPosProductsUseCase listPosProductsUseCase;
@@ -951,6 +954,10 @@ abstract final class InjectionContainer {
     );
 
     posProductRepository = SqlitePosProductRepository(
+      database,
+      currencyRepository,
+    );
+    posStockMovementRepository = SqlitePosStockMovementRepository(
       database,
       currencyRepository,
     );

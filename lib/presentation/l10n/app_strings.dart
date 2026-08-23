@@ -2615,6 +2615,20 @@ class AppStrings {
   static String get posWorkspaceLoadFailed => i.posWorkspaceLoadFailed;
   static String get posWorkspaceCurrencyUnavailable =>
       i.posWorkspaceCurrencyUnavailable;
+  static String get posStockIdRequired => i.posStockIdRequired;
+  static String get posStockProductIdRequired => i.posStockProductIdRequired;
+  static String get posStockWarehouseIdRequired => i.posStockWarehouseIdRequired;
+  static String get posStockIdempotencyRequired =>
+      i.posStockIdempotencyRequired;
+  static String get posStockDirectionRequired => i.posStockDirectionRequired;
+  static String get posStockScaleMismatch => i.posStockScaleMismatch;
+  static String get posStockCurrencyMismatch => i.posStockCurrencyMismatch;
+  static String get posStockInsufficient => i.posStockInsufficient;
+  static String get posStockNegativeResult => i.posStockNegativeResult;
+  static String get posStockIdempotencyExists => i.posStockIdempotencyExists;
+  static String get posStockInvalidMovement => i.posStockInvalidMovement;
+  static String get posStockReadFailed => i.posStockReadFailed;
+  static String get posStockAppendFailed => i.posStockAppendFailed;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;
