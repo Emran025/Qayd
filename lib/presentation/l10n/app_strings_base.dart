@@ -2778,6 +2778,19 @@ abstract class AppStringsBase {
   String get posProductReadFailed => 'تعذر قراءة منتجات نقطة البيع.';
   String get posProductSaveFailed => 'تعذر حفظ منتج نقطة البيع.';
   String get posProductBarcodeExists => 'الباركود مرتبط بمنتج آخر.';
+  String get posWorkspaceTitle => 'مساحة نقطة البيع';
+  String get posWorkspaceWelcome => 'مرحباً بك في نقطة البيع';
+  String get posWorkspaceDescription =>
+      'مساحة مبيعات ومخزون مدمجة تشارك Qayd قاعدة البيانات والهوية.';
+  String get posWorkspaceDisabled => 'مساحة نقطة البيع غير مفعّلة';
+  String get posWorkspaceEnableFromSettings =>
+      'فعّل نقطة البيع من الإعدادات أولاً للوصول إلى هذه المساحة.';
+  String get posWorkspaceCatalogSubtitle => 'إدارة المنتجات والأسعار والباركودات';
+  String get posWorkspaceSalesTitle => 'المبيعات';
+  String get posWorkspaceComingSoon => 'ستتوفر بعد بناء نواة المخزون والفوترة.';
+  String get posWorkspaceLoadFailed => 'تعذر تجهيز مساحة نقطة البيع.';
+  String get posWorkspaceCurrencyUnavailable =>
+      'لا يمكن العثور على العملة الأساسية النشطة.';
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';

@@ -2602,6 +2602,19 @@ class AppStrings {
   static String get posProductReadFailed => i.posProductReadFailed;
   static String get posProductSaveFailed => i.posProductSaveFailed;
   static String get posProductBarcodeExists => i.posProductBarcodeExists;
+  static String get posWorkspaceTitle => i.posWorkspaceTitle;
+  static String get posWorkspaceWelcome => i.posWorkspaceWelcome;
+  static String get posWorkspaceDescription => i.posWorkspaceDescription;
+  static String get posWorkspaceDisabled => i.posWorkspaceDisabled;
+  static String get posWorkspaceEnableFromSettings =>
+      i.posWorkspaceEnableFromSettings;
+  static String get posWorkspaceCatalogSubtitle =>
+      i.posWorkspaceCatalogSubtitle;
+  static String get posWorkspaceSalesTitle => i.posWorkspaceSalesTitle;
+  static String get posWorkspaceComingSoon => i.posWorkspaceComingSoon;
+  static String get posWorkspaceLoadFailed => i.posWorkspaceLoadFailed;
+  static String get posWorkspaceCurrencyUnavailable =>
+      i.posWorkspaceCurrencyUnavailable;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;
