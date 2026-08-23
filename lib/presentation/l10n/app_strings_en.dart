@@ -5025,4 +5025,16 @@ class AppStringsEn extends AppStringsBase {
 
   @override
   String get counterpartyOnboardingAcceptButton => 'Set Up Account';
+
+  // POS domain validation
+  @override
+  String get posQuantityCannotBeNegative => 'POS quantity cannot be negative.';
+  @override
+  String get posQuantityMustBePositive => 'POS quantity must be greater than zero.';
+  @override
+  String get posQuantityScaleInvalid => 'POS quantity scale is invalid.';
+  @override
+  String get posQuantityScaleMismatch => 'Quantities with different scales cannot be combined.';
+  @override
+  String get posQuantityWouldBeNegative => 'The operation would produce a negative quantity.';
 }
