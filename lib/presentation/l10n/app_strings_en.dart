@@ -5133,6 +5133,25 @@ class AppStringsEn extends AppStringsBase {
   String get posWorkspaceComingSoon =>
       'Available after the inventory and invoicing core is built.';
   @override
+  String get posCheckoutTitle => 'Point of sale';
+  @override
+  String get posCheckoutInputHint =>
+      'Scan a barcode or search by product name or SKU';
+  @override
+  String get posCheckoutSearchResults => 'Search results';
+  @override
+  String get posCheckoutCartEmpty =>
+      'The cart is empty. Scan or search for a product.';
+  @override
+  String get posCheckoutSubtotal => 'Subtotal';
+  @override
+  String get posCheckoutClearCart => 'Clear cart';
+  @override
+  String get posCheckoutCameraActive => 'Background scanner active';
+  @override
+  String get posCheckoutPostingPending =>
+      'Accounting completion will be enabled after payment setup is complete.';
+  @override
   String get posWorkspaceLoadFailed => 'Could not prepare the POS workspace.';
   @override
   String get posWorkspaceCurrencyUnavailable =>

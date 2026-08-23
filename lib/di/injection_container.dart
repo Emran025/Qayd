@@ -19,11 +19,13 @@ import 'package:qayd/application/pos/create_pos_product_use_case.dart';
 import 'package:qayd/application/pos/deactivate_pos_product_use_case.dart';
 import 'package:qayd/application/pos/find_pos_product_by_barcode_use_case.dart';
 import 'package:qayd/application/pos/list_pos_products_use_case.dart';
+import 'package:qayd/application/pos/resolve_pos_product_for_checkout_use_case.dart';
 import 'package:qayd/application/pos/get_pos_stock_balance_use_case.dart';
 import 'package:qayd/application/pos/record_pos_stock_movement_use_case.dart';
 import 'package:qayd/application/pos/post_pos_opening_balance_atomically_use_case.dart';
 import 'package:qayd/application/pos/post_pos_sale_atomically_use_case.dart';
 import 'package:qayd/application/pos/build_pos_opening_balance_posting_use_case.dart';
+import 'package:qayd/application/pos/build_pos_sale_posting_use_case.dart';
 import 'package:qayd/application/pos/save_pos_product_use_case.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
@@ -183,6 +185,7 @@ import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
 import 'package:qayd/presentation/pos/pos_catalog_cubit.dart';
+import 'package:qayd/presentation/pos/pos_checkout_cubit.dart';
 import 'package:qayd/presentation/pos/pos_workspace_cubit.dart';
 import 'package:qayd/presentation/pos/pos_stock_cubit.dart';
 import 'package:qayd/presentation/pos/pos_feature_cubit.dart';
@@ -357,12 +360,16 @@ abstract final class InjectionContainer {
   static late PosStockMovementRepository posStockMovementRepository;
   static late PosAccountingPostingRepository posAccountingPostingRepository;
   static late PosSalePostingRepository posSalePostingRepository;
+  static late BuildPosSalePostingUseCase buildPosSalePostingUseCase;
   static late GetPosStockBalanceUseCase getPosStockBalanceUseCase;
   static late RecordPosStockMovementUseCase recordPosStockMovementUseCase;
   static late PosStockCubit posStockCubit;
   static late CreatePosProductUseCase createPosProductUseCase;
   static late SavePosProductUseCase savePosProductUseCase;
   static late ListPosProductsUseCase listPosProductsUseCase;
+  static late ResolvePosProductForCheckoutUseCase
+      resolvePosProductForCheckoutUseCase;
+  static late PosCheckoutCubit posCheckoutCubit;
   static late FindPosProductByBarcodeUseCase findPosProductByBarcodeUseCase;
   static late DeactivatePosProductUseCase deactivatePosProductUseCase;
   static late PosCatalogCubit posCatalogCubit;
@@ -1007,6 +1014,13 @@ abstract final class InjectionContainer {
       postingRepository: posAccountingPostingRepository,
       idGenerator: _idGenerator,
     );
+    buildPosSalePostingUseCase = BuildPosSalePostingUseCase(
+      productRepository: posProductRepository,
+      stockRepository: posStockMovementRepository,
+      installationRepository: posTemplateInstallationRepository,
+      accountRepository: accountRepository,
+      idGenerator: _idGenerator,
+    );
     postPosSaleAtomicallyUseCase = PostPosSaleAtomicallyUseCase(
       writeGuard: governanceWriteGuard,
       fiscalPeriodRepository: fiscalPeriodRepository,
@@ -1038,6 +1052,12 @@ abstract final class InjectionContainer {
     listPosProductsUseCase = ListPosProductsUseCase(posProductRepository);
     findPosProductByBarcodeUseCase = FindPosProductByBarcodeUseCase(
       posProductRepository,
+    );
+    resolvePosProductForCheckoutUseCase =
+        ResolvePosProductForCheckoutUseCase(posProductRepository);
+    posCheckoutCubit = PosCheckoutCubit(
+      resolveProduct: resolvePosProductForCheckoutUseCase,
+      listProducts: listPosProductsUseCase,
     );
     deactivatePosProductUseCase = DeactivatePosProductUseCase(
       posProductRepository,
