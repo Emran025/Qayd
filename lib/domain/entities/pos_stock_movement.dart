@@ -1,4 +1,5 @@
 import 'package:qayd/domain/exceptions/invalid_pos_stock_exception.dart';
+import 'package:qayd/domain/services/pos_money_math.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 import 'package:qayd/domain/value_objects/money.dart';
 import 'package:qayd/domain/value_objects/pos_quantity.dart';
@@ -144,8 +145,10 @@ final class PosStockBalance {
 
   Money get averageUnitCost {
     if (quantity.isZero) return Money.zero(valuation.currency);
+    final scaledValuation =
+        valuation.minorUnits * PosMoneyMath.scaleFactor(quantity.scale);
     return Money.fromMinorUnits(
-      _roundHalfUp(valuation.minorUnits, quantity.scaledUnits),
+      _roundHalfUp(scaledValuation, quantity.scaledUnits),
       valuation.currency,
     );
   }
@@ -178,7 +181,7 @@ final class PosStockBalance {
       throw InvalidPosStockException.insufficientStock();
     }
     final outgoingValue =
-        movement.quantity.scaledUnits * averageUnitCost.minorUnits;
+        PosMoneyMath.multiply(movement.quantity, averageUnitCost).minorUnits;
     final nextQuantity = PosQuantity.fromScaled(
       quantity.scaledUnits - movement.quantity.scaledUnits,
       scale: quantity.scale,

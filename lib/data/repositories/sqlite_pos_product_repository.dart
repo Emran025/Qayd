@@ -42,7 +42,7 @@ final class SqlitePosProductRepository implements PosProductRepository {
         SELECT p.*
         FROM pos_products p
         INNER JOIN pos_product_barcodes b ON b.product_id = p.id
-        WHERE b.barcode = ?
+        WHERE b.barcode = ? AND p.is_active = 1
         LIMIT 1
         ''',
         [barcode.value],
@@ -68,18 +68,26 @@ final class SqlitePosProductRepository implements PosProductRepository {
     try {
       final clauses = <String>[];
       final args = <Object?>[];
-      if (activeOnly) clauses.add('is_active = 1');
+      if (activeOnly) clauses.add('p.is_active = 1');
       final normalizedSearch = search?.trim();
       if (normalizedSearch != null && normalizedSearch.isNotEmpty) {
-        clauses.add('(name LIKE ? OR sku LIKE ?)');
+        clauses.add('(p.name LIKE ? OR p.sku LIKE ? OR b.barcode LIKE ?)');
         final pattern = '%$normalizedSearch%';
-        args..add(pattern)..add(pattern);
+        args
+          ..add(pattern)
+          ..add(pattern)
+          ..add(pattern);
       }
-      final rows = await _db.query(
-        'pos_products',
-        where: clauses.isEmpty ? null : clauses.join(' AND '),
-        whereArgs: args.isEmpty ? null : args,
-        orderBy: 'name COLLATE NOCASE ASC',
+      final whereSql = clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}';
+      final rows = await _db.rawQuery(
+        '''
+        SELECT DISTINCT p.*
+        FROM pos_products p
+        LEFT JOIN pos_product_barcodes b ON b.product_id = p.id
+        $whereSql
+        ORDER BY p.name COLLATE NOCASE ASC
+        ''',
+        args,
       );
 
       final products = <PosProduct>[];

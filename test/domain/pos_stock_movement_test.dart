@@ -87,6 +87,29 @@ void main() {
     expect(balance.averageUnitCost.minorUnits, 150);
   });
 
+  test('values fractional outbound quantity using exact scale arithmetic', () {
+    final currency = _currency();
+    final balance = PosStockBalance(
+      quantity: PosQuantity.fromScaled(2000, scale: 3),
+      valuation: Money.fromMinorUnits(3000, currency),
+    );
+
+    final next = balance.apply(
+      _movement(
+        currency: currency,
+        id: 'fractional-sale',
+        type: PosStockMovementType.sale,
+        direction: PosStockMovementDirection.outbound,
+        quantity: 1250,
+        cost: 999,
+        scale: 3,
+      ),
+    );
+
+    expect(next.quantity.scaledUnits, 750);
+    expect(next.valuation.minorUnits, 1125);
+  });
+
   test('rejects an outbound movement that would make stock negative', () {
     final currency = _currency();
     final balance = PosStockBalance(
