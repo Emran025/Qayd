@@ -2735,6 +2735,13 @@ abstract class AppStringsBase {
 
   /// Label for the "Complete Account Setup" button on onboarding notification.
   String get counterpartyOnboardingAcceptButton => 'إعداد الحساب';
+
+  // POS domain validation
+  String get posQuantityCannotBeNegative => 'لا يمكن أن تكون كمية POS سالبة.';
+  String get posQuantityMustBePositive => 'يجب أن تكون كمية POS أكبر من صفر.';
+  String get posQuantityScaleInvalid => 'مقياس كمية POS غير صالح.';
+  String get posQuantityScaleMismatch => 'لا يمكن جمع كميات ذات مقياس مختلف.';
+  String get posQuantityWouldBeNegative => 'ستؤدي العملية إلى كمية سالبة.';
 }
 
 

@@ -2557,4 +2557,11 @@ class AppStrings {
       i.counterpartyOnboardingRequestFrom(identifier);
   static String get counterpartyOnboardingAcceptButton =>
       i.counterpartyOnboardingAcceptButton;
+
+  static String get posQuantityCannotBeNegative =>
+      i.posQuantityCannotBeNegative;
+  static String get posQuantityMustBePositive => i.posQuantityMustBePositive;
+  static String get posQuantityScaleInvalid => i.posQuantityScaleInvalid;
+  static String get posQuantityScaleMismatch => i.posQuantityScaleMismatch;
+  static String get posQuantityWouldBeNegative => i.posQuantityWouldBeNegative;
 }
