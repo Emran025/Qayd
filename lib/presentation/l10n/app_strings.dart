@@ -2629,6 +2629,7 @@ class AppStrings {
   static String get posStockInvalidMovement => i.posStockInvalidMovement;
   static String get posStockReadFailed => i.posStockReadFailed;
   static String get posStockAppendFailed => i.posStockAppendFailed;
+  static String get posStockProductInactive => i.posStockProductInactive;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;

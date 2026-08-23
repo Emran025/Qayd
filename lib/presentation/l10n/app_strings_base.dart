@@ -2804,6 +2804,7 @@ abstract class AppStringsBase {
   String get posStockInvalidMovement => 'بيانات حركة المخزون غير صالحة.';
   String get posStockReadFailed => 'تعذر قراءة رصيد المخزون.';
   String get posStockAppendFailed => 'تعذر تسجيل حركة المخزون.';
+  String get posStockProductInactive => 'لا يمكن تسجيل حركة لمنتج غير نشط.';
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';
