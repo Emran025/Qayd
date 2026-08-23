@@ -2566,4 +2566,8 @@ class AppStrings {
   static String get posQuantityWouldBeNegative => i.posQuantityWouldBeNegative;
   static String get posDocumentTransitionInvalid =>
       i.posDocumentTransitionInvalid;
+  static String get posActivationFailed => i.posActivationFailed;
+  static String get posFeatureStateReadFailed => i.posFeatureStateReadFailed;
+  static String get posFeatureDisableFailed => i.posFeatureDisableFailed;
+  static String get posTemplateConflict => i.posTemplateConflict;
 }

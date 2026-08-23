@@ -5040,4 +5040,13 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posDocumentTransitionInvalid =>
       'This POS document state transition is not allowed.';
+  @override
+  String get posActivationFailed => 'Could not initialize POS.';
+  @override
+  String get posFeatureStateReadFailed => 'Could not read POS feature state.';
+  @override
+  String get posFeatureDisableFailed => 'Could not disable POS.';
+  @override
+  String get posTemplateConflict =>
+      'The installed POS template accounts are inconsistent.';
 }

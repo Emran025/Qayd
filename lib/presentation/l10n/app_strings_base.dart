@@ -2744,6 +2744,11 @@ abstract class AppStringsBase {
   String get posQuantityWouldBeNegative => 'ستؤدي العملية إلى كمية سالبة.';
   String get posDocumentTransitionInvalid =>
       'انتقال حالة مستند POS غير مسموح.';
+  String get posActivationFailed => 'تعذر تهيئة نقطة البيع.';
+  String get posFeatureStateReadFailed => 'تعذر قراءة حالة نقطة البيع.';
+  String get posFeatureDisableFailed => 'تعذر تعطيل نقطة البيع.';
+  String get posTemplateConflict =>
+      'تعارض في حسابات قالب نقطة البيع المثبتة.';
 }
 
 
