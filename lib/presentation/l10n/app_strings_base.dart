@@ -2791,6 +2791,19 @@ abstract class AppStringsBase {
   String get posWorkspaceLoadFailed => 'تعذر تجهيز مساحة نقطة البيع.';
   String get posWorkspaceCurrencyUnavailable =>
       'لا يمكن العثور على العملة الأساسية النشطة.';
+  String get posStockIdRequired => 'معرف حركة المخزون مطلوب.';
+  String get posStockProductIdRequired => 'معرف المنتج للمخزون مطلوب.';
+  String get posStockWarehouseIdRequired => 'معرف المخزن مطلوب.';
+  String get posStockIdempotencyRequired => 'مفتاح منع التكرار مطلوب.';
+  String get posStockDirectionRequired => 'اتجاه حركة التصحيح مطلوب.';
+  String get posStockScaleMismatch => 'مقياس كمية الحركة لا يطابق المنتج.';
+  String get posStockCurrencyMismatch => 'عملة حركة المخزون غير متطابقة.';
+  String get posStockInsufficient => 'لا توجد كمية كافية في المخزون.';
+  String get posStockNegativeResult => 'نتيجة حركة المخزون غير صالحة.';
+  String get posStockIdempotencyExists => 'حركة المخزون مسجلة مسبقاً.';
+  String get posStockInvalidMovement => 'بيانات حركة المخزون غير صالحة.';
+  String get posStockReadFailed => 'تعذر قراءة رصيد المخزون.';
+  String get posStockAppendFailed => 'تعذر تسجيل حركة المخزون.';
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';
