@@ -2602,4 +2602,26 @@ class AppStrings {
   static String get posProductReadFailed => i.posProductReadFailed;
   static String get posProductSaveFailed => i.posProductSaveFailed;
   static String get posProductBarcodeExists => i.posProductBarcodeExists;
+  static String get posCatalogTitle => i.posCatalogTitle;
+  static String get posCatalogSearchHint => i.posCatalogSearchHint;
+  static String get posCatalogAddProduct => i.posCatalogAddProduct;
+  static String get posCatalogCreateTitle => i.posCatalogCreateTitle;
+  static String get posCatalogEmpty => i.posCatalogEmpty;
+  static String get posCatalogNoResults => i.posCatalogNoResults;
+  static String get posCatalogName => i.posCatalogName;
+  static String get posCatalogSku => i.posCatalogSku;
+  static String get posCatalogSalePrice => i.posCatalogSalePrice;
+  static String get posCatalogSalePriceMinor => i.posCatalogSalePriceMinor;
+  static String get posCatalogPurchasePrice => i.posCatalogPurchasePrice;
+  static String get posCatalogPurchasePriceMinor =>
+      i.posCatalogPurchasePriceMinor;
+  static String get posCatalogQuantityScale => i.posCatalogQuantityScale;
+  static String get posCatalogReorderLevel => i.posCatalogReorderLevel;
+  static String get posCatalogBarcode => i.posCatalogBarcode;
+  static String get posCatalogDescription => i.posCatalogDescription;
+  static String get posCatalogExpiryTracking => i.posCatalogExpiryTracking;
+  static String get posCatalogDeactivateTitle => i.posCatalogDeactivateTitle;
+  static String get posCatalogDeactivateMessage =>
+      i.posCatalogDeactivateMessage;
+  static String get posCatalogDeactivate => i.posCatalogDeactivate;
 }

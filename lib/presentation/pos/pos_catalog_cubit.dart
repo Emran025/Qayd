@@ -32,11 +32,12 @@ final class PosCatalogState {
     String? search,
     Failure? failure,
     bool clearFailure = false,
+    bool clearSearch = false,
   }) {
     return PosCatalogState(
       status: status ?? this.status,
       products: products ?? this.products,
-      search: search ?? this.search,
+      search: clearSearch ? null : search ?? this.search,
       failure: clearFailure ? null : failure ?? this.failure,
     );
   }
@@ -71,6 +72,7 @@ final class PosCatalogCubit extends Cubit<PosCatalogState> {
       state.copyWith(
         status: PosCatalogStatus.loading,
         search: search,
+        clearSearch: search == null,
         clearFailure: true,
       ),
     );
