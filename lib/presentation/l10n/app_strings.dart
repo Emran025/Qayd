@@ -2637,6 +2637,16 @@ class AppStrings {
   static String get posCheckoutClearCart => i.posCheckoutClearCart;
   static String get posCheckoutCameraActive => i.posCheckoutCameraActive;
   static String get posCheckoutPostingPending => i.posCheckoutPostingPending;
+  static String get posCheckoutAdvance => i.posCheckoutAdvance;
+  static String get posCheckoutCustomerAccount => i.posCheckoutCustomerAccount;
+  static String get posCheckoutPaymentAccount => i.posCheckoutPaymentAccount;
+  static String get posCheckoutPaymentMethod => i.posCheckoutPaymentMethod;
+  static String get posCheckoutCash => i.posCheckoutCash;
+  static String get posCheckoutBank => i.posCheckoutBank;
+  static String get posCheckoutCredit => i.posCheckoutCredit;
+  static String get posCheckoutOther => i.posCheckoutOther;
+  static String get posCheckoutComplete => i.posCheckoutComplete;
+  static String get posCheckoutCompleted => i.posCheckoutCompleted;
   static String get posWorkspaceLoadFailed => i.posWorkspaceLoadFailed;
   static String get posWorkspaceCurrencyUnavailable =>
       i.posWorkspaceCurrencyUnavailable;

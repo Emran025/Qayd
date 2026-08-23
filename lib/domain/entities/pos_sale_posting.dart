@@ -19,7 +19,9 @@ final class PosSalePosting {
     if (invoice.type != PosInvoiceType.sale) {
       throw InvalidPosInvoiceException.invalidLine();
     }
-    if (this.movements.isEmpty || this.postings.length != 2) {
+    // A full cash/credit sale has two postings (commercial + COGS).
+    // A split settlement may add a second commercial posting for the due leg.
+    if (this.movements.isEmpty || this.postings.length < 2) {
       throw InvalidPosInvoiceException.invalidTotals();
     }
     for (final movement in this.movements) {
