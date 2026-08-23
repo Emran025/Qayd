@@ -3943,7 +3943,8 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get transferRequestNotesLabel => 'Notes (Optional)';
   @override
-  String get transferRequestNotesHint => 'Add any additional details for the broker';
+  String get transferRequestNotesHint =>
+      'Add any additional details for the broker';
   @override
   String get transferRequestOpenTransfers => 'Open Transfers';
   @override
@@ -5030,13 +5031,16 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posQuantityCannotBeNegative => 'POS quantity cannot be negative.';
   @override
-  String get posQuantityMustBePositive => 'POS quantity must be greater than zero.';
+  String get posQuantityMustBePositive =>
+      'POS quantity must be greater than zero.';
   @override
   String get posQuantityScaleInvalid => 'POS quantity scale is invalid.';
   @override
-  String get posQuantityScaleMismatch => 'Quantities with different scales cannot be combined.';
+  String get posQuantityScaleMismatch =>
+      'Quantities with different scales cannot be combined.';
   @override
-  String get posQuantityWouldBeNegative => 'The operation would produce a negative quantity.';
+  String get posQuantityWouldBeNegative =>
+      'The operation would produce a negative quantity.';
   @override
   String get posDocumentTransitionInvalid =>
       'This POS document state transition is not allowed.';
@@ -5070,7 +5074,8 @@ class AppStringsEn extends AppStringsBase {
   String get posFeatureActivationWarning =>
       'This installs the POS account template and one warehouse in your database. Disabling visibility does not delete data.';
   @override
-  String get posFeatureActivationSuccess => 'Point of Sale enabled successfully.';
+  String get posFeatureActivationSuccess =>
+      'Point of Sale enabled successfully.';
   @override
   String get posFeatureDisableSuccess => 'Point of Sale visibility disabled.';
   @override
@@ -5090,7 +5095,8 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posProductPriceInvalid => 'Product price cannot be negative.';
   @override
-  String get posProductCurrencyMismatch => 'Product price currency does not match.';
+  String get posProductCurrencyMismatch =>
+      'Product price currency does not match.';
   @override
   String get posProductCurrencyNotFound => 'Product currency was not found.';
   @override
@@ -5104,7 +5110,8 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posProductSaveFailed => 'Could not save POS product.';
   @override
-  String get posProductBarcodeExists => 'The barcode is linked to another product.';
+  String get posProductBarcodeExists =>
+      'The barcode is linked to another product.';
   @override
   String get posWorkspaceTitle => 'POS workspace';
   @override
@@ -5152,7 +5159,8 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posStockNegativeResult => 'The stock movement result is invalid.';
   @override
-  String get posStockIdempotencyExists => 'The stock movement is already recorded.';
+  String get posStockIdempotencyExists =>
+      'The stock movement is already recorded.';
   @override
   String get posStockInvalidMovement => 'The stock movement data is invalid.';
   @override
@@ -5160,7 +5168,8 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posStockAppendFailed => 'Could not record the stock movement.';
   @override
-  String get posStockProductInactive => 'Cannot record a movement for an inactive product.';
+  String get posStockProductInactive =>
+      'Cannot record a movement for an inactive product.';
   @override
   String get posOpeningBalanceTitle => 'Opening stock balance';
   @override
@@ -5224,6 +5233,24 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posAccountingPartialState =>
       'An incomplete partial state prevents automatic replay.';
+  @override
+  String get posInvoiceInvalid => 'The POS invoice data is invalid.';
+  @override
+  String get posInvoiceLinesRequired =>
+      'The invoice must contain at least one line.';
+  @override
+  String get posInvoiceLineInvalid => 'The invoice line data is invalid.';
+  @override
+  String get posInvoiceTotalsInvalid => 'The invoice totals are invalid.';
+  @override
+  String get posInvoicePaymentInvalid =>
+      'The payment is invalid or exceeds the remaining due amount.';
+  @override
+  String get posInvoiceTransitionInvalid =>
+      'The invoice status transition is not allowed.';
+  @override
+  String get posInvoiceSignatureInvalid =>
+      'The invoice electronic signature is invalid.';
   @override
   String get posCatalogTitle => 'Product catalog';
   @override

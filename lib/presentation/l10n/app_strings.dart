@@ -2496,49 +2496,69 @@ class AppStrings {
   static String get migratingData => i.migratingData;
   static String get migratingDataSubtitle => i.migratingDataSubtitle;
   static String get regenerateQrCode => i.regenerateQrCode;
-  static String migratingFinancialLedger(String progress) => i.migratingFinancialLedger(progress);
-  static String newVoucherClaim(String amount, String currency) => i.newVoucherClaim(amount, currency);
-  static String voucherRejectedWithReason(String reason) => i.voucherRejectedWithReason(reason);
-  static String newTripartiteRequestFrom(String name) => i.newTripartiteRequestFrom(name);
+  static String migratingFinancialLedger(String progress) =>
+      i.migratingFinancialLedger(progress);
+  static String newVoucherClaim(String amount, String currency) =>
+      i.newVoucherClaim(amount, currency);
+  static String voucherRejectedWithReason(String reason) =>
+      i.voucherRejectedWithReason(reason);
+  static String newTripartiteRequestFrom(String name) =>
+      i.newTripartiteRequestFrom(name);
 
-  static String estimatedValueWithCurrency(String currency) => i.estimatedValueWithCurrency(currency);
-  static String permissionDeniedMessage(String service) => i.permissionDeniedMessage(service);
+  static String estimatedValueWithCurrency(String currency) =>
+      i.estimatedValueWithCurrency(currency);
+  static String permissionDeniedMessage(String service) =>
+      i.permissionDeniedMessage(service);
   static String voucherNotice(String type) => i.voucherNotice(type);
   static String bondConflictsFound(int count) => i.bondConflictsFound(count);
-  static String errorExportingPdf(String reportName, String error) => i.errorExportingPdf(reportName, error);
-  static String errorExportingExcel(String reportName, String error) => i.errorExportingExcel(reportName, error);
+  static String errorExportingPdf(String reportName, String error) =>
+      i.errorExportingPdf(reportName, error);
+  static String errorExportingExcel(String reportName, String error) =>
+      i.errorExportingExcel(reportName, error);
 
-  static String accountNotFoundPrompt(String name) => i.accountNotFoundPrompt(name);
-  static String dualTransferNoticeRecipient(String name) => i.dualTransferNoticeRecipient(name);
-  static String dualTransferNoticeSender(String name) => i.dualTransferNoticeSender(name);
+  static String accountNotFoundPrompt(String name) =>
+      i.accountNotFoundPrompt(name);
+  static String dualTransferNoticeRecipient(String name) =>
+      i.dualTransferNoticeRecipient(name);
+  static String dualTransferNoticeSender(String name) =>
+      i.dualTransferNoticeSender(name);
 
   static String get currentStatus => i.currentStatus;
   static String get restoreOnlyThis => i.restoreOnlyThis;
   static String get restoreAll => i.restoreAll;
   static String redoImpactWarning(String items) => i.redoImpactWarning(items);
   static String versionWithNumber(String number) => i.versionWithNumber(number);
-  static String waitSecondsBeforeRetry(int seconds) => i.waitSecondsBeforeRetry(seconds);
+  static String waitSecondsBeforeRetry(int seconds) =>
+      i.waitSecondsBeforeRetry(seconds);
 
-  static String appInvitationMessage(String name) => i.appInvitationMessage(name);
-  static String skippedAccountsNoPhone(int count) => i.skippedAccountsNoPhone(count);
-  static String currencySymbolExample(String symbol) => i.currencySymbolExample(symbol);
+  static String appInvitationMessage(String name) =>
+      i.appInvitationMessage(name);
+  static String skippedAccountsNoPhone(int count) =>
+      i.skippedAccountsNoPhone(count);
+  static String currencySymbolExample(String symbol) =>
+      i.currencySymbolExample(symbol);
   static String get pdfShowHideBalance => i.pdfShowHideBalance;
-  static String accountBalanceGreeting(String name) => i.accountBalanceGreeting(name);
+  static String accountBalanceGreeting(String name) =>
+      i.accountBalanceGreeting(name);
   static String matchedInQayd(String target) => i.matchedInQayd(target);
   static String get millionSuffix => i.millionSuffix;
   static String get thousandSuffix => i.thousandSuffix;
   static String onDate(String date) => i.onDate(date);
   static String editingWithLabel(String label) => i.editingWithLabel(label);
   static String showLabelInBonds(String label) => i.showLabelInBonds(label);
-  static String searchBondsForStatus(String status) => i.searchBondsForStatus(status);
-  static String settledWithSurplus(String amount, String currency) => i.settledWithSurplus(amount, currency);
+  static String searchBondsForStatus(String status) =>
+      i.searchBondsForStatus(status);
+  static String settledWithSurplus(String amount, String currency) =>
+      i.settledWithSurplus(amount, currency);
 
   // ── Manual Device Linking (WhatsApp-style) ─────────────────────────────────
   static String get manualCodeLinkButton => i.manualCodeLinkButton;
   static String get manualCodeDisplayTitle => i.manualCodeDisplayTitle;
-  static String get manualCodeDisplayInstruction => i.manualCodeDisplayInstruction;
+  static String get manualCodeDisplayInstruction =>
+      i.manualCodeDisplayInstruction;
   static String get manualCodeCopied => i.manualCodeCopied;
-  static String get manualCodeWaitingForCompanion => i.manualCodeWaitingForCompanion;
+  static String get manualCodeWaitingForCompanion =>
+      i.manualCodeWaitingForCompanion;
   static String get manualCodeExpired => i.manualCodeExpired;
   static String get manualCodeDividerLabel => i.manualCodeDividerLabel;
   static String get manualCodeInputButton => i.manualCodeInputButton;
@@ -2591,13 +2611,10 @@ class AppStrings {
   static String get posProductSkuRequired => i.posProductSkuRequired;
   static String get posProductUnitRequired => i.posProductUnitRequired;
   static String get posProductPriceInvalid => i.posProductPriceInvalid;
-  static String get posProductCurrencyMismatch =>
-      i.posProductCurrencyMismatch;
-  static String get posProductCurrencyNotFound =>
-      i.posProductCurrencyNotFound;
+  static String get posProductCurrencyMismatch => i.posProductCurrencyMismatch;
+  static String get posProductCurrencyNotFound => i.posProductCurrencyNotFound;
   static String get posProductScaleInvalid => i.posProductScaleInvalid;
-  static String get posProductThresholdInvalid =>
-      i.posProductThresholdInvalid;
+  static String get posProductThresholdInvalid => i.posProductThresholdInvalid;
   static String get posProductNotFound => i.posProductNotFound;
   static String get posProductReadFailed => i.posProductReadFailed;
   static String get posProductSaveFailed => i.posProductSaveFailed;
@@ -2617,7 +2634,8 @@ class AppStrings {
       i.posWorkspaceCurrencyUnavailable;
   static String get posStockIdRequired => i.posStockIdRequired;
   static String get posStockProductIdRequired => i.posStockProductIdRequired;
-  static String get posStockWarehouseIdRequired => i.posStockWarehouseIdRequired;
+  static String get posStockWarehouseIdRequired =>
+      i.posStockWarehouseIdRequired;
   static String get posStockIdempotencyRequired =>
       i.posStockIdempotencyRequired;
   static String get posStockDirectionRequired => i.posStockDirectionRequired;
@@ -2636,7 +2654,8 @@ class AppStrings {
   static String get posOpeningBalanceProduct => i.posOpeningBalanceProduct;
   static String get posOpeningBalanceSelectProduct =>
       i.posOpeningBalanceSelectProduct;
-  static String get posOpeningBalanceNoProducts => i.posOpeningBalanceNoProducts;
+  static String get posOpeningBalanceNoProducts =>
+      i.posOpeningBalanceNoProducts;
   static String get posOpeningBalanceQuantity => i.posOpeningBalanceQuantity;
   static String posOpeningBalanceQuantityHint(int scale) =>
       i.posOpeningBalanceQuantityHint(scale);
@@ -2669,6 +2688,14 @@ class AppStrings {
   static String get posAccountingTransactionFailed =>
       i.posAccountingTransactionFailed;
   static String get posAccountingPartialState => i.posAccountingPartialState;
+  static String get posInvoiceInvalid => i.posInvoiceInvalid;
+  static String get posInvoiceLinesRequired => i.posInvoiceLinesRequired;
+  static String get posInvoiceLineInvalid => i.posInvoiceLineInvalid;
+  static String get posInvoiceTotalsInvalid => i.posInvoiceTotalsInvalid;
+  static String get posInvoicePaymentInvalid => i.posInvoicePaymentInvalid;
+  static String get posInvoiceTransitionInvalid =>
+      i.posInvoiceTransitionInvalid;
+  static String get posInvoiceSignatureInvalid => i.posInvoiceSignatureInvalid;
   static String get posCatalogTitle => i.posCatalogTitle;
   static String get posCatalogSearchHint => i.posCatalogSearchHint;
   static String get posCatalogAddProduct => i.posCatalogAddProduct;
