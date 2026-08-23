@@ -44,12 +44,18 @@ final class _WorkspaceCurrencyRepository implements CurrencyRepository {
 }
 
 final class _WorkspaceActivationRepository implements PosActivationRepository {
-  _WorkspaceActivationRepository(this.enabled);
+  _WorkspaceActivationRepository(this.enabled,
+      {this.warehouseId = 'warehouse-1'});
 
   final bool enabled;
+  final String? warehouseId;
 
   @override
   Future<Result<bool>> isEnabled() async => Success(enabled);
+
+  @override
+  Future<Result<String?>> getEnabledWarehouseId() async =>
+      Success(enabled ? warehouseId : null);
 
   @override
   Future<Result<void>> disable() async => const Success(null);
@@ -69,11 +75,17 @@ CurrencyCode _currency() => CurrencyCode(
       symbol: 'ر.س',
     );
 
-PosWorkspaceCubit _cubit({required bool enabled}) {
+PosWorkspaceCubit _cubit({
+  required bool enabled,
+  String? warehouseId = 'warehouse-1',
+}) {
   final currency = _currency();
   final currencyRepository = _WorkspaceCurrencyRepository(currency);
   return PosWorkspaceCubit(
-    activationRepository: _WorkspaceActivationRepository(enabled),
+    activationRepository: _WorkspaceActivationRepository(
+      enabled,
+      warehouseId: warehouseId,
+    ),
     getBaseCurrencyUseCase: GetBaseCurrencyUseCase(currencyRepository),
     listCurrenciesUseCase: ListCurrenciesUseCase(currencyRepository),
   );
@@ -91,6 +103,16 @@ void main() {
       expect(cubit.state.currency, isNull);
     });
 
+    test('fails closed when activation has no warehouse', () async {
+      final cubit = _cubit(enabled: true, warehouseId: null);
+      addTearDown(cubit.close);
+
+      await cubit.load();
+
+      expect(cubit.state.status, PosWorkspaceStatus.failure);
+      expect(cubit.state.warehouseId, isNull);
+    });
+
     test('loads base currency only after POS activation is confirmed',
         () async {
       final cubit = _cubit(enabled: true);
@@ -100,6 +122,7 @@ void main() {
 
       expect(cubit.state.status, PosWorkspaceStatus.ready);
       expect(cubit.state.currency?.code, 'SAR');
+      expect(cubit.state.warehouseId, 'warehouse-1');
     });
   });
 

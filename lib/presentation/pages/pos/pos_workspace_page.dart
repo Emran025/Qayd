@@ -4,6 +4,8 @@ import 'package:qayd/presentation/components/atomic/qayd_app_bar.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/pos/pos_catalog_page.dart';
+import 'package:qayd/presentation/pages/pos/pos_opening_balance_page.dart';
+import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/pos/pos_workspace_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
 
@@ -42,6 +44,19 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
     context.read<PosWorkspaceCubit>().load();
   }
 
+  Future<void> _openOpeningBalance(PosWorkspaceState state) async {
+    if (!state.isReady || !mounted) return;
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (_) => PosOpeningBalancePage(
+          catalogCubit: InjectionContainer.posCatalogCubit,
+          stockCubit: InjectionContainer.posStockCubit,
+          warehouseId: state.warehouseId!,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openCatalog(PosWorkspaceState state) async {
     final currency = state.currency;
     if (currency == null || !state.isReady || !mounted) return;
@@ -73,6 +88,7 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
             PosWorkspaceStatus.ready => _ReadyWorkspace(
                 state: state,
                 onOpenCatalog: () => _openCatalog(state),
+                onOpenOpeningBalance: () => _openOpeningBalance(state),
               ),
           },
         );
@@ -82,10 +98,15 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
 }
 
 class _ReadyWorkspace extends StatelessWidget {
-  const _ReadyWorkspace({required this.state, required this.onOpenCatalog});
+  const _ReadyWorkspace({
+    required this.state,
+    required this.onOpenCatalog,
+    required this.onOpenOpeningBalance,
+  });
 
   final PosWorkspaceState state;
   final VoidCallback onOpenCatalog;
+  final VoidCallback onOpenOpeningBalance;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +127,16 @@ class _ReadyWorkspace extends StatelessWidget {
             subtitle: Text(AppStrings.posWorkspaceCatalogSubtitle),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: onOpenCatalog,
+          ),
+        ),
+        const SizedBox(height: SpacingTokens.md),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.account_balance_wallet_outlined),
+            title: Text(AppStrings.posOpeningBalanceTitle),
+            subtitle: Text(AppStrings.posOpeningBalanceDescription),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: onOpenOpeningBalance,
           ),
         ),
         const SizedBox(height: SpacingTokens.md),

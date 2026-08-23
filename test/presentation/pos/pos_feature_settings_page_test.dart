@@ -17,7 +17,8 @@ import 'package:qayd/presentation/theme/app_theme.dart';
 
 final class _GovernanceRepo implements GovernanceRepository {
   @override
-  Future<Result<GovernanceStatus>> getStatus({bool forceRefresh = false}) async {
+  Future<Result<GovernanceStatus>> getStatus(
+      {bool forceRefresh = false}) async {
     return Success(GovernanceStatus.activated);
   }
 
@@ -52,6 +53,10 @@ final class _PosRepo implements PosActivationRepository {
 
   @override
   Future<Result<bool>> isEnabled() async => Success(enabled);
+
+  @override
+  Future<Result<String?>> getEnabledWarehouseId() async =>
+      Success(enabled ? 'warehouse-1' : null);
 
   @override
   Future<Result<void>> disable() async {
