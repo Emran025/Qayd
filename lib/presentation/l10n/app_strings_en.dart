@@ -5160,6 +5160,8 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posStockAppendFailed => 'Could not record the stock movement.';
   @override
+  String get posStockProductInactive => 'Cannot record a movement for an inactive product.';
+  @override
   String get posCatalogTitle => 'Product catalog';
   @override
   String get posCatalogSearchHint => 'Search by name, SKU, or barcode';

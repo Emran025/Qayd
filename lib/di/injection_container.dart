@@ -19,6 +19,8 @@ import 'package:qayd/application/pos/create_pos_product_use_case.dart';
 import 'package:qayd/application/pos/deactivate_pos_product_use_case.dart';
 import 'package:qayd/application/pos/find_pos_product_by_barcode_use_case.dart';
 import 'package:qayd/application/pos/list_pos_products_use_case.dart';
+import 'package:qayd/application/pos/get_pos_stock_balance_use_case.dart';
+import 'package:qayd/application/pos/record_pos_stock_movement_use_case.dart';
 import 'package:qayd/application/pos/save_pos_product_use_case.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
@@ -174,6 +176,7 @@ import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
 import 'package:qayd/presentation/pos/pos_catalog_cubit.dart';
 import 'package:qayd/presentation/pos/pos_workspace_cubit.dart';
+import 'package:qayd/presentation/pos/pos_stock_cubit.dart';
 import 'package:qayd/presentation/pos/pos_feature_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
@@ -342,6 +345,9 @@ abstract final class InjectionContainer {
   static late PosFeatureCubit posFeatureCubit;
   static late PosProductRepository posProductRepository;
   static late PosStockMovementRepository posStockMovementRepository;
+  static late GetPosStockBalanceUseCase getPosStockBalanceUseCase;
+  static late RecordPosStockMovementUseCase recordPosStockMovementUseCase;
+  static late PosStockCubit posStockCubit;
   static late CreatePosProductUseCase createPosProductUseCase;
   static late SavePosProductUseCase savePosProductUseCase;
   static late ListPosProductsUseCase listPosProductsUseCase;
@@ -960,6 +966,19 @@ abstract final class InjectionContainer {
     posStockMovementRepository = SqlitePosStockMovementRepository(
       database,
       currencyRepository,
+    );
+    getPosStockBalanceUseCase = GetPosStockBalanceUseCase(
+      posStockMovementRepository,
+    );
+    recordPosStockMovementUseCase = RecordPosStockMovementUseCase(
+      posStockMovementRepository,
+      posProductRepository,
+      governanceWriteGuard,
+      _idGenerator,
+    );
+    posStockCubit = PosStockCubit(
+      getBalanceUseCase: getPosStockBalanceUseCase,
+      recordMovementUseCase: recordPosStockMovementUseCase,
     );
     createPosProductUseCase = CreatePosProductUseCase(
       posProductRepository,
