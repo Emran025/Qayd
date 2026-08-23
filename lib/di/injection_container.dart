@@ -15,6 +15,11 @@ import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/application/accounts/batch_import_accounts_from_csv_use_case.dart';
 import 'package:qayd/application/pos/activate_pos_feature_use_case.dart';
+import 'package:qayd/application/pos/create_pos_product_use_case.dart';
+import 'package:qayd/application/pos/deactivate_pos_product_use_case.dart';
+import 'package:qayd/application/pos/find_pos_product_by_barcode_use_case.dart';
+import 'package:qayd/application/pos/list_pos_products_use_case.dart';
+import 'package:qayd/application/pos/save_pos_product_use_case.dart';
 import 'package:qayd/application/import_export/legacy_migration_use_case.dart';
 import 'package:qayd/application/accounts/create_account_use_case.dart';
 import 'package:qayd/application/accounts/deactivate_account_use_case.dart';
@@ -89,6 +94,7 @@ import 'package:qayd/data/pdf/voucher_pdf_generator.dart';
 import 'package:qayd/data/repositories/sqlite_currency_repository.dart';
 import 'package:qayd/data/repositories/sqlite_transaction_fee_settings_repository.dart';
 import 'package:qayd/data/repositories/sqlite_pos_activation_repository.dart';
+import 'package:qayd/data/repositories/sqlite_pos_product_repository.dart';
 import 'package:qayd/data/repositories/sqlite_voucher_repository.dart';
 import 'package:qayd/data/security/app_pin_storage.dart';
 import 'package:qayd/data/security/hardware_id_service.dart';
@@ -103,6 +109,7 @@ import 'package:qayd/domain/repositories/notification_log_repository.dart';
 import 'package:qayd/domain/repositories/notification_message_repository.dart';
 import 'package:qayd/domain/repositories/transaction_fee_settings_repository.dart';
 import 'package:qayd/domain/repositories/pos_activation_repository.dart';
+import 'package:qayd/domain/repositories/pos_product_repository.dart';
 import 'package:qayd/domain/services/voucher_qr_service.dart';
 import 'package:qayd/domain/services/receipt_signing_service.dart';
 import 'package:qayd/domain/services/balance_calculator.dart';
@@ -163,6 +170,7 @@ import 'package:qayd/data/repositories/sqlite_device_session_repository.dart';
 import 'package:qayd/domain/services/signature_verification_engine.dart';
 import 'package:qayd/domain/services/counterparty_qr_service.dart';
 import 'package:qayd/presentation/pages/settings/groups/appearance_settings_cubit.dart';
+import 'package:qayd/presentation/pos/pos_catalog_cubit.dart';
 import 'package:qayd/presentation/pos/pos_feature_cubit.dart';
 import 'package:qayd/presentation/pages/notifications/notifications_cubit.dart';
 import 'package:qayd/application/sync/sync_event_dispatcher.dart';
@@ -329,6 +337,13 @@ abstract final class InjectionContainer {
   static late PosActivationRepository posActivationRepository;
   static late ActivatePosFeatureUseCase activatePosFeatureUseCase;
   static late PosFeatureCubit posFeatureCubit;
+  static late PosProductRepository posProductRepository;
+  static late CreatePosProductUseCase createPosProductUseCase;
+  static late SavePosProductUseCase savePosProductUseCase;
+  static late ListPosProductsUseCase listPosProductsUseCase;
+  static late FindPosProductByBarcodeUseCase findPosProductByBarcodeUseCase;
+  static late DeactivatePosProductUseCase deactivatePosProductUseCase;
+  static late PosCatalogCubit posCatalogCubit;
 
   // ── Sync & Real-Time Components ──────────────────────────────────────────
 
@@ -931,6 +946,35 @@ abstract final class InjectionContainer {
       activateUseCase: activatePosFeatureUseCase,
       repository: posActivationRepository,
       deviceIdProvider: () => currentDeviceId,
+    );
+
+    posProductRepository = SqlitePosProductRepository(
+      database,
+      currencyRepository,
+    );
+    createPosProductUseCase = CreatePosProductUseCase(
+      posProductRepository,
+      currencyRepository,
+      governanceWriteGuard,
+      _idGenerator,
+    );
+    savePosProductUseCase = SavePosProductUseCase(
+      posProductRepository,
+      governanceWriteGuard,
+    );
+    listPosProductsUseCase = ListPosProductsUseCase(posProductRepository);
+    findPosProductByBarcodeUseCase = FindPosProductByBarcodeUseCase(
+      posProductRepository,
+    );
+    deactivatePosProductUseCase = DeactivatePosProductUseCase(
+      posProductRepository,
+      governanceWriteGuard,
+    );
+    posCatalogCubit = PosCatalogCubit(
+      listUseCase: listPosProductsUseCase,
+      saveUseCase: savePosProductUseCase,
+      createUseCase: createPosProductUseCase,
+      deactivateUseCase: deactivatePosProductUseCase,
     );
 
     listCurrenciesUseCase = ListCurrenciesUseCase(currencyRepository);
