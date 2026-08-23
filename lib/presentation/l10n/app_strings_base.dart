@@ -2742,6 +2742,8 @@ abstract class AppStringsBase {
   String get posQuantityScaleInvalid => 'مقياس كمية POS غير صالح.';
   String get posQuantityScaleMismatch => 'لا يمكن جمع كميات ذات مقياس مختلف.';
   String get posQuantityWouldBeNegative => 'ستؤدي العملية إلى كمية سالبة.';
+  String get posDocumentTransitionInvalid =>
+      'انتقال حالة مستند POS غير مسموح.';
 }
 
 
