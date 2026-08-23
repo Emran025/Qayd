@@ -19,7 +19,8 @@ void main() {
     test('account keys are unique and stable', () {
       final template = PosTemplateDefinition.current();
       final keys = template.accounts.map((account) => account.key).toSet();
-      final values = template.accounts.map((account) => account.key.value).toSet();
+      final values =
+          template.accounts.map((account) => account.key.value).toSet();
 
       expect(keys.length, template.accounts.length);
       expect(values.length, template.accounts.length);
@@ -27,6 +28,7 @@ void main() {
         values,
         containsAll(<String>[
           'pos.inventory_asset',
+          'pos.opening_balance_clearing',
           'pos.sales_revenue',
           'pos.cogs',
           'pos.cash',
@@ -59,6 +61,10 @@ void main() {
         template.account(PosTemplateAccountKey.supplierPayables).nature,
         AccountNature.credit,
       );
+      expect(
+        template.account(PosTemplateAccountKey.openingBalanceClearing).nature,
+        AccountNature.credit,
+      );
     });
 
     test('only tax payable is optional in the core template', () {
@@ -68,7 +74,8 @@ void main() {
           .map((account) => account.key)
           .toList();
 
-      expect(optional, <PosTemplateAccountKey>[PosTemplateAccountKey.taxPayable]);
+      expect(
+          optional, <PosTemplateAccountKey>[PosTemplateAccountKey.taxPayable]);
     });
 
     test('account lookup returns the exact stable specification', () {

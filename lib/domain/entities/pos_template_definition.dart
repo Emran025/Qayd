@@ -13,7 +13,8 @@ enum PosTemplateAccountKey {
   salesReturns,
   purchaseReturns,
   discounts,
-  taxPayable;
+  taxPayable,
+  openingBalanceClearing;
 
   String get value => 'pos.${switch (this) {
         PosTemplateAccountKey.inventoryAsset => 'inventory_asset',
@@ -26,6 +27,8 @@ enum PosTemplateAccountKey {
         PosTemplateAccountKey.purchaseReturns => 'purchase_returns',
         PosTemplateAccountKey.discounts => 'discounts',
         PosTemplateAccountKey.taxPayable => 'tax_payable',
+        PosTemplateAccountKey.openingBalanceClearing =>
+          'opening_balance_clearing',
       }}';
 }
 
@@ -60,7 +63,7 @@ final class PosTemplateDefinition {
   });
 
   static const String coreTemplateKey = 'pos.core';
-  static const int currentVersion = 1;
+  static const int currentVersion = 2;
   static const String weightedAverageCostMethod = 'weighted_average';
 
   final String templateKey;
@@ -82,6 +85,15 @@ final class PosTemplateDefinition {
           classification: AccountClassification.custom(
             name: 'POS Inventory',
             nature: AccountNature.debit,
+          ),
+          isOptional: false,
+        ),
+        PosTemplateAccountSpec(
+          key: PosTemplateAccountKey.openingBalanceClearing,
+          name: 'POS Opening Balance Clearing',
+          classification: AccountClassification.custom(
+            name: 'POS Opening Balance Clearing',
+            nature: AccountNature.credit,
           ),
           isOptional: false,
         ),
