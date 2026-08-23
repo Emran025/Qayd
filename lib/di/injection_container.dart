@@ -1064,6 +1064,7 @@ abstract final class InjectionContainer {
     completePosSaleUseCase = CompletePosSaleUseCase(
       buildPosting: buildPosSalePostingUseCase,
       postAtomically: postPosSaleAtomicallyUseCase,
+      signInvoice: signPosInvoiceUseCase,
     );
     getPosStockBalanceUseCase = GetPosStockBalanceUseCase(
       posStockMovementRepository,

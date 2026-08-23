@@ -1,7 +1,9 @@
 import 'package:qayd/application/pos/build_pos_sale_posting_use_case.dart';
 import 'package:qayd/application/pos/post_pos_sale_atomically_use_case.dart';
+import 'package:qayd/application/pos/sign_pos_invoice_use_case.dart';
 import 'package:qayd/core/result/result.dart';
 import 'package:qayd/domain/entities/pos_invoice.dart';
+import 'package:qayd/domain/entities/pos_sale_posting.dart';
 import 'package:qayd/domain/value_objects/account_id.dart';
 import 'package:qayd/domain/value_objects/currency_code.dart';
 
@@ -14,11 +16,14 @@ final class CompletePosSaleUseCase {
   const CompletePosSaleUseCase({
     required BuildPosSalePostingUseCase buildPosting,
     required PostPosSaleAtomicallyUseCase postAtomically,
+    required SignPosInvoiceUseCase signInvoice,
   })  : _buildPosting = buildPosting,
-        _postAtomically = postAtomically;
+        _postAtomically = postAtomically,
+        _signInvoice = signInvoice;
 
   final BuildPosSalePostingUseCase _buildPosting;
   final PostPosSaleAtomicallyUseCase _postAtomically;
+  final SignPosInvoiceUseCase _signInvoice;
 
   Future<Result<PosInvoice>> call({
     required String invoiceId,
@@ -52,10 +57,24 @@ final class CompletePosSaleUseCase {
       return FailureResult(buildResult.failureOrNull!);
     }
     final posting = buildResult.valueOrNull!;
-    final commitResult = await _postAtomically(posting);
+    final signedResult = await _signInvoice(
+      invoice: posting.invoice,
+      payments: posting.payments,
+      signedAt: createdAt,
+    );
+    if (signedResult.isFailure) {
+      return FailureResult(signedResult.failureOrNull!);
+    }
+    final signedPosting = PosSalePosting(
+      invoice: signedResult.valueOrNull!,
+      movements: posting.movements,
+      postings: posting.postings,
+      payments: posting.payments,
+    );
+    final commitResult = await _postAtomically(signedPosting);
     if (commitResult.isFailure) {
       return FailureResult(commitResult.failureOrNull!);
     }
-    return Success(posting.invoice);
+    return Success(signedPosting.invoice);
   }
 }
