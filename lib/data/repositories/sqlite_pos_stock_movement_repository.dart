@@ -24,42 +24,17 @@ final class SqlitePosStockMovementRepository
     required String warehouseId,
   }) async {
     try {
-      final productRows = await _db.query(
-        'pos_products',
-        columns: ['currency_code', 'quantity_scale'],
-        where: 'id = ?',
-        whereArgs: [productId],
-        limit: 1,
+      final context = await _loadProductContext(_db, productId);
+      if (context == null) return _productNotFound();
+      return Success(
+        await _readBalance(
+          _db,
+          productId: productId,
+          warehouseId: warehouseId,
+          currency: context.currency,
+          scale: context.scale,
+        ),
       );
-      if (productRows.isEmpty) return _productNotFound();
-      final currency = await _currency(productRows.first['currency_code']);
-      if (currency.isFailure) {
-        return FailureResult(currency.failureOrNull!);
-      }
-      final resolvedCurrency = currency.valueOrNull!;
-      final scale = _asInt(productRows.first['quantity_scale']);
-      var balance = emptyPosStockBalance(
-        currency: resolvedCurrency,
-        quantityScale: scale,
-      );
-      final rows = await _db.query(
-        'pos_stock_movements',
-        where: 'product_id = ? AND warehouse_id = ?',
-        whereArgs: [productId, warehouseId],
-        orderBy: 'occurred_at ASC, created_at ASC, id ASC',
-      );
-      for (final row in rows) {
-        final movementResult = await _mapRow(row);
-        if (movementResult.isFailure) {
-          return FailureResult(movementResult.failureOrNull!);
-        }
-        try {
-          balance = balance.apply(movementResult.valueOrNull!);
-        } on InvalidPosStockException catch (error) {
-          return FailureResult(ValidationFailure(messageAr: error.messageAr));
-        }
-      }
-      return Success(balance);
     } on DatabaseException {
       return _readFailure();
     } on InvalidPosStockException catch (error) {
@@ -101,13 +76,30 @@ final class SqlitePosStockMovementRepository
       await _db.transaction((txn) async {
         final duplicate = await txn.query(
           'pos_stock_movements',
-          columns: ['id'],
           where: 'idempotency_key = ?',
           whereArgs: [movement.idempotencyKey],
           limit: 1,
         );
         if (duplicate.isNotEmpty) {
+          if (_rowMatchesMovement(duplicate.first, movement)) {
+            throw const _StockMovementIdempotentReplayException();
+          }
           throw const _StockMovementIdempotencyConflictException();
+        }
+
+        final context = await _loadProductContext(txn, movement.productId);
+        if (context == null) throw const _StockProductNotFoundException();
+        final balance = await _readBalance(
+          txn,
+          productId: movement.productId,
+          warehouseId: movement.warehouseId,
+          currency: context.currency,
+          scale: context.scale,
+        );
+        try {
+          balance.apply(movement);
+        } on InvalidPosStockException catch (error) {
+          throw _StockMovementPolicyException(error.messageAr);
         }
         await txn.insert(
           'pos_stock_movements',
@@ -116,10 +108,16 @@ final class SqlitePosStockMovementRepository
         );
       });
       return const Success(null);
+    } on _StockMovementIdempotentReplayException {
+      return const Success(null);
     } on _StockMovementIdempotencyConflictException {
       return FailureResult(
         ValidationFailure(messageAr: AppStrings.posStockIdempotencyExists),
       );
+    } on _StockProductNotFoundException {
+      return _productNotFoundVoid();
+    } on _StockMovementPolicyException catch (error) {
+      return FailureResult(ValidationFailure(messageAr: error.messageAr));
     } on DatabaseException {
       return FailureResult(
         DatabaseFailure(messageAr: AppStrings.posStockAppendFailed),
@@ -129,6 +127,59 @@ final class SqlitePosStockMovementRepository
         DatabaseFailure(messageAr: AppStrings.posStockAppendFailed),
       );
     }
+  }
+
+  Future<PosStockBalance> _readBalance(
+    DatabaseExecutor executor, {
+    required String productId,
+    required String warehouseId,
+    required CurrencyCode currency,
+    required int scale,
+  }) async {
+    var balance =
+        emptyPosStockBalance(currency: currency, quantityScale: scale);
+    final rows = await executor.query(
+      'pos_stock_movements',
+      where: 'product_id = ? AND warehouse_id = ?',
+      whereArgs: [productId, warehouseId],
+      orderBy: 'occurred_at ASC, created_at ASC, id ASC',
+    );
+    for (final row in rows) {
+      final movementResult = await _mapRow(row);
+      if (movementResult.isFailure) {
+        throw InvalidPosStockException(
+          messageAr: movementResult.failureOrNull!.messageAr,
+          code: 'pos_stock_invalid_persisted_movement',
+        );
+      }
+      balance = balance.apply(movementResult.valueOrNull!);
+    }
+    return balance;
+  }
+
+  Future<_ProductStockContext?> _loadProductContext(
+    DatabaseExecutor executor,
+    String productId,
+  ) async {
+    final rows = await executor.query(
+      'pos_products',
+      columns: ['currency_code', 'quantity_scale'],
+      where: 'id = ?',
+      whereArgs: [productId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    final currencyResult = await _currency(rows.first['currency_code']);
+    if (currencyResult.isFailure) {
+      throw InvalidPosStockException(
+        messageAr: currencyResult.failureOrNull!.messageAr,
+        code: 'pos_stock_currency_lookup_failed',
+      );
+    }
+    return _ProductStockContext(
+      currency: currencyResult.valueOrNull!,
+      scale: _asInt(rows.first['quantity_scale']),
+    );
   }
 
   Future<Result<PosStockMovement>> _mapRow(Map<String, Object?> row) async {
@@ -192,7 +243,19 @@ final class SqlitePosStockMovementRepository
     return Success(currency);
   }
 
-  Map<String, Object?> _toRow(PosStockMovement movement) => {
+  static bool _rowMatchesMovement(
+    Map<String, Object?> row,
+    PosStockMovement movement,
+  ) {
+    final expected = _toRow(movement);
+    for (final entry in expected.entries) {
+      if (entry.key == 'created_at') continue;
+      if (row[entry.key] != entry.value) return false;
+    }
+    return true;
+  }
+
+  static Map<String, Object?> _toRow(PosStockMovement movement) => {
         'id': movement.id,
         'product_id': movement.productId,
         'warehouse_id': movement.warehouseId,
@@ -260,6 +323,10 @@ final class SqlitePosStockMovementRepository
         ValidationFailure(messageAr: AppStrings.posProductNotFound),
       );
 
+  FailureResult<void> _productNotFoundVoid() => FailureResult(
+        ValidationFailure(messageAr: AppStrings.posProductNotFound),
+      );
+
   FailureResult<PosStockBalance> _readFailure() => FailureResult(
         DatabaseFailure(messageAr: AppStrings.posStockReadFailed),
       );
@@ -269,6 +336,27 @@ final class SqlitePosStockMovementRepository
       );
 }
 
+final class _ProductStockContext {
+  const _ProductStockContext({required this.currency, required this.scale});
+
+  final CurrencyCode currency;
+  final int scale;
+}
+
+final class _StockMovementIdempotentReplayException implements Exception {
+  const _StockMovementIdempotentReplayException();
+}
+
 final class _StockMovementIdempotencyConflictException implements Exception {
   const _StockMovementIdempotencyConflictException();
+}
+
+final class _StockProductNotFoundException implements Exception {
+  const _StockProductNotFoundException();
+}
+
+final class _StockMovementPolicyException implements Exception {
+  const _StockMovementPolicyException(this.messageAr);
+
+  final String messageAr;
 }
