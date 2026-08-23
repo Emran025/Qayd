@@ -2833,6 +2833,13 @@ abstract class AppStringsBase {
   String get posCheckoutOther => 'أخرى';
   String get posCheckoutComplete => 'إتمام البيع ذرياً';
   String get posCheckoutCompleted => 'تم ترحيل البيع والفاتورة بنجاح.';
+  String get posInvoiceHistoryTitle => 'فواتير المبيعات';
+  String get posInvoiceHistoryEmpty => 'لا توجد فواتير مبيعات مرحّلة بعد.';
+  String get posInvoiceDetailTitle => 'تفاصيل الفاتورة';
+  String get posInvoiceNotFound => 'تعذر العثور على الفاتورة.';
+  String get posInvoiceDueLabel => 'المتبقي';
+  String get posInvoiceExportPdf => 'تصدير ومشاركة PDF';
+  String get posInvoicePdfFailed => 'تعذر إنشاء PDF الفاتورة.';
   String get posWorkspaceLoadFailed => 'تعذر تجهيز مساحة نقطة البيع.';
   String get posWorkspaceCurrencyUnavailable =>
       'لا يمكن العثور على العملة الأساسية النشطة.';

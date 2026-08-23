@@ -6,6 +6,8 @@ import 'package:qayd/presentation/navigation/qayd_page_route.dart';
 import 'package:qayd/presentation/pages/pos/pos_catalog_page.dart';
 import 'package:qayd/presentation/pages/pos/pos_opening_balance_page.dart';
 import 'package:qayd/presentation/pages/pos/pos_checkout_page.dart';
+import 'package:qayd/presentation/pages/pos/pos_invoice_history_page.dart';
+import 'package:qayd/presentation/pos/pos_invoice_history_cubit.dart';
 import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/presentation/pos/pos_workspace_cubit.dart';
 import 'package:qayd/presentation/theme/spacing_tokens.dart';
@@ -71,6 +73,21 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
     );
   }
 
+  Future<void> _openInvoiceHistory(PosWorkspaceState state) async {
+    if (!state.isReady || !mounted) return;
+    await Navigator.of(context).push<void>(
+      QaydPageRoute.slideFromStart<void>(
+        builder: (_) => PosInvoiceHistoryPage(
+          cubit: PosInvoiceHistoryCubit(
+            listInvoices: InjectionContainer.listPosInvoicesUseCase,
+          ),
+          detailsUseCase: InjectionContainer.getPosInvoiceDetailsUseCase,
+          pdfUseCase: InjectionContainer.buildPosInvoicePdfUseCase,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openCatalog(PosWorkspaceState state) async {
     final currency = state.currency;
     if (currency == null || !state.isReady || !mounted) return;
@@ -104,6 +121,7 @@ class _PosWorkspaceViewState extends State<_PosWorkspaceView> {
                 onOpenCatalog: () => _openCatalog(state),
                 onOpenOpeningBalance: () => _openOpeningBalance(state),
                 onOpenCheckout: () => _openCheckout(state),
+                onOpenInvoiceHistory: () => _openInvoiceHistory(state),
               ),
           },
         );
@@ -118,12 +136,14 @@ class _ReadyWorkspace extends StatelessWidget {
     required this.onOpenCatalog,
     required this.onOpenOpeningBalance,
     required this.onOpenCheckout,
+    required this.onOpenInvoiceHistory,
   });
 
   final PosWorkspaceState state;
   final VoidCallback onOpenCatalog;
   final VoidCallback onOpenOpeningBalance;
   final VoidCallback onOpenCheckout;
+  final VoidCallback onOpenInvoiceHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +184,16 @@ class _ReadyWorkspace extends StatelessWidget {
             subtitle: Text(AppStrings.posCheckoutInputHint),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: onOpenCheckout,
+          ),
+        ),
+        const SizedBox(height: SpacingTokens.md),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.receipt_long_outlined),
+            title: Text(AppStrings.posInvoiceHistoryTitle),
+            subtitle: Text(AppStrings.posInvoiceExportPdf),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: onOpenInvoiceHistory,
           ),
         ),
       ],

@@ -5172,6 +5172,20 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posCheckoutCompleted => 'Sale and invoice posted successfully.';
   @override
+  String get posInvoiceHistoryTitle => 'Sales invoices';
+  @override
+  String get posInvoiceHistoryEmpty => 'No posted sales invoices yet.';
+  @override
+  String get posInvoiceDetailTitle => 'Invoice details';
+  @override
+  String get posInvoiceNotFound => 'The invoice could not be found.';
+  @override
+  String get posInvoiceDueLabel => 'Remaining due';
+  @override
+  String get posInvoiceExportPdf => 'Export and share PDF';
+  @override
+  String get posInvoicePdfFailed => 'Could not create the invoice PDF.';
+  @override
   String get posWorkspaceLoadFailed => 'Could not prepare the POS workspace.';
   @override
   String get posWorkspaceCurrencyUnavailable =>
