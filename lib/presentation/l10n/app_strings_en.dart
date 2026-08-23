@@ -5186,6 +5186,19 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get posInvoicePdfFailed => 'Could not create the invoice PDF.';
   @override
+  String get posDailySalesReportTitle => 'Daily sales report';
+  @override
+  String get posDailySalesReportFailed =>
+      'Could not create the daily sales report.';
+  @override
+  String get posDailySalesInvoiceCount => 'invoices';
+  @override
+  String get posDailySalesGross => 'Gross sales';
+  @override
+  String get posDailySalesPaid => 'Total paid';
+  @override
+  String get posDailySalesDue => 'Total due';
+  @override
   String get posWorkspaceLoadFailed => 'Could not prepare the POS workspace.';
   @override
   String get posWorkspaceCurrencyUnavailable =>

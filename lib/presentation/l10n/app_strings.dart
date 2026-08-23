@@ -2654,6 +2654,12 @@ class AppStrings {
   static String get posInvoiceDueLabel => i.posInvoiceDueLabel;
   static String get posInvoiceExportPdf => i.posInvoiceExportPdf;
   static String get posInvoicePdfFailed => i.posInvoicePdfFailed;
+  static String get posDailySalesReportTitle => i.posDailySalesReportTitle;
+  static String get posDailySalesReportFailed => i.posDailySalesReportFailed;
+  static String get posDailySalesInvoiceCount => i.posDailySalesInvoiceCount;
+  static String get posDailySalesGross => i.posDailySalesGross;
+  static String get posDailySalesPaid => i.posDailySalesPaid;
+  static String get posDailySalesDue => i.posDailySalesDue;
   static String get posWorkspaceLoadFailed => i.posWorkspaceLoadFailed;
   static String get posWorkspaceCurrencyUnavailable =>
       i.posWorkspaceCurrencyUnavailable;
