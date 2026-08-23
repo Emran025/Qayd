@@ -1,0 +1,218 @@
+name: Build & Release — Qayd Android
+
+# Release builds are tag-only. Supported tags:
+#   v1.2.3       -> versionName=1.2.3, versionCode=run_number
+#   v1.2.3+45    -> versionName=1.2.3, versionCode=45
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.47.1'
+  JAVA_VERSION: '17'
+
+jobs:
+  build:
+    name: Build signed Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout exact tag
+        uses: actions/checkout@v4
+
+      - name: Validate and extract version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\+[0-9]+)?$ ]]; then
+            echo "Unsupported release tag: $TAG" >&2
+            echo 'Expected v1.2.3 or v1.2.3+45.' >&2
+            exit 1
+          fi
+
+          VERSION="${TAG#v}"
+          if [[ "$VERSION" == *'+'* ]]; then
+            BUILD_NAME="${VERSION%%+*}"
+            BUILD_NUMBER="${VERSION##*+}"
+          else
+            BUILD_NAME="$VERSION"
+            BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+          fi
+
+          if (( BUILD_NUMBER < 1 || BUILD_NUMBER > 2100000000 )); then
+            echo "Invalid Android versionCode: $BUILD_NUMBER" >&2
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "build_name=$BUILD_NAME" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "apk_versioned=qayd-${TAG}.apk" >> "$GITHUB_OUTPUT"
+          echo "apk_canonical=qayd.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Materialize signing files in the runner workspace
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${ANDROID_KEYSTORE_BASE64:?Missing ANDROID_KEYSTORE_BASE64 secret}"
+          : "${ANDROID_KEYSTORE_PASSWORD:?Missing ANDROID_KEYSTORE_PASSWORD secret}"
+          : "${ANDROID_KEY_ALIAS:?Missing ANDROID_KEY_ALIAS secret}"
+          : "${ANDROID_KEY_PASSWORD:?Missing ANDROID_KEY_PASSWORD secret}"
+
+          mkdir -p android/keystore
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/keystore/qayd-release.jks
+          chmod 600 android/keystore/qayd-release.jks
+          cat > android/key.properties <<EOF
+          storeFile=keystore/qayd-release.jks
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+          chmod 600 android/key.properties
+
+      - name: Build signed release APK
+        shell: bash
+        env:
+          QAYD_API_URL: ${{ secrets.QAYD_API_URL }}
+          QAYD_ANDROID_APPLICATION_ID: ${{ vars.QAYD_ANDROID_APPLICATION_ID }}
+          REVERB_APP_KEY: ${{ secrets.REVERB_APP_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ENV: ${{ vars.SENTRY_ENV }}
+          SENTRY_RELEASE: ${{ vars.SENTRY_RELEASE }}
+          SENTRY_DIST: ${{ vars.SENTRY_DIST }}
+          SENTRY_ENABLED: ${{ vars.SENTRY_ENABLED }}
+        run: |
+          set -euo pipefail
+          : "${QAYD_API_URL:?Missing QAYD_API_URL secret}"
+          : "${QAYD_ANDROID_APPLICATION_ID:?Missing QAYD_ANDROID_APPLICATION_ID repository variable}"
+          if [[ ! "$QAYD_ANDROID_APPLICATION_ID" =~ ^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$ ]]; then
+            echo "Invalid Android applicationId format" >&2
+            exit 1
+          fi
+
+          flutter build apk \
+            --release \
+            --build-name="${{ steps.version.outputs.build_name }}" \
+            --build-number="${{ steps.version.outputs.build_number }}" \
+            --split-debug-info="debug-info/${{ steps.version.outputs.build_name }}" \
+            --dart-define="QAYD_API_URL=${QAYD_API_URL}" \
+            --dart-define="REVERB_APP_KEY=${REVERB_APP_KEY:-}" \
+            --dart-define="SENTRY_DSN=${SENTRY_DSN:-}" \
+            --dart-define="SENTRY_ENV=${SENTRY_ENV:-production}" \
+            --dart-define="SENTRY_RELEASE=${SENTRY_RELEASE:-${{ steps.version.outputs.build_name }}}" \
+            --dart-define="SENTRY_DIST=${SENTRY_DIST:-${{ steps.version.outputs.build_number }}}" \
+            --dart-define="SENTRY_ENABLED=${SENTRY_ENABLED:-false}" \
+            -- \
+            -PqaydApplicationId="$QAYD_ANDROID_APPLICATION_ID"
+
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/${{ steps.version.outputs.apk_versioned }}"
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/${{ steps.version.outputs.apk_canonical }}"
+          test -s "dist/${{ steps.version.outputs.apk_versioned }}"
+          test -s "dist/${{ steps.version.outputs.apk_canonical }}"
+
+      - name: Upload versioned APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qayd-apk-versioned
+          path: dist/${{ steps.version.outputs.apk_versioned }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload canonical APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qayd-apk-canonical
+          path: dist/${{ steps.version.outputs.apk_canonical }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload debug symbols artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qayd-debug-symbols
+          path: debug-info/
+          if-no-files-found: error
+          retention-days: 90
+
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      build_name: ${{ steps.version.outputs.build_name }}
+      build_number: ${{ steps.version.outputs.build_number }}
+      apk_versioned: ${{ steps.version.outputs.apk_versioned }}
+      apk_canonical: ${{ steps.version.outputs.apk_canonical }}
+
+  release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+
+    steps:
+      - name: Download versioned APK
+        uses: actions/download-artifact@v4
+        with:
+          name: qayd-apk-versioned
+          path: dist/
+
+      - name: Download canonical APK
+        uses: actions/download-artifact@v4
+        with:
+          name: qayd-apk-canonical
+          path: dist/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build.outputs.tag }}
+          name: "Qayd ${{ needs.build.outputs.build_name }}"
+          make_latest: true
+          fail_on_unmatched_files: true
+          body: |
+            ## قيد — الإصدار ${{ needs.build.outputs.build_name }}
+
+            ملفات Android الموقّعة متاحة في الأسفل. الملف `qayd.apk` هو الاسم الثابت المستخدم للرابط المباشر لأحدث إصدار.
+
+            | الملف | الوصف |
+            |---|---|
+            | `${{ needs.build.outputs.apk_versioned }}` | نسخة مرتبطة بهذا الإصدار |
+            | `${{ needs.build.outputs.apk_canonical }}` | الاسم الثابت لأحدث APK |
+
+            **Build:** `${{ needs.build.outputs.build_name }}+${{ needs.build.outputs.build_number }}`
+            **Tag:** `${{ needs.build.outputs.tag }}`
+          files: |
+            dist/${{ needs.build.outputs.apk_versioned }}
+            dist/${{ needs.build.outputs.apk_canonical }}
