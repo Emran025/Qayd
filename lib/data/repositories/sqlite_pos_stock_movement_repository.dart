@@ -46,10 +46,20 @@ final class SqlitePosStockMovementRepository
 
   @override
   Future<Result<PosStockMovement?>> getByIdempotencyKey(String key) async {
+    return getByIdempotencyKeyInTransaction(_db, key);
+  }
+
+  /// Reads an idempotent movement using an existing transaction executor.
+  ///
+  /// This is a Data-layer hook used by the atomic POS posting coordinator.
+  Future<Result<PosStockMovement?>> getByIdempotencyKeyInTransaction(
+    DatabaseExecutor executor,
+    String key,
+  ) async {
     final normalized = key.trim();
     if (normalized.isEmpty) return const Success(null);
     try {
-      final rows = await _db.query(
+      final rows = await executor.query(
         'pos_stock_movements',
         where: 'idempotency_key = ?',
         whereArgs: [normalized],
@@ -118,6 +128,61 @@ final class SqlitePosStockMovementRepository
       return _productNotFoundVoid();
     } on _StockMovementPolicyException catch (error) {
       return FailureResult(ValidationFailure(messageAr: error.messageAr));
+    } on DatabaseException {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.posStockAppendFailed),
+      );
+    } catch (_) {
+      return FailureResult(
+        DatabaseFailure(messageAr: AppStrings.posStockAppendFailed),
+      );
+    }
+  }
+
+  /// Appends a movement using an existing transaction executor.
+  ///
+  /// It never opens a nested transaction and is intentionally a Data-layer
+  /// hook for the atomic POS posting coordinator.
+  Future<Result<void>> appendInTransaction(
+    DatabaseExecutor executor,
+    PosStockMovement movement,
+  ) async {
+    try {
+      final duplicate = await executor.query(
+        'pos_stock_movements',
+        where: 'idempotency_key = ?',
+        whereArgs: [movement.idempotencyKey],
+        limit: 1,
+      );
+      if (duplicate.isNotEmpty) {
+        if (_rowMatchesMovement(duplicate.first, movement)) {
+          return const Success(null);
+        }
+        return FailureResult(
+          ValidationFailure(messageAr: AppStrings.posStockIdempotencyExists),
+        );
+      }
+
+      final context = await _loadProductContext(executor, movement.productId);
+      if (context == null) return _productNotFoundVoid();
+      final balance = await _readBalance(
+        executor,
+        productId: movement.productId,
+        warehouseId: movement.warehouseId,
+        currency: context.currency,
+        scale: context.scale,
+      );
+      try {
+        balance.apply(movement);
+      } on InvalidPosStockException catch (error) {
+        return FailureResult(ValidationFailure(messageAr: error.messageAr));
+      }
+      await executor.insert(
+        'pos_stock_movements',
+        _toRow(movement),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+      return const Success(null);
     } on DatabaseException {
       return FailureResult(
         DatabaseFailure(messageAr: AppStrings.posStockAppendFailed),

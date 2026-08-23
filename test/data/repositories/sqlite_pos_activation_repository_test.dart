@@ -68,6 +68,74 @@ void main() {
       );
     });
 
+    test('reads enabled template account map without provisioning or mutation',
+        () async {
+      final template = PosTemplateDefinition.current();
+      await repository.installTemplate(
+        template: template,
+        now: DateTime.utc(2026, 1, 1),
+        deviceId: 'device-a',
+      );
+      final beforeSettings = await db.query('pos_settings');
+      final beforeAccounts = await db.query('accounts', orderBy: 'id ASC');
+
+      final result =
+          await repository.getEnabledInstallation(template: template);
+
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull?.warehouseId, isNotEmpty);
+      expect(
+        result.valueOrNull
+            ?.accountIdsByKey[PosTemplateAccountKey.inventoryAsset.value],
+        isNotEmpty,
+      );
+      expect(
+        result.valueOrNull?.accountIdsByKey[
+            PosTemplateAccountKey.openingBalanceClearing.value],
+        isNotEmpty,
+      );
+      expect(await db.query('pos_settings'), equals(beforeSettings));
+      expect(await db.query('accounts', orderBy: 'id ASC'),
+          equals(beforeAccounts));
+    });
+
+    test('returns null from typed installation lookup while disabled',
+        () async {
+      final template = PosTemplateDefinition.current();
+      await repository.installTemplate(
+        template: template,
+        now: DateTime.utc(2026, 1, 1),
+        deviceId: 'device-a',
+      );
+      await repository.disable();
+
+      final result =
+          await repository.getEnabledInstallation(template: template);
+
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull, isNull);
+    });
+
+    test('fails closed when settings say enabled but install row is missing',
+        () async {
+      final template = PosTemplateDefinition.current();
+      await db.insert('pos_settings', <String, Object?>{
+        'id': 1,
+        'is_enabled': 1,
+        'template_key': template.templateKey,
+        'template_version': template.version,
+        'warehouse_id': 'warehouse-missing-install',
+        'cost_method': template.costMethod,
+        'created_at': '2026-01-01T00:00:00.000Z',
+        'updated_at': '2026-01-01T00:00:00.000Z',
+      });
+
+      final result =
+          await repository.getEnabledInstallation(template: template);
+
+      expect(result.isFailure, isTrue);
+    });
+
     test('returns no warehouse while POS is disabled', () async {
       expect((await repository.getEnabledWarehouseId()).valueOrNull, isNull);
 

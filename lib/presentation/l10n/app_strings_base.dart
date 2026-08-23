@@ -2830,6 +2830,17 @@ abstract class AppStringsBase {
       'يجب أن يكونا حسابا القيد مختلفين.';
   String get posOpeningBalanceAccountingDescription =>
       'قيد افتتاحي لمخزون نقطة البيع';
+  String get posAccountingEntriesRequired => 'قيود القيد المحاسبي مطلوبة.';
+  String get posAccountingDateMismatch =>
+      'يجب أن يتطابق تاريخ حركة المخزون مع تاريخ القيد.';
+  String get posAccountingSourceMismatch =>
+      'مرجع الحركة والقيد المحاسبي غير متطابق.';
+  String get posAccountingDuplicateSource =>
+      'مرجع القيد المحاسبي مسجل مسبقاً.';
+  String get posAccountingTransactionFailed =>
+      'تعذر حفظ المخزون والقيد المحاسبي معاً.';
+  String get posAccountingPartialState =>
+      'حالة جزئية غير مكتملة تمنع إعادة المحاولة تلقائياً.';
   String get posCatalogTitle => 'كتالوج المنتجات';
   String get posCatalogSearchHint => 'ابحث بالاسم أو الرمز أو الباركود';
   String get posCatalogAddProduct => 'إضافة منتج';
