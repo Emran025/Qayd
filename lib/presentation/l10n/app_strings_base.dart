@@ -2153,6 +2153,11 @@ abstract class AppStringsBase {
   String get unlockAction => 'فتح القفل';
   String get updateAccountStatus => 'تحديث حالة الحساب';
   String get updateError => 'خطأ في التحديث';
+  String get appUpdateAvailableTitle => 'يتوفر تحديث للتطبيق';
+  String get appUpdateAvailableBody => 'يمكن تنزيل تحسينات Flutter الآن دون انتظار تحديث المتجر.';
+  String get appUpdateInstallAction => 'تنزيل التحديث';
+  String get appUpdateRestartBody => 'تم تنزيل التحديث. أغلق التطبيق وافتحه مجدداً لتفعيله.';
+  String get appUpdateInstalling => 'جاري تنزيل التحديث…';
   String get updateOnTheBond => 'تحديث على السند';
   String get updateOnTheTransfer => 'تحديث على الحوالة';
   String get uruguay => 'أوروغواي';

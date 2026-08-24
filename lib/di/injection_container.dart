@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:qayd/application/accruals/process_accrual_use_case.dart';
+import 'package:qayd/application/app_updates/check_app_update_use_case.dart';
+import 'package:qayd/application/app_updates/install_app_update_use_case.dart';
 import 'package:qayd/application/backup/restore_from_backup_use_case.dart';
 import 'package:qayd/application/cost_centers/update_cost_center_use_case.dart';
 import 'package:qayd/application/identity/sync_identity_to_internal_accounts_use_case.dart';
@@ -9,8 +11,10 @@ import 'package:qayd/application/notifications/collateral_expiry_checker.dart';
 import 'package:qayd/application/suggestions/analyze_for_suggestions_use_case.dart';
 import 'package:qayd/application/vouchers/resolve_conflict_use_case.dart';
 import 'package:qayd/data/file_system/backup_file_manager.dart';
+import 'package:qayd/data/services/shorebird_app_update_repository.dart';
 import 'package:qayd/domain/value_objects/mnemonic_phrase.dart';
 import 'package:qayd/presentation/backup/restore_cubit.dart';
+import 'package:qayd/presentation/updates/app_update_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:qayd/application/accounts/batch_import_accounts_from_csv_use_case.dart';
@@ -123,6 +127,7 @@ import 'package:qayd/data/security/license_vault.dart';
 import 'package:qayd/data/security/monotonic_clock_guard.dart';
 import 'package:qayd/data/security/panic_wipe_service.dart';
 import 'package:qayd/domain/repositories/auth_repository.dart';
+import 'package:qayd/domain/repositories/app_update_repository.dart';
 import 'package:qayd/domain/repositories/identity_repository.dart';
 import 'package:qayd/domain/repositories/currency_repository.dart';
 import 'package:qayd/domain/repositories/message_template_repository.dart';
@@ -412,6 +417,10 @@ abstract final class InjectionContainer {
   // ── App Settings & Info ────────────────────────────────────────────────
   static late final SharedPreferences sharedPreferences;
   static late final AppConfigRepository appConfigRepository;
+  static late final AppUpdateRepository appUpdateRepository;
+  static late final CheckAppUpdateUseCase checkAppUpdateUseCase;
+  static late final InstallAppUpdateUseCase installAppUpdateUseCase;
+  static late final AppUpdateCubit appUpdateCubit;
 
   // ── Attachments & Collateral ────────────────────────────────────────────
   static late AttachmentRepository attachmentRepository;
@@ -494,6 +503,18 @@ abstract final class InjectionContainer {
     sharedPreferences = await SharedPreferences.getInstance();
 
     appearanceSettingsCubit = AppearanceSettingsCubit(sharedPreferences);
+
+    appUpdateRepository = ShorebirdAppUpdateRepository();
+    checkAppUpdateUseCase = CheckAppUpdateUseCase(
+      repository: appUpdateRepository,
+    );
+    installAppUpdateUseCase = InstallAppUpdateUseCase(
+      repository: appUpdateRepository,
+    );
+    appUpdateCubit = AppUpdateCubit(
+      checkUpdate: checkAppUpdateUseCase,
+      installUpdate: installAppUpdateUseCase,
+    );
 
     // ── Phase 7: Security bootstrap ─────────────────────────────────────────
 

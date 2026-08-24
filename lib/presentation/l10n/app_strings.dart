@@ -2060,6 +2060,11 @@ class AppStrings {
   static String get unlockAction => i.unlockAction;
   static String get updateAccountStatus => i.updateAccountStatus;
   static String get updateError => i.updateError;
+  static String get appUpdateAvailableTitle => i.appUpdateAvailableTitle;
+  static String get appUpdateAvailableBody => i.appUpdateAvailableBody;
+  static String get appUpdateInstallAction => i.appUpdateInstallAction;
+  static String get appUpdateRestartBody => i.appUpdateRestartBody;
+  static String get appUpdateInstalling => i.appUpdateInstalling;
   static String get updateOnTheBond => i.updateOnTheBond;
   static String get updateOnTheTransfer => i.updateOnTheTransfer;
   static String get uruguay => i.uruguay;

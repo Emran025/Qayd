@@ -4192,6 +4192,16 @@ class AppStringsEn extends AppStringsBase {
   @override
   String get updateError => 'Update Error';
   @override
+  String get appUpdateAvailableTitle => 'An app update is available';
+  @override
+  String get appUpdateAvailableBody => 'Flutter improvements can be downloaded without waiting for a store update.';
+  @override
+  String get appUpdateInstallAction => 'Download update';
+  @override
+  String get appUpdateRestartBody => 'The update is ready. Close and reopen the app to activate it.';
+  @override
+  String get appUpdateInstalling => 'Downloading update…';
+  @override
   String get updateOnTheBond => 'Update on Voucher';
   @override
   String get updateOnTheTransfer => 'Update on Transfer';
