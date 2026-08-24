@@ -1,0 +1,5 @@
+# This file configures the Shorebird updater for the single Qayd app.
+# Replace the placeholder with the app_id created in Shorebird Console.
+# The app_id is public configuration, not a secret.
+app_id: REPLACE_WITH_QAYD_SHOREBIRD_APP_ID
+auto_update: false

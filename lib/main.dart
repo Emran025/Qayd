@@ -7,6 +7,8 @@ import 'package:qayd/di/injection_container.dart';
 import 'package:qayd/observability/observability.dart';
 import 'package:qayd/presentation/governance/governance_cubit.dart';
 import 'package:qayd/presentation/sync/sync_status_cubit.dart';
+import 'package:qayd/presentation/updates/app_update_banner.dart';
+import 'package:qayd/presentation/updates/app_update_cubit.dart';
 import 'package:qayd/presentation/l10n/app_strings.dart';
 import 'package:qayd/presentation/pages/auth/database_recovery_page.dart';
 import 'package:qayd/presentation/pages/auth/login_page.dart';
@@ -199,6 +201,9 @@ class _QaydAppBootstrapperState extends State<QaydAppBootstrapper> {
                 BlocProvider<SyncStatusCubit>.value(
                   value: InjectionContainer.syncStatusCubit,
                 ),
+                BlocProvider<AppUpdateCubit>.value(
+                  value: InjectionContainer.appUpdateCubit,
+                ),
               ],
               child: const SecurityLifecycleObserver(child: QaydApp()),
             ),
@@ -345,6 +350,8 @@ class _QaydAppState extends State<QaydApp> {
   void initState() {
     super.initState();
     _checkOnboardingStatus();
+    // Shorebird checks are network-bound; never block the authenticated shell.
+    unawaited(InjectionContainer.appUpdateCubit.check());
   }
 
   Future<void> _checkOnboardingStatus() async {
@@ -409,6 +416,12 @@ class _QaydAppState extends State<QaydApp> {
                     fit: StackFit.expand,
                     children: [
                       child ?? const SizedBox.shrink(),
+                      const Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: SafeArea(child: AppUpdateBanner()),
+                      ),
                       BlocBuilder<SecurityCubit, SecurityState>(
                         builder: (context, sec) {
                           if (!sec.isLocked) return const SizedBox.shrink();
